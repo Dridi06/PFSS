@@ -1,0 +1,36 @@
+/* PFSS BLACK & GOLD LUXURY — DESIGN UPDATE
+   Add this entire file to the END of the existing styles.css.
+   Existing application functionality and responsive rules remain intact. */
+:root{--bg:#090a0c;--surface:#121416;--ink:#f3eee3;--muted:#9b968b;--line:#302b22;--navy:#090a0c;--navy2:#171819;--lime:#d6b56d;--lime-dark:#f2d99b;--blue:#d6b56d;--shadow:0 18px 48px rgba(0,0,0,.38)}
+html{background:var(--bg);color-scheme:dark}
+body{background:radial-gradient(ellipse at 78% -12%,#49391d38,transparent 38%),linear-gradient(145deg,#090a0c,#0d0e10 55%,#090a0c);color:var(--ink)}
+.sidebar{background:linear-gradient(180deg,#101112,#090a0b 75%);border-right:1px solid #3b3020;box-shadow:12px 0 45px #0008}
+.brand-mark{background:linear-gradient(145deg,#f7e2a9,#a77e38 55%,#6c4c20);color:#15120c;box-shadow:0 4px 20px #d6b56d42,inset 0 1px 1px #fff9}
+.brand strong{color:#f4e7c8}.brand small{color:#9e8a63}
+.workspace-label,.eyebrow{color:#a18a5d}
+.nav-item{color:#aaa49a;border:1px solid transparent;transition:.2s}
+.nav-item:hover,.nav-item.active{background:linear-gradient(110deg,#d6b56d1b,#d6b56d08);border-color:#8e713d55;color:#f4e8cf}
+.nav-item.active{box-shadow:inset 3px 0 var(--lime),0 5px 18px #0003}.nav-icon{color:var(--gold,#d6b56d)}
+.sidebar-status{border-color:#30291f}.sidebar-status b,.profile-mini b{color:#e9e0d0}.sidebar-status small,.profile-mini small{color:#8c8375}
+.status-dot{background:#c7a65d;box-shadow:0 0 0 4px #c7a65d20,0 0 12px #c7a65d}
+.avatar,.top-avatar{background:linear-gradient(145deg,#d9bd7e,#765a2c);color:#17130b}.top-avatar{border:1px solid #7d6338}
+.topbar{border-bottom:1px solid #30291f}.breadcrumb{color:#827c71}.breadcrumb b{color:#e8dfce}.breadcrumb i{color:#554b3b}.online-pill{color:#b6a783}
+.page-heading .eyebrow{color:#a88d59}.page-heading h1{color:#f4eee2}.page-heading p{color:var(--muted)}
+.btn-primary{background:linear-gradient(135deg,#f2d99b,#c49b50 58%,#9b7537);color:#17130b;box-shadow:0 5px 20px #c49b5038,inset 0 1px #fff9}.btn-primary:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 9px 26px #c49b5050}
+.btn-light{background:linear-gradient(135deg,#f4e5c3,#c7a66a);color:#17130b}.btn-secondary{background:linear-gradient(145deg,#27231b,#191817);color:#e5c783;border:1px solid #725a32}.btn-ghost{background:#1b1c1d;color:#c9b98e;border:1px solid #393126}
+.hero-panel{background:radial-gradient(ellipse at 78% 40%,#b48b4524,transparent 38%),linear-gradient(112deg,#171819,#0e0f10 70%,#211a10);border:1px solid #66502c;box-shadow:0 18px 55px #0008,inset 0 1px #ffffff10}
+.hero-panel:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,#ffffff08 48%,transparent 70%);pointer-events:none}
+.hero-tag,.hero-copy h2 em{color:#f2d99b}.hero-copy h2{color:#f7f0e4}.hero-copy h2 em{text-shadow:0 0 25px #d6b56d42}.hero-copy p{color:#aaa398}
+.pitch{border-color:#d6b56d66;background:linear-gradient(135deg,#d6b56d12,#ffffff02);box-shadow:0 0 35px #c49b5012}.pitch:before,.pitch:after,.pitch-circle,.pitch-box{border-color:#d6b56d55}.pitch-line{border-color:#d6b56d55}.pitch-dot{background:#f3d68f;box-shadow:0 0 15px #f3d68f}.orbit{border-color:#d6b56d20}
+.stat-card,.panel{background:linear-gradient(145deg,#191b1d,#111314);border-color:#393126;box-shadow:var(--shadow),inset 0 1px #ffffff08}.stat-card{position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#ffffff06,transparent 42%);pointer-events:none}.stat-top{color:#a59c8d}.stat-icon{color:#d6b56d}.stat-card>strong{color:#f2e5c9}.stat-card>small{color:#928a7d}.accent-stat{background:linear-gradient(145deg,#282115,#17140f);border-color:#806538}
+.panel h3{color:#f0e8d9}.text-button{color:#d5b56f}.empty-state{color:#9b9386}.empty-state b{color:#e7dece}.empty-state p{color:#999184}.empty-icon{color:#d6b56d}
+.quick-link{border-top-color:#332d23;color:var(--ink)}.quick-icon{background:linear-gradient(145deg,#44351d,#211b12);border:1px solid #806538;color:#e4c47e}.quick-link b{color:#e8dfd0}.quick-link small{color:#91897d}.quick-link i{color:#c7a76b}
+.footer{border-top-color:#30291f;color:#81796c}
+.search-box{background:#151718;border-color:#393126;color:#c5a76b}.search-box input{color:#f0e8d9;background:transparent}select{border-color:#393126;background:#171819;color:#d7cbb4}
+.player-card{background:linear-gradient(145deg,#1d1e1f,#111314);border-color:#403526;box-shadow:var(--shadow),inset 0 1px #ffffff09;transition:.2s}.player-card:hover{transform:translateY(-3px);border-color:#9b7944;box-shadow:0 18px 40px #0008,0 0 0 1px #b18b4a20}.player-initial{background:linear-gradient(145deg,#e6cd91,#98723a);color:#17130b;box-shadow:0 4px 14px #c49b5030}.player-card h3{color:#f0e8d9}.player-card small{color:#a49a88}.tag{background:#29251e;color:#d2bb88;border:1px solid #4a3a23}
+.wide{background:linear-gradient(145deg,#191b1d,#111314);border-color:#393126}.report-card{background:linear-gradient(145deg,#1d1e1f,#111314);border-color:#403526;box-shadow:var(--shadow)}.rating-bubble{background:linear-gradient(145deg,#e7cf96,#9b7439);color:#18140c}.report-card h3{color:#f0e8d9}.report-card p{color:#aaa193}.report-card small{color:#938a7c}
+.notice{background:linear-gradient(110deg,#2b2418,#191713);border-color:#70572f;color:#d7bd82}.notice p{color:#c6b99f}.notice b{color:#f0d79c}
+.media-card{background:#17191a;border-color:#403526;box-shadow:var(--shadow)}.media-card img,.media-card video{background:#090a0c}.media-card div{color:#c4b99f}
+.modal{border:1px solid #806538;background:#151718;color:#eee5d5;box-shadow:0 25px 90px #000c}.modal::backdrop{background:#030405d9;backdrop-filter:blur(6px)}.modal-head h2{color:#f2e8d6}.modal-head .eyebrow{color:#b89a60}.close-button{border:1px solid #51422c;background:#211e18;color:#d7bd82}.field{color:#c9bda7}.field input,.field select,.field textarea{border-color:#484033;color:#f0e8d9;background:#0e1011}.field input:focus,.field textarea:focus,.field select:focus{border-color:#c7a15b;box-shadow:0 0 0 3px #d6b56d20}
+.toast{background:linear-gradient(135deg,#292216,#151412);border:1px solid #8b6c38;color:#f3e4c2;box-shadow:var(--shadow)}
+@media(max-width:760px){.sidebar.open{box-shadow:20px 0 40px #000b}.mobile-menu{color:#e2d3b2}}
