@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="PFSS – Professional Football Scouting System">
+  <title>PFSS | Football Scouting</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" aria-label="PFSS Startseite">
+        <span class="brand-mark">P</span>
+        <span><strong>PFSS</strong><small>SCOUTING SYSTEM</small></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Hauptnavigation">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">◫</span>Dashboard</button>
+        <button class="nav-item" data-view="players"><span class="nav-icon">♙</span>Spieler</button>
+        <button class="nav-item" data-view="reports"><span class="nav-icon">▤</span>Scouting-Berichte</button>
+        <button class="nav-item" data-view="media"><span class="nav-icon">▧</span>Medien</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-status"><span class="status-dot"></span><span><b>System bereit</b><small>Lokaler Prototyp</small></span></div>
+        <div class="profile-mini"><div class="avatar">PF</div><span><b>Scouting Team</b><small>Administrator</small></span></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="menuToggle" aria-label="Menü öffnen">☰</button>
+        <div class="breadcrumb"><span>PFSS</span><i>/</i><b id="pageTitle">Dashboard</b></div>
+        <div class="topbar-right"><span class="online-pill"><span class="status-dot"></span>ONLINE</span><div class="top-avatar">PF</div></div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="page-heading">
+          <div><div class="eyebrow">ÜBERSICHT</div><h1>Dashboard</h1><p>Willkommen bei deinem Professional Football Scouting System.</p></div>
+          <button class="btn btn-primary" data-action="new-player">＋ Spieler hinzufügen</button>
+        </div>
+        <div class="hero-panel">
+          <div class="hero-copy"><span class="hero-tag">PROFESSIONAL FOOTBALL SCOUTING</span><h2>Entdecke Potenziale.<br><em>Bewerte Leistung.</em></h2><p>Alle wichtigen Scouting-Informationen an einem Ort – strukturiert, übersichtlich und jederzeit griffbereit.</p><button class="btn btn-light" data-view="players">Spielerdatenbank öffnen <span>→</span></button></div>
+          <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="pitch"><div class="pitch-line"></div><div class="pitch-circle"></div><div class="pitch-box"></div><span class="pitch-dot"></span></div><div class="hero-number">01</div></div>
+        </div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top"><span>SPIELER GESAMT</span><span class="stat-icon">♙</span></div><strong id="statPlayers">0</strong><small>In deiner Datenbank</small></article>
+          <article class="stat-card"><div class="stat-top"><span>SCOUTING-BERICHTE</span><span class="stat-icon">▤</span></div><strong id="statReports">0</strong><small>Erstellte Bewertungen</small></article>
+          <article class="stat-card"><div class="stat-top"><span>MEDIEN-DATEIEN</span><span class="stat-icon">▧</span></div><strong id="statMedia">0</strong><small>Lokal gespeicherte Dateien</small></article>
+          <article class="stat-card accent-stat"><div class="stat-top"><span>Ø BEWERTUNG</span><span class="stat-icon">✧</span></div><strong id="statRating">–</strong><small>Durchschnitt aller Berichte</small></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel"><div class="panel-heading"><div><div class="eyebrow">NEU IM SYSTEM</div><h3>Zuletzt hinzugefügt</h3></div><button class="text-button" data-view="players">Alle Spieler →</button></div><div id="recentPlayers" class="empty-state"><span class="empty-icon">♙</span><b>Noch keine Spieler vorhanden</b><p>Lege deinen ersten Spieler an, um deine Datenbank aufzubauen.</p><button class="btn btn-secondary" data-action="new-player">Spieler anlegen</button></div></article>
+          <article class="panel quick-panel"><div class="eyebrow">SCHNELLZUGRIFF</div><h3>Was möchtest du tun?</h3><button class="quick-link" data-action="new-player"><span class="quick-icon">＋</span><span><b>Spieler erfassen</b><small>Neues Spielerprofil anlegen</small></span><i>→</i></button><button class="quick-link" data-action="new-report"><span class="quick-icon">▤</span><span><b>Bericht erstellen</b><small>Leistung dokumentieren</small></span><i>→</i></button><button class="quick-link" data-view="media"><span class="quick-icon">▧</span><span><b>Medien verwalten</b><small>Fotos und Videos hinzufügen</small></span><i>→</i></button></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-players">
+        <div class="page-heading"><div><div class="eyebrow">DATENBANK</div><h1>Spieler</h1><p>Verwalte Profile, Positionen und Spielerinformationen.</p></div><button class="btn btn-primary" data-action="new-player">＋ Spieler hinzufügen</button></div>
+        <div class="toolbar"><label class="search-box"><span>⌕</span><input id="playerSearch" type="search" placeholder="Spieler suchen …"></label><select id="positionFilter" aria-label="Position filtern"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></div>
+        <div id="playerGrid" class="player-grid"><div class="empty-state wide"><span class="empty-icon">♙</span><b>Deine Spielerdatenbank ist noch leer</b><p>Erstelle ein Spielerprofil, um loszulegen.</p><button class="btn btn-secondary" data-action="new-player">Ersten Spieler anlegen</button></div></div>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="page-heading"><div><div class="eyebrow">ANALYSE</div><h1>Scouting-Berichte</h1><p>Halte Beobachtungen und Leistungsbewertungen fest.</p></div><button class="btn btn-primary" data-action="new-report">＋ Bericht erstellen</button></div>
+        <div id="reportList" class="report-list"><div class="empty-state"><span class="empty-icon">▤</span><b>Noch keine Berichte vorhanden</b><p>Erstelle einen Bericht, um Spielerleistungen zu dokumentieren.</p><button class="btn btn-secondary" data-action="new-report">Bericht erstellen</button></div></div>
+      </section>
+
+      <section class="view" id="view-media">
+        <div class="page-heading"><div><div class="eyebrow">BIBLIOTHEK</div><h1>Medien</h1><p>Verwalte Testfotos und Videos für deine Scouting-Arbeit.</p></div><label class="btn btn-primary upload-button">＋ Dateien hinzufügen<input id="mediaInput" type="file" accept="image/*,video/*" multiple hidden></label></div>
+        <div class="notice"><span>ⓘ</span><p><b>Hinweis zum aktuellen Prototyp:</b> Medien werden nur in diesem Browser auf diesem Gerät gespeichert. Für geräteübergreifende Synchronisierung verbinden wir später einen Cloud-Speicher.</p></div>
+        <div id="mediaGrid" class="media-grid"><div class="empty-state wide"><span class="empty-icon">▧</span><b>Deine Medienbibliothek ist leer</b><p>Füge Fotos oder Videos von deinem Gerät hinzu.</p><label class="btn btn-secondary upload-button">Dateien auswählen<input type="file" accept="image/*,video/*" multiple hidden></label></div></div>
+      </section>
+
+      <footer class="footer"><span>© 2026 PFSS · Professional Football Scouting System</span><span>BUILD 0.1.0 · PROTOTYPE</span></footer>
+    </main>
+  </div>
+
+  <dialog id="playerDialog" class="modal">
+    <form id="playerForm" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">SPIELERDATENBANK</div><h2>Spielerprofil anlegen</h2></div><button type="button" class="close-button" data-close="playerDialog">×</button></div>
+      <div class="form-grid"><label class="field full">Vollständiger Name<input name="name" required placeholder="z. B. Max Mustermann"></label><label class="field">Geburtsdatum<input name="birth" type="date"></label><label class="field">Nationalität<input name="nationality" placeholder="z. B. Deutschland"></label><label class="field">Position<select name="position"><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label><label class="field">Verein<input name="club" placeholder="Aktueller Verein"></label><label class="field">Größe (cm)<input name="height" type="number" min="100" max="230" placeholder="180"></label><label class="field">Starker Fuß<select name="foot"><option value="">Nicht angegeben</option><option>Rechts</option><option>Links</option><option>Beidfüßig</option></select></label><label class="field full">Notizen<textarea name="notes" rows="3" placeholder="Erste Eindrücke, Besonderheiten …"></textarea></label></div>
+      <div class="modal-actions"><button type="button" class="btn btn-ghost" data-close="playerDialog">Abbrechen</button><button class="btn btn-primary" type="submit">Spieler speichern</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="reportDialog" class="modal">
+    <form id="reportForm" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">LEISTUNGSANALYSE</div><h2>Scouting-Bericht erstellen</h2></div><button type="button" class="close-button" data-close="reportDialog">×</button></div>
+      <div class="form-grid"><label class="field full">Spieler<select name="playerId" id="reportPlayerSelect" required><option value="">Spieler auswählen</option></select></label><label class="field">Beobachtungsdatum<input name="date" type="date" required></label><label class="field">Gesamtbewertung (1–10)<input name="rating" type="number" min="1" max="10" step="0.5" required placeholder="7.5"></label><label class="field full">Beobachtung / Einschätzung<textarea name="notes" rows="5" required placeholder="Technik, Spielverständnis, Athletik, Mentalität …"></textarea></label></div>
+      <div class="modal-actions"><button type="button" class="btn btn-ghost" data-close="reportDialog">Abbrechen</button><button class="btn btn-primary" type="submit">Bericht speichern</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
