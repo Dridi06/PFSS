@@ -58,19 +58,27 @@ function showView(view) {
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.view === view);
   });
-  const clubViews = ['clubs', 'teams', 'staff', 'players', 'scouts'];
   document.querySelectorAll('.nav-subitem').forEach(el => {
     el.classList.toggle('active', el.dataset.view === view);
   });
+  const clubViews = ['clubs', 'teams', 'staff', 'players', 'scouts'];
   const clubToggle = document.querySelector('[data-nav-toggle="clubSubnav"]');
   const clubSubnav = document.getElementById('clubSubnav');
   if (clubToggle && clubSubnav && clubViews.includes(view)) {
     clubSubnav.hidden = false;
     clubToggle.setAttribute('aria-expanded', 'true');
-    clubToggle.classList.add('expanded');
-    clubToggle.classList.add('active');
+    clubToggle.classList.add('expanded', 'active');
   } else if (clubToggle && clubSubnav) {
     clubToggle.classList.remove('active');
+  }
+  const teamToggle = document.querySelector('[data-nav-toggle="teamSubnav"]');
+  const teamSubnav = document.getElementById('teamSubnav');
+  if (teamToggle && teamSubnav && view === 'team-workspace') {
+    teamSubnav.hidden = false;
+    teamToggle.setAttribute('aria-expanded', 'true');
+    teamToggle.classList.add('expanded', 'active');
+  } else if (teamToggle && teamSubnav) {
+    teamToggle.classList.remove('active');
   }
 
   const names = {
@@ -83,7 +91,8 @@ function showView(view) {
     reports: 'Scouting-Berichte',
     media: 'Medien',
     admin: 'Administration',
-    backup: 'Datensicherung'
+    backup: 'Datensicherung',
+    'team-workspace': 'Meine Mannschaft'
   };
 
   document.getElementById('pageTitle').textContent =
