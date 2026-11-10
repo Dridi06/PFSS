@@ -308,3 +308,42 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
     touch-action:none;
   }
 }
+
+
+/* Verein als aufklappbarer Navigationsbereich mit zugeordneten Modulen */
+.nav-group-toggle{width:100%;position:relative}
+.nav-group-toggle .nav-label{flex:1}
+.nav-chevron{margin-left:auto;color:#b99a60;font-size:21px;line-height:1;transition:transform .18s ease}
+.nav-group-toggle.expanded .nav-chevron{transform:rotate(90deg)}
+.nav-submenu{
+  display:grid;
+  gap:4px;
+  margin:2px 0 12px 27px;
+  padding:7px 0 7px 13px;
+  border-left:1px solid #6e5733;
+}
+.nav-submenu[hidden]{display:none}
+.nav-subitem{
+  width:100%;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  padding:9px 12px;
+  border:1px solid transparent;
+  border-radius:7px;
+  background:transparent;
+  color:#aaa49a;
+  text-align:left;
+  font:500 12px 'DM Sans',sans-serif;
+  cursor:pointer;
+}
+.nav-subitem:hover,.nav-subitem.active{
+  color:#f4e8cf;
+  background:linear-gradient(110deg,#d6b56d18,#d6b56d06);
+  border-color:#8e713d44;
+}
+.nav-group-toggle.active{color:#f4e8cf}
+@media(max-width:760px){
+  .nav-submenu{margin-left:24px;padding-left:11px}
+  .nav-subitem{min-height:46px;font-size:13px;padding:10px 13px}
+}
