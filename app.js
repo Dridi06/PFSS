@@ -50,7 +50,20 @@ function toast(message) {
   );
 }
 
-function showView(view, navElement = null) {
+function showView(view, navElement = null, fromPopState = false) {
+  const selectedLabel = navElement?.textContent?.trim() || (
+    view === 'team-workspace' ? 'Mannschaftsübersicht' : ''
+  );
+  if (!fromPopState && window.history?.pushState) {
+    const current = window.history.state;
+    if (!current?.pfssView || current.pfssView !== view || current.pfssLabel !== selectedLabel) {
+      window.history.pushState(
+        { pfssView: view, pfssLabel: selectedLabel },
+        '',
+        window.location.pathname + window.location.search
+      );
+    }
+  }
   document.querySelectorAll('.view').forEach(el => {
     el.classList.toggle('active', el.id === `view-${view}`);
   });
@@ -97,17 +110,17 @@ function showView(view, navElement = null) {
 
   if (view === 'team-workspace') {
     const teamCards = [...document.querySelectorAll('#view-team-workspace .team-module-grid .module-card')];
-    const selectedLabel = navElement?.textContent?.trim() || 'Mannschaftsübersicht';
+    const teamLabel = selectedLabel || 'Mannschaftsübersicht';
     const overviewNote = document.querySelector('#view-team-workspace .team-workspace-note');
     teamCards.forEach(card => {
       const heading = card.querySelector('h3')?.textContent?.trim() || '';
-      card.hidden = selectedLabel === 'Mannschaftsübersicht' || heading !== selectedLabel;
+      card.hidden = teamLabel === 'Mannschaftsübersicht' || heading !== teamLabel;
     });
     if (overviewNote) overviewNote.hidden = selectedLabel !== 'Mannschaftsübersicht';
     const heading = document.querySelector('#view-team-workspace .page-heading h1');
-    if (heading) heading.textContent = selectedLabel;
+    if (heading) heading.textContent = teamLabel;
     const intro = document.querySelector('#view-team-workspace .page-heading p');
-    if (intro) intro.textContent = selectedLabel === 'Mannschaftsübersicht'
+    if (intro) intro.textContent = teamLabel === 'Mannschaftsübersicht'
       ? 'Die zentrale Übersicht deines Mannschaftsbereichs.'
       : 'Der ausgewählte Bereich deiner Mannschaft.';
   }
@@ -481,6 +494,17 @@ document.querySelectorAll('input[type=file]:not(#mediaInput)')
     });
   });
 
+window.addEventListener('popstate', event => {
+  const state = event.state;
+  if (!state?.pfssView) return;
+  const candidates = [...document.querySelectorAll('[data-view]')];
+  const navElement = candidates.find(el =>
+    el.dataset.view === state.pfssView &&
+    (!state.pfssLabel || el.textContent.trim() === state.pfssLabel)
+  ) || null;
+  showView(state.pfssView, navElement, true);
+});
+
 document.getElementById('menuToggle')
   .addEventListener('click', () => {
     const isOpen = document.getElementById('sidebar').classList.toggle('open');
@@ -568,6 +592,11 @@ function showPendingScreen(status) {
 }
 
 function showAuthenticatedApp(user, profile) {
+  window.history.replaceState(
+    { pfssView: 'dashboard', pfssLabel: 'Dashboard' },
+    '',
+    window.location.pathname + window.location.search
+  );
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('appShell').classList.remove('hidden');
