@@ -64,7 +64,8 @@ function showView(view) {
     players: 'Spieler',
     reports: 'Scouting-Berichte',
     media: 'Medien',
-    admin: 'Administration'
+    admin: 'Administration',
+    backup: 'Datensicherung'
   };
 
   document.getElementById('pageTitle').textContent =
@@ -517,6 +518,8 @@ function showAuthenticatedApp(user, profile) {
 
   const adminNav = document.getElementById('adminNavItem');
   if (adminNav) adminNav.hidden = profile.role !== 'admin';
+  const backupNav = document.getElementById('backupNavItem');
+  if (backupNav) backupNav.hidden = profile.role !== 'admin';
   window.pfssCurrentUserId = user.id;
   window.pfssCurrentRole = profile.role;
 
