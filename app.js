@@ -392,13 +392,16 @@ function showPendingScreen(status) {
   }
 }
 
-function showAuthenticatedApp(user) {
+function showAuthenticatedApp(user, profile) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('appShell').classList.remove('hidden');
 
   document.getElementById('accountEmail').textContent =
-    user.email || 'PFSS Nutzer';
+    profile.username || user.email || 'PFSS Nutzer';
+
+  document.querySelector('.profile-mini small').textContent =
+    profile.role === 'admin' ? 'Administrator' : 'Mitglied';
 
   document.getElementById('accountStatus').textContent =
     'Freigegeben';
@@ -409,7 +412,7 @@ function showAuthenticatedApp(user) {
 async function checkPfssAccess(user) {
   const { data: profile, error } = await pfssSupabase
     .from('profiles')
-    .select('status, role')
+    .select('status, role, username')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -425,7 +428,7 @@ async function checkPfssAccess(user) {
     return;
   }
 
-  showAuthenticatedApp(user);
+  showAuthenticatedApp(user, profile);
 }
 
 async function pfssLogout() {
