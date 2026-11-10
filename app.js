@@ -58,6 +58,20 @@ function showView(view) {
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.view === view);
   });
+  const clubViews = ['clubs', 'teams', 'staff', 'players', 'scouts'];
+  document.querySelectorAll('.nav-subitem').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+  const clubToggle = document.querySelector('[data-nav-toggle="clubSubnav"]');
+  const clubSubnav = document.getElementById('clubSubnav');
+  if (clubToggle && clubSubnav && clubViews.includes(view)) {
+    clubSubnav.hidden = false;
+    clubToggle.setAttribute('aria-expanded', 'true');
+    clubToggle.classList.add('expanded');
+    clubToggle.classList.add('active');
+  } else if (clubToggle && clubSubnav) {
+    clubToggle.classList.remove('active');
+  }
 
   const names = {
     dashboard: 'Dashboard',
