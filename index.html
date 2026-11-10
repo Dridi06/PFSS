@@ -30,6 +30,15 @@
       </p>
 
       <form id="authForm">
+        <label class="field" id="signupUsernameField" hidden>
+          Benutzername
+          <input name="username" type="text" autocomplete="username"
+                 minlength="3" maxlength="20"
+                 pattern="[A-Za-z0-9_.-]{3,20}"
+                 placeholder="z. B. AbuJamal">
+          <small class="field-hint">3–20 Zeichen: Buchstaben, Zahlen, Punkt, _ oder -</small>
+        </label>
+
         <label class="field">
           E-Mail-Adresse
           <input name="email" type="email" autocomplete="email"
