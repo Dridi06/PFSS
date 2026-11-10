@@ -631,7 +631,7 @@ function showAuthenticatedApp(user, profile) {
     const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === startView &&
       (startView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
     showView(startView, nav, true);
-  }, 3000);
+  }, 4500);
 }
 
 async function loadAdminUsers() {
