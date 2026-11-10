@@ -568,5 +568,46 @@ pfssSupabase.auth.onAuthStateChange(event => {
   if (event === 'SIGNED_OUT') {
     showAuthScreen();
   }
+
+  if (event === 'PASSWORD_RECOVERY') {
+    setTimeout(() => {
+      const dialog = document.getElementById('passwordDialog');
+      if (dialog && !dialog.open) dialog.showModal();
+    }, 0);
+  }
 });
+
+document.getElementById('passwordForm')
+  .addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const password = form.elements.password.value;
+    const confirmation = form.elements.confirmPassword.value;
+    const message = document.getElementById('passwordMessage');
+    const button = document.getElementById('savePasswordButton');
+
+    if (password.length < 8) {
+      message.textContent = 'Das Passwort muss mindestens 8 Zeichen enthalten.';
+      return;
+    }
+    if (password !== confirmation) {
+      message.textContent = 'Die beiden Passwörter stimmen nicht überein.';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Passwort wird sicher gespeichert …';
+    try {
+      const { error } = await pfssSupabase.auth.updateUser({ password });
+      if (error) throw error;
+      form.reset();
+      document.getElementById('passwordDialog').close();
+      message.textContent = '';
+      toast('Dein Passwort wurde erfolgreich geändert.');
+    } catch (error) {
+      message.textContent = 'Das Passwort konnte nicht geändert werden. Bitte fordere einen neuen Link an.';
+    } finally {
+      button.disabled = false;
+    }
+  });
 
