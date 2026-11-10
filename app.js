@@ -526,7 +526,7 @@ document.getElementById('forgotPasswordButton')
     const button = document.getElementById('forgotPasswordButton');
 
     if (!email) {
-      message.textContent = 'Bitte gib deine E-Mail-Adresse ein, nicht deinen Benutzernamen.';
+      message.textContent = 'Bitte gib zuerst deine E-Mail-Adresse ein.';
       form.elements.email.focus();
       return;
     }
@@ -584,7 +584,7 @@ document.getElementById('signupButton')
       message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
       return;
     }
-    if (!email || password.length < 8) {
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
       message.textContent = 'Bitte gültige E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
       return;
     }
