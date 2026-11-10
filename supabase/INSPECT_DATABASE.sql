@@ -26,7 +26,7 @@ rls_info as (
       'schema', t.schemaname,
       'table_name', t.tablename,
       'rls_enabled', t.rowsecurity,
-      'rls_forced', t.relforcerowsecurity
+      'rls_forced', pc.relforcerowsecurity
     ) as details,
     t.tablename as sort_key,
     0::bigint as sort_order
