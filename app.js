@@ -241,6 +241,70 @@ function saveReport(form) {
   toast('Scouting-Bericht wurde gespeichert.');
 }
 
+
+function exportPfssBackup() {
+  const backup = {
+    product: 'PFSS',
+    formatVersion: 1,
+    exportedAt: new Date().toISOString(),
+    data: { players, reports }
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `PFSS-Backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  toast('PFSS-Backup wurde erstellt.');
+}
+
+function importPfssBackup(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const backup = JSON.parse(String(reader.result || ''));
+      if (backup?.product !== 'PFSS' || backup?.formatVersion !== 1 ||
+          !Array.isArray(backup?.data?.players) || !Array.isArray(backup?.data?.reports)) {
+        throw new Error('Ungültiges PFSS-Backupformat');
+      }
+      const importedPlayers = backup.data.players;
+      const importedReports = backup.data.reports;
+      const validPlayers = importedPlayers.every(p =>
+        p && typeof p === 'object' && typeof p.id === 'string' &&
+        typeof p.name === 'string' && typeof p.position === 'string'
+      );
+      const playerIds = new Set(importedPlayers.map(p => p.id));
+      const validReports = importedReports.every(r =>
+        r && typeof r === 'object' && typeof r.id === 'string' &&
+        typeof r.playerId === 'string' && playerIds.has(r.playerId) &&
+        Number.isFinite(Number(r.rating)) && typeof r.notes === 'string'
+      );
+      if (!validPlayers || !validReports) {
+        throw new Error('Backup enthält unvollständige oder ungültige Datensätze');
+      }
+      const confirmed = window.confirm(
+        `Backup enthält ${importedPlayers.length} Spieler und ${importedReports.length} Berichte.\\n\\nDie aktuell gespeicherten Spieler und Berichte in diesem Browser werden dadurch ersetzt. Vorher bitte bei Bedarf ein Backup exportieren. Fortfahren?`
+      );
+      if (!confirmed) return;
+      players = importedPlayers;
+      reports = importedReports;
+      write();
+      renderDashboard();
+      renderPlayers();
+      renderReports();
+      toast('Backup erfolgreich wiederhergestellt.');
+    } catch (error) {
+      toast('Backup ungültig oder beschädigt. Es wurden keine Daten geändert.');
+    }
+  };
+  reader.onerror = () => toast('Die Backup-Datei konnte nicht gelesen werden.');
+  reader.readAsText(file);
+}
+
 function addMedia(files) {
   [...files].forEach(file => {
     if (
@@ -361,6 +425,16 @@ document.getElementById('menuToggle')
   });
 
 renderDashboard();
+
+document.getElementById('exportBackupButton')
+  .addEventListener('click', exportPfssBackup);
+document.getElementById('importBackupButton')
+  .addEventListener('click', () => document.getElementById('backupFileInput').click());
+document.getElementById('backupFileInput')
+  .addEventListener('change', event => {
+    importPfssBackup(event.target.files?.[0]);
+    event.target.value = '';
+  });
 
 // ============================================
 // PFSS AUTHENTICATION – SUPABASE
