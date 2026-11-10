@@ -50,7 +50,7 @@ function toast(message) {
   );
 }
 
-function showView(view) {
+function showView(view, navElement = null) {
   document.querySelectorAll('.view').forEach(el => {
     el.classList.toggle('active', el.id === `view-${view}`);
   });
@@ -59,7 +59,7 @@ function showView(view) {
     el.classList.toggle('active', el.dataset.view === view);
   });
   document.querySelectorAll('.nav-subitem').forEach(el => {
-    el.classList.toggle('active', el.dataset.view === view);
+    el.classList.toggle('active', el === navElement);
   });
   const clubViews = ['clubs', 'teams', 'staff', 'players', 'scouts'];
   const clubToggle = document.querySelector('[data-nav-toggle="clubSubnav"]');
@@ -94,6 +94,23 @@ function showView(view) {
     backup: 'Datensicherung',
     'team-workspace': 'Meine Mannschaft'
   };
+
+  if (view === 'team-workspace') {
+    const teamCards = [...document.querySelectorAll('#view-team-workspace .team-module-grid .module-card')];
+    const selectedLabel = navElement?.textContent?.trim() || 'Mannschaftsübersicht';
+    const overviewNote = document.querySelector('#view-team-workspace .team-workspace-note');
+    teamCards.forEach(card => {
+      const heading = card.querySelector('h3')?.textContent?.trim() || '';
+      card.hidden = selectedLabel === 'Mannschaftsübersicht' || heading !== selectedLabel;
+    });
+    if (overviewNote) overviewNote.hidden = selectedLabel !== 'Mannschaftsübersicht';
+    const heading = document.querySelector('#view-team-workspace .page-heading h1');
+    if (heading) heading.textContent = selectedLabel;
+    const intro = document.querySelector('#view-team-workspace .page-heading p');
+    if (intro) intro.textContent = selectedLabel === 'Mannschaftsübersicht'
+      ? 'Die zentrale Übersicht deines Mannschaftsbereichs.'
+      : 'Der ausgewählte Bereich deiner Mannschaft.';
+  }
 
   document.getElementById('pageTitle').textContent =
     names[view] || 'Dashboard';
@@ -393,7 +410,7 @@ document.addEventListener('click', event => {
   const view = event.target.closest('[data-view]');
 
   if (view) {
-    showView(view.dataset.view);
+    showView(view.dataset.view, view);
     return;
   }
 
