@@ -145,3 +145,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .site-footer nav a:hover,.footer nav a:hover{color:#f2d99b;text-decoration:underline}
 .footer{justify-content:flex-start;text-align:left}
 @media(max-width:480px){.site-footer{gap:10px;padding-top:13px}.site-footer nav,.footer nav{gap:9px 15px}}
+
+/* PFSS lokale Datensicherung */
+.backup-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.backup-actions .btn{min-height:40px;font-size:11px}
+@media(max-width:600px){.backup-actions{width:100%}.backup-actions .btn{flex:1 1 140px}}
