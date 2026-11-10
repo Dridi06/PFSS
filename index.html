@@ -112,8 +112,20 @@
         <button class="nav-item active" data-view="dashboard">
           <span class="nav-icon">◫</span>Dashboard
         </button>
+        <button class="nav-item" data-view="clubs">
+          <span class="nav-icon">⌂</span>Vereine
+        </button>
+        <button class="nav-item" data-view="teams">
+          <span class="nav-icon">▦</span>Mannschaften
+        </button>
+        <button class="nav-item" data-view="staff">
+          <span class="nav-icon">♧</span>Trainer & Betreuer
+        </button>
         <button class="nav-item" data-view="players">
           <span class="nav-icon">♙</span>Spieler
+        </button>
+        <button class="nav-item" data-view="scouts">
+          <span class="nav-icon">◎</span>Scouts
         </button>
         <button class="nav-item" data-view="reports">
           <span class="nav-icon">▤</span>Scouting-Berichte
@@ -332,6 +344,43 @@
         </div>
 
         <div id="playerGrid" class="player-grid"></div>
+      </section>
+
+      <section class="view" id="view-clubs">
+        <div class="page-heading"><div><div class="eyebrow">ORGANISATION</div><h1>Vereine</h1><p>Vereinsprofile, Ansprechpartner und Organisationsstruktur.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Verein">＋ Verein anlegen</button></div>
+        <div class="module-grid">
+          <article class="module-card module-feature"><span class="module-symbol">⌂</span><div class="eyebrow">VEREINSVERWALTUNG</div><h3>Vereinsprofil</h3><p>Stammdaten, Logo, Anschrift, Ansprechpartner und Vereinszugehörigkeiten an einem Ort.</p><span class="module-status">Oberflächen-Gerüst</span></article>
+          <article class="module-card"><span class="module-symbol">▦</span><h3>Abteilungen & Teams</h3><p>Jugend, Senioren, Frauen- und Herrenmannschaften strukturiert verwalten.</p></article>
+          <article class="module-card"><span class="module-symbol">♧</span><h3>Verantwortliche</h3><p>Vorstand, sportliche Leitung und zuständige Ansprechpartner.</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-teams">
+        <div class="page-heading"><div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Kader, Saison, Trainerteam und Mannschaftsorganisation.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mannschaft">＋ Mannschaft anlegen</button></div>
+        <div class="module-grid">
+          <article class="module-card module-feature"><span class="module-symbol">⚽</span><div class="eyebrow">TEAMÜBERSICHT</div><h3>Kader & Saison</h3><p>Spielerlisten, Jahrgänge, Spielklassen, Saisonzuordnung und Kaderstatus.</p><span class="module-status">Oberflächen-Gerüst</span></article>
+          <article class="module-card"><span class="module-symbol">▤</span><h3>Spiele & Aufstellungen</h3><p>Spieltermine, Ergebnisse, Aufstellungen und Spielereignisse.</p></article>
+          <article class="module-card"><span class="module-symbol">◷</span><h3>Training & Anwesenheit</h3><p>Trainingsplanung, Übungen, Teilnehmer und Anwesenheitsübersicht.</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-staff">
+        <div class="page-heading"><div><div class="eyebrow">TEAMORGANISATION</div><h1>Trainer & Betreuer</h1><p>Trainer, Co-Trainer und Betreuer mit getrennten Bereichsrechten.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitarbeiter">＋ Person zuordnen</button></div>
+        <div class="module-grid">
+          <article class="module-card"><span class="module-symbol">♙</span><h3>Trainer</h3><p>Teamverantwortung, Kaderübersicht und sportliche Organisation.</p></article>
+          <article class="module-card"><span class="module-symbol">♧</span><h3>Co-Trainer</h3><p>Individuelle Rechte je Bereich: lesen oder bearbeiten.</p></article>
+          <article class="module-card"><span class="module-symbol">＋</span><h3>Betreuer</h3><p>Organisatorische Aufgaben und gezielte Zugriffsrechte.</p></article>
+          <article class="module-card module-wide"><div class="eyebrow">BERECHTIGUNGSPRINZIP</div><h3>Rechte pro Bereich statt pauschaler Adminrechte</h3><p>Der verantwortliche Trainer kann Co-Trainern und Betreuern für einzelne Bereiche Leserechte oder Bearbeitungsrechte geben. Diese Freigaben bleiben auf das jeweilige Team begrenzt und können widerrufen werden.</p><div class="permission-preview"><span>Spielerkader <b>Lesen / Bearbeiten</b></span><span>Training <b>Lesen / Bearbeiten</b></span><span>Spiele <b>Lesen / Bearbeiten</b></span><span>Mannschaftskasse <b>Lesen / Bearbeiten</b></span></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-scouts">
+        <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Scout-Profile, Beobachtungsgebiete und kontrollierte Berichtsfreigaben.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scout">＋ Scout einladen</button></div>
+        <div class="module-grid">
+          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scout-Profile</h3><p>Scouts können Spieler und Statistiken erfassen, beobachten und Berichte erstellen.</p><span class="module-status">Oberflächen-Gerüst</span></article>
+          <article class="module-card"><span class="module-symbol">◉</span><h3>Private Datenbereiche</h3><p>Eigene Scouting-Daten und private Notizen bleiben zunächst nur für den jeweiligen Scout sichtbar.</p></article>
+          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Berichte können gezielt und freiwillig mit ausgewählten Vereinen geteilt und wieder entzogen werden.</p></article>
+        </div>
       </section>
 
       <section class="view" id="view-reports">
