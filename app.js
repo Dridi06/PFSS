@@ -567,6 +567,7 @@ window.addEventListener('offline', updateConnectionStatus);
 updateConnectionStatus();
 
 function showAuthScreen() {
+  window.scrollTo(0, 0);
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
@@ -592,6 +593,7 @@ function showPendingScreen(status) {
 }
 
 function showAuthenticatedApp(user, profile) {
+  window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
   const isAdmin = role === 'admin' || role === 'administrator';
@@ -621,6 +623,7 @@ function showAuthenticatedApp(user, profile) {
   if (welcome) welcome.classList.remove('hidden');
   window.clearTimeout(window.pfmsWelcomeTimer);
   window.pfmsWelcomeTimer = window.setTimeout(() => {
+    window.scrollTo(0, 0);
     if (welcome) welcome.classList.add('hidden');
     document.getElementById('appShell').classList.remove('hidden');
     window.history.replaceState(
