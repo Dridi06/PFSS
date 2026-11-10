@@ -452,3 +452,21 @@ button,input,select,textarea{max-width:100%}
 @keyframes pfms-word{from{opacity:0;transform:translateY(12px) scale(.97);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes pfms-line{to{transform:scaleX(1)}}
 @media(prefers-reduced-motion:reduce){.welcome-sequence::after,.welcome-brand,.welcome-title,.welcome-user,.welcome-subtitle,.welcome-line{animation:none;opacity:1;transform:none}}
+
+
+/* iPhone Safari: prevent automatic input zoom and restore normal mobile layout */
+#authScreen input,
+#authScreen select,
+#authScreen textarea,
+#pendingScreen input,
+#pendingScreen select,
+#pendingScreen textarea {
+  font-size:16px !important;
+}
+@media(max-width:760px){
+  .auth-screen{min-height:100svh;min-height:100dvh;align-items:center}
+  .auth-card{width:100%;max-width:440px}
+  .welcome-sequence{min-height:100svh;min-height:100dvh}
+  .welcome-sequence-content{width:min(92vw,900px)}
+  .app-shell{min-height:100svh;min-height:100dvh}
+}
