@@ -351,3 +351,186 @@ document.getElementById('menuToggle')
   });
 
 renderDashboard();
+
+// ============================================
+// PFSS AUTHENTICATION – SUPABASE
+// ============================================
+
+const PFSS_SUPABASE_URL =
+  'https://nkkajhjdvfjzrvxkbokg.supabase.co';
+
+const PFSS_SUPABASE_KEY =
+  'sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi';
+
+const pfssSupabase = window.supabase.createClient(
+  PFSS_SUPABASE_URL,
+  PFSS_SUPABASE_KEY
+);
+
+function showAuthScreen() {
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('pendingScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+}
+
+function showPendingScreen(status) {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('pendingScreen').classList.remove('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+
+  const title = document.getElementById('pendingTitle');
+  const message = document.getElementById('pendingText');
+
+  if (status === 'suspended') {
+    title.textContent = 'Zugang gesperrt';
+    message.textContent =
+      'Dein Konto ist derzeit gesperrt. Bitte wende dich an die Administration.';
+  } else {
+    title.textContent = 'Freigabe ausstehend';
+    message.textContent =
+      'Dein Konto wurde angelegt. Der Zugang wird nach Prüfung freigeschaltet.';
+  }
+}
+
+function showAuthenticatedApp(user) {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('pendingScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+
+  document.getElementById('accountEmail').textContent =
+    user.email || 'PFSS Nutzer';
+
+  document.getElementById('accountStatus').textContent =
+    'Freigegeben';
+
+  renderDashboard();
+}
+
+async function checkPfssAccess(user) {
+  const { data: profile, error } = await pfssSupabase
+    .from('profiles')
+    .select('status, role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (error || !profile) {
+    showPendingScreen('pending');
+    document.getElementById('pendingText').textContent =
+      'Dein Profil konnte noch nicht geprüft werden. Bitte versuche es später erneut.';
+    return;
+  }
+
+  if (profile.status !== 'approved') {
+    showPendingScreen(profile.status);
+    return;
+  }
+
+  showAuthenticatedApp(user);
+}
+
+async function pfssLogout() {
+  await pfssSupabase.auth.signOut();
+  showAuthScreen();
+}
+
+document.getElementById('authForm')
+  .addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    const message = document.getElementById('authMessage');
+    const button = document.getElementById('loginButton');
+
+    message.textContent = 'Anmeldung wird geprüft …';
+    button.disabled = true;
+
+    const { data, error } =
+      await pfssSupabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    button.disabled = false;
+
+    if (error) {
+      message.textContent =
+        'Anmeldung fehlgeschlagen: E-Mail oder Passwort prüfen.';
+      return;
+    }
+
+    await checkPfssAccess(data.user);
+  });
+
+document.getElementById('signupButton')
+  .addEventListener('click', async () => {
+    const form = document.getElementById('authForm');
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    const message = document.getElementById('authMessage');
+    const button = document.getElementById('signupButton');
+
+    if (!email || password.length < 8) {
+      message.textContent =
+        'Bitte E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Konto wird erstellt …';
+
+    const { data, error } = await pfssSupabase.auth.signUp({
+      email,
+      password
+    });
+
+    button.disabled = false;
+
+    if (error) {
+      message.textContent =
+        'Registrierung fehlgeschlagen: ' + error.message;
+      return;
+    }
+
+    if (data.session && data.user) {
+      await checkPfssAccess(data.user);
+    } else {
+      message.textContent =
+        'Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse. Danach kannst du dich anmelden.';
+    }
+  });
+
+document.getElementById('logoutButton')
+  .addEventListener('click', pfssLogout);
+
+document.getElementById('logoutPending')
+  .addEventListener('click', pfssLogout);
+
+// Bestehende Sitzung beim Laden wiederherstellen
+async function initializePfssAuth() {
+  showAuthScreen();
+
+  const { data, error } =
+    await pfssSupabase.auth.getSession();
+
+  if (error) {
+    document.getElementById('authMessage').textContent =
+      'Sitzung konnte nicht geladen werden.';
+    return;
+  }
+
+  if (data.session?.user) {
+    await checkPfssAccess(data.session.user);
+  }
+}
+
+initializePfssAuth();
+
+// Bei Abmeldung Oberfläche schließen
+pfssSupabase.auth.onAuthStateChange(event => {
+  if (event === 'SIGNED_OUT') {
+    showAuthScreen();
+  }
+});
+
