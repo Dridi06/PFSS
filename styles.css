@@ -91,3 +91,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .profile-avatar-wrap{position:relative}
 .user-presence-dot{position:absolute;width:10px;height:10px;right:-2px;bottom:-2px;border:2px solid #101010;border-radius:50%;background:#45c878;box-shadow:0 0 8px #45c87880}
 .user-presence-dot.is-offline{background:#ef4444;box-shadow:0 0 8px #ef444480}
+
+
+.field-hint{font-size:10px;font-weight:400;color:#968b78;line-height:1.5}
+.auth-card .field[hidden]{display:none}
