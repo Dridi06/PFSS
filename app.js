@@ -527,42 +527,73 @@ document.getElementById('forgotPasswordButton')
     }
   });
 
+const signupUsernameField = document.getElementById('signupUsernameField');
+let signupMode = false;
+
 document.getElementById('signupButton')
   .addEventListener('click', async () => {
     const form = document.getElementById('authForm');
     const email = form.elements.email.value.trim();
     const password = form.elements.password.value;
+    const username = (form.elements.username.value || '').trim();
     const message = document.getElementById('authMessage');
     const button = document.getElementById('signupButton');
 
+    if (!signupMode) {
+      signupMode = true;
+      signupUsernameField.hidden = false;
+      form.elements.username.required = true;
+      document.getElementById('loginButton').textContent = 'Zur Anmeldung';
+      button.textContent = 'Registrierung starten';
+      message.textContent = 'Bitte Benutzername, E-Mail und Passwort eingeben.';
+      form.elements.username.focus();
+      return;
+    }
+
+    if (!/^[A-Za-z0-9_.-]{3,20}$/.test(username)) {
+      message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
+      return;
+    }
     if (!email || password.length < 8) {
-      message.textContent =
-        'Bitte E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
+      message.textContent = 'Bitte gültige E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
       return;
     }
 
     button.disabled = true;
     message.textContent = 'Konto wird erstellt …';
 
-    const { data, error } = await pfssSupabase.auth.signUp({
-      email,
-      password
-    });
+    try {
+      const { data, error } = await pfssSupabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } }
+      });
 
-    button.disabled = false;
+      if (error) throw error;
 
-    if (error) {
-      message.textContent =
-        'Registrierung fehlgeschlagen: ' + error.message;
-      return;
+      if (data.session && data.user) {
+        await checkPfssAccess(data.user);
+      } else {
+        message.textContent =
+          'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Dein Benutzername wird mit dem Profil verknüpft, sobald die Datenbankmigration eingespielt ist.';
+      }
+    } catch (error) {
+      message.textContent = 'Registrierung fehlgeschlagen. Bitte prüfe deine Angaben oder versuche es später erneut.';
+    } finally {
+      button.disabled = false;
     }
+  });
 
-    if (data.session && data.user) {
-      await checkPfssAccess(data.user);
-    } else {
-      message.textContent =
-        'Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse. Danach kannst du dich anmelden.';
-    }
+document.getElementById('loginButton')
+  .addEventListener('click', event => {
+    if (!signupMode) return;
+    event.preventDefault();
+    signupMode = false;
+    signupUsernameField.hidden = true;
+    document.getElementById('authForm').elements.username.required = false;
+    document.getElementById('loginButton').textContent = 'Anmelden';
+    document.getElementById('signupButton').textContent = 'Konto erstellen';
+    document.getElementById('authMessage').textContent = 'Anmeldung mit E-Mail-Adresse und Passwort.';
   });
 
 document.getElementById('logoutButton')
