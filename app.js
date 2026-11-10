@@ -369,6 +369,11 @@ const pfssSupabase = window.supabase.createClient(
 
 function updateConnectionStatus() {
   const online = navigator.onLine;
+  const userDot = document.getElementById('userPresenceDot');
+  if (userDot) {
+    userDot.classList.toggle('is-offline', !online);
+    userDot.setAttribute('aria-label', online ? 'Benutzer online' : 'Benutzer offline');
+  }
   const systemTitle = document.getElementById('systemStatusTitle');
   const connectionText = document.getElementById('connectionStatusText');
   const connectionStatus = document.getElementById('connectionStatus');
