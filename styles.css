@@ -85,3 +85,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .status-dot{background:#45c878;box-shadow:0 0 0 4px #45c87820,0 0 13px #45c878}
 .status-dot.is-offline{background:#ef4444;box-shadow:0 0 0 4px #ef444420,0 0 13px #ef4444}
 .online-pill.is-offline{color:#ef7777}
+
+
+/* Benutzer-Praesenzstatus */
+.profile-avatar-wrap{position:relative}
+.user-presence-dot{position:absolute;width:10px;height:10px;right:-2px;bottom:-2px;border:2px solid #101010;border-radius:50%;background:#45c878;box-shadow:0 0 8px #45c87880}
+.user-presence-dot.is-offline{background:#ef4444;box-shadow:0 0 8px #ef444480}
