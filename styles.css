@@ -134,3 +134,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .auth-footnote a,.footer a{color:#d6b56d;text-decoration:none;margin:0 3px}
 .auth-footnote a:hover,.footer a:hover{text-decoration:underline;color:#f2d99b}
 .footer{flex-wrap:wrap;gap:10px}
+
+
+/* Einheitlicher, linksbuendiger Seitenfooter auf Login, Freigabe und App */
+.auth-screen{flex-direction:column;align-items:stretch;justify-content:flex-start}
+.auth-screen>.auth-card{margin:auto}
+.site-footer{width:100%;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:12px 24px;padding:16px 4px 4px;border-top:1px solid #30291f;color:#81796c;font-size:10px}
+.site-footer nav,.footer nav{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:8px 20px}
+.site-footer nav a,.footer nav a{margin:0;color:#d6b56d;text-decoration:none;white-space:nowrap}
+.site-footer nav a:hover,.footer nav a:hover{color:#f2d99b;text-decoration:underline}
+.footer{justify-content:flex-start;text-align:left}
+@media(max-width:480px){.site-footer{gap:10px;padding-top:13px}.site-footer nav,.footer nav{gap:9px 15px}}
