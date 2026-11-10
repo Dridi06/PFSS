@@ -40,3 +40,26 @@ body{background:radial-gradient(ellipse at 78% -12%,#49391d38,transparent 38%),l
 .modal{border:1px solid #806538;background:#151718;color:#eee5d5;box-shadow:0 25px 90px #000c}.modal::backdrop{background:#030405d9;backdrop-filter:blur(6px)}.modal-head h2{color:#f2e8d6}.modal-head .eyebrow{color:#b89a60}.close-button{border:1px solid #51422c;background:#211e18;color:#d7bd82}.field{color:#c9bda7}.field input,.field select,.field textarea{border-color:#484033;color:#f0e8d9;background:#0e1011}.field input:focus,.field textarea:focus,.field select:focus{border-color:#c7a15b;box-shadow:0 0 0 3px #d6b56d20}
 .toast{background:linear-gradient(135deg,#292216,#151412);border:1px solid #8b6c38;color:#f3e4c2;box-shadow:var(--shadow)}
 @media(max-width:760px){.sidebar.open{box-shadow:20px 0 40px #000b}.mobile-menu{color:#e2d3b2}}
+
+/* PFSS AUTHENTICATION — LOGIN / ACCESS */
+.hidden{display:none !important}
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 18px;background:radial-gradient(ellipse at 50% 0%,#6f542526,transparent 48%),linear-gradient(145deg,#090a0c,#111213 55%,#090a0c)}
+.auth-card{width:min(100%,440px);padding:36px;background:linear-gradient(145deg,#1b1c1d,#111314);border:1px solid #6e5733;border-radius:18px;box-shadow:0 25px 80px #000b,inset 0 1px #ffffff0c}
+.auth-brand{display:flex;align-items:center;gap:13px;margin-bottom:30px}
+.auth-brand .brand-mark{width:48px;height:48px;font-size:28px;border-radius:14px}
+.auth-brand strong{display:block;font:800 21px Manrope;letter-spacing:1.3px;color:#f4e7c8}
+.auth-brand small{display:block;margin-top:3px;color:#a18a5d;font-size:9px;letter-spacing:2px}
+.auth-card h1{font:800 25px Manrope;color:#f4eee2;margin:0 0 8px}
+.auth-card>p{color:#aaa193;font-size:12px;line-height:1.6;margin:0 0 24px}
+.auth-card .field{margin:15px 0}
+.auth-card .field input{min-height:46px}
+.auth-actions{display:grid;gap:10px;margin-top:22px}
+.auth-actions .btn{width:100%;min-height:45px}
+.auth-message{min-height:18px;margin:15px 0 0;color:#d6b56d;font-size:11px;line-height:1.5;text-align:center}
+.auth-footnote{margin-top:22px;padding-top:17px;border-top:1px solid #393126;color:#82796c;font-size:10px;line-height:1.6;text-align:center}
+.pending-card{text-align:center}
+.pending-symbol{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin:0 auto 20px;background:linear-gradient(145deg,#e6cd91,#98723a);color:#17130b;font-size:25px}
+.pending-card .btn{margin-top:18px}
+.logout-button{border:1px solid #6b5532;background:#1b1915;color:#d9bd7e;border-radius:7px;padding:8px 11px;font:600 10px 'DM Sans';cursor:pointer}
+.logout-button:hover{background:#302516}
+@media(max-width:480px){.auth-card{padding:27px 22px;border-radius:14px}.auth-card h1{font-size:23px}.auth-brand{margin-bottom:25px}}
