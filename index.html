@@ -112,21 +112,17 @@
         <button class="nav-item active" data-view="dashboard">
           <span class="nav-icon">◫</span>Dashboard
         </button>
-        <button class="nav-item" data-view="clubs">
-          <span class="nav-icon">⌂</span>Vereine
+        <button class="nav-item nav-group-toggle" type="button"
+                data-nav-toggle="clubSubnav" aria-expanded="false">
+          <span class="nav-icon">⌂</span><span class="nav-label">Vereine</span><span class="nav-chevron">›</span>
         </button>
-        <button class="nav-item" data-view="teams">
-          <span class="nav-icon">▦</span>Mannschaften
-        </button>
-        <button class="nav-item" data-view="staff">
-          <span class="nav-icon">♧</span>Trainer & Betreuer
-        </button>
-        <button class="nav-item" data-view="players">
-          <span class="nav-icon">♙</span>Spieler
-        </button>
-        <button class="nav-item" data-view="scouts">
-          <span class="nav-icon">◎</span>Scouts
-        </button>
+        <div class="nav-submenu" id="clubSubnav" hidden>
+          <button class="nav-subitem" data-view="clubs"><span>Vereinsübersicht</span></button>
+          <button class="nav-subitem" data-view="teams"><span>Mannschaften</span></button>
+          <button class="nav-subitem" data-view="staff"><span>Trainer & Betreuer</span></button>
+          <button class="nav-subitem" data-view="players"><span>Spieler</span></button>
+          <button class="nav-subitem" data-view="scouts"><span>Scouts</span></button>
+        </div>
         <button class="nav-item" data-view="reports">
           <span class="nav-icon">▤</span>Scouting-Berichte
         </button>
