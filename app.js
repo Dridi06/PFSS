@@ -466,6 +466,39 @@ document.getElementById('authForm')
     await checkPfssAccess(data.user);
   });
 
+document.getElementById('forgotPasswordButton')
+  .addEventListener('click', async () => {
+    const form = document.getElementById('authForm');
+    const email = form.elements.email.value.trim();
+    const message = document.getElementById('authMessage');
+    const button = document.getElementById('forgotPasswordButton');
+
+    if (!email) {
+      message.textContent = 'Bitte gib zuerst deine E-Mail-Adresse ein.';
+      form.elements.email.focus();
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Wiederherstellungslink wird angefordert …';
+
+    try {
+      const { error } = await pfssSupabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+
+      if (error) throw error;
+
+      message.textContent =
+        'Falls ein Konto zu dieser Adresse gehört, erhältst du eine E-Mail mit dem Link zum Zurücksetzen des Passworts.';
+    } catch (error) {
+      message.textContent =
+        'Der Wiederherstellungslink konnte gerade nicht angefordert werden. Bitte versuche es später erneut.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
 document.getElementById('signupButton')
   .addEventListener('click', async () => {
     const form = document.getElementById('authForm');
