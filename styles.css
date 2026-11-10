@@ -63,3 +63,12 @@ body{background:radial-gradient(ellipse at 78% -12%,#49391d38,transparent 38%),l
 .logout-button{border:1px solid #6b5532;background:#1b1915;color:#d9bd7e;border-radius:7px;padding:8px 11px;font:600 10px 'DM Sans';cursor:pointer}
 .logout-button:hover{background:#302516}
 @media(max-width:480px){.auth-card{padding:27px 22px;border-radius:14px}.auth-card h1{font-size:23px}.auth-brand{margin-bottom:25px}}
+
+
+/* PFSS AUTH POLISH */
+.auth-link-button{border:0;background:transparent;color:#d6b56d;font:600 11px 'DM Sans';padding:9px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.auth-link-button:hover{color:#f2d99b}
+.auth-link-button:disabled{opacity:.55;cursor:wait}
+.btn:disabled{opacity:.6;cursor:wait;transform:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #d6b56d;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
