@@ -63,7 +63,8 @@ function showView(view) {
     dashboard: 'Dashboard',
     players: 'Spieler',
     reports: 'Scouting-Berichte',
-    media: 'Medien'
+    media: 'Medien',
+    admin: 'Administration'
   };
 
   document.getElementById('pageTitle').textContent =
@@ -74,6 +75,7 @@ function showView(view) {
   if (view === 'players') renderPlayers();
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
+  if (view === 'admin') loadAdminUsers();
 }
 
 function openDialog(id) {
@@ -292,6 +294,9 @@ document.addEventListener('click', event => {
     return;
   }
 
+  const adminSave = event.target.closest('[data-admin-save]');
+  if (adminSave) { saveAdminUser(adminSave); return; }
+
   const action = event.target.closest('[data-action]')?.dataset.action;
 
   if (action === 'new-player') {
@@ -327,6 +332,11 @@ document.getElementById('reportForm')
 
 document.getElementById('playerSearch')
   .addEventListener('input', renderPlayers);
+
+document.getElementById('adminUserSearch')
+  .addEventListener('input', loadAdminUsers);
+document.getElementById('refreshAdminButton')
+  .addEventListener('click', loadAdminUsers);
 
 document.getElementById('positionFilter')
   .addEventListener('change', renderPlayers);
@@ -429,12 +439,75 @@ function showAuthenticatedApp(user, profile) {
     profile.username || user.email || 'PFSS Nutzer';
 
   document.querySelector('.profile-mini small').textContent =
-    profile.role === 'admin' ? 'Administrator' : 'Mitglied';
+    profile.role === 'admin' ? 'Administrator' : profile.role === 'scout' ? 'Scout' : 'Mitglied';
+
+  const adminNav = document.getElementById('adminNavItem');
+  if (adminNav) adminNav.hidden = profile.role !== 'admin';
+  window.pfssCurrentUserId = user.id;
+  window.pfssCurrentRole = profile.role;
 
   document.getElementById('accountStatus').textContent =
     'Freigegeben';
 
   renderDashboard();
+}
+
+async function loadAdminUsers() {
+  const message = document.getElementById('adminMessage');
+  const host = document.getElementById('adminUserList');
+  if (window.pfssCurrentRole !== 'admin') {
+    message.textContent = 'Kein Administratorzugang.';
+    host.innerHTML = '';
+    return;
+  }
+  message.textContent = 'Benutzer werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfss_admin_list_profiles');
+    if (error) throw error;
+    const users = data || [];
+    document.getElementById('adminTotalUsers').textContent = users.length;
+    document.getElementById('adminPendingUsers').textContent = users.filter(x => x.status === 'pending').length;
+    document.getElementById('adminApprovedUsers').textContent = users.filter(x => x.status === 'approved').length;
+    document.getElementById('adminSuspendedUsers').textContent = users.filter(x => x.status === 'suspended').length;
+    const query = (document.getElementById('adminUserSearch').value || '').trim().toLowerCase();
+    const filtered = users.filter(x => (x.username || '').toLowerCase().includes(query) || x.id.toLowerCase().includes(query));
+    host.innerHTML = filtered.length ? filtered.map(user => {
+      const self = user.id === window.pfssCurrentUserId;
+      return `<article class="admin-user-card" data-user-id="${escapeHtml(user.id)}">
+        <div class="admin-user-info"><b>${escapeHtml(user.username || 'Ohne Benutzername')}</b><small>${escapeHtml(user.id)}</small><span class="tag">${escapeHtml(user.status)}</span></div>
+        <div class="admin-user-controls">
+          <label>Rolle<select data-role>${['user','scout','admin'].map(role => `<option value="${role}" ${user.role === role ? 'selected' : ''}>${role === 'user' ? 'Mitglied' : role === 'scout' ? 'Scout' : 'Administrator'}</option>`).join('')}</select></label>
+          <label>Status<select data-status>${['pending','approved','suspended'].map(status => `<option value="${status}" ${user.status === status ? 'selected' : ''}>${status === 'pending' ? 'Ausstehend' : status === 'approved' ? 'Freigegeben' : 'Gesperrt'}</option>`).join('')}</select></label>
+          <button class="btn btn-secondary admin-save" type="button" data-admin-save ${self ? 'disabled title="Eigenes Administratorkonto ist geschützt"' : ''}>Speichern</button>
+        </div>
+        ${self ? '<small class="admin-self-note">Eigenes Administratorkonto geschützt</small>' : ''}
+      </article>`;
+    }).join('') : '<div class="empty-state"><b>Keine Benutzer gefunden</b></div>';
+    message.textContent = users.length ? 'Benutzerliste aktuell.' : 'Noch keine Benutzer vorhanden.';
+  } catch (error) {
+    message.textContent = 'Benutzerverwaltung nicht verfügbar. Bitte zuerst die Admin-Datenbankmigration in Supabase ausführen.';
+    host.innerHTML = '';
+  }
+}
+
+async function saveAdminUser(button) {
+  const card = button.closest('[data-user-id]');
+  if (!card || window.pfssCurrentRole !== 'admin') return;
+  const userId = card.dataset.userId;
+  const role = card.querySelector('[data-role]').value;
+  const status = card.querySelector('[data-status]').value;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfss_admin_update_profile', {
+      p_user_id: userId, p_role: role, p_status: status
+    });
+    if (error) throw error;
+    toast('Benutzerkonto aktualisiert.');
+    await loadAdminUsers();
+  } catch (error) {
+    toast('Änderung fehlgeschlagen. Berechtigung und Datenbankmigration prüfen.');
+    button.disabled = false;
+  }
 }
 
 async function checkPfssAccess(user) {
