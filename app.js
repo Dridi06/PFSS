@@ -367,6 +367,29 @@ const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_KEY
 );
 
+function updateConnectionStatus() {
+  const online = navigator.onLine;
+  const systemTitle = document.getElementById('systemStatusTitle');
+  const connectionText = document.getElementById('connectionStatusText');
+  const connectionStatus = document.getElementById('connectionStatus');
+  const dots = [
+    document.getElementById('systemStatusDot'),
+    document.getElementById('connectionStatusDot')
+  ];
+
+  dots.forEach(dot => {
+    if (dot) dot.classList.toggle('is-offline', !online);
+  });
+
+  if (systemTitle) systemTitle.textContent = online ? 'System bereit' : 'System offline';
+  if (connectionText) connectionText.textContent = online ? 'ONLINE' : 'OFFLINE';
+  if (connectionStatus) connectionStatus.classList.toggle('is-offline', !online);
+}
+
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+updateConnectionStatus();
+
 function showAuthScreen() {
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
