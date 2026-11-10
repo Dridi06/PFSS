@@ -469,7 +469,7 @@ document.getElementById('authForm')
     event.preventDefault();
 
     const form = event.currentTarget;
-    const email = form.elements.email.value.trim();
+    const identifier = form.elements.email.value.trim();
     const password = form.elements.password.value;
     const message = document.getElementById('authMessage');
     const button = document.getElementById('loginButton');
@@ -477,21 +477,45 @@ document.getElementById('authForm')
     message.textContent = 'Anmeldung wird geprüft …';
     button.disabled = true;
 
-    const { data, error } =
-      await pfssSupabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-    button.disabled = false;
-
-    if (error) {
+    try {
+      let data;
+      if (identifier.includes('@')) {
+        const result = await pfssSupabase.auth.signInWithPassword({
+          email: identifier,
+          password
+        });
+        if (result.error) throw result.error;
+        data = result.data;
+      } else {
+        const response = await fetch(
+          PFSS_SUPABASE_URL + '/functions/v1/username-login',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': PFSS_SUPABASE_KEY
+            },
+            body: JSON.stringify({ username: identifier, password })
+          }
+        );
+        const result = await response.json();
+        if (!response.ok || !result.access_token || !result.refresh_token) {
+          throw new Error('Anmeldung fehlgeschlagen');
+        }
+        const sessionResult = await pfssSupabase.auth.setSession({
+          access_token: result.access_token,
+          refresh_token: result.refresh_token
+        });
+        if (sessionResult.error) throw sessionResult.error;
+        data = sessionResult.data;
+      }
+      await checkPfssAccess(data.user);
+    } catch (error) {
       message.textContent =
-        'Anmeldung fehlgeschlagen: E-Mail oder Passwort prüfen.';
-      return;
+        'Anmeldung fehlgeschlagen: Benutzername/E-Mail oder Passwort prüfen.';
+    } finally {
+      button.disabled = false;
     }
-
-    await checkPfssAccess(data.user);
   });
 
 document.getElementById('forgotPasswordButton')
@@ -502,7 +526,12 @@ document.getElementById('forgotPasswordButton')
     const button = document.getElementById('forgotPasswordButton');
 
     if (!email) {
-      message.textContent = 'Bitte gib zuerst deine E-Mail-Adresse ein.';
+      message.textContent = 'Bitte gib deine E-Mail-Adresse ein, nicht deinen Benutzernamen.';
+      form.elements.email.focus();
+      return;
+    }
+    if (!email.includes('@')) {
+      message.textContent = 'Für das Zurücksetzen des Passworts bitte die E-Mail-Adresse eingeben.';
       form.elements.email.focus();
       return;
     }
@@ -545,6 +574,7 @@ document.getElementById('signupButton')
       form.elements.username.required = true;
       document.getElementById('loginButton').textContent = 'Zur Anmeldung';
       button.textContent = 'Registrierung starten';
+      document.getElementById('emailFieldLabel').textContent = 'E-Mail-Adresse';
       message.textContent = 'Bitte Benutzername, E-Mail und Passwort eingeben.';
       form.elements.username.focus();
       return;
