@@ -119,6 +119,9 @@
         <button class="nav-item" data-view="media">
           <span class="nav-icon">▧</span>Medien
         </button>
+        <button class="nav-item admin-nav-item" data-view="admin" id="adminNavItem" hidden>
+          <span class="nav-icon">⚙</span>Administration
+        </button>
       </nav>
 
       <div class="sidebar-bottom">
@@ -363,6 +366,29 @@
         </div>
 
         <div id="mediaGrid" class="media-grid"></div>
+      </section>
+
+      <section class="view" id="view-admin">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">SYSTEMVERWALTUNG</div>
+            <h1>Administration</h1>
+            <p>Benutzer prüfen, freigeben und Berechtigungen verwalten.</p>
+          </div>
+          <button class="btn btn-primary" id="refreshAdminButton" type="button">↻ Aktualisieren</button>
+        </div>
+        <div class="stats-grid admin-stats">
+          <article class="stat-card"><div class="stat-top">BENUTZER GESAMT</div><strong id="adminTotalUsers">–</strong></article>
+          <article class="stat-card"><div class="stat-top">FREIGABE AUSSTEHEND</div><strong id="adminPendingUsers">–</strong></article>
+          <article class="stat-card"><div class="stat-top">FREIGEGEBEN</div><strong id="adminApprovedUsers">–</strong></article>
+          <article class="stat-card"><div class="stat-top">GESPERRT</div><strong id="adminSuspendedUsers">–</strong></article>
+        </div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">BENUTZERKONTEN</div><h3>Benutzerverwaltung</h3></div></div>
+          <label class="search-box admin-search"><span>⌕</span><input id="adminUserSearch" type="search" placeholder="Benutzername oder ID suchen …"></label>
+          <p id="adminMessage" class="admin-message" role="status" aria-live="polite">Lade Benutzer …</p>
+          <div id="adminUserList" class="admin-user-list"></div>
+        </div>
       </section>
 
       <footer class="footer">
