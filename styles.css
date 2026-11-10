@@ -129,3 +129,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .admin-save{grid-column:auto;width:100%;margin-top:3px}
  .admin-self-note{padding:10px 11px}
 }
+
+/* Rechtliche Informationen – Footerlinks */
+.auth-footnote a,.footer a{color:#d6b56d;text-decoration:none;margin:0 3px}
+.auth-footnote a:hover,.footer a:hover{text-decoration:underline;color:#f2d99b}
+.footer{flex-wrap:wrap;gap:10px}
