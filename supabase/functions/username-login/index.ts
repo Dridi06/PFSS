@@ -7,16 +7,15 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
   const json = (body: Record<string, unknown>, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
@@ -32,69 +31,63 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const publishableKeys = JSON.parse(
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}",
+    );
+    const secretKeys = JSON.parse(
+      Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}",
+    );
+    const publishableKey = publishableKeys.default;
+    const secretKey = secretKeys.default;
 
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      console.error("Username login function is missing required Supabase secrets.");
+    if (!supabaseUrl || !publishableKey || !secretKey) {
+      console.error("Username login function is missing Supabase runtime keys.");
       return json({ error: "Login service unavailable" }, 500);
     }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    const adminClient = createClient(supabaseUrl, secretKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    // Resolve the username only on the server; never return the account email.
     const { data: profile, error: lookupError } = await adminClient
       .from("profiles")
       .select("id")
-      .ilike("username", normalizedUsername)
+      .ilike("username", normalizedUsername.replace(/([%_\\])/g, "\\$1"))
       .maybeSingle();
 
     if (lookupError || !profile) {
       return json({ error: "Invalid credentials" }, 400);
     }
 
-    const authResponse = await fetch(
-      `${supabaseUrl}/auth/v1/admin/users/${profile.id}`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-      },
-    );
+    const { data: userData, error: userError } =
+      await adminClient.auth.admin.getUserById(profile.id);
 
-    if (!authResponse.ok) {
-      console.error("Username login could not resolve the account.");
+    if (userError || !userData.user?.email) {
       return json({ error: "Invalid credentials" }, 400);
     }
 
-    const authUser = await authResponse.json();
-    if (!authUser.email) {
+    const { data: sessionData, error: signInError } = await createClient(
+      supabaseUrl,
+      publishableKey,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    ).auth.signInWithPassword({
+      email: userData.user.email,
+      password: suppliedPassword,
+    });
+
+    if (signInError || !sessionData.session) {
       return json({ error: "Invalid credentials" }, 400);
     }
 
-    const tokenResponse = await fetch(
-      `${supabaseUrl}/auth/v1/token?grant_type=password`,
-      {
-        method: "POST",
-        headers: {
-          apikey: anonKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: authUser.email,
-          password: suppliedPassword,
-        }),
-      },
-    );
-
-    const tokenData = await tokenResponse.json();
-    if (!tokenResponse.ok) {
-      return json({ error: "Invalid credentials" }, 400);
-    }
-
-    return json(tokenData);
+    return json({
+      access_token: sessionData.session.access_token,
+      refresh_token: sessionData.session.refresh_token,
+      token_type: sessionData.session.token_type,
+      expires_in: sessionData.session.expires_in,
+      expires_at: sessionData.session.expires_at,
+      user: sessionData.user,
+    });
   } catch (error) {
     console.error("Username login request failed:", error);
     return json({ error: "Login service unavailable" }, 500);
