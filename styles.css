@@ -435,3 +435,20 @@ button,input,select,textarea{max-width:100%}
   .stat-card>strong{font-size:20px}
   .media-grid{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* PFMS cinematic welcome sequence */
+.welcome-sequence{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#050505 url('pfms-welcome.webp') center/cover no-repeat;color:#f8e7b4}
+.welcome-sequence.hidden{display:none}
+.welcome-sequence::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.24),rgba(0,0,0,.72))}
+.welcome-sequence::after{content:"";position:absolute;left:-35%;top:0;width:22%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,221,125,.9),rgba(255,255,255,.95),rgba(255,205,75,.75),transparent);filter:blur(7px);transform:skewX(-18deg);animation:pfms-lightning .85s ease-out .12s both}
+.welcome-sequence-content{position:relative;z-index:1;text-align:center;padding:24px;width:min(92vw,900px);text-shadow:0 2px 22px #000}
+.welcome-brand{font-family:Georgia,serif;font-size:clamp(48px,12vw,104px);font-weight:900;letter-spacing:.16em;color:#f7d77f;text-shadow:0 0 12px #ffdf8b,0 0 34px #c58a25;opacity:0;animation:pfms-word .55s ease-out .35s forwards}
+.welcome-line{height:2px;width:min(460px,70vw);margin:10px auto 20px;background:linear-gradient(90deg,transparent,#fff0b5,#c38b2b,transparent);box-shadow:0 0 18px #e9bb55;transform:scaleX(0);animation:pfms-line .45s ease-out .55s forwards}
+.welcome-title{font-size:clamp(19px,4vw,32px);font-weight:800;letter-spacing:.12em;color:#fff4d6;opacity:0;animation:pfms-word .45s ease-out .7s forwards}
+.welcome-user{margin-top:14px;font-size:clamp(20px,5vw,38px);font-weight:700;color:#f4ce75;opacity:0;animation:pfms-word .5s ease-out .95s forwards}
+.welcome-subtitle{margin-top:12px;font-size:clamp(10px,2vw,15px);letter-spacing:.16em;text-transform:uppercase;color:#e9d7ae;opacity:0;animation:pfms-word .5s ease-out 1.15s forwards}
+@keyframes pfms-lightning{0%{left:-35%;opacity:0}15%{opacity:1}100%{left:125%;opacity:0}}
+@keyframes pfms-word{from{opacity:0;transform:translateY(12px) scale(.97);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes pfms-line{to{transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.welcome-sequence::after,.welcome-brand,.welcome-title,.welcome-user,.welcome-subtitle,.welcome-line{animation:none;opacity:1;transform:none}}
