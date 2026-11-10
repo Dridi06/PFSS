@@ -479,6 +479,27 @@
     </form>
   </dialog>
 
+  <dialog id="passwordDialog" class="modal">
+    <form id="passwordForm">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow">KONTO-SICHERHEIT</div>
+          <h2>Neues Passwort festlegen</h2>
+        </div>
+      </div>
+      <label class="field full">Neues Passwort
+        <input name="password" type="password" minlength="8" autocomplete="new-password" required placeholder="Mindestens 8 Zeichen">
+      </label>
+      <label class="field full" style="margin-top:14px">Passwort wiederholen
+        <input name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required placeholder="Passwort erneut eingeben">
+      </label>
+      <p id="passwordMessage" class="auth-message" role="status" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="submit" id="savePasswordButton">Passwort speichern</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
