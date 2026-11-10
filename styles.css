@@ -79,3 +79,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .profile-mini{padding-right:105px;min-height:36px}
 .logout-button{position:absolute;right:9px;bottom:0;white-space:nowrap}
 .online-pill .status-dot{background:#45c878;box-shadow:0 0 0 4px #45c87820,0 0 13px #45c878}
+
+
+/* Verbindungsstatus: beide Anzeigen gruen, bei Offline rot */
+.status-dot{background:#45c878;box-shadow:0 0 0 4px #45c87820,0 0 13px #45c878}
+.status-dot.is-offline{background:#ef4444;box-shadow:0 0 0 4px #ef444420,0 0 13px #ef4444}
+.online-pill.is-offline{color:#ef7777}
