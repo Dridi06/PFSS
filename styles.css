@@ -150,3 +150,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .backup-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
 .backup-actions .btn{min-height:40px;font-size:11px}
 @media(max-width:600px){.backup-actions{width:100%}.backup-actions .btn{flex:1 1 140px}}
+
+
+/* PFSS expanded organization workspace */
+.module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:22px 0}
+.module-card{position:relative;min-height:205px;padding:23px;border:1px solid #403526;border-radius:14px;background:linear-gradient(145deg,#1d1e1f,#111314);box-shadow:0 14px 35px #0005,inset 0 1px #ffffff09;overflow:hidden}
+.module-card:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#ffffff06,transparent 48%);pointer-events:none}
+.module-card h3{font:800 17px Manrope;color:#f0e8d9;margin:10px 0}
+.module-card p{font-size:12px;line-height:1.7;color:#aaa193;max-width:54ch}
+.module-symbol{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:linear-gradient(145deg,#44351d,#211b12);border:1px solid #806538;color:#e4c47e;font-size:21px;margin-bottom:17px}
+.module-feature{border-color:#806538;background:radial-gradient(ellipse at 90% 0%,#b48b4520,transparent 45%),linear-gradient(145deg,#242019,#111314)}
+.module-status{display:inline-flex;margin-top:8px;padding:6px 9px;border:1px solid #725a32;border-radius:20px;color:#e2c17c;font-size:9px;text-transform:uppercase;letter-spacing:1px}
+.module-wide{grid-column:1/-1;min-height:unset}
+.permission-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:17px}
+.permission-preview span{display:flex;justify-content:space-between;gap:8px;padding:11px;border:1px solid #403526;border-radius:8px;background:#111314;color:#b9ae9a;font-size:10px}
+.permission-preview b{color:#e2c17c;font-weight:700}
+@media(max-width:900px){.module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.module-grid{grid-template-columns:1fr}.module-wide{grid-column:auto}.permission-preview{grid-template-columns:1fr}.permission-preview span{align-items:center}}
