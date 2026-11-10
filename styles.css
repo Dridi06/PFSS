@@ -347,3 +347,33 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .nav-submenu{margin-left:24px;padding-left:11px}
   .nav-subitem{min-height:46px;font-size:13px;padding:10px 13px}
 }
+
+
+/* PFSS visual role and workspace grouping */
+.nav-section-label{
+  margin:18px 11px 7px;
+  color:#8e7952;
+  font-size:8px;
+  line-height:1.5;
+  font-weight:800;
+  letter-spacing:1.15px;
+}
+.nav-section-label:first-of-type{margin-top:8px}
+.team-workspace-note{
+  display:grid;
+  gap:6px;
+  margin:0 0 20px;
+  padding:16px 18px;
+  border:1px solid #725a32;
+  border-radius:11px;
+  background:linear-gradient(110deg,#2b2418,#171512);
+}
+.team-workspace-note b{color:#f0d79c;font:700 13px Manrope}
+.team-workspace-note span{color:#b9ad98;font-size:11px;line-height:1.6}
+.team-module-grid .module-card{min-height:220px}
+.team-module-grid .module-card p{max-width:58ch}
+@media(max-width:760px){
+  .nav-section-label{margin:16px 10px 6px;font-size:8px}
+  .team-workspace-note{padding:14px}
+  .team-module-grid .module-card{min-height:unset}
+}
