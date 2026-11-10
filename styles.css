@@ -72,3 +72,10 @@ body{background:radial-gradient(ellipse at 78% -12%,#49391d38,transparent 38%),l
 .btn:disabled{opacity:.6;cursor:wait;transform:none}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #d6b56d;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* UI FEINSCHLIFF: Abmelden rechts neben Profil + grüner Online-Indikator */
+.sidebar-bottom{position:relative}
+.profile-mini{padding-right:105px;min-height:36px}
+.logout-button{position:absolute;right:9px;bottom:0;white-space:nowrap}
+.online-pill .status-dot{background:#45c878;box-shadow:0 0 0 4px #45c87820,0 0 13px #45c878}
