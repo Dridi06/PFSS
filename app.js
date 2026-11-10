@@ -432,7 +432,8 @@ document.querySelectorAll('input[type=file]:not(#mediaInput)')
 
 document.getElementById('menuToggle')
   .addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
+    const isOpen = document.getElementById('sidebar').classList.toggle('open');
+    document.body.classList.toggle('sidebar-open', isOpen);
   });
 
 renderDashboard();
