@@ -8,7 +8,7 @@
   <title>PFSS | Professional Football Scouting System</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfss-backup-20261110-2" defer></script>
+  <script src="app.js?v=pfss-admin-backup-20261110-1" defer></script>
 </head>
 <body>
 
@@ -124,6 +124,9 @@
         <button class="nav-item admin-nav-item" data-view="admin" id="adminNavItem" hidden>
           <span class="nav-icon">⚙</span>Administration
         </button>
+        <button class="nav-item admin-nav-item" data-view="backup" id="backupNavItem" hidden>
+          <span class="nav-icon">⇧</span>Datensicherung
+        </button>
       </nav>
 
       <div class="sidebar-bottom">
@@ -177,7 +180,7 @@
             <div class="eyebrow">ÜBERSICHT</div>
             <h1>Dashboard</h1>
             <p>Willkommen bei deinem Professional Football Scouting System.</p>
-            <div class="backup-actions"><button class="btn btn-secondary" type="button" id="exportBackupButton">↓ Daten sichern</button><button class="btn btn-ghost" type="button" id="importBackupButton">↑ Backup importieren</button><input id="backupFileInput" type="file" accept="application/json,.json" hidden></div>
+            
           </div>
           <button class="btn btn-primary" data-action="new-player">
             ＋ Spieler hinzufügen
@@ -391,6 +394,35 @@
           <label class="search-box admin-search"><span>⌕</span><input id="adminUserSearch" type="search" placeholder="Benutzername oder ID suchen …"></label>
           <p id="adminMessage" class="admin-message" role="status" aria-live="polite">Lade Benutzer …</p>
           <div id="adminUserList" class="admin-user-list"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-backup">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">ADMINISTRATION · SYSTEMSICHERUNG</div>
+            <h1>Datensicherung</h1>
+            <p>Erstelle eine Sicherung deiner PFSS-Spieler und Scouting-Berichte oder stelle sie aus einer vorhandenen Backup-Datei wieder her.</p>
+          </div>
+        </div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
+          <article class="panel">
+            <div class="eyebrow">EXPORT</div>
+            <h3>Daten sichern</h3>
+            <p>Speichert Spieler und Scouting-Berichte als PFSS-Backup-Datei auf deinem Gerät.</p>
+            <button class="btn btn-primary" type="button" id="exportBackupButton">↓ Daten sichern</button>
+          </article>
+          <article class="panel">
+            <div class="eyebrow">IMPORT</div>
+            <h3>Backup importieren</h3>
+            <p>Stellt Spieler und Scouting-Berichte aus einer vorhandenen PFSS-Backup-Datei wieder her.</p>
+            <button class="btn btn-secondary" type="button" id="importBackupButton">↑ Backup importieren</button>
+            <input id="backupFileInput" type="file" accept="application/json,.json" hidden>
+          </article>
+        </div>
+        <div class="notice" style="margin-top:18px">
+          <span>ⓘ</span>
+          <p><b>Wichtig:</b> Beim Import werden die aktuell gespeicherten Spieler und Berichte in diesem Browser ersetzt. Erstelle bei Bedarf vorher eine aktuelle Sicherung.</p>
         </div>
       </section>
 
