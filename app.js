@@ -592,32 +592,46 @@ function showPendingScreen(status) {
 }
 
 function showAuthenticatedApp(user, profile) {
-  window.history.replaceState(
-    { pfssView: 'dashboard', pfssLabel: 'Dashboard' },
-    '',
-    window.location.pathname + window.location.search
-  );
+  const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
+  const username = profile.username || user.email || 'PFMS Nutzer';
+  const isAdmin = role === 'admin' || role === 'administrator';
+  const isScout = role.includes('scout');
+  const isTeam = ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
+  const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
+  const startView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
+
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
-  document.getElementById('appShell').classList.remove('hidden');
-
-  document.getElementById('accountEmail').textContent =
-    profile.username || user.email || 'PFSS Nutzer';
-
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('accountEmail').textContent = username;
   document.querySelector('.profile-mini small').textContent =
-    profile.role === 'admin' ? 'Administrator' : profile.role === 'scout' ? 'Scout' : 'Mitglied';
-
+    isAdmin ? 'Administrator' : isScout ? 'Scout' : isTeam ? 'Trainerteam' : isClub ? 'Vereinsverwaltung' : 'Mitglied';
   const adminNav = document.getElementById('adminNavItem');
-  if (adminNav) adminNav.hidden = profile.role !== 'admin';
+  if (adminNav) adminNav.hidden = !isAdmin;
   const backupNav = document.getElementById('backupNavItem');
-  if (backupNav) backupNav.hidden = profile.role !== 'admin';
+  if (backupNav) backupNav.hidden = !isAdmin;
   window.pfssCurrentUserId = user.id;
   window.pfssCurrentRole = profile.role;
-
-  document.getElementById('accountStatus').textContent =
-    'Freigegeben';
-
+  document.getElementById('accountStatus').textContent = 'Freigegeben';
   renderDashboard();
+
+  const welcome = document.getElementById('welcomeSequence');
+  const welcomeUser = document.getElementById('welcomeUser');
+  if (welcomeUser) welcomeUser.textContent = 'Willkommen, ' + username + '!';
+  if (welcome) welcome.classList.remove('hidden');
+  window.clearTimeout(window.pfmsWelcomeTimer);
+  window.pfmsWelcomeTimer = window.setTimeout(() => {
+    if (welcome) welcome.classList.add('hidden');
+    document.getElementById('appShell').classList.remove('hidden');
+    window.history.replaceState(
+      { pfssView: startView, pfssLabel: startView === 'team-workspace' ? 'Mannschaftsübersicht' : startView },
+      '',
+      window.location.pathname + window.location.search
+    );
+    const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === startView &&
+      (startView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
+    showView(startView, nav, true);
+  }, 3000);
 }
 
 async function loadAdminUsers() {
