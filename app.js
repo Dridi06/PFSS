@@ -76,6 +76,7 @@ function showView(view) {
     names[view] || 'Dashboard';
 
   document.getElementById('sidebar').classList.remove('open');
+  document.body.classList.remove('sidebar-open');
 
   if (view === 'players') renderPlayers();
   if (view === 'reports') renderReports();
