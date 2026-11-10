@@ -61,6 +61,10 @@ function showView(view) {
 
   const names = {
     dashboard: 'Dashboard',
+    clubs: 'Vereine',
+    teams: 'Mannschaften',
+    staff: 'Trainer & Betreuer',
+    scouts: 'Scouts',
     players: 'Spieler',
     reports: 'Scouting-Berichte',
     media: 'Medien',
@@ -356,6 +360,12 @@ document.addEventListener('click', event => {
 
   if (view) {
     showView(view.dataset.view);
+    return;
+  }
+
+  const skeletonAction = event.target.closest('[data-skeleton-action]');
+  if (skeletonAction) {
+    toast(`${skeletonAction.dataset.skeletonAction}-Modul ist vorbereitet; Datenbank-Anbindung folgt.`);
     return;
   }
 
