@@ -357,6 +357,16 @@ function addMedia(files) {
 }
 
 document.addEventListener('click', event => {
+  const navToggle = event.target.closest('[data-nav-toggle]');
+  if (navToggle) {
+    const submenu = document.getElementById(navToggle.dataset.navToggle);
+    const willOpen = submenu.hidden;
+    submenu.hidden = !willOpen;
+    navToggle.setAttribute('aria-expanded', String(willOpen));
+    navToggle.classList.toggle('expanded', willOpen);
+    return;
+  }
+
   const view = event.target.closest('[data-view]');
 
   if (view) {
