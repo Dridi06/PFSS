@@ -597,39 +597,103 @@ function showPendingScreen(status) {
 
 function applyAdminPreviewMode(mode) {
   if (!window.pfssIsRealAdmin) return;
+
   const allowed = ['admin','scout','agency','club','member'];
   if (!allowed.includes(mode)) mode = 'admin';
+
+  const configs = {
+    admin: {
+      label: 'ADMIN-MODUS',
+      target: 'admin',
+      views: ['clubs','agencies','scouts','admin-members','players','admin-errors','admin-inbox','admin-payments','admin','backup'],
+      groups: []
+    },
+    scout: {
+      label: 'VORSCHAU: SCOUT',
+      target: 'scouts',
+      views: ['dashboard','scouts','players','reports','media'],
+      groups: []
+    },
+    agency: {
+      label: 'VORSCHAU: AGENTUR',
+      target: 'agencies',
+      views: ['dashboard','agencies','scouts','players','reports','media'],
+      groups: []
+    },
+    club: {
+      label: 'VORSCHAU: VEREIN',
+      target: 'clubs',
+      views: ['dashboard','clubs','teams','club-members','club-admin','club-scouting','team-workspace','reports','media'],
+      groups: ['clubSubnav','teamSubnav']
+    },
+    member: {
+      label: 'VORSCHAU: MITGLIED',
+      target: 'dashboard',
+      views: ['dashboard','players','reports','media'],
+      groups: []
+    }
+  };
+
+  const config = configs[mode];
   window.pfssPreviewMode = mode;
-  const labels = {admin:'ADMIN-MODUS',scout:'VORSCHAU: SCOUT',agency:'VORSCHAU: AGENTUR',club:'VORSCHAU: VEREIN',member:'VORSCHAU: MITGLIED'};
+
   const label = document.getElementById('previewModeLabel');
-  if (label) label.textContent = labels[mode];
+  if (label) label.textContent = config.label;
+
   const adminNavSection = document.getElementById('adminNavSection');
-  if (adminNavSection) adminNavSection.hidden = mode === 'member' || mode === 'scout';
+  if (adminNavSection) adminNavSection.hidden = mode !== 'admin' && mode !== 'club' && mode !== 'agency' && mode !== 'scout';
+
   document.querySelectorAll('.sidebar [data-view]').forEach(item => {
     const view = item.dataset.view;
-    const isAdminItem = item.classList.contains('admin-nav-item');
-    if (mode === 'admin') {
-      item.hidden = !isAdminItem;
-    } else if (isAdminItem) {
-      const allowedView = mode === 'club' ? view === 'clubs' : mode === 'agency' ? view === 'agencies' : mode === 'scout' ? view === 'scouts' : false;
-      item.hidden = !allowedView;
-    } else {
-      item.hidden = false;
-    }
+    item.hidden = !config.views.includes(view);
   });
+
+  const clubToggle = document.querySelector('[data-nav-toggle="clubSubnav"]');
+  const clubSubnav = document.getElementById('clubSubnav');
+  const teamToggle = document.querySelector('[data-nav-toggle="teamSubnav"]');
+  const teamSubnav = document.getElementById('teamSubnav');
+
+  if (clubToggle) clubToggle.hidden = !config.groups.includes('clubSubnav');
+  if (clubSubnav) clubSubnav.hidden = !config.groups.includes('clubSubnav');
+  if (teamToggle) teamToggle.hidden = !config.groups.includes('teamSubnav');
+  if (teamSubnav) teamSubnav.hidden = !config.groups.includes('teamSubnav');
+
+  [clubToggle, teamToggle].forEach(toggle => {
+    if (!toggle) return;
+    toggle.classList.remove('active','expanded');
+    toggle.setAttribute('aria-expanded','false');
+  });
+
   const sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.classList.toggle('admin-mode', mode === 'admin');
-  const clubConsole = document.getElementById('adminClubConsole');
-  const scoutConsole = document.getElementById('adminScoutConsole');
-  const agencyConsole = document.getElementById('adminAgencyConsole');
-  if (clubConsole) clubConsole.hidden = mode !== 'admin';
-  if (scoutConsole) scoutConsole.hidden = mode !== 'admin';
-  if (agencyConsole) agencyConsole.hidden = mode !== 'admin';
-  const target = mode === 'admin' ? 'admin' : mode === 'scout' ? 'scouts' : mode === 'agency' ? 'agencies' : mode === 'club' ? 'clubs' : 'dashboard';
-  const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === target && !el.hidden) || null;
-  showView(target, nav, true);
+
+  const consoles = {
+    club: document.getElementById('adminClubConsole'),
+    agency: document.getElementById('adminAgencyConsole'),
+    scout: document.getElementById('adminScoutConsole')
+  };
+  Object.entries(consoles).forEach(([key,element]) => {
+    if (element) element.hidden = mode !== 'admin';
+  });
+
+  const nav = [...document.querySelectorAll('.sidebar [data-view]')]
+    .find(el => el.dataset.view === config.target && !el.hidden) || null;
+
+  showView(config.target, nav, true);
+
   const pageTitle = document.getElementById('pageTitle');
-  if (pageTitle && mode !== 'admin') pageTitle.textContent = (labels[mode] || 'VORSCHAU') + ' · ' + (target === 'dashboard' ? 'Dashboard' : target === 'scouts' ? 'Scouts' : target === 'agencies' ? 'Agenturen' : 'Vereinsübersicht');
+  if (pageTitle) {
+    const pageNames = {
+      admin: 'Administration',
+      scout: 'Scouts',
+      agency: 'Agenturen',
+      club: 'Vereinsübersicht',
+      member: 'Dashboard'
+    };
+    pageTitle.textContent = mode === 'admin'
+      ? pageNames.admin
+      : config.label + ' · ' + pageNames[mode];
+  }
 }
 
 function showAuthenticatedApp(user, profile) {
