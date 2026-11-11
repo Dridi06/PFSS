@@ -470,3 +470,29 @@ button,input,select,textarea{max-width:100%}
   .welcome-sequence-content{width:min(92vw,900px)}
   .app-shell{min-height:100svh;min-height:100dvh}
 }
+
+
+/* PFMS Vereinsbereich – grafische Platzhalter */
+.nav-section-label{padding:15px 12px 7px;color:#728198;font-size:9px;font-weight:800;letter-spacing:1.15px;line-height:1.5}
+.nav-submenu{display:grid;gap:4px;margin:0 0 8px 28px;padding-left:10px;border-left:1px solid #2b3a50}
+.nav-subitem{border:0;background:transparent;color:#aab5c5;text-align:left;padding:10px 11px;border-radius:7px;font:600 12px 'DM Sans';cursor:pointer}
+.nav-subitem:hover,.nav-subitem.active{background:#1a2940;color:#fff}
+.club-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 30px;margin-bottom:17px;background:linear-gradient(115deg,#101b2e,#1d3048);color:#fff;overflow:hidden}
+.club-hero h2{font:800 23px Manrope;margin:9px 0}
+.club-hero p{color:#b4c0cf;font-size:12px;line-height:1.6;max-width:580px;margin:0}
+.club-hero-mark{font:800 46px Manrope;color:#c6f36b;letter-spacing:2px;opacity:.9}
+.club-role-grid,.team-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px}
+.club-role-grid .module-card,.team-category-grid .module-card{min-width:0}
+.club-placeholder-note{margin-top:5px}
+.club-search-preview{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:17px 0;color:#929eae;font-size:12px;max-width:520px}
+.club-search-preview span:first-child{font-size:18px}
+.club-table-wrap{overflow-x:auto}
+.club-table{width:100%;border-collapse:collapse;min-width:620px;text-align:left}
+.club-table th{font-size:9px;letter-spacing:.8px;color:#8995a5;text-transform:uppercase;padding:13px 12px;border-bottom:1px solid var(--line)}
+.club-table td{font-size:11px;color:#526074;padding:14px 12px;border-bottom:1px solid #eef1f4}
+.payment-state{display:inline-flex;padding:6px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.payment-open{background:#fff0ed;color:#c04e40}
+.payment-paid{background:#edf7e4;color:#5c872a}
+.club-footnote{font-size:10px;color:#8d98a8;line-height:1.6;margin:14px 0 0}
+@media(max-width:1100px){.club-role-grid,.team-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.club-hero{padding:21px;align-items:flex-start}.club-hero-mark{font-size:28px}.club-role-grid,.team-category-grid{grid-template-columns:1fr}.club-table{min-width:590px}}
