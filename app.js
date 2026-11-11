@@ -836,7 +836,7 @@ function setAuthMode(mode) {
   const message = document.getElementById('authMessage');
   document.getElementById('chooseLogin').classList.toggle('active', !signupMode);
   document.getElementById('chooseRegister').classList.toggle('active', signupMode);
-  document.getElementById('authTitle').textContent = signupMode ? 'Konto registrieren.' : 'Willkommen zurück.';
+  document.getElementById('authTitle').textContent = signupMode ? 'Konto registrieren.' : 'Willkommen.';
   document.getElementById('authIntro').textContent = signupMode
     ? 'Wähle deine Registrierungsart. Bei einer Einladung kannst du einer bestehenden Organisation beitreten.'
     : 'Melde dich mit E-Mail-Adresse oder Benutzername und Passwort an.';
