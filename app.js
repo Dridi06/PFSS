@@ -885,50 +885,122 @@ async function showPfmsOrganizationDetails(root,org) {
   root.querySelector('[data-pfms-detail-title]').textContent=org.name+' · '+org.id;
   detail.hidden=false;
   body.innerHTML='<p class="admin-message">Mitglieder werden geladen …</p>';
+  let members=[];
   try {
     const {data,error}=await pfssSupabase.rpc(
       'pfms_admin_list_legacy_org_members',{p_org_id:org.id}
     );
     if(error)throw error;
-    if(!data?.length){body.innerHTML='<p class="admin-message">Noch keine Mitglieder zugeordnet.</p>';return;}
-    body.innerHTML=data.map((m,i)=>`<article class="admin-user-card" data-member-index="${i}">
-      <div class="admin-user-info">
-        <b>${escapeHtml(m.full_name||m.username||m.email||'Mitglied')}</b>
-        <small>${escapeHtml(m.email||m.user_id)}</small>
-        <span class="tag">${escapeHtml(m.member_role)} · ${escapeHtml(m.status)}</span>
-      </div>
-      <div class="admin-user-controls">
-        <label>Rolle<select data-member-role>${['owner','club_admin','agency_admin','scout','trainer','co_trainer','betreuer','member'].map(v=>`<option value="${v}" ${m.member_role===v?'selected':''}>${v}</option>`).join('')}</select></label>
-        <label>Status<select data-member-status>${['pending','active','suspended'].map(v=>`<option value="${v}" ${m.status===v?'selected':''}>${v}</option>`).join('')}</select></label>
-      </div>
-      <button type="button" class="btn btn-secondary" data-save-member>Änderungen speichern</button>
-      <p class="admin-message" data-member-message></p>
-    </article>`).join('');
-    body.querySelectorAll('[data-member-index]').forEach(card=>{
-      const m=data[Number(card.dataset.memberIndex)];
-      card.querySelector('[data-save-member]').addEventListener('click',async()=>{
-        const save=card.querySelector('[data-save-member]');
-        save.disabled=true;
-        try {
-          const {error}=await pfssSupabase.rpc(
-            'pfms_admin_update_legacy_membership',{
-              p_membership_id:m.membership_id,
-              p_role:card.querySelector('[data-member-role]').value,
-              p_status:card.querySelector('[data-member-status]').value
-            }
-          );
-          if(error)throw error;
-          card.querySelector('[data-member-message]').textContent='Änderungen gespeichert.';
-        } catch(error) {
-          console.error('PFMS membership update:',error);
-          card.querySelector('[data-member-message]').textContent='Speichern fehlgeschlagen: Berechtigung oder Eingaben prüfen.';
-        } finally {save.disabled=false;}
-      });
-    });
+    members=data||[];
   } catch(error) {
     console.error('PFMS members:',error);
     body.innerHTML='<p class="admin-message">Mitglieder konnten nicht geladen werden.</p>';
+    return;
   }
+
+  body.innerHTML=`
+    <section class="admin-user-card" data-invitation-tools>
+      <b>Neue Einladung erstellen</b>
+      <div class="admin-user-controls">
+        <label>Mitgliedsrolle
+          <select data-invite-role>
+            <option value="scout">Scout</option>
+            <option value="trainer">Trainer</option>
+            <option value="co_trainer">Co-Trainer</option>
+            <option value="betreuer">Betreuer</option>
+            <option value="member">Mitglied</option>
+          </select>
+        </label>
+        <label>Gültigkeit
+          <select data-invite-days>
+            <option value="7">7 Tage</option>
+            <option value="14">14 Tage</option>
+            <option value="30">30 Tage</option>
+          </select>
+        </label>
+      </div>
+      <button type="button" class="btn btn-primary" data-create-invite>Einladungslink erstellen</button>
+      <p class="admin-message" data-invite-message></p>
+      <div data-invite-result hidden>
+        <input type="text" data-invite-url readonly aria-label="Einladungslink">
+        <button type="button" class="btn btn-secondary" data-copy-invite>Link kopieren</button>
+      </div>
+      <small>Der Link ist einmalig verwendbar und läuft nach der gewählten Frist ab.</small>
+    </section>
+    <h4>Mitglieder</h4>
+    <div data-org-members>
+      ${members.length ? members.map((m,i)=>`<article class="admin-user-card" data-member-index="${i}">
+        <div class="admin-user-info">
+          <b>${escapeHtml(m.full_name||m.username||m.email||'Mitglied')}</b>
+          <small>${escapeHtml(m.email||m.user_id)}</small>
+          <span class="tag">${escapeHtml(m.member_role)} · ${escapeHtml(m.status)}</span>
+        </div>
+        <div class="admin-user-controls">
+          <label>Rolle<select data-member-role>${['owner','club_admin','agency_admin','scout','trainer','co_trainer','betreuer','member'].map(v=>`<option value="${v}" ${m.member_role===v?'selected':''}>${v}</option>`).join('')}</select></label>
+          <label>Status<select data-member-status>${['pending','active','suspended'].map(v=>`<option value="${v}" ${m.status===v?'selected':''}>${v}</option>`).join('')}</select></label>
+        </div>
+        <button type="button" class="btn btn-secondary" data-save-member>Änderungen speichern</button>
+        <p class="admin-message" data-member-message></p>
+      </article>`).join('') : '<p class="admin-message">Noch keine Mitglieder zugeordnet.</p>'}
+    </div>`;
+
+  const createButton=body.querySelector('[data-create-invite]');
+  createButton.addEventListener('click',async()=>{
+    const message=body.querySelector('[data-invite-message]');
+    const result=body.querySelector('[data-invite-result]');
+    createButton.disabled=true;
+    message.textContent='Einladung wird erstellt …';
+    result.hidden=true;
+    try {
+      const {data,error}=await pfssSupabase.rpc('pfms_create_legacy_invitation',{
+        p_organization_id:org.id,
+        p_role:body.querySelector('[data-invite-role]').value,
+        p_expires_in_days:Number(body.querySelector('[data-invite-days]').value)
+      });
+      if(error)throw error;
+      const url=new URL(window.location.href);
+      url.searchParams.set('invite',data);
+      body.querySelector('[data-invite-url]').value=url.toString();
+      result.hidden=false;
+      message.textContent='Einladung erstellt. Der Code wird nur jetzt angezeigt – bitte den Link sicher weitergeben.';
+    } catch(error) {
+      console.error('PFMS invitation creation:',error);
+      message.textContent='Einladung fehlgeschlagen: '+(error?.message||'Berechtigung oder Organisation prüfen.');
+    } finally {createButton.disabled=false;}
+  });
+  body.querySelector('[data-copy-invite]').addEventListener('click',async()=>{
+    const input=body.querySelector('[data-invite-url]');
+    try {
+      await navigator.clipboard.writeText(input.value);
+      body.querySelector('[data-invite-message]').textContent='Einladungslink kopiert.';
+    } catch(error) {
+      input.focus();
+      input.select();
+      body.querySelector('[data-invite-message]').textContent='Link markieren und kopieren.';
+    }
+  });
+
+  body.querySelectorAll('[data-member-index]').forEach(card=>{
+    const m=members[Number(card.dataset.memberIndex)];
+    card.querySelector('[data-save-member]').addEventListener('click',async()=>{
+      const save=card.querySelector('[data-save-member]');
+      save.disabled=true;
+      try {
+        const {error}=await pfssSupabase.rpc(
+          'pfms_admin_update_legacy_membership',{
+            p_membership_id:m.membership_id,
+            p_role:card.querySelector('[data-member-role]').value,
+            p_status:card.querySelector('[data-member-status]').value
+          }
+        );
+        if(error)throw error;
+        card.querySelector('[data-member-message]').textContent='Änderungen gespeichert.';
+      } catch(error) {
+        console.error('PFMS membership update:',error);
+        card.querySelector('[data-member-message]').textContent='Speichern fehlgeschlagen: Berechtigung oder Eingaben prüfen.';
+      } finally {save.disabled=false;}
+    });
+  });
 }
 
 function showPfmsScoutDetails(root,scout) {
