@@ -818,74 +818,104 @@ document.getElementById('forgotPasswordButton')
   });
 
 const signupUsernameField = document.getElementById('signupUsernameField');
+const registrationFields = document.getElementById('registrationFields');
+const registrationType = document.getElementById('registrationType');
+const agencyTypeField = document.getElementById('agencyTypeField');
+const organizationNameField = document.getElementById('organizationNameField');
+const invitationCodeInput = document.getElementById('invitationCode');
 let signupMode = false;
 
-document.getElementById('signupButton')
-  .addEventListener('click', async () => {
-    const form = document.getElementById('authForm');
-    const email = form.elements.email.value.trim();
-    const password = form.elements.password.value;
-    const username = (form.elements.username.value || '').trim();
-    const message = document.getElementById('authMessage');
-    const button = document.getElementById('signupButton');
+const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
+if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
 
-    if (!signupMode) {
-      signupMode = true;
-      signupUsernameField.hidden = false;
-      form.elements.username.required = true;
-      document.getElementById('loginButton').textContent = 'Zur Anmeldung';
-      button.textContent = 'Registrierung starten';
-      document.getElementById('emailFieldLabel').textContent = 'E-Mail-Adresse';
-      message.textContent = 'Bitte Benutzername, E-Mail und Passwort eingeben.';
-      form.elements.username.focus();
-      return;
+function setAuthMode(mode) {
+  signupMode = mode === 'register';
+  const form = document.getElementById('authForm');
+  const loginButton = document.getElementById('loginButton');
+  const signupButton = document.getElementById('signupButton');
+  const message = document.getElementById('authMessage');
+  document.getElementById('chooseLogin').classList.toggle('active', !signupMode);
+  document.getElementById('chooseRegister').classList.toggle('active', signupMode);
+  document.getElementById('authTitle').textContent = signupMode ? 'Konto registrieren.' : 'Willkommen zurück.';
+  document.getElementById('authIntro').textContent = signupMode
+    ? 'Wähle deine Registrierungsart. Bei einer Einladung kannst du einer bestehenden Organisation beitreten.'
+    : 'Melde dich mit E-Mail-Adresse oder Benutzername und Passwort an.';
+  signupUsernameField.hidden = !signupMode;
+  registrationFields.hidden = !signupMode;
+  form.elements.username.required = signupMode;
+  form.elements.email.autocomplete = signupMode ? 'email' : 'username';
+  document.getElementById('emailFieldLabel').textContent = signupMode ? 'E-Mail-Adresse' : 'E-Mail-Adresse oder Benutzername';
+  form.elements.email.placeholder = signupMode ? 'name@beispiel.de' : 'E-Mail oder Benutzername';
+  loginButton.hidden = signupMode;
+  signupButton.hidden = !signupMode;
+  document.getElementById('forgotPasswordButton').hidden = signupMode;
+  message.textContent = signupMode ? 'Bitte Angaben ergänzen und Registrierungsart auswählen.' : '';
+}
+
+document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
+document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
+
+registrationType.addEventListener('change', () => {
+  const type = registrationType.value;
+  const isOrg = type === 'club' || type === 'agency';
+  organizationNameField.hidden = !isOrg;
+  organizationNameField.querySelector('input').required = isOrg;
+  agencyTypeField.hidden = type !== 'agency';
+});
+
+document.getElementById('signupButton').addEventListener('click', async () => {
+  const form = document.getElementById('authForm');
+  const email = form.elements.email.value.trim();
+  const password = form.elements.password.value;
+  const username = (form.elements.username.value || '').trim();
+  const message = document.getElementById('authMessage');
+  const button = document.getElementById('signupButton');
+  const type = registrationType.value;
+  const organizationName = (form.elements.organizationName.value || '').trim();
+  const invitationCode = (form.elements.invitationCode.value || '').trim();
+
+  if (!/^[A-Za-z0-9_.-]{3,20}$/.test(username)) {
+    message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
+    return;
+  }
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
+    message.textContent = 'Bitte gültige E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
+    return;
+  }
+  if ((type === 'club' || type === 'agency') && !organizationName) {
+    message.textContent = 'Bitte den Namen des Vereins oder der Agentur eingeben.';
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = 'Registrierung wird vorbereitet …';
+  try {
+    const metadata = {
+      username,
+      registration_type: type,
+      agency_type: type === 'agency' ? document.getElementById('agencyType').value : null,
+      organization_name: type === 'individual_scout' ? null : organizationName,
+      invitation_code: invitationCode || null
+    };
+    const { data, error } = await pfssSupabase.auth.signUp({
+      email,
+      password,
+      options: { data: metadata }
+    });
+    if (error) throw error;
+    if (data.session && data.user) {
+      await checkPfssAccess(data.user);
+    } else {
+      message.textContent = 'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Die Organisationsanlage bzw. Einladung wird erst nach Aktivierung der serverseitigen Prüf- und Datenbankfunktionen abgeschlossen.';
     }
+  } catch (error) {
+    message.textContent = 'Registrierung fehlgeschlagen. Bitte prüfe deine Angaben oder versuche es später erneut.';
+  } finally {
+    button.disabled = false;
+  }
+});
 
-    if (!/^[A-Za-z0-9_.-]{3,20}$/.test(username)) {
-      message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
-      return;
-    }
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
-      message.textContent = 'Bitte gültige E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
-      return;
-    }
-
-    button.disabled = true;
-    message.textContent = 'Konto wird erstellt …';
-
-    try {
-      const { data, error } = await pfssSupabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username } }
-      });
-
-      if (error) throw error;
-
-      if (data.session && data.user) {
-        await checkPfssAccess(data.user);
-      } else {
-        message.textContent =
-          'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Dein Benutzername wird mit dem Profil verknüpft, sobald die Datenbankmigration eingespielt ist.';
-      }
-    } catch (error) {
-      message.textContent = 'Registrierung fehlgeschlagen. Bitte prüfe deine Angaben oder versuche es später erneut.';
-    } finally {
-      button.disabled = false;
-    }
-  });
-
-document.getElementById('loginButton')
-  .addEventListener('click', event => {
-    if (!signupMode) return;
-    event.preventDefault();
-    signupMode = false;
-    signupUsernameField.hidden = true;
-    document.getElementById('authForm').elements.username.required = false;
-    document.getElementById('loginButton').textContent = 'Anmelden';
-    document.getElementById('signupButton').textContent = 'Konto erstellen';
-    document.getElementById('authMessage').textContent = 'Anmeldung mit E-Mail-Adresse und Passwort.';
-  });
+setAuthMode(inviteFromUrl ? 'register' : 'login');
 
 document.getElementById('logoutButton')
   .addEventListener('click', pfssLogout);
