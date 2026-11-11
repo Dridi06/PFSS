@@ -159,6 +159,27 @@
             <small class="field-hint">Mit Einladung wirst du einer bestehenden Organisation zugeordnet. Die Einladung wird serverseitig geprüft.</small>
           </label>
           <p class="registration-note">Deine Auswahl wird bei der Registrierung vorgemerkt. Die tatsächliche Rollenvergabe und die Freigabe der jeweiligen Bereiche erfolgen erst nach serverseitiger Prüfung.</p>
+          <section id="orderSummary" class="order-summary" hidden aria-live="polite">
+            <div class="order-summary-top"><span class="pricing-label">DEINE BESTELLÜBERSICHT</span><span class="order-secure">✦ PFMS PREMIUM</span></div>
+            <h3 id="orderPlanName">Verein</h3>
+            <div class="order-price-line"><strong id="orderPrice">99,99 €</strong><span id="orderPeriod">pro Monat</span></div>
+            <div class="order-detail-row"><span>Ausgewähltes Abo</span><b id="orderPlanDetail">Verein · monatlich</b></div>
+            <div class="order-detail-row"><span>Testphase</span><b>30 Tage kostenlos</b></div>
+            <div class="order-detail-row"><span>Heute fällig</span><b>0,00 €</b></div>
+            <p class="order-trial-note">Während der 30-tägigen Testphase erfolgt keine Abbuchung. Die Zahlung wird erst nach Einrichtung der echten Zahlungsabwicklung aktiviert.</p>
+            <div class="payment-preview-title">Zahlungsart für dein Abo</div>
+            <div class="payment-methods" aria-label="Vorgesehene Zahlungsmethoden">
+              <div class="payment-method"><span class="payment-symbol">P</span><b>PayPal</b></div>
+              <div class="payment-method"><span class="payment-symbol"></span><b>Apple Pay</b></div>
+              <div class="payment-method"><span class="payment-symbol">▰</span><b>Kreditkarte</b></div>
+            </div>
+            <p class="payment-preview-note">Zahlungsarten werden hier zunächst als Vorschau angezeigt. Es wird noch keine Zahlung ausgelöst.</p>
+          </section>
+          <section id="memberFreeSummary" class="order-summary member-order-summary" hidden>
+            <span class="pricing-label">KOSTENLOSER MITGLIEDSZUGANG</span>
+            <h3>0,00 € dauerhaft</h3>
+            <p>Dein Zugang wird über den gültigen Einladungslink einem Verein oder einer Agentur zugeordnet. Es ist keine Zahlung erforderlich.</p>
+          </section>
           <label class="legal-acceptance">
             <input type="checkbox" id="acceptLegalTerms" required>
             <span>Ich habe die <button type="button" class="inline-legal-link" data-legal-doc="nutzung">AGB</button> gelesen und akzeptiere sie. Die <button type="button" class="inline-legal-link" data-legal-doc="datenschutz">Datenschutzerklärung</button> habe ich zur Kenntnis genommen.</span>
