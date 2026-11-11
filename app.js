@@ -603,7 +603,23 @@ function showAuthenticatedApp(user, profile) {
   const isScout = role.includes('scout');
   const isTeam = ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
   const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
-  const startView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
+  const normalStartView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
+  const firstLoginKey = 'pfms_first_dashboard_seen_' + user.id;
+  const sessionWelcomeKey = 'pfms_welcome_session_' + user.id;
+  let firstLogin = false;
+  try {
+    firstLogin = localStorage.getItem(firstLoginKey) !== '1';
+    if (firstLogin) localStorage.setItem(firstLoginKey, '1');
+    sessionStorage.setItem(sessionWelcomeKey, '1');
+  } catch (storageError) {
+    firstLogin = false;
+  }
+  const showIntro = firstLogin;
+  const startView = showIntro ? 'dashboard' : normalStartView;
+  const introPanel = document.getElementById('firstLoginIntro');
+  const returningPanel = document.getElementById('returningWelcome');
+  if (introPanel) introPanel.hidden = !showIntro;
+  if (returningPanel) returningPanel.hidden = showIntro;
 
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
@@ -721,6 +737,9 @@ async function checkPfssAccess(user) {
 }
 
 async function pfssLogout() {
+  try {
+    if (window.pfssCurrentUserId) sessionStorage.removeItem('pfms_welcome_session_' + window.pfssCurrentUserId);
+  } catch (storageError) {}
   await pfssSupabase.auth.signOut();
   showAuthScreen();
 }
