@@ -30,6 +30,38 @@
         <button class="auth-mode-option" type="button" id="chooseRegister">Registrieren</button>
       </div>
 
+      <section id="registrationChoice" class="registration-choice" hidden>
+        <h2>Wie möchtest du PFMS nutzen?</h2>
+        <p>Wähle zuerst deinen Zugang. Danach zeigen wir dir den passenden Registrierungsweg.</p>
+        <div class="registration-choice-grid">
+          <article class="registration-choice-card">
+            <button type="button" class="choice-info" aria-label="Information zu Benutzer" data-choice-info="user">i</button>
+            <h3>Benutzer</h3>
+            <p>Für Benutzer sowie zukünftige Trainer, Co-Trainer und Betreuer.</p>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="user">Auswählen</button>
+          </article>
+          <article class="registration-choice-card">
+            <button type="button" class="choice-info" aria-label="Information zu Verein" data-choice-info="club">i</button>
+            <h3>Verein</h3>
+            <p>Für Vereine, die ihre Organisation und Mannschaften verwalten möchten.</p>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="club">Auswählen</button>
+          </article>
+          <article class="registration-choice-card">
+            <button type="button" class="choice-info" aria-label="Information zu Agentur" data-choice-info="agency">i</button>
+            <h3>Agentur</h3>
+            <p>Für Scouting- und Berateragenturen mit eigener Verwaltung.</p>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="agency">Auswählen</button>
+          </article>
+          <article class="registration-choice-card">
+            <button type="button" class="choice-info" aria-label="Information zu Scout" data-choice-info="scout">i</button>
+            <h3>Scout</h3>
+            <p>Für Vereins- oder Agenturscouts, die Spieler beobachten und Berichte erstellen.</p>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="scout">Auswählen</button>
+          </article>
+        </div>
+        <p id="choiceInfoText" class="choice-info-text" hidden></p>
+      </section>
+
       <form id="authForm">
         <label class="field" id="signupUsernameField" hidden>
           Benutzername
@@ -41,12 +73,23 @@
         </label>
 
         <div id="registrationFields" hidden>
-          <label class="field">
-            Registrierungsart
-            <select name="registrationType" id="registrationType">
-              <option value="individual_scout">Einzelscout</option>
-              <option value="club">Verein</option>
-              <option value="agency">Agentur</option>
+          <input type="hidden" name="registrationType" id="registrationType" value="">
+          <div id="selectedRegistrationLabel" class="selected-registration-label"></div>
+          <button type="button" id="changeRegistrationChoice" class="auth-link-button change-choice">Auswahl ändern</button>
+          <label class="field" id="requestedRoleField" hidden>
+            Gewünschte Funktion
+            <select name="requestedRole" id="requestedRole">
+              <option value="user">Benutzer</option>
+              <option value="trainer">Trainer</option>
+              <option value="co_trainer">Co-Trainer</option>
+              <option value="betreuer">Betreuer</option>
+            </select>
+          </label>
+          <label class="field" id="scoutTypeField" hidden>
+            Scout-Zugang
+            <select name="scoutType" id="scoutType">
+              <option value="club_scout">Vereinsscout</option>
+              <option value="agency_scout">Agenturscout</option>
             </select>
           </label>
           <label class="field" id="agencyTypeField" hidden>
@@ -65,7 +108,7 @@
             <input name="invitationCode" id="invitationCode" type="text" maxlength="160" autocomplete="off" placeholder="Code aus Einladungslink oder QR-Code">
             <small class="field-hint">Mit Einladung wirst du einer bestehenden Organisation zugeordnet. Die Einladung wird serverseitig geprüft.</small>
           </label>
-          <p class="registration-note">Die Registrierungsart ist zunächst eine Vormerkung. Organisationsanlage, Rollen und Einladungsprüfung werden erst nach Einrichtung der sicheren Datenbankfunktionen aktiviert.</p>
+          <p class="registration-note">Deine Auswahl wird bei der Registrierung vorgemerkt. Die tatsächliche Rollenvergabe und die Freigabe der jeweiligen Bereiche erfolgen erst nach serverseitiger Prüfung.</p>
           <label class="legal-acceptance">
             <input type="checkbox" id="acceptLegalTerms" required>
             <span>Ich habe die <button type="button" class="inline-legal-link" data-legal-doc="nutzung">AGB</button> gelesen und akzeptiere sie. Die <button type="button" class="inline-legal-link" data-legal-doc="datenschutz">Datenschutzerklärung</button> habe ich zur Kenntnis genommen.</span>
