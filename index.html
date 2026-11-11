@@ -69,6 +69,11 @@
             <small class="field-hint">Mit Einladung wirst du einer bestehenden Organisation zugeordnet. Die Einladung wird serverseitig geprüft.</small>
           </label>
           <p class="registration-note">Die Registrierungsart ist zunächst eine Vormerkung. Organisationsanlage, Rollen und Einladungsprüfung werden erst nach Einrichtung der sicheren Datenbankfunktionen aktiviert.</p>
+          <label class="legal-acceptance">
+            <input type="checkbox" id="acceptLegalTerms" required>
+            <span>Ich habe die <button type="button" class="inline-legal-link" data-legal-doc="nutzung">AGB</button> gelesen und akzeptiere sie. Die <button type="button" class="inline-legal-link" data-legal-doc="datenschutz">Datenschutzerklärung</button> habe ich zur Kenntnis genommen.</span>
+          </label>
+          <small class="legal-acceptance-hint">Zum Öffnen einfach auf „AGB“ oder „Datenschutzerklärung“ tippen.</small>
         </div>
 
         <label class="field">
@@ -751,7 +756,16 @@
     </form>
   </dialog>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <dialog id="legalInfoDialog" class="legal-info-dialog" aria-labelledby="legalInfoTitle">
+    <div class="legal-info-head">
+      <div><div class="eyebrow">PFSS · RECHTLICHE INFORMATIONEN</div><h2 id="legalInfoTitle">Rechtliche Informationen</h2></div>
+      <button type="button" class="legal-info-close" id="closeLegalInfo" aria-label="Fenster schließen">×</button>
+    </div>
+    <iframe id="legalInfoFrame" title="Rechtliche Informationen" src="about:blank"></iframe>
+    <div class="legal-info-actions"><button type="button" class="btn btn-secondary" id="closeLegalInfoBottom">Schließen</button><a class="text-button" id="openLegalFull" href="rechtliches.html" target="_blank" rel="noopener">Vollständig öffnen ↗</a></div>
+  </dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
 
