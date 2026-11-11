@@ -631,10 +631,13 @@ function showAuthenticatedApp(user, profile) {
   document.getElementById('accountEmail').textContent = username;
   document.querySelector('.profile-mini small').textContent =
     isAdmin ? 'Administrator' : isScout ? 'Scout' : isTeam ? 'Trainerteam' : isClub ? 'Vereinsverwaltung' : 'Mitglied';
-  const adminNav = document.getElementById('adminNavItem');
-  if (adminNav) adminNav.hidden = !isAdmin;
-  const backupNav = document.getElementById('backupNavItem');
-  if (backupNav) backupNav.hidden = !isAdmin;
+  const adminNavSection = document.getElementById('adminNavSection');
+  if (adminNavSection) adminNavSection.hidden = !isAdmin;
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('admin-mode', isAdmin);
+  document.querySelectorAll('.sidebar [data-view]').forEach(item => {
+    if (!item.classList.contains('admin-nav-item')) item.hidden = isAdmin;
+  });
   window.pfssCurrentUserId = user.id;
   window.pfssCurrentRole = profile.role;
   document.getElementById('accountStatus').textContent = 'Freigegeben';
