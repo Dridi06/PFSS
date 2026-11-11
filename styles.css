@@ -750,3 +750,28 @@ button,input,select,textarea{max-width:100%}
   .sidebar .sidebar-logo{max-width:145px;height:94px}
   .sidebar-brand-name{font-size:8px;letter-spacing:1.15px}
 }
+
+
+/* Bestell- und Zahlungsübersicht – visuelle Vorschau */
+#authScreen .order-summary{
+  margin:20px 0 18px;padding:20px;border:1px solid #806338;border-radius:14px;
+  background:radial-gradient(ellipse at 100% 0%,#c59b4b20,transparent 48%),linear-gradient(145deg,#201d17,#111416 78%);
+  box-shadow:0 12px 30px #0005;color:#eee4d0;
+}
+#authScreen .order-summary[hidden]{display:none}
+.order-summary-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.order-secure{font-size:9px;letter-spacing:1px;color:#d9bd7e}
+.order-summary h3{margin:13px 0 2px;color:#f5e4bd;font:800 21px Manrope}
+.order-price-line{display:flex;align-items:baseline;gap:8px;margin:3px 0 17px}
+.order-price-line strong{font:800 29px Manrope;color:#f3d58f}
+.order-price-line span{font-size:11px;color:#b9ad98}
+.order-detail-row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid #443a2a;font-size:11px;color:#bdb4a5}
+.order-detail-row b{color:#f0dfba;text-align:right}
+.order-trial-note,.payment-preview-note{margin:12px 0 0;padding:11px 12px;border:1px solid #5d4a2e;border-radius:8px;background:#171712;color:#c6b58e;font-size:10px;line-height:1.55}
+.payment-preview-title{margin:18px 0 10px;color:#ead5a7;font-size:12px;font-weight:800}
+.payment-methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.payment-method{min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border:1px solid #65502f;border-radius:9px;background:#17191a;color:#e9dfcc;font-size:10px}
+.payment-symbol{font-size:18px;font-weight:900;color:#e4c47e}
+.member-order-summary h3{font-size:22px;color:#f3d58f}
+.member-order-summary p{margin:8px 0 0;color:#c5b99f;font-size:11px;line-height:1.6}
+@media(max-width:420px){#authScreen .order-summary{padding:16px}.payment-methods{gap:6px}.payment-method{font-size:9px}.order-price-line strong{font-size:26px}}
