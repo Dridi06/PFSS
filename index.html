@@ -8,7 +8,7 @@
   <title>PFMS | Professional Football Management System</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfss-admin-backup-20261110-1" defer></script>
+  <script src="app.js?v=pfms-registration-choice-20261111-1" defer></script>
 </head>
 <body>
 
@@ -23,11 +23,15 @@
       </div>
 
       <div class="eyebrow">SICHERER ZUGANG</div>
-      <h1>Willkommen zurück.</h1>
-      <p class="auth-intro">
-        Melde dich an oder erstelle ein Konto.
-        Neue Konten werden vor dem Zugang freigegeben.
+      <h1 id="authTitle">Willkommen bei PFMS.</h1>
+      <p id="authIntro" class="auth-intro">
+        Wähle, ob du dich anmelden oder ein neues Konto registrieren möchtest.
       </p>
+
+      <div class="auth-mode-switch" role="group" aria-label="Zugangsart">
+        <button class="auth-mode-option active" type="button" id="chooseLogin">Anmelden</button>
+        <button class="auth-mode-option" type="button" id="chooseRegister">Registrieren</button>
+      </div>
 
       <form id="authForm">
         <label class="field" id="signupUsernameField" hidden>
@@ -38,6 +42,34 @@
                  placeholder="z. B. AbuJamal">
           <small class="field-hint">3–20 Zeichen: Buchstaben, Zahlen, Punkt, _ oder -</small>
         </label>
+
+        <div id="registrationFields" hidden>
+          <label class="field">
+            Registrierungsart
+            <select name="registrationType" id="registrationType">
+              <option value="individual_scout">Einzelscout</option>
+              <option value="club">Verein</option>
+              <option value="agency">Agentur</option>
+            </select>
+          </label>
+          <label class="field" id="agencyTypeField" hidden>
+            Agenturtyp
+            <select name="agencyType" id="agencyType">
+              <option value="scouting_agency">Scouting-Agentur</option>
+              <option value="consulting_agency">Berateragentur</option>
+            </select>
+          </label>
+          <label class="field" id="organizationNameField" hidden>
+            Name des Vereins / der Agentur
+            <input name="organizationName" type="text" maxlength="120" placeholder="Organisationsname">
+          </label>
+          <label class="field" id="invitationCodeField">
+            Einladungscode (optional)
+            <input name="invitationCode" id="invitationCode" type="text" maxlength="160" autocomplete="off" placeholder="Code aus Einladungslink oder QR-Code">
+            <small class="field-hint">Mit Einladung wirst du einer bestehenden Organisation zugeordnet. Die Einladung wird serverseitig geprüft.</small>
+          </label>
+          <p class="registration-note">Die Registrierungsart ist zunächst eine Vormerkung. Organisationsanlage, Rollen und Einladungsprüfung werden erst nach Einrichtung der sicheren Datenbankfunktionen aktiviert.</p>
+        </div>
 
         <label class="field">
           <span id="emailFieldLabel">E-Mail-Adresse oder Benutzername</span>
