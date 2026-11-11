@@ -852,6 +852,28 @@ function setAuthMode(mode) {
   message.textContent = signupMode ? 'Bitte Angaben ergänzen und Registrierungsart auswählen.' : '';
 }
 
+const legalDialog = document.getElementById('legalInfoDialog');
+const legalFrame = document.getElementById('legalInfoFrame');
+function closeLegalInfo() {
+  if (legalDialog.open) legalDialog.close();
+  legalFrame.src = 'about:blank';
+}
+document.querySelectorAll('[data-legal-doc]').forEach(link => {
+  link.addEventListener('click', () => {
+    const section = link.dataset.legalDoc === 'datenschutz' ? 'datenschutz' : 'nutzung';
+    const title = section === 'datenschutz' ? 'Datenschutzerklärung' : 'AGB';
+    document.getElementById('legalInfoTitle').textContent = title;
+    legalFrame.src = 'rechtliches.html#' + section;
+    document.getElementById('openLegalFull').href = 'rechtliches.html#' + section;
+    legalDialog.showModal();
+  });
+});
+document.getElementById('closeLegalInfo').addEventListener('click', closeLegalInfo);
+document.getElementById('closeLegalInfoBottom').addEventListener('click', closeLegalInfo);
+legalDialog.addEventListener('click', event => {
+  if (event.target === legalDialog) closeLegalInfo();
+});
+
 document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
 document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
 
@@ -871,9 +893,15 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   const message = document.getElementById('authMessage');
   const button = document.getElementById('signupButton');
   const type = registrationType.value;
+  const legalAcceptance = document.getElementById('acceptLegalTerms');
   const organizationName = (form.elements.organizationName.value || '').trim();
   const invitationCode = (form.elements.invitationCode.value || '').trim();
 
+  if (!legalAcceptance.checked) {
+    message.textContent = 'Bitte lies die AGB und Datenschutzhinweise und bestätige die Kenntnisnahme bzw. Zustimmung.';
+    legalAcceptance.focus();
+    return;
+  }
   if (!/^[A-Za-z0-9_.-]{3,20}$/.test(username)) {
     message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
     return;
