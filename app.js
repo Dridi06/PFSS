@@ -607,19 +607,23 @@ function showAuthenticatedApp(user, profile) {
   const firstLoginKey = 'pfms_first_dashboard_seen_' + user.id;
   const sessionWelcomeKey = 'pfms_welcome_session_' + user.id;
   let firstLogin = false;
+  let newAuthenticatedSession = false;
   try {
     firstLogin = localStorage.getItem(firstLoginKey) !== '1';
+    newAuthenticatedSession = sessionStorage.getItem(sessionWelcomeKey) !== '1';
     if (firstLogin) localStorage.setItem(firstLoginKey, '1');
-    sessionStorage.setItem(sessionWelcomeKey, '1');
+    if (newAuthenticatedSession) sessionStorage.setItem(sessionWelcomeKey, '1');
   } catch (storageError) {
     firstLogin = false;
+    newAuthenticatedSession = false;
   }
   const showIntro = firstLogin;
+  const showReturningGreeting = !firstLogin && newAuthenticatedSession;
   const startView = showIntro ? 'dashboard' : normalStartView;
   const introPanel = document.getElementById('firstLoginIntro');
   const returningPanel = document.getElementById('returningWelcome');
   if (introPanel) introPanel.hidden = !showIntro;
-  if (returningPanel) returningPanel.hidden = showIntro;
+  if (returningPanel) returningPanel.hidden = !showReturningGreeting;
 
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
