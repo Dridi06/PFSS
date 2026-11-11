@@ -595,6 +595,41 @@ function showPendingScreen(status) {
   }
 }
 
+function applyAdminPreviewMode(mode) {
+  if (!window.pfssIsRealAdmin) return;
+  const allowed = ['admin','scout','agency','club','member'];
+  if (!allowed.includes(mode)) mode = 'admin';
+  window.pfssPreviewMode = mode;
+  const labels = {admin:'ADMIN-MODUS',scout:'VORSCHAU: SCOUT',agency:'VORSCHAU: AGENTUR',club:'VORSCHAU: VEREIN',member:'VORSCHAU: MITGLIED'};
+  const label = document.getElementById('previewModeLabel');
+  if (label) label.textContent = labels[mode];
+  const adminNavSection = document.getElementById('adminNavSection');
+  if (adminNavSection) adminNavSection.hidden = mode === 'member' || mode === 'scout';
+  document.querySelectorAll('.sidebar [data-view]').forEach(item => {
+    const view = item.dataset.view;
+    const isAdminItem = item.classList.contains('admin-nav-item');
+    if (mode === 'admin') {
+      item.hidden = !isAdminItem;
+    } else if (isAdminItem) {
+      const allowedView = mode === 'club' ? view === 'clubs' : mode === 'agency' ? view === 'agencies' : mode === 'scout' ? view === 'scouts' : false;
+      item.hidden = !allowedView;
+    } else {
+      item.hidden = false;
+    }
+  });
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('admin-mode', mode === 'admin');
+  const clubConsole = document.getElementById('adminClubConsole');
+  const scoutConsole = document.getElementById('adminScoutConsole');
+  if (clubConsole) clubConsole.hidden = mode !== 'admin';
+  if (scoutConsole) scoutConsole.hidden = mode !== 'admin';
+  const target = mode === 'admin' ? 'admin' : mode === 'scout' ? 'scouts' : mode === 'agency' ? 'agencies' : mode === 'club' ? 'clubs' : 'dashboard';
+  const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === target && !el.hidden) || null;
+  showView(target, nav, true);
+  const pageTitle = document.getElementById('pageTitle');
+  if (pageTitle && mode !== 'admin') pageTitle.textContent = (labels[mode] || 'VORSCHAU') + ' · ' + (target === 'dashboard' ? 'Dashboard' : target === 'scouts' ? 'Scouts' : target === 'agencies' ? 'Agenturen' : 'Vereinsübersicht');
+}
+
 function showAuthenticatedApp(user, profile) {
   window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
@@ -644,6 +679,19 @@ function showAuthenticatedApp(user, profile) {
   });
   window.pfssCurrentUserId = user.id;
   window.pfssCurrentRole = profile.role;
+  window.pfssIsRealAdmin = isAdmin;
+  window.pfssPreviewMode = 'admin';
+  const previewSwitch = document.getElementById('adminPreviewSwitch');
+  const previewSelect = document.getElementById('adminPreviewMode');
+  if (previewSwitch) previewSwitch.hidden = !isAdmin;
+  if (previewSelect) {
+    previewSelect.value = 'admin';
+    if (!previewSelect.dataset.bound) {
+      previewSelect.addEventListener('change', () => applyAdminPreviewMode(previewSelect.value));
+      previewSelect.dataset.bound = 'true';
+    }
+  }
+  applyAdminPreviewMode('admin');
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
