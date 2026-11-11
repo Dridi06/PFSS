@@ -15,12 +15,9 @@
   <main id="authScreen" class="auth-screen">
     <section class="auth-card">
       <div class="auth-brand">
-        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="PFMS – Professional Football Management System">
-        <div>
-          <strong class="brand-full-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</strong>
-          <small class="brand-abbreviation">PFMS</small>
-        </div>
+        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="PFMS">
       </div>
+      <div class="auth-tagline">Die perfekte Lösung für Vereine, Agenturen und Scouts</div>
 
       <div class="eyebrow">SICHERER ZUGANG</div>
       <h1 id="authTitle">Willkommen bei PFMS.</h1>
@@ -76,6 +73,8 @@
           <small class="legal-acceptance-hint">Zum Öffnen einfach auf „AGB“ oder „Datenschutzerklärung“ tippen.</small>
         </div>
 
+        <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+
         <label class="field">
           <span id="emailFieldLabel">E-Mail-Adresse oder Benutzername</span>
           <input name="email" type="text" autocomplete="username"
@@ -102,8 +101,6 @@
           </button>
         </div>
 
-        <p id="authMessage" class="auth-message"
-           role="status" aria-live="polite"></p>
       </form>
 
       <small class="auth-footnote">Geschützter Zugang · PFMS · © 2026 PFMS</small>
