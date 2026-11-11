@@ -623,3 +623,23 @@ button,input,select,textarea{max-width:100%}
   #authScreen .auth-brand .auth-logo{width:84px;height:84px}
   #authScreen .auth-brand-name{font-size:10px;letter-spacing:.45px}
 }
+
+/* Login: Logo besser erkennbar und goldene Abschlusslinie direkt unter Passwort-Link */
+#authScreen .auth-brand .auth-logo{width:128px;height:128px;flex:0 0 128px}
+#authScreen .auth-actions{gap:0;margin-top:17px}
+#authScreen .auth-link-button{
+  display:block;
+  width:100%;
+  margin:0;
+  padding:7px 9px 13px;
+  border-bottom:1px solid #80663d;
+  text-align:center;
+}
+#authScreen .auth-footnote{
+  margin-top:12px;
+  padding-top:0;
+  border-top:0;
+}
+@media(max-width:480px){
+  #authScreen .auth-brand .auth-logo{width:116px;height:116px;flex-basis:116px}
+}
