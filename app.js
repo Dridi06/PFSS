@@ -654,9 +654,9 @@ function applyAdminPreviewMode(mode) {
   const teamSubnav = document.getElementById('teamSubnav');
 
   if (clubToggle) clubToggle.hidden = !config.groups.includes('clubSubnav');
-  if (clubSubnav) clubSubnav.hidden = !config.groups.includes('clubSubnav');
+  if (clubSubnav) clubSubnav.hidden = true;
   if (teamToggle) teamToggle.hidden = !config.groups.includes('teamSubnav');
-  if (teamSubnav) teamSubnav.hidden = !config.groups.includes('teamSubnav');
+  if (teamSubnav) teamSubnav.hidden = true;
 
   [clubToggle, teamToggle].forEach(toggle => {
     if (!toggle) return;
