@@ -301,12 +301,19 @@
         <button class="nav-item" data-view="media">
           <span class="nav-icon">▧</span>Medien
         </button>
-        <button class="nav-item admin-nav-item" data-view="admin" id="adminNavItem" hidden>
-          <span class="nav-icon">⚙</span>Administration
-        </button>
-        <button class="nav-item admin-nav-item" data-view="backup" id="backupNavItem" hidden>
-          <span class="nav-icon">⇧</span>Datensicherung
-        </button>
+        <div class="admin-nav-section" id="adminNavSection" hidden>
+          <div class="nav-section-label admin-section-title">ADMINISTRATOR</div>
+          <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span>Vereine</button>
+          <button class="nav-item admin-nav-item" data-view="agencies"><span class="nav-icon">◇</span>Agenturen</button>
+          <button class="nav-item admin-nav-item" data-view="scouts"><span class="nav-icon">⌕</span>Scouts</button>
+          <button class="nav-item admin-nav-item" data-view="admin-members"><span class="nav-icon">♟</span>Mitglieder</button>
+          <button class="nav-item admin-nav-item" data-view="players"><span class="nav-icon">⚽</span>Spielerdatenbank</button>
+          <button class="nav-item admin-nav-item" data-view="admin-errors"><span class="nav-icon">!</span>Fehler</button>
+          <button class="nav-item admin-nav-item" data-view="admin-inbox"><span class="nav-icon">✉</span>Postfach</button>
+          <button class="nav-item admin-nav-item" data-view="admin-payments"><span class="nav-icon">€</span>Zahlungen</button>
+          <button class="nav-item admin-nav-item" data-view="admin"><span class="nav-icon">⚙</span>Admin-Einstellungen</button>
+          <button class="nav-item admin-nav-item" data-view="backup"><span class="nav-icon">⇧</span>Datensicherung</button>
+        </div>
       </nav>
 
       <div class="sidebar-bottom">
@@ -705,6 +712,26 @@
         </div>
       </section>
 
+      <section class="view" id="view-agencies">
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturkonten, Zuständigkeiten und Freigaben zentral verwalten.</p></div></div>
+        <div class="panel admin-placeholder"><h3>Agenturverwaltung</h3><p>Hier werden künftig alle registrierten Agenturen mit Status, Ansprechpartnern und zugehörigen Scouts angezeigt.</p></div>
+      </section>
+      <section class="view" id="view-admin-members">
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Mitglieder</h1><p>Mitgliederkonten, Einladungen und Organisationszuordnungen verwalten.</p></div></div>
+        <div class="panel admin-placeholder"><h3>Mitgliederverwaltung</h3><p>Hier werden Mitglieder, Einladungsstatus und die zugehörige Organisation zusammengeführt.</p></div>
+      </section>
+      <section class="view" id="view-admin-errors">
+        <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Technische Fehler und gemeldete Probleme zentral prüfen.</p></div></div>
+        <div class="panel admin-placeholder"><h3>Fehlerprotokoll</h3><p>Die Fehlerübersicht wird vorbereitet. Eine automatische Protokollierung ist noch nicht angebunden.</p></div>
+      </section>
+      <section class="view" id="view-admin-inbox">
+        <div class="page-heading"><div><div class="eyebrow">KOMMUNIKATION</div><h1>Postfach</h1><p>Systemnachrichten und Kontaktanfragen verwalten.</p></div></div>
+        <div class="panel admin-placeholder"><h3>Administratives Postfach</h3><p>Hier wird später die zentrale Nachrichten- und Supportübersicht angezeigt.</p></div>
+      </section>
+      <section class="view" id="view-admin-payments">
+        <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Zahlungen</h1><p>Abonnements, Zahlungseingänge und offene Vorgänge im Blick behalten.</p></div></div>
+        <div class="panel admin-placeholder"><h3>Zahlungsverwaltung</h3><p>Die Zahlungsübersicht wird vorbereitet. Es ist noch kein Zahlungsanbieter angebunden.</p></div>
+      </section>
       <section class="view" id="view-backup">
         <div class="page-heading">
           <div>
