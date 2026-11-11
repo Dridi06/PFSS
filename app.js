@@ -645,22 +645,24 @@ function showAuthenticatedApp(user, profile) {
   if (userIdDisplay && userIdValue) {
     userIdValue.textContent = user.id;
     userIdDisplay.hidden = false;
-    if (!userIdDisplay.dataset.copyBound) {
-      userIdDisplay.addEventListener('click', async () => {
+    const copyUserIdButton = document.getElementById('copyUserIdButton');
+    if (copyUserIdButton && !copyUserIdButton.dataset.copyBound) {
+      copyUserIdButton.addEventListener('click', async () => {
         const id = window.pfssCurrentUserId;
         if (!id) return;
         try {
           await navigator.clipboard.writeText(id);
-          const copyLabel = userIdDisplay.querySelector('.user-id-copy');
-          if (copyLabel) {
-            copyLabel.textContent = 'KOPIERT';
-            window.setTimeout(() => { copyLabel.textContent = 'KOPIEREN'; }, 1600);
-          }
+          copyUserIdButton.innerHTML = '<span class="user-id-copy-icon">✓</span>';
+          copyUserIdButton.title = 'User-ID kopiert';
+          window.setTimeout(() => {
+            copyUserIdButton.innerHTML = '<span class="user-id-copy-icon">⧉</span>';
+            copyUserIdButton.title = 'User-ID kopieren';
+          }, 1600);
         } catch (error) {
           window.prompt('User-ID kopieren:', id);
         }
       });
-      userIdDisplay.dataset.copyBound = 'true';
+      copyUserIdButton.dataset.copyBound = 'true';
     }
   }
   document.getElementById('accountStatus').textContent = 'Freigegeben';
