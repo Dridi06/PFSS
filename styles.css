@@ -802,3 +802,18 @@ button,input,select,textarea{max-width:100%}
 .user-id-copy-button{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;border:1px solid #80683d;border-radius:50%;background:#29251d;color:#a6d8b5;cursor:pointer;font-size:15px;line-height:1;padding:0}.user-id-copy-button:hover{background:#3a3223;border-color:#d6b66d}.user-id-copy-icon{font-size:15px}
 
 @media(max-width:520px){.topbar-right{gap:6px}.user-id-pill{gap:4px;padding:6px 7px;max-width:54vw}.user-id-label{display:none}#userIdValue{max-width:34vw;font-size:9px}.user-id-copy-button{width:23px;height:23px}.top-avatar{display:none}}
+
+/* Organisations- und Mitgliederverwaltung – visuelle PFMS-Maske */
+.admin-org-console{display:grid;gap:18px;margin:18px 0 24px}
+.admin-org-console[hidden]{display:none}
+.org-search-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+.org-search-grid .field{margin:0}
+.org-search-grid .btn{min-height:44px}
+.org-empty-state{padding:22px;border:1px dashed var(--line,#4a453a);border-radius:12px;color:var(--muted,#9c9689);text-align:center;background:rgba(255,255,255,.02);line-height:1.6}
+.org-member-detail{margin-top:18px;padding-top:18px;border-top:1px solid var(--line,#4a453a)}
+.org-permission-grid{display:grid;grid-template-columns:minmax(130px,1.8fr) repeat(4,minmax(55px,.7fr));gap:0;border:1px solid var(--line,#4a453a);border-radius:10px;overflow:hidden}
+.org-permission-grid>*{padding:11px 8px;border-bottom:1px solid var(--line,#4a453a);text-align:center}
+.org-permission-grid>*:nth-child(-n+5){background:rgba(190,158,94,.12);font-size:11px;font-weight:800;color:var(--gold,#c9aa6c)}
+.org-permission-grid>b{text-align:left}
+.org-permission-grid>span{color:var(--muted,#aaa)}
+@media(max-width:680px){.org-search-grid{grid-template-columns:1fr}.org-search-grid .btn{width:100%}.org-permission-grid{grid-template-columns:minmax(105px,1.5fr) repeat(4,minmax(42px,.6fr));font-size:11px}.org-permission-grid>*{padding:9px 3px}}
