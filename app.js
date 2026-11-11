@@ -854,7 +854,7 @@ const requestedRoleField = document.getElementById('requestedRoleField');
 const scoutTypeField = document.getElementById('scoutTypeField');
 let signupMode = false;
 let selectedRegistrationChoice = '';
-let selectedBillingCycle = 'monthly';\nlet selectedBillingCycle = 'monthly';
+let selectedBillingCycle = 'monthly';
 
 const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
@@ -876,7 +876,8 @@ function chooseRegistrationType(type) {
   document.getElementById('selectedRegistrationLabel').textContent =
     'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout'}[type] || type);
   requestedRoleField.hidden = type !== 'user';
-  scoutTypeField.hidden = true;\n  document.getElementById('scoutType').value = 'solo_scout';
+  scoutTypeField.hidden = true;
+  document.getElementById('scoutType').value = 'solo_scout';
   organizationNameField.hidden = type !== 'club' && type !== 'agency';
   organizationNameField.querySelector('input').required = type === 'club' || type === 'agency';
   agencyTypeField.hidden = type !== 'agency';
