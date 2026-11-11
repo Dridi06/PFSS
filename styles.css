@@ -643,3 +643,19 @@ button,input,select,textarea{max-width:100%}
 @media(max-width:480px){
   #authScreen .auth-brand .auth-logo{width:116px;height:116px;flex-basis:116px}
 }
+
+/* PFMS: vierstufige Auswahl vor der Registrierung */
+.registration-choice{margin:0 0 18px}
+.registration-choice[hidden]{display:none!important}
+.registration-choice h2{margin:0 0 7px;color:#f3e4c2;font:800 18px Manrope,sans-serif}
+.registration-choice>p{margin:0 0 14px;color:#b8ad9b;font-size:12px;line-height:1.55}
+.registration-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.registration-choice-card{position:relative;display:flex;flex-direction:column;min-height:168px;padding:15px 12px 12px;border:1px solid #65502f;border-radius:10px;background:linear-gradient(145deg,#1b1b19,#111314)}
+.registration-choice-card h3{margin:0 26px 7px 0;color:#e9cc8d;font:800 15px Manrope,sans-serif}
+.registration-choice-card p{flex:1;margin:0 0 12px;color:#c0b8aa;font-size:11px;line-height:1.5}
+.choice-info{position:absolute;top:10px;right:10px;width:23px;height:23px;border:1px solid #987746;border-radius:50%;background:#211c13;color:#e7c987;font-weight:800;cursor:pointer}
+.choice-select{width:100%;min-height:37px;padding:9px;font-size:11px}
+.choice-info-text{margin:12px 0 0!important;padding:11px 12px;border:1px solid #65502f;border-radius:8px;background:#171611;color:#e2d0a6!important;font-size:11px!important;line-height:1.6}
+.selected-registration-label{margin:8px 0 3px;color:#e7c987;font:800 13px Manrope,sans-serif}
+.change-choice{display:block;margin:0 0 10px;padding:4px 0;text-align:left}
+@media(max-width:380px){.registration-choice-grid{grid-template-columns:1fr}.registration-choice-card{min-height:140px}}
