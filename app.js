@@ -853,25 +853,28 @@ const authActions = document.getElementById('authActions');
 const requestedRoleField = document.getElementById('requestedRoleField');
 const scoutTypeField = document.getElementById('scoutTypeField');
 let signupMode = false;
-let selectedRegistrationChoice = '';\nlet selectedBillingCycle = 'monthly';
+let selectedRegistrationChoice = '';
+let selectedBillingCycle = 'monthly';\nlet selectedBillingCycle = 'monthly';
 
 const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
 
 const registrationChoiceDetails = {
-  user: 'Benutzer können – abhängig von der später erteilten Berechtigung – als Benutzer, Trainer, Co-Trainer oder Betreuer geführt werden.',
-  club: 'Der Vereinszugang ist für die Verwaltung eines Vereins vorgesehen. Vereinsbereiche und Verwaltungsrechte werden erst nach Prüfung und Freigabe aktiviert.',
-  agency: 'Der Agenturzugang ist für die Verwaltung einer Scouting- oder Berateragentur vorgesehen. Agentur- und Scoutrechte werden getrennt vergeben.',
-  scout: 'Scouts können als Vereins- oder Agenturscout registriert werden. Die Zuordnung zu einer Organisation erfolgt über eine geprüfte Einladung oder Freigabe.'
+  user: 'Mitglieder können sich ausschließlich über einen gültigen Einladungslink registrieren. Der Link ordnet das Konto direkt dem einladenden Verein oder der Agentur zu.',
+  club: 'Der Vereinszugang bietet eine eigene Organisationsverwaltung. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
+  agency: 'Der Agenturzugang bietet eine eigene Agenturverwaltung und Scoutorganisation. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
+  scout: 'Der Einzelscout kann globale Spielerdaten suchen und lesen. Er darf ausschließlich eigene Spielerprofile und eigene Scouting-Berichte erstellen oder bearbeiten.'
 };
 
 function chooseRegistrationType(type) {
   selectedRegistrationChoice = type;
+  const priceGroup = document.querySelector('[data-pricing="' + type + '"]');
+  selectedBillingCycle = priceGroup?.dataset.selectedPlan || 'monthly';
   registrationType.value = type;
   registrationChoice.hidden = true;
   registrationFields.hidden = false;
   document.getElementById('selectedRegistrationLabel').textContent =
-    'Ausgewählter Zugang: ' + ({user:'Benutzer',club:'Verein',agency:'Agentur',scout:'Scout'}[type] || type);
+    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout'}[type] || type);
   requestedRoleField.hidden = type !== 'user';
   scoutTypeField.hidden = true;\n  document.getElementById('scoutType').value = 'solo_scout';
   organizationNameField.hidden = type !== 'club' && type !== 'agency';
@@ -1105,8 +1108,7 @@ document.getElementById('signupButton').addEventListener('click', async () => {
 
 setAuthMode(inviteFromUrl ? 'register' : 'login');
 if (inviteFromUrl) {
-  chooseRegistrationType('scout');
-  document.getElementById('scoutType').value = 'club_scout';
+  chooseRegistrationType('user');
   signupUsernameField.hidden = false;
   signupEmailField.hidden = false;
   signupPasswordField.hidden = false;
