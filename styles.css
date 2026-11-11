@@ -659,3 +659,57 @@ button,input,select,textarea{max-width:100%}
 .selected-registration-label{margin:8px 0 3px;color:#e7c987;font:800 13px Manrope,sans-serif}
 .change-choice{display:block;margin:0 0 10px;padding:4px 0;text-align:left}
 @media(max-width:380px){.registration-choice-grid{grid-template-columns:1fr}.registration-choice-card{min-height:140px}}
+
+
+/* PFMS Premium-Pakete: vier eigenständige Angebotskarten */
+#authScreen .auth-card{width:min(100% - 28px,1080px);max-width:1080px}
+#authScreen .registration-choice{margin:4px 0 20px}
+#authScreen .pricing-intro{text-align:center;margin:0 auto 22px;max-width:760px}
+#authScreen .pricing-kicker{display:inline-block;margin-bottom:9px;color:#d9b96f;font:800 9px Manrope,sans-serif;letter-spacing:2px}
+#authScreen .pricing-intro h2{font-size:clamp(22px,4vw,31px);line-height:1.2;margin:0 0 8px}
+#authScreen .pricing-intro>p{margin:0 0 15px;color:#bdb5a8;font-size:13px}
+#authScreen .trial-strip{display:inline-flex;align-items:center;gap:9px;padding:10px 16px;border:1px solid #8b6c37;border-radius:30px;background:linear-gradient(100deg,#302615,#1b1914);color:#e8d5aa;font-size:11px}
+#authScreen .trial-icon{color:#f5d27f;font-size:17px}
+#authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+#authScreen .pricing-card{min-height:0;padding:19px 17px 17px;border:1px solid #59482e;border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#c49a4a16,transparent 45%),linear-gradient(155deg,#1c1d1d,#101214 75%);box-shadow:0 12px 28px #0004;transition:border-color .2s,transform .2s}
+#authScreen .pricing-card:hover{border-color:#b58c4a;transform:translateY(-2px)}
+#authScreen .pricing-card h3{margin:9px 0 6px;color:#f1dfb8;font-size:20px}
+#authScreen .pricing-card .pricing-subtitle{min-height:36px;margin:0 0 12px;color:#b8b1a5;font-size:11px;line-height:1.55}
+.pricing-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pricing-icon{display:grid;place-items:center;width:35px;height:35px;border:1px solid #755b32;border-radius:10px;background:#211c13;color:#e7c47b;font-size:20px}
+.pricing-label{color:#c7a666;font:800 9px Manrope,sans-serif;letter-spacing:1.5px}
+.pricing-features{display:grid;gap:8px;min-height:130px;margin:0;padding:13px 0 14px;border-top:1px solid #403729;list-style:none;color:#d8d1c4;font-size:11px;line-height:1.45}
+.pricing-features li{position:relative;padding-left:18px}
+.pricing-features li:not(.feature-restriction)::before{position:absolute;left:0;color:#d9b86e;font-weight:900;content:"✓"}
+.pricing-features .feature-restriction{color:#c99a8d}
+.pricing-features .feature-restriction::before{position:absolute;left:1px;color:#d27b68;content:"–"}
+.trial-callout{margin:0 0 10px;padding:8px 10px;border:1px solid #94733d;border-radius:7px;background:linear-gradient(90deg,#3b2d17,#241d12);color:#f2d58e;text-align:center;font:800 10px Manrope,sans-serif;letter-spacing:.8px}
+.pricing-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.price-option{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;padding:10px 9px;border:1px solid #4c463b;border-radius:8px;background:#121516;color:#c9c1b4;text-align:left;font:600 10px 'DM Sans',sans-serif;cursor:pointer}
+.price-option b{color:#f4e3bf;font:800 17px Manrope,sans-serif;white-space:nowrap}
+.price-option small{color:#aaa092;font-size:9px}
+.price-option em{margin-top:3px;color:#f4d68f;font:800 8px Manrope,sans-serif;letter-spacing:.6px;font-style:normal}
+.price-option.active{border-color:#d2ae67;background:linear-gradient(145deg,#342a19,#1d1a14);box-shadow:inset 0 0 0 1px #d2ae6740}
+#authScreen .pricing-card .choice-select{width:100%;min-height:43px;padding:11px;font-size:11px;font-weight:800}
+#authScreen .pricing-card .btn-primary{background:linear-gradient(115deg,#e5c77f,#a77b39);color:#17130b;box-shadow:0 5px 18px #b68c432b}
+#authScreen .member-price{display:flex;align-items:baseline;gap:8px;margin:4px 0 9px}
+#authScreen .member-price strong{color:#f5e4bf;font:800 31px Manrope,sans-serif}
+#authScreen .member-price span{color:#b9ad99;font-size:10px}
+.member-invite-note{margin:0 0 12px;padding:9px;border:1px dashed #856b42;border-radius:7px;color:#e5c987;text-align:center;font-size:10px}
+#authScreen .member-card{border-color:#76603a}
+#authScreen .pricing-draft-note{margin:15px auto 0;max-width:850px;color:#857d70;text-align:center;font-size:9px;line-height:1.6}
+@media(max-width:620px){
+ #authScreen .auth-card{width:calc(100% - 18px);padding:18px 13px}
+ #authScreen .pricing-intro{margin-bottom:17px}
+ #authScreen .pricing-intro h2{font-size:23px}
+ #authScreen .pricing-intro>p{font-size:11px}
+ #authScreen .trial-strip{font-size:10px;padding:9px 12px}
+ #authScreen .pricing-grid{grid-template-columns:1fr;gap:12px}
+ #authScreen .pricing-card{padding:17px 15px}
+ #authScreen .pricing-card .pricing-subtitle{min-height:0}
+ .pricing-features{min-height:0;gap:7px}
+}
+@media(min-width:900px){
+ #authScreen .auth-card{padding:30px}
+ #authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
