@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+<title id="title">PFMS – Professional Football Management System</title>
+<desc id="desc">Goldenes Schild mit Fußball, Pokal, Krone und Lorbeer auf schwarzem Grund.</desc>
+<defs>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0b0"/><stop offset=".28" stop-color="#e7bd59"/><stop offset=".58" stop-color="#9b681c"/><stop offset=".82" stop-color="#ffdf83"/><stop offset="1" stop-color="#a66f20"/></linearGradient>
+ <linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#202329"/><stop offset="1" stop-color="#050608"/></linearGradient>
+ <radialGradient id="shine" cx=".5" cy=".2" r=".8"><stop stop-color="#3a2b12"/><stop offset="1" stop-color="#07090d"/></radialGradient>
+</defs>
+<path d="M320 20 590 112v270c0 112-108 190-270 238C158 572 50 494 50 382V112Z" fill="url(#black)" stroke="url(#gold)" stroke-width="12"/>
+<path d="M320 42 568 126v254c0 96-95 165-248 211C167 545 72 476 72 380V126Z" fill="url(#shine)" stroke="#b88937" stroke-width="3"/>
+<path d="m320 54 34 48-34-14-34 14Z" fill="url(#gold)"/>
+<g fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"><path d="M120 330Q75 246 150 164"/><path d="M520 330Q565 246 490 164"/></g>
+<g fill="url(#gold)"><path d="M123 270q-30-17-34-48 31 5 43 30l-9 18Zm18-58q-25-20-22-47 29 10 35 36l-13 11Zm19-46q-18-24-8-48 25 16 25 39l-17 9Zm-32 149q-33-7-45-33 32-5 50 15l-5 18Zm371-45q30-17 34-48-31 5-43 30l9 18Zm-18-58q25-20 22-47-29 10-35 36l13 11Zm-19-46q18-24 8-48-25 16-25 39l17 9Zm32 149q33-7 45-33-32-5-50 15l5 18Z"/></g>
+<g transform="translate(320 196)" fill="url(#gold)" stroke="#f9df91" stroke-width="3">
+ <path d="M-75-65h150l-9 23q-7 18-25 25v65q0 23-21 35h-40q-21-12-21-35v-65q-18-7-25-25Z"/>
+ <path d="M-98-59q-43-10-39-55 6-22 30-16l28 60m177 11q43-10 39-55-6-22-30-16l-28 60" fill="none" stroke-width="13"/>
+ <path d="M-36 85h72v20h-72zM-60 105h120v17H-60z"/>
+ <path d="m-36-31 13-15 23 19 23-19 13 15-36 30Z" fill="#fff0b0" stroke="none"/>
+</g>
+<g transform="translate(320 345)" stroke="url(#gold)" stroke-width="7" fill="#111820">
+ <circle r="104" fill="#090d12"/>
+ <path d="m0-54 48-15 30 39-18 50H-5l-28-43Z" fill="url(#gold)"/>
+ <path d="m-5-54-23-55-48 16-4 54 47 30m81-21 47-14 24 44-31 42-51-22m-61 42-48 36 18 48 50 9 28-47m52-22 50 19-3 52-48 23-36-34" />
+ <path d="m-28-109 23 55m-75 1 47 30m111-21-30 39m-65 7-48 36m100-43 18 50" fill="none" stroke-width="5"/>
+</g>
+<path d="M95 470h450l-24 89H119Z" fill="#080a0d" stroke="url(#gold)" stroke-width="5"/>
+<text x="320" y="515" text-anchor="middle" fill="url(#gold)" font-family="Arial,sans-serif" font-size="68" font-weight="900" letter-spacing="5">PFMS</text>
+<text x="320" y="545" text-anchor="middle" fill="#f5e5bd" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">PROFESSIONAL FOOTBALL</text>
+<text x="320" y="565" text-anchor="middle" fill="#f5e5bd" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">MANAGEMENT SYSTEM</text>
+<path d="m320 579 8 16 18 2-13 12 4 18-17-9-17 9 4-18-13-12 18-2Z" fill="url(#gold)"/>
+</svg>
