@@ -885,6 +885,43 @@ registrationType.addEventListener('change', () => {
   agencyTypeField.hidden = type !== 'agency';
 });
 
+function clearSignupValidation() {
+  const form = document.getElementById('authForm');
+  form.querySelectorAll('.field-invalid').forEach(field => field.classList.remove('field-invalid'));
+  document.getElementById('acceptLegalTerms').classList.remove('checkbox-invalid');
+  const message = document.getElementById('authMessage');
+  message.classList.remove('auth-message-error');
+}
+function showSignupError(messageText, fieldElement) {
+  clearSignupValidation();
+  const message = document.getElementById('authMessage');
+  message.textContent = messageText;
+  message.classList.add('auth-message-error');
+  if (fieldElement) {
+    const field = fieldElement.closest('.field');
+    if (field) field.classList.add('field-invalid');
+    else fieldElement.classList.add('checkbox-invalid');
+    fieldElement.focus();
+  }
+}
+document.querySelectorAll('#authForm input, #authForm select').forEach(input => {
+  input.addEventListener('input', () => {
+    const field = input.closest('.field');
+    if (field) field.classList.remove('field-invalid');
+    if (input.id === 'acceptLegalTerms' && input.checked) input.classList.remove('checkbox-invalid');
+    const message = document.getElementById('authMessage');
+    if (message.classList.contains('auth-message-error')) {
+      message.textContent = '';
+      message.classList.remove('auth-message-error');
+    }
+  });
+  input.addEventListener('change', () => {
+    const field = input.closest('.field');
+    if (field) field.classList.remove('field-invalid');
+    if (input.id === 'acceptLegalTerms' && input.checked) input.classList.remove('checkbox-invalid');
+  });
+});
+
 document.getElementById('signupButton').addEventListener('click', async () => {
   const form = document.getElementById('authForm');
   const email = form.elements.email.value.trim();
@@ -897,21 +934,37 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   const organizationName = (form.elements.organizationName.value || '').trim();
   const invitationCode = (form.elements.invitationCode.value || '').trim();
 
+  clearSignupValidation();
   if (!legalAcceptance.checked) {
-    message.textContent = 'Bitte lies die AGB und Datenschutzhinweise und bestätige die Kenntnisnahme bzw. Zustimmung.';
-    legalAcceptance.focus();
+    showSignupError('Bitte bestätige die AGB und die Kenntnisnahme der Datenschutzerklärung.', legalAcceptance);
+    return;
+  }
+  if (!username) {
+    showSignupError('Bitte gib einen Benutzernamen ein.', form.elements.username);
     return;
   }
   if (!/^[A-Za-z0-9_.-]{3,20}$/.test(username)) {
-    message.textContent = 'Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.';
+    showSignupError('Benutzername: 3–20 Zeichen, nur Buchstaben, Zahlen, Punkt, _ oder -.', form.elements.username);
     return;
   }
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
-    message.textContent = 'Bitte gültige E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.';
+  if (!email) {
+    showSignupError('Bitte gib deine E-Mail-Adresse ein.', form.elements.email);
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showSignupError('Bitte gib eine gültige E-Mail-Adresse ein.', form.elements.email);
+    return;
+  }
+  if (!password) {
+    showSignupError('Bitte gib ein Passwort ein.', form.elements.password);
+    return;
+  }
+  if (password.length < 8) {
+    showSignupError('Das Passwort muss mindestens 8 Zeichen lang sein.', form.elements.password);
     return;
   }
   if ((type === 'club' || type === 'agency') && !organizationName) {
-    message.textContent = 'Bitte den Namen des Vereins oder der Agentur eingeben.';
+    showSignupError('Bitte gib den Namen des Vereins oder der Agentur ein.', form.elements.organizationName);
     return;
   }
 
