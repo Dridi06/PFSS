@@ -793,3 +793,12 @@ button,input,select,textarea{max-width:100%}
 .admin-placeholder h3{margin:0 0 9px;color:#e8d5aa}
 .admin-placeholder p{margin:0;color:#9e9a91;font-size:12px;line-height:1.65}
 .sidebar .nav-item[hidden]{display:none!important}
+
+/* Persönliche User-ID neben dem Online-Status */
+.user-id-pill{display:inline-flex;align-items:center;gap:7px;max-width:min(48vw,420px);padding:7px 10px;border:1px solid #80683d;border-radius:999px;background:#171a1c;color:#e8d39d;font:700 10px Manrope,sans-serif;cursor:pointer;white-space:nowrap}
+.user-id-pill[hidden]{display:none}
+.user-id-label{color:#b49a65;letter-spacing:.08em}
+#userIdValue{max-width:260px;overflow:hidden;text-overflow:ellipsis;font:600 10px 'DM Sans',sans-serif;color:#f5ead0}
+.user-id-copy{color:#a6d8b5;font-size:9px}
+.user-id-pill:hover{border-color:#d6b66d;background:#202326}
+@media(max-width:520px){.topbar-right{gap:6px}.user-id-pill{gap:4px;padding:6px 7px;max-width:54vw}.user-id-label{display:none}#userIdValue{max-width:34vw;font-size:9px}.user-id-copy{font-size:8px}.top-avatar{display:none}}
