@@ -846,10 +846,39 @@ const registrationType = document.getElementById('registrationType');
 const agencyTypeField = document.getElementById('agencyTypeField');
 const organizationNameField = document.getElementById('organizationNameField');
 const invitationCodeInput = document.getElementById('invitationCode');
+const registrationChoice = document.getElementById('registrationChoice');
+const requestedRoleField = document.getElementById('requestedRoleField');
+const scoutTypeField = document.getElementById('scoutTypeField');
 let signupMode = false;
+let selectedRegistrationChoice = '';
 
 const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
+
+const registrationChoiceDetails = {
+  user: 'Benutzer können – abhängig von der später erteilten Berechtigung – als Benutzer, Trainer, Co-Trainer oder Betreuer geführt werden.',
+  club: 'Der Vereinszugang ist für die Verwaltung eines Vereins vorgesehen. Vereinsbereiche und Verwaltungsrechte werden erst nach Prüfung und Freigabe aktiviert.',
+  agency: 'Der Agenturzugang ist für die Verwaltung einer Scouting- oder Berateragentur vorgesehen. Agentur- und Scoutrechte werden getrennt vergeben.',
+  scout: 'Scouts können als Vereins- oder Agenturscout registriert werden. Die Zuordnung zu einer Organisation erfolgt über eine geprüfte Einladung oder Freigabe.'
+};
+
+function chooseRegistrationType(type) {
+  selectedRegistrationChoice = type;
+  registrationType.value = type;
+  registrationChoice.hidden = true;
+  registrationFields.hidden = false;
+  document.getElementById('selectedRegistrationLabel').textContent =
+    'Ausgewählter Zugang: ' + ({user:'Benutzer',club:'Verein',agency:'Agentur',scout:'Scout'}[type] || type);
+  requestedRoleField.hidden = type !== 'user';
+  scoutTypeField.hidden = type !== 'scout';
+  organizationNameField.hidden = type !== 'club' && type !== 'agency';
+  organizationNameField.querySelector('input').required = type === 'club' || type === 'agency';
+  agencyTypeField.hidden = type !== 'agency';
+  document.getElementById('invitationCodeField').hidden = type === 'club' || type === 'agency';
+  document.getElementById('authTitle').textContent = 'Konto registrieren.';
+  document.getElementById('authIntro').textContent = 'Ergänze deine Angaben, um die Registrierung abzuschließen.';
+  document.getElementById('authMessage').textContent = '';
+}
 
 function setAuthMode(mode) {
   signupMode = mode === 'register';
@@ -861,10 +890,11 @@ function setAuthMode(mode) {
   document.getElementById('chooseRegister').classList.toggle('active', signupMode);
   document.getElementById('authTitle').textContent = signupMode ? 'Konto registrieren.' : 'Willkommen.';
   document.getElementById('authIntro').textContent = signupMode
-    ? 'Wähle deine Registrierungsart. Bei einer Einladung kannst du einer bestehenden Organisation beitreten.'
+    ? 'Wähle zunächst, wie du PFMS nutzen möchtest.'
     : 'Melde dich mit E-Mail-Adresse oder Benutzername und Passwort an.';
-  signupUsernameField.hidden = !signupMode;
-  registrationFields.hidden = !signupMode;
+  signupUsernameField.hidden = !signupMode || !selectedRegistrationChoice;
+  registrationChoice.hidden = !signupMode;
+  registrationFields.hidden = !signupMode || !selectedRegistrationChoice;
   form.elements.username.required = signupMode;
   form.elements.email.autocomplete = signupMode ? 'email' : 'username';
   document.getElementById('emailFieldLabel').textContent = signupMode ? 'E-Mail-Adresse' : 'E-Mail-Adresse oder Benutzername';
@@ -872,8 +902,40 @@ function setAuthMode(mode) {
   loginButton.hidden = signupMode;
   signupButton.hidden = !signupMode;
   document.getElementById('forgotPasswordButton').hidden = signupMode;
-  message.textContent = signupMode ? 'Bitte Angaben ergänzen und Registrierungsart auswählen.' : '';
+  message.textContent = '';
+  if (!signupMode) {
+    selectedRegistrationChoice = '';
+    registrationType.value = '';
+    requestedRoleField.hidden = true;
+    scoutTypeField.hidden = true;
+    organizationNameField.hidden = true;
+    agencyTypeField.hidden = true;
+  }
 }
+
+document.querySelectorAll('[data-registration-choice]').forEach(button => {
+  button.addEventListener('click', () => {
+    chooseRegistrationType(button.dataset.registrationChoice);
+    signupUsernameField.hidden = false;
+  });
+});
+document.querySelectorAll('[data-choice-info]').forEach(button => {
+  button.addEventListener('click', () => {
+    const info = document.getElementById('choiceInfoText');
+    info.textContent = registrationChoiceDetails[button.dataset.choiceInfo] || '';
+    info.hidden = false;
+  });
+});
+document.getElementById('changeRegistrationChoice').addEventListener('click', () => {
+  registrationFields.hidden = true;
+  signupUsernameField.hidden = true;
+  registrationChoice.hidden = false;
+  document.getElementById('authTitle').textContent = 'Konto registrieren.';
+  document.getElementById('authIntro').textContent = 'Wähle zunächst, wie du PFMS nutzen möchtest.';
+  document.getElementById('authMessage').textContent = '';
+  selectedRegistrationChoice = '';
+  registrationType.value = '';
+});
 
 const legalDialog = document.getElementById('legalInfoDialog');
 const legalFrame = document.getElementById('legalInfoFrame');
@@ -900,13 +962,8 @@ legalDialog.addEventListener('click', event => {
 document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
 document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
 
-registrationType.addEventListener('change', () => {
-  const type = registrationType.value;
-  const isOrg = type === 'club' || type === 'agency';
-  organizationNameField.hidden = !isOrg;
-  organizationNameField.querySelector('input').required = isOrg;
-  agencyTypeField.hidden = type !== 'agency';
-});
+document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
+document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
 
 function clearSignupValidation() {
   const form = document.getElementById('authForm');
@@ -953,6 +1010,8 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   const message = document.getElementById('authMessage');
   const button = document.getElementById('signupButton');
   const type = registrationType.value;
+  const requestedRole = document.getElementById('requestedRole').value;
+  const scoutType = document.getElementById('scoutType').value;
   const legalAcceptance = document.getElementById('acceptLegalTerms');
   const organizationName = (form.elements.organizationName.value || '').trim();
   const invitationCode = (form.elements.invitationCode.value || '').trim();
@@ -986,6 +1045,10 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     showSignupError('Das Passwort muss mindestens 8 Zeichen lang sein.', form.elements.password);
     return;
   }
+  if (!type) {
+    showSignupError('Bitte wähle zuerst deinen Zugangsweg aus.', null);
+    return;
+  }
   if ((type === 'club' || type === 'agency') && !organizationName) {
     showSignupError('Bitte gib den Namen des Vereins oder der Agentur ein.', form.elements.organizationName);
     return;
@@ -997,8 +1060,10 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     const metadata = {
       username,
       registration_type: type,
+      requested_role: type === 'user' ? requestedRole : null,
+      scout_type: type === 'scout' ? scoutType : null,
       agency_type: type === 'agency' ? document.getElementById('agencyType').value : null,
-      organization_name: type === 'individual_scout' ? null : organizationName,
+      organization_name: type === 'club' || type === 'agency' ? organizationName : null,
       invitation_code: invitationCode || null
     };
     const { data, error } = await pfssSupabase.auth.signUp({
@@ -1020,6 +1085,11 @@ document.getElementById('signupButton').addEventListener('click', async () => {
 });
 
 setAuthMode(inviteFromUrl ? 'register' : 'login');
+if (inviteFromUrl) {
+  chooseRegistrationType('scout');
+  document.getElementById('scoutType').value = 'club_scout';
+  signupUsernameField.hidden = false;
+}
 
 document.getElementById('logoutButton')
   .addEventListener('click', pfssLogout);
