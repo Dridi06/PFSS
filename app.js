@@ -600,6 +600,10 @@ function showAuthenticatedApp(user, profile) {
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
   const isAdmin = role === 'admin' || role === 'administrator';
+  const adminClubConsole = document.getElementById('adminClubConsole');
+  const adminScoutConsole = document.getElementById('adminScoutConsole');
+  if (adminClubConsole) adminClubConsole.hidden = !isAdmin;
+  if (adminScoutConsole) adminScoutConsole.hidden = !isAdmin;
   const isScout = role.includes('scout');
   const isTeam = ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
   const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
