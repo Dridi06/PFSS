@@ -122,17 +122,16 @@
         <button class="nav-item active" data-view="dashboard">
           <span class="nav-icon">◫</span>Dashboard
         </button>
-        <div class="nav-section-label">VEREINSVERWALTUNG · VORSTAND / JUGENDLEITUNG</div>
+        <div class="nav-section-label">VEREINSBEREICH · VORSTAND / LEITUNG</div>
         <button class="nav-item nav-group-toggle" type="button"
                 data-nav-toggle="clubSubnav" aria-expanded="false">
-          <span class="nav-icon">⌂</span><span class="nav-label">Vereine</span><span class="nav-chevron">›</span>
+          <span class="nav-icon">⌂</span><span class="nav-label">Vereinsverwaltung</span><span class="nav-chevron">›</span>
         </button>
         <div class="nav-submenu" id="clubSubnav" hidden>
-          <button class="nav-subitem" data-view="clubs"><span>Vereinsübersicht</span></button>
           <button class="nav-subitem" data-view="teams"><span>Mannschaften</span></button>
-          <button class="nav-subitem" data-view="staff"><span>Trainer & Betreuer</span></button>
-          <button class="nav-subitem" data-view="players"><span>Spieler</span></button>
-          <button class="nav-subitem" data-view="scouts"><span>Scouts</span></button>
+          <button class="nav-subitem" data-view="club-members"><span>Mitgliedschaften</span></button>
+          <button class="nav-subitem" data-view="club-admin"><span>Verwaltung</span></button>
+          <button class="nav-subitem" data-view="club-scouting"><span>Scouting-Abteilung</span></button>
         </div>
         <div class="nav-section-label">MANNSCHAFTSBEREICH · TRAINERTEAM</div>
         <button class="nav-item nav-group-toggle" type="button"
@@ -370,20 +369,74 @@
       </section>
 
       <section class="view" id="view-clubs">
-        <div class="page-heading"><div><div class="eyebrow">ORGANISATION</div><h1>Vereine</h1><p>Vereinsprofile, Ansprechpartner und Organisationsstruktur.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Verein">＋ Verein anlegen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · STARTSEITE</div><h1>Vereinsübersicht</h1><p>Zentrale Übersicht für Präsident, Vorstand, Jugendleitung und sportliche Leitung.</p></div><span class="module-status">Platzhalter · Funktionen folgen</span></div>
+        <div class="club-hero panel">
+          <div><div class="eyebrow">VEREINSREGISTER</div><h2>Willkommen im Vereinsbereich</h2><p>Nach der Vereinsregistrierung werden hier Vereinsdaten, Zuständigkeiten und freigeschaltete Bereiche zusammengeführt.</p></div>
+          <div class="club-hero-mark">PFMS</div>
+        </div>
+        <div class="club-role-grid">
+          <article class="module-card module-feature"><span class="module-symbol">♛</span><div class="eyebrow">VEREINSLEITUNG</div><h3>Präsident</h3><p>Übergeordnete Vereinsverwaltung und Vereinsrechte.</p><span class="module-status">Alle Vereinsbereiche</span></article>
+          <article class="module-card"><span class="module-symbol">▤</span><div class="eyebrow">VORSTAND</div><h3>Vorstand</h3><p>Verwaltungsaufgaben und zugewiesene Vereinsrechte.</p></article>
+          <article class="module-card"><span class="module-symbol">♧</span><div class="eyebrow">JUGEND</div><h3>Jugendleitung</h3><p>Verantwortung für die freigegebenen Jugendmannschaften.</p></article>
+          <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">SPORTLICHE LEITUNG</div><h3>Sportliche Leitung</h3><p>Zuständigkeit für den festgelegten Bereich, zum Beispiel Herren oder Jugend.</p></article>
+        </div>
+        <div class="notice club-placeholder-note"><span>ⓘ</span><p><b>Konfigurierbar:</b> Bei der Vereinsregistrierung werden Vereinsart, Leitungsfunktionen und Zuständigkeiten erfasst. Die endgültigen Rechte werden später durch den Hauptadministrator beziehungsweise den berechtigten Vereinsverantwortlichen eingerichtet.</p></div>
+      </section>
+
+      <section class="view" id="view-club-members">
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitgliederverwaltung">＋ Mitglied aufnehmen</button></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder mit aktiver Mitgliedschaft</small></article>
+          <article class="stat-card"><div class="stat-top">PASSIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder ohne aktive Sportteilnahme</small></article>
+          <article class="stat-card"><div class="stat-top">OFFENE BEITRÄGE</div><strong>–</strong><small>Monatliche Beiträge mit Rückstand</small></article>
+          <article class="stat-card accent-stat"><div class="stat-top">BEITRÄGE BEZAHLT</div><strong>–</strong><small>Nach Zahlungseingang bestätigt</small></article>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERSUCHE</div><h3>Mitglieder finden</h3></div><span class="module-status">Datenbank folgt</span></div>
+          <div class="club-search-preview"><span>⌕</span><span>Suche nach Vorname, Nachname oder Geburtsdatum</span></div>
+          <div class="club-table-wrap"><table class="club-table"><thead><tr><th>Mitglied</th><th>Status</th><th>Monatsbeitrag</th><th>Offener Monat</th><th>Zahlungsstatus</th></tr></thead><tbody>
+            <tr><td>Beispielmitglied</td><td>Aktiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-open">Offen</span></td></tr>
+            <tr><td>Beispielmitglied</td><td>Passiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-paid">Bezahlt</span></td></tr>
+          </tbody></table></div>
+          <p class="club-footnote">Beispieldarstellung ohne echte Mitgliederdaten. Mitglieder sollen später ihre Zahlungen erfassen beziehungsweise einen Zahlungsvorgang melden können. Die endgültige Zahlungsbestätigung und Buchungslogik wird gesondert festgelegt.</p>
+        </div>
+      </section>
+
+      <section class="view" id="view-club-admin">
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Verwaltung & Rechte</h1><p>Leitungsfunktionen, Zuständigkeiten und individuelle Berechtigungen.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Rechteverwaltung">＋ Verantwortlichen zuordnen</button></div>
         <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">⌂</span><div class="eyebrow">VEREINSVERWALTUNG</div><h3>Vereinsprofil</h3><p>Stammdaten, Logo, Anschrift, Ansprechpartner und Vereinszugehörigkeiten an einem Ort.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">▦</span><h3>Abteilungen & Teams</h3><p>Jugend, Senioren, Frauen- und Herrenmannschaften strukturiert verwalten.</p></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Verantwortliche</h3><p>Vorstand, sportliche Leitung und zuständige Ansprechpartner.</p></article>
+          <article class="module-card module-feature"><span class="module-symbol">♛</span><h3>Präsident</h3><p>Vereinsweite Verwaltungsrechte für alle Vereinsbereiche.</p><span class="module-status">Vollzugriff im Verein</span></article>
+          <article class="module-card"><span class="module-symbol">▤</span><h3>Vorstand</h3><p>Vereinsverwaltung gemäß der vom Verein festgelegten Zuständigkeit.</p></article>
+          <article class="module-card"><span class="module-symbol">♧</span><h3>Jugendleitung</h3><p>Verwaltung und Übersicht der zugewiesenen Jugendmannschaften.</p></article>
+          <article class="module-card"><span class="module-symbol">⚽</span><h3>Sportliche Leitung</h3><p>Verwaltung der zugewiesenen sportlichen Abteilung, beispielsweise Herren.</p></article>
+          <article class="module-card module-wide"><div class="eyebrow">RECHTE NACH ZUSTÄNDIGKEIT</div><h3>Rollen und Zugriffsrechte individuell festlegen</h3><p>Trainer, Co-Trainer und Betreuer erhalten keine pauschalen Vereinsrechte. Ihre Berechtigungen werden später je Mannschaft und Funktionsbereich vergeben und können angepasst oder widerrufen werden.</p><div class="permission-preview"><span>Mannschaften <b>Lesen / Verwalten</b></span><span>Mitgliedschaften <b>Lesen / Verwalten</b></span><span>Beitragsübersicht <b>Lesen / Erfassen</b></span><span>Scouting-Abteilung <b>Separat geregelt</b></span></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-club-scouting">
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Eigene Scouting-Struktur des Vereins und angebundene Scout-Profile.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scouting-Abteilung">＋ Scout zuordnen</button></div>
+        <div class="module-grid">
+          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scouting-Team</h3><p>Scouts des Vereins, Zuständigkeiten, Beobachtungsgebiete und interne Organisation.</p><span class="module-status">Oberflächen-Gerüst</span></article>
+          <article class="module-card"><span class="module-symbol">⌕</span><h3>Spielersuche</h3><p>Später mit privater und globaler PFMS-Spielerdatenbank sowie zulässigen externen Datenquellen.</p></article>
+          <article class="module-card"><span class="module-symbol">▤</span><h3>Scouting-Berichte</h3><p>Eigene Beobachtungen, Bewertungen und freigegebene Berichte getrennt verwalten.</p></article>
+          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Freigaben für Spieler und Berichte werden bewusst und nachvollziehbar gesteuert.</p></article>
         </div>
       </section>
 
       <section class="view" id="view-teams">
-        <div class="page-heading"><div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Kader, Saison, Trainerteam und Mannschaftsorganisation.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mannschaft">＋ Mannschaft anlegen</button></div>
-        <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">⚽</span><div class="eyebrow">TEAMÜBERSICHT</div><h3>Kader & Saison</h3><p>Spielerlisten, Jahrgänge, Spielklassen, Saisonzuordnung und Kaderstatus.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">▤</span><h3>Spiele & Aufstellungen</h3><p>Spieltermine, Ergebnisse, Aufstellungen und Spielereignisse.</p></article>
-          <article class="module-card"><span class="module-symbol">◷</span><h3>Training & Anwesenheit</h3><p>Trainingsplanung, Übungen, Teilnehmer und Anwesenheitsübersicht.</p></article>
+        <div class="page-heading"><div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Von Herren bis Minis: Der Verein legt seine Mannschaften und deren Anzahl selbst fest.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mannschaftskonfiguration">＋ Mannschaft anlegen</button></div>
+        <div class="notice"><span>ⓘ</span><p><b>Vereinskonfiguration:</b> Die Anzahl und Bezeichnungen der Mannschaften werden vom Vorstand festgelegt und nach der Registrierung eingerichtet. Jede Mannschaft erhält dieselbe Grundstruktur.</p></div>
+        <div class="team-category-grid">
+          <article class="module-card"><span class="module-symbol">⚽</span><h3>1. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">⚽</span><h3>2. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">⚽</span><h3>3. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">♧</span><h3>Seniorinnen</h3><p>Frauen · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">A1</span><h3>A1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">A2</span><h3>A2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">B1</span><h3>B1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">B2</span><h3>B2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card"><span class="module-symbol">♙</span><h3>Minis</h3><p>Nachwuchs · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
+          <article class="module-card module-wide"><div class="eyebrow">EINHEITLICHER MANNSCHAFTSBEREICH</div><h3>Jede Mannschaft erhält dieselbe Grundstruktur</h3><p>Beim Öffnen einer Mannschaft erscheint ein eigenes Dashboard mit Trainer, Co-Trainer, Betreuer, Spielerkader und weiteren Modulen.</p><div class="permission-preview"><span>Trainerteam <b>Zuordnen</b></span><span>Spielerkader <b>Verwalten</b></span><span>Training & Spiele <b>Organisieren</b></span><span>Weitere Funktionen <b>Konfigurierbar</b></span></div></article>
         </div>
       </section>
 
