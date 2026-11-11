@@ -887,6 +887,29 @@ function chooseRegistrationType(type) {
   registrationFields.hidden = false;
   document.getElementById('selectedRegistrationLabel').textContent =
     'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout'}[type] || type);
+  const orderSummary = document.getElementById('orderSummary');
+  const memberSummary = document.getElementById('memberFreeSummary');
+  const planNames = {club:'Verein',agency:'Agentur',scout:'Einzelscout'};
+  const planPrices = {
+    club:{monthly:'99,99 €',yearly:'1.099,99 €'},
+    agency:{monthly:'79,99 €',yearly:'739,99 €'},
+    scout:{monthly:'50,00 €',yearly:'500,00 €'}
+  };
+  if (orderSummary) {
+    const paidPlan = ['club','agency','scout'].includes(type);
+    orderSummary.hidden = !paidPlan;
+    memberSummary.hidden = type !== 'user';
+    if (paidPlan) {
+      const cycle = selectedBillingCycle;
+      document.getElementById('orderPlanName').textContent = planNames[type];
+      document.getElementById('orderPrice').textContent = planPrices[type][cycle];
+      document.getElementById('orderPeriod').textContent = cycle === 'yearly' ? 'pro Jahr' : 'pro Monat';
+      document.getElementById('orderPlanDetail').textContent = planNames[type] + ' · ' + (cycle === 'yearly' ? 'jährliche Zahlung' : 'monatliche Zahlung');
+      document.getElementById('signupButton').textContent = 'Weiter zur Zahlungsübersicht';
+    } else {
+      document.getElementById('signupButton').textContent = 'Kostenlos registrieren';
+    }
+  }
   requestedRoleField.hidden = type !== 'user';
   scoutTypeField.hidden = true;
   document.getElementById('scoutType').value = 'solo_scout';
@@ -1089,6 +1112,12 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   }
   if ((type === 'club' || type === 'agency') && !organizationName) {
     showSignupError('Bitte gib den Namen des Vereins oder der Agentur ein.', form.elements.organizationName);
+    return;
+  }
+
+  if (['club','agency','scout'].includes(type)) {
+    message.textContent = 'Bestellübersicht geprüft. Die Zahlungsansicht ist eine visuelle Vorschau; eine echte Zahlung und Kontoanlage sind noch nicht aktiviert.';
+    document.getElementById('orderSummary').scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
 
