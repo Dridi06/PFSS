@@ -533,3 +533,15 @@ button,input,select,textarea{max-width:100%}
 #authForm .field.field-invalid input:focus,
 #authForm .field.field-invalid select:focus{outline-color:#ff5b5b}
 #acceptLegalTerms.checkbox-invalid{outline:2px solid #e34b4b;outline-offset:3px;border-radius:2px}
+
+
+/* Markenauftritt: ausgeschriebener Produktname steht im Mittelpunkt */
+.auth-brand{align-items:center;gap:15px}
+.auth-brand .brand-full-name{display:block;max-width:100%;font:800 clamp(12px,2.1vw,16px)/1.25 Manrope,sans-serif;letter-spacing:.45px;color:#f4e7c8}
+.auth-brand .brand-abbreviation{display:block;margin-top:5px;color:#b99a60;font-size:11px;font-weight:800;letter-spacing:2.8px}
+@media(max-width:480px){
+  .auth-brand{gap:12px}
+  .auth-brand .brand-full-name{font-size:clamp(11px,3.2vw,14px);letter-spacing:.15px}
+  .auth-brand .brand-abbreviation{font-size:10px;letter-spacing:2.5px}
+  .auth-brand .brand-mark{flex:0 0 48px}
+}
