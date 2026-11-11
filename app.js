@@ -847,6 +847,9 @@ const agencyTypeField = document.getElementById('agencyTypeField');
 const organizationNameField = document.getElementById('organizationNameField');
 const invitationCodeInput = document.getElementById('invitationCode');
 const registrationChoice = document.getElementById('registrationChoice');
+const signupEmailField = document.getElementById('signupEmailField');
+const signupPasswordField = document.getElementById('signupPasswordField');
+const authActions = document.getElementById('authActions');
 const requestedRoleField = document.getElementById('requestedRoleField');
 const scoutTypeField = document.getElementById('scoutTypeField');
 let signupMode = false;
@@ -893,8 +896,11 @@ function setAuthMode(mode) {
     ? 'Wähle zunächst, wie du PFMS nutzen möchtest.'
     : 'Melde dich mit E-Mail-Adresse oder Benutzername und Passwort an.';
   signupUsernameField.hidden = !signupMode || !selectedRegistrationChoice;
-  registrationChoice.hidden = !signupMode;
+  registrationChoice.hidden = !signupMode || !!selectedRegistrationChoice;
   registrationFields.hidden = !signupMode || !selectedRegistrationChoice;
+  signupEmailField.hidden = signupMode && !selectedRegistrationChoice;
+  signupPasswordField.hidden = signupMode && !selectedRegistrationChoice;
+  authActions.hidden = signupMode && !selectedRegistrationChoice;
   form.elements.username.required = signupMode;
   form.elements.email.autocomplete = signupMode ? 'email' : 'username';
   document.getElementById('emailFieldLabel').textContent = signupMode ? 'E-Mail-Adresse' : 'E-Mail-Adresse oder Benutzername';
@@ -917,6 +923,9 @@ document.querySelectorAll('[data-registration-choice]').forEach(button => {
   button.addEventListener('click', () => {
     chooseRegistrationType(button.dataset.registrationChoice);
     signupUsernameField.hidden = false;
+    signupEmailField.hidden = false;
+    signupPasswordField.hidden = false;
+    authActions.hidden = false;
   });
 });
 document.querySelectorAll('[data-choice-info]').forEach(button => {
@@ -929,6 +938,9 @@ document.querySelectorAll('[data-choice-info]').forEach(button => {
 document.getElementById('changeRegistrationChoice').addEventListener('click', () => {
   registrationFields.hidden = true;
   signupUsernameField.hidden = true;
+  signupEmailField.hidden = true;
+  signupPasswordField.hidden = true;
+  authActions.hidden = true;
   registrationChoice.hidden = false;
   document.getElementById('authTitle').textContent = 'Konto registrieren.';
   document.getElementById('authIntro').textContent = 'Wähle zunächst, wie du PFMS nutzen möchtest.';
@@ -1089,6 +1101,9 @@ if (inviteFromUrl) {
   chooseRegistrationType('scout');
   document.getElementById('scoutType').value = 'club_scout';
   signupUsernameField.hidden = false;
+  signupEmailField.hidden = false;
+  signupPasswordField.hidden = false;
+  authActions.hidden = false;
 }
 
 document.getElementById('logoutButton')
