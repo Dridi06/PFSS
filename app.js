@@ -875,7 +875,7 @@ async function loadPfmsAdminDirectory(type,root) {
     }));
   } catch(error) {
     console.error('PFMS Admin Directory:',error);
-    message.textContent='Suche fehlgeschlagen. Bitte SQL-Funktionen und Admin-Berechtigung prüfen.';
+    message.textContent='Suche fehlgeschlagen: '+(error?.message||'Unbekannter Datenbankfehler');
   }
 }
 
