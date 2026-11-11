@@ -31,34 +31,84 @@
       </div>
 
       <section id="registrationChoice" class="registration-choice" hidden>
-        <h2>Wie möchtest du PFMS nutzen?</h2>
-        <p>Wähle zuerst deinen Zugang. Danach zeigen wir dir den passenden Registrierungsweg.</p>
-        <div class="registration-choice-grid">
-          <article class="registration-choice-card">
-            <button type="button" class="choice-info" aria-label="Information zu Benutzer" data-choice-info="user">i</button>
-            <h3>Benutzer</h3>
-            <p>Für Benutzer sowie zukünftige Trainer, Co-Trainer und Betreuer.</p>
-            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="user">Auswählen</button>
+        <div class="pricing-intro">
+          <span class="pricing-kicker">DEIN SPIEL. DEINE DATEN. DEIN PFMS.</span>
+          <h2>Finde den passenden PFMS-Zugang.</h2>
+          <p>Starte mit dem Paket, das zu deiner Arbeit im Fußball passt.</p>
+          <div class="trial-strip"><span class="trial-icon">✦</span><span><strong>30 Tage kostenlos testen</strong> – für Verein, Agentur und Einzelscout.</span></div>
+        </div>
+        <div class="registration-choice-grid pricing-grid">
+          <article class="registration-choice-card pricing-card member-card">
+            <div class="pricing-card-head"><span class="pricing-icon">♟</span><span class="pricing-label">MITGLIED</span></div>
+            <h3>Normales Mitglied</h3>
+            <p class="pricing-subtitle">Für Spieler, Trainer, Betreuer und weitere Teammitglieder.</p>
+            <ul class="pricing-features">
+              <li>✓ Kostenloser persönlicher Zugang</li>
+              <li>✓ Direkte Zuordnung zu Verein oder Agentur</li>
+              <li>✓ Zugriff auf freigegebene Bereiche</li>
+              <li>✓ Rechte werden von der Organisation vergeben</li>
+            </ul>
+            <div class="pricing-price member-price"><strong>0 €</strong><span> dauerhaft kostenlos</span></div>
+            <div class="member-invite-note">Nur mit gültigem Einladungslink registrierbar.</div>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="user">Mit Einladung fortfahren</button>
           </article>
-          <article class="registration-choice-card">
-            <button type="button" class="choice-info" aria-label="Information zu Verein" data-choice-info="club">i</button>
+
+          <article class="registration-choice-card pricing-card">
+            <div class="pricing-card-head"><span class="pricing-icon">⌂</span><span class="pricing-label">FÜR ORGANISATIONEN</span></div>
             <h3>Verein</h3>
-            <p>Für Vereine, die ihre Organisation und Mannschaften verwalten möchten.</p>
-            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="club">Auswählen</button>
+            <p class="pricing-subtitle">Die zentrale Plattform für die Organisation deines Vereins.</p>
+            <ul class="pricing-features">
+              <li>✓ Vereins- und Mannschaftsorganisation</li>
+              <li>✓ Mitglieder und Rollen verwalten</li>
+              <li>✓ Scouting und Spielerübersichten</li>
+              <li>✓ Einladungen für Mitglieder und Mitarbeiter</li>
+            </ul>
+            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="pricing-options" data-pricing="club">
+              <button type="button" class="price-option active" data-plan="monthly" data-price="club">Monatlich <b>99,99 €</b><small>pro Monat</small></button>
+              <button type="button" class="price-option" data-plan="yearly" data-price="club">Jährlich <b>1.099,99 €</b><small>pro Jahr · 99,89 € sparen</small><em>SPARANGEBOT</em></button>
+            </div>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="club">30 Tage kostenlos starten</button>
           </article>
-          <article class="registration-choice-card">
-            <button type="button" class="choice-info" aria-label="Information zu Agentur" data-choice-info="agency">i</button>
+
+          <article class="registration-choice-card pricing-card">
+            <div class="pricing-card-head"><span class="pricing-icon">◇</span><span class="pricing-label">FÜR AGENTUREN</span></div>
             <h3>Agentur</h3>
-            <p>Für Scouting- und Berateragenturen mit eigener Verwaltung.</p>
-            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="agency">Auswählen</button>
+            <p class="pricing-subtitle">Für Scouting- und Berateragenturen mit professionellen Workflows.</p>
+            <ul class="pricing-features">
+              <li>✓ Zentrale Agenturverwaltung</li>
+              <li>✓ Scouts und Zuständigkeiten organisieren</li>
+              <li>✓ Spieler und Scouting-Aktivitäten verwalten</li>
+              <li>✓ Organisationsbasierte Zusammenarbeit</li>
+            </ul>
+            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="pricing-options" data-pricing="agency">
+              <button type="button" class="price-option active" data-plan="monthly" data-price="agency">Monatlich <b>79,99 €</b><small>pro Monat</small></button>
+              <button type="button" class="price-option" data-plan="yearly" data-price="agency">Jährlich <b>739,99 €</b><small>pro Jahr · 219,89 € sparen</small><em>BESTER PREIS</em></button>
+            </div>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="agency">30 Tage kostenlos starten</button>
           </article>
-          <article class="registration-choice-card">
-            <button type="button" class="choice-info" aria-label="Information zu Scout" data-choice-info="scout">i</button>
-            <h3>Scout</h3>
-            <p>Für Vereins- oder Agenturscouts, die Spieler beobachten und Berichte erstellen.</p>
-            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="scout">Auswählen</button>
+
+          <article class="registration-choice-card pricing-card solo-scout-card">
+            <div class="pricing-card-head"><span class="pricing-icon">⌕</span><span class="pricing-label">FÜR EINZELSCOUTS</span></div>
+            <h3>Einzelscout</h3>
+            <p class="pricing-subtitle">Dein persönlicher Zugang zur globalen PFMS-Spielersuche.</p>
+            <ul class="pricing-features">
+              <li>✓ Globale Spielerdatenbank durchsuchen und lesen</li>
+              <li>✓ Globale Datenbankabfragen</li>
+              <li>✓ Eigene Spielerprofile erstellen und bearbeiten</li>
+              <li>✓ Eigene Scouting-Berichte erstellen und bearbeiten</li>
+              <li class="feature-restriction">– Keine Änderung globaler Spielerdaten</li>
+            </ul>
+            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="pricing-options" data-pricing="scout">
+              <button type="button" class="price-option active" data-plan="monthly" data-price="scout">Monatlich <b>50,00 €</b><small>pro Monat</small></button>
+              <button type="button" class="price-option" data-plan="yearly" data-price="scout">Jährlich <b>500,00 €</b><small>pro Jahr · 100,00 € sparen</small><em>SPARANGEBOT</em></button>
+            </div>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="scout">30 Tage kostenlos starten</button>
           </article>
         </div>
+        <p class="pricing-draft-note">Preisgestaltung als aktueller Entwurf. Die tatsächliche Buchung und Zahlungsabwicklung werden erst nach Einrichtung des Abrechnungssystems aktiviert. Preise und Umsatzsteuer-Ausweisung sind vor Veröffentlichung final festzulegen.</p>
         <p id="choiceInfoText" class="choice-info-text" hidden></p>
       </section>
 
