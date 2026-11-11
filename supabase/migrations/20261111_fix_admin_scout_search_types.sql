@@ -40,11 +40,11 @@ BEGIN
       OR m.id IS NOT NULL
     )
     AND (
-      COALESCE(pg_catalog.trim(p_query), '') = ''
-      OR COALESCE(p.username, '') ILIKE '%' || pg_catalog.trim(p_query) || '%'
-      OR COALESCE(p.full_name, '') ILIKE '%' || pg_catalog.trim(p_query) || '%'
-      OR COALESCE(u.email, '') ILIKE '%' || pg_catalog.trim(p_query) || '%'
-      OR p.id::text ILIKE '%' || pg_catalog.trim(p_query) || '%'
+      COALESCE(pg_catalog.btrim(p_query), '') = ''
+      OR COALESCE(p.username, '') ILIKE '%' || pg_catalog.btrim(p_query) || '%'
+      OR COALESCE(p.full_name, '') ILIKE '%' || pg_catalog.btrim(p_query) || '%'
+      OR COALESCE(u.email, '') ILIKE '%' || pg_catalog.btrim(p_query) || '%'
+      OR p.id::text ILIKE '%' || pg_catalog.btrim(p_query) || '%'
     )
   GROUP BY p.id, p.username, p.full_name, u.email, p.status
   ORDER BY pg_catalog.lower(COALESCE(p.username, p.full_name, u.email, ''));
