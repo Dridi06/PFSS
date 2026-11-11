@@ -118,13 +118,13 @@
 
         <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
 
-        <label class="field">
+        <label class="field" id="signupEmailField">
           <span id="emailFieldLabel">E-Mail-Adresse oder Benutzername</span>
           <input name="email" type="text" autocomplete="username"
                  required placeholder="E-Mail oder Benutzername">
         </label>
 
-        <label class="field">
+        <label class="field" id="signupPasswordField">
           Passwort
           <input name="password" type="password"
                  autocomplete="current-password"
@@ -132,7 +132,7 @@
                  placeholder="Mindestens 8 Zeichen">
         </label>
 
-        <div class="auth-actions">
+        <div class="auth-actions" id="authActions">
           <button class="btn btn-primary" type="submit" id="loginButton">
             Anmelden
           </button>
