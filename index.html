@@ -540,6 +540,33 @@
 
       <section class="view" id="view-clubs">
         <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · STARTSEITE</div><h1>Vereinsübersicht</h1><p>Zentrale Übersicht für Präsident, Vorstand, Jugendleitung und sportliche Leitung.</p></div><span class="module-status">Platzhalter · Funktionen folgen</span></div>
+        <section class="admin-org-console" id="adminClubConsole" hidden>
+          <div class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Verein finden</h3></div><span class="module-status">Verwaltung</span></div>
+            <div class="org-search-grid">
+              <label class="field">Vereinsname<input type="search" placeholder="Vereinsnamen eingeben"></label>
+              <label class="field">Vereins-User-ID<input type="text" placeholder="Vereins-ID eingeben"></label>
+              <button class="btn btn-primary" type="button" disabled>Suchen</button>
+            </div>
+            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
+          </div>
+          <div class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder des ausgewählten Vereins</h3></div><span class="module-status">Vorschau</span></div>
+            <div class="org-empty-state">Nach Auswahl eines Vereins werden hier dessen Präsident, Vorstand, Trainer, Scouts und weitere zugeordnete Mitglieder angezeigt.</div>
+            <div class="org-member-detail">
+              <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
+              <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
+                <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
+                <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
+                <b>Mannschaften</b><span>○</span><span>○</span><span>○</span><span>○</span>
+                <b>Mitglieder</b><span>○</span><span>○</span><span>○</span><span>○</span>
+                <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
+                <b>Finanzen</b><span>○</span><span>○</span><span>○</span><span>○</span>
+              </div>
+              <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
+            </div>
+          </div>
+        </section>
         <div class="club-hero panel">
           <div><div class="eyebrow">VEREINSREGISTER</div><h2>Willkommen im Vereinsbereich</h2><p>Nach der Vereinsregistrierung werden hier Vereinsdaten, Zuständigkeiten und freigeschaltete Bereiche zusammengeführt.</p></div>
           <div class="club-hero-mark">PFMS</div>
@@ -622,6 +649,18 @@
 
       <section class="view" id="view-scouts">
         <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Scout-Profile, Beobachtungsgebiete und kontrollierte Berichtsfreigaben.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scout">＋ Scout einladen</button></div>
+        <section class="admin-org-console" id="adminScoutConsole" hidden>
+          <div class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Einzelscout finden</h3></div><span class="module-status">Verwaltung</span></div>
+            <div class="org-search-grid">
+              <label class="field">Scout-Name<input type="search" placeholder="Vor- oder Nachname eingeben"></label>
+              <label class="field">Scout-User-ID<input type="text" placeholder="Scout-ID eingeben"></label>
+              <button class="btn btn-primary" type="button" disabled>Suchen</button>
+            </div>
+            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
+          </div>
+          <div class="panel"><div class="panel-heading"><div><div class="eyebrow">SCOUT-PROFIL</div><h3>Persönliche Berechtigungen</h3></div></div><div class="org-empty-state">Nach Auswahl eines Scouts werden dessen User-ID, Status und sämtliche individuellen Rechte angezeigt.</div></div>
+        </section>
         <div class="module-grid">
           <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scout-Profile</h3><p>Scouts können Spieler und Statistiken erfassen, beobachten und Berichte erstellen.</p><span class="module-status">Oberflächen-Gerüst</span></article>
           <article class="module-card"><span class="module-symbol">◉</span><h3>Private Datenbereiche</h3><p>Eigene Scouting-Daten und private Notizen bleiben zunächst nur für den jeweiligen Scout sichtbar.</p></article>
@@ -718,7 +757,30 @@
 
       <section class="view" id="view-agencies">
         <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturkonten, Zuständigkeiten und Freigaben zentral verwalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Agenturverwaltung</h3><p>Hier werden künftig alle registrierten Agenturen mit Status, Ansprechpartnern und zugehörigen Scouts angezeigt.</p></div>
+        <div class="panel">
+          <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Agentur finden</h3></div><span class="module-status">Verwaltung</span></div>
+          <div class="org-search-grid">
+            <label class="field">Agenturname<input type="search" placeholder="Agenturnamen eingeben"></label>
+            <label class="field">Agentur-User-ID<input type="text" placeholder="Agentur-ID eingeben"></label>
+            <button class="btn btn-primary" type="button" disabled>Suchen</button>
+          </div>
+          <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder der ausgewählten Agentur</h3></div><span class="module-status">Vorschau</span></div>
+          <div class="org-empty-state">Nach Auswahl einer Agentur erscheinen hier Agenturleitung, Scouts und weitere zugeordnete Mitglieder.</div>
+          <div class="org-member-detail">
+            <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
+            <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
+              <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
+              <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
+              <b>Spielerprofile</b><span>○</span><span>○</span><span>○</span><span>○</span>
+              <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
+              <b>Vertragsverwaltung</b><span>○</span><span>○</span><span>○</span><span>○</span>
+            </div>
+            <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
+          </div>
+        </div>
       </section>
       <section class="view" id="view-admin-members">
         <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Mitglieder</h1><p>Mitgliederkonten, Einladungen und Organisationszuordnungen verwalten.</p></div></div>
