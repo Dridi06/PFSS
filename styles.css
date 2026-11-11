@@ -775,3 +775,21 @@ button,input,select,textarea{max-width:100%}
 .member-order-summary h3{font-size:22px;color:#f3d58f}
 .member-order-summary p{margin:8px 0 0;color:#c5b99f;font-size:11px;line-height:1.6}
 @media(max-width:420px){#authScreen .order-summary{padding:16px}.payment-methods{gap:6px}.payment-method{font-size:9px}.order-price-line strong{font-size:26px}}
+
+
+/* Klare, reduzierte Administrator-Navigation */
+.admin-nav-section{display:grid;gap:5px;margin-top:8px}
+.admin-nav-section[hidden]{display:none}
+.admin-section-title{padding:14px 12px 9px;color:#d8b873}
+.sidebar.admin-mode .workspace-label{color:#d8b873}
+.sidebar.admin-mode .nav-section-label:not(.admin-section-title),
+.sidebar.admin-mode .nav-group-toggle,
+.sidebar.admin-mode .nav-submenu,
+.sidebar.admin-mode .nav-item:not(.admin-nav-item){display:none!important}
+.sidebar.admin-mode .admin-nav-item{display:flex!important}
+.sidebar.admin-mode .admin-nav-item.active{background:linear-gradient(90deg,#342818,#1a1b1c);box-shadow:inset 3px 0 #d9b76e;color:#f5e5c2}
+.sidebar.admin-mode .admin-nav-item .nav-icon{color:#d9b76e}
+.admin-placeholder{min-height:170px;padding:24px}
+.admin-placeholder h3{margin:0 0 9px;color:#e8d5aa}
+.admin-placeholder p{margin:0;color:#9e9a91;font-size:12px;line-height:1.65}
+.sidebar .nav-item[hidden]{display:none!important}
