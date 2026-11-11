@@ -357,6 +357,16 @@
           <span class="online-pill" id="connectionStatus">
             <span class="status-dot" id="connectionStatusDot"></span><span id="connectionStatusText">ONLINE</span>
           </span>
+          <div class="admin-preview-switch" id="adminPreviewSwitch" hidden>
+            <span class="preview-mode-label" id="previewModeLabel">ADMIN-MODUS</span>
+            <select id="adminPreviewMode" aria-label="Benutzeroberfläche als Rolle anzeigen">
+              <option value="admin">Administrator</option>
+              <option value="scout">Scout</option>
+              <option value="agency">Agentur</option>
+              <option value="club">Verein</option>
+              <option value="member">Mitglied</option>
+            </select>
+          </div>
           <div class="user-id-pill" id="userIdDisplay" hidden>
             <span class="user-id-label">USER-ID</span><span id="userIdValue">–</span>
             <button class="user-id-copy-button" id="copyUserIdButton" type="button" title="User-ID kopieren" aria-label="User-ID kopieren"><span class="user-id-copy-icon">⧉</span></button>
