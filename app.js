@@ -74,7 +74,7 @@ function showView(view, navElement = null, fromPopState = false) {
   document.querySelectorAll('.nav-subitem').forEach(el => {
     el.classList.toggle('active', el === navElement);
   });
-  const clubViews = ['clubs', 'teams', 'staff', 'players', 'scouts'];
+  const clubViews = ['clubs', 'teams', 'club-members', 'club-admin', 'club-scouting'];
   const clubToggle = document.querySelector('[data-nav-toggle="clubSubnav"]');
   const clubSubnav = document.getElementById('clubSubnav');
   if (clubToggle && clubSubnav && clubViews.includes(view)) {
@@ -96,8 +96,11 @@ function showView(view, navElement = null, fromPopState = false) {
 
   const names = {
     dashboard: 'Dashboard',
-    clubs: 'Vereine',
+    clubs: 'Vereinsübersicht',
     teams: 'Mannschaften',
+    'club-members': 'Mitgliedschaften',
+    'club-admin': 'Verwaltung',
+    'club-scouting': 'Scouting-Abteilung',
     staff: 'Trainer & Betreuer',
     scouts: 'Scouts',
     players: 'Spieler',
