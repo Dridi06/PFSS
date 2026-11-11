@@ -974,9 +974,6 @@ legalDialog.addEventListener('click', event => {
 document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
 document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
 
-document.getElementById('chooseLogin').addEventListener('click', () => setAuthMode('login'));
-document.getElementById('chooseRegister').addEventListener('click', () => setAuthMode('register'));
-
 function clearSignupValidation() {
   const form = document.getElementById('authForm');
   form.querySelectorAll('.field-invalid').forEach(field => field.classList.remove('field-invalid'));
