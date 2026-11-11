@@ -931,11 +931,16 @@ function setAuthMode(mode) {
   message.textContent = '';
   if (!signupMode) {
     selectedRegistrationChoice = '';
+    selectedBillingCycle = 'monthly';
     registrationType.value = '';
     requestedRoleField.hidden = true;
     scoutTypeField.hidden = true;
     organizationNameField.hidden = true;
+    organizationNameField.querySelector('input').required = false;
     agencyTypeField.hidden = true;
+    document.getElementById('invitationCodeField').hidden = true;
+    invitationCodeInput.required = false;
+    document.getElementById('acceptLegalTerms').required = false;
   }
 }
 
