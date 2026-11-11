@@ -523,3 +523,13 @@ button,input,select,textarea{max-width:100%}
 .legal-info-actions .btn{min-height:38px;padding:8px 15px}
 .legal-info-actions .text-button{color:#e0c17e;font-size:11px}
 @media(max-width:600px){.legal-info-dialog{width:calc(100vw - 20px);height:84dvh;max-height:84dvh;border-radius:11px}.legal-info-head{padding:12px}.legal-info-dialog iframe{height:calc(100% - 110px)}.legal-info-actions{padding:8px 12px}}
+
+
+/* Sichtbare rote Validierung bei fehlenden oder fehlerhaften Registrierungsangaben */
+#authMessage.auth-message-error{color:#ff6666;font-weight:700}
+#authForm .field.field-invalid{color:#ff7777}
+#authForm .field.field-invalid input,
+#authForm .field.field-invalid select{border-color:#e34b4b!important;box-shadow:0 0 0 2px #e34b4b2b}
+#authForm .field.field-invalid input:focus,
+#authForm .field.field-invalid select:focus{outline-color:#ff5b5b}
+#acceptLegalTerms.checkbox-invalid{outline:2px solid #e34b4b;outline-offset:3px;border-radius:2px}
