@@ -621,8 +621,10 @@ function applyAdminPreviewMode(mode) {
   if (sidebar) sidebar.classList.toggle('admin-mode', mode === 'admin');
   const clubConsole = document.getElementById('adminClubConsole');
   const scoutConsole = document.getElementById('adminScoutConsole');
+  const agencyConsole = document.getElementById('adminAgencyConsole');
   if (clubConsole) clubConsole.hidden = mode !== 'admin';
   if (scoutConsole) scoutConsole.hidden = mode !== 'admin';
+  if (agencyConsole) agencyConsole.hidden = mode !== 'admin';
   const target = mode === 'admin' ? 'admin' : mode === 'scout' ? 'scouts' : mode === 'agency' ? 'agencies' : mode === 'club' ? 'clubs' : 'dashboard';
   const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === target && !el.hidden) || null;
   showView(target, nav, true);
