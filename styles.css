@@ -601,3 +601,25 @@ button,input,select,textarea{max-width:100%}
   #authScreen .auth-brand .auth-logo{width:88px;height:88px;flex-basis:88px}
   #authScreen .auth-tagline{margin-bottom:22px;padding-top:13px;font-size:13px}
 }
+
+/* Feinschliff Login-Kopf und Abschlusslinie */
+#authScreen .auth-brand{flex-direction:column;gap:7px;margin-bottom:15px}
+#authScreen .auth-brand .auth-logo{width:96px;height:96px;flex:none}
+#authScreen .auth-brand-name{
+  color:#e6c987;
+  text-align:center;
+  font:800 clamp(10px,2.8vw,13px)/1.35 Manrope,sans-serif;
+  letter-spacing:.7px;
+}
+#authScreen .auth-tagline{margin-top:0}
+#authScreen .auth-actions{gap:5px;margin-top:17px}
+#authScreen .auth-link-button{padding:5px 9px;margin-top:0}
+#authScreen .auth-footnote{
+  margin-top:10px;
+  padding-top:12px;
+  border-top:1px solid #80663d;
+}
+@media(max-width:480px){
+  #authScreen .auth-brand .auth-logo{width:84px;height:84px}
+  #authScreen .auth-brand-name{font-size:10px;letter-spacing:.45px}
+}
