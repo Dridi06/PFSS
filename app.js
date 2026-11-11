@@ -853,7 +853,7 @@ const authActions = document.getElementById('authActions');
 const requestedRoleField = document.getElementById('requestedRoleField');
 const scoutTypeField = document.getElementById('scoutTypeField');
 let signupMode = false;
-let selectedRegistrationChoice = '';
+let selectedRegistrationChoice = '';\nlet selectedBillingCycle = 'monthly';
 
 const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
@@ -873,11 +873,15 @@ function chooseRegistrationType(type) {
   document.getElementById('selectedRegistrationLabel').textContent =
     'Ausgewählter Zugang: ' + ({user:'Benutzer',club:'Verein',agency:'Agentur',scout:'Scout'}[type] || type);
   requestedRoleField.hidden = type !== 'user';
-  scoutTypeField.hidden = type !== 'scout';
+  scoutTypeField.hidden = true;\n  document.getElementById('scoutType').value = 'solo_scout';
   organizationNameField.hidden = type !== 'club' && type !== 'agency';
   organizationNameField.querySelector('input').required = type === 'club' || type === 'agency';
   agencyTypeField.hidden = type !== 'agency';
-  document.getElementById('invitationCodeField').hidden = type === 'club' || type === 'agency';
+  document.getElementById('invitationCodeField').hidden = type !== 'user';
+  invitationCodeInput.required = type === 'user';
+  document.querySelector('#invitationCodeField .field-hint').textContent = type === 'user'
+    ? 'Pflichtfeld: Der Einladungslink ordnet dich direkt einem Verein oder einer Agentur zu.'
+    : 'Für diesen Zugang ist keine Mitgliedseinladung erforderlich.';
   document.getElementById('authTitle').textContent = 'Konto registrieren.';
   document.getElementById('authIntro').textContent = 'Ergänze deine Angaben, um die Registrierung abzuschließen.';
   document.getElementById('authMessage').textContent = '';
@@ -1058,6 +1062,10 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     showSignupError('Bitte wähle zuerst deinen Zugangsweg aus.', null);
     return;
   }
+  if (type === 'user' && !invitationCode) {
+    showSignupError('Eine Mitgliedsregistrierung ist nur mit einem gültigen Einladungslink möglich.', invitationCodeInput);
+    return;
+  }
   if ((type === 'club' || type === 'agency') && !organizationName) {
     showSignupError('Bitte gib den Namen des Vereins oder der Agentur ein.', form.elements.organizationName);
     return;
@@ -1070,7 +1078,9 @@ document.getElementById('signupButton').addEventListener('click', async () => {
       username,
       registration_type: type,
       requested_role: type === 'user' ? requestedRole : null,
-      scout_type: type === 'scout' ? scoutType : null,
+      scout_type: type === 'scout' ? 'solo_scout' : null,
+      billing_cycle: ['club','agency','scout'].includes(type) ? selectedBillingCycle : null,
+      trial_days: ['club','agency','scout'].includes(type) ? 30 : 0,
       agency_type: type === 'agency' ? document.getElementById('agencyType').value : null,
       organization_name: type === 'club' || type === 'agency' ? organizationName : null,
       invitation_code: invitationCode || null
