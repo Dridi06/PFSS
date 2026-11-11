@@ -570,3 +570,34 @@ button,input,select,textarea{max-width:100%}
 .dashboard-brand{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:12px 16px;border:1px solid #725a32;border-radius:12px;background:linear-gradient(110deg,#111416,#1d1b16);color:#e7c77f;font:800 11px Manrope,sans-serif;letter-spacing:1.3px}
 .dashboard-brand .dashboard-logo{width:76px;height:76px;flex:0 0 76px}
 @media(max-width:760px){.auth-brand .auth-logo{width:68px;height:68px;flex-basis:68px}.sidebar .sidebar-logo{max-width:145px;height:94px}.dashboard-brand{gap:10px;padding:9px 11px;font-size:9px}.dashboard-brand .dashboard-logo{width:62px;height:62px;flex-basis:62px}}
+
+/* Auth-Startbereich: Logo, Trennlinie und klare Produktbotschaft */
+#authScreen .auth-brand{display:flex;justify-content:center;align-items:center;margin:0 0 12px}
+#authScreen .auth-brand .auth-logo{width:104px;height:104px;flex:0 0 104px}
+#authScreen .auth-tagline{
+  margin:0 0 26px;
+  padding:15px 4px 0;
+  border-top:1px solid #80663d;
+  color:#e6c987;
+  text-align:center;
+  font:700 clamp(12px,3.2vw,15px)/1.55 Manrope,sans-serif;
+  letter-spacing:.15px;
+}
+#authScreen #authMessage.auth-message{
+  min-height:0;
+  margin:10px 0 14px;
+  padding:11px 13px;
+  border:1px solid #80663d;
+  border-radius:8px;
+  background:#211d15;
+  color:#f0d99f;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.55;
+  text-align:left;
+}
+#authScreen #authMessage.auth-message:empty{display:none}
+@media(max-width:480px){
+  #authScreen .auth-brand .auth-logo{width:88px;height:88px;flex-basis:88px}
+  #authScreen .auth-tagline{margin-bottom:22px;padding-top:13px;font-size:13px}
+}
