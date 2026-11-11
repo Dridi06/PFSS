@@ -692,6 +692,7 @@ function showAuthenticatedApp(user, profile) {
     }
   }
   applyAdminPreviewMode('admin');
+  setupPfmsAdminManagement();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -796,6 +797,118 @@ async function saveAdminUser(button) {
     toast('Änderung fehlgeschlagen. Berechtigung und Datenbankmigration prüfen.');
     button.disabled = false;
   }
+}
+
+
+function pfmsAdminToolsMarkup(type) {
+  const title = type === 'club' ? 'Vereine' : type === 'agency' ? 'Agenturen' : 'Scouts';
+  return `<div class="panel">
+    <div class="panel-heading"><div><div class="eyebrow">LIVE-DATENBANKVERWALTUNG</div><h3>${title} suchen</h3></div><span class="module-status">Datenbank</span></div>
+    <div class="org-search-grid">
+      <label class="field">Name oder Kennung<input type="search" data-pfms-search placeholder="${type==='scout'?'Scout-Name oder Scout-ID':'Name oder Organisations-ID'}"></label>
+      <button class="btn btn-primary" type="button" data-pfms-search-button>Suchen</button>
+    </div>
+    <p class="admin-message" data-pfms-message>Suche wird vorbereitet …</p>
+    <div data-pfms-results class="admin-org-results"></div>
+  </div>
+  <div class="panel" data-pfms-detail hidden><div class="panel-heading"><div><div class="eyebrow">DETAILS</div><h3 data-pfms-detail-title>Auswahl</h3></div></div><div data-pfms-detail-body></div></div>`;
+}
+
+function setupPfmsAdminManagement() {
+  if (window.pfssCurrentRole !== 'admin') return;
+  const configs = [
+    {type:'club',id:'adminClubConsole'},
+    {type:'agency',id:'adminAgencyConsole'},
+    {type:'scout',id:'adminScoutConsole'}
+  ];
+  configs.forEach(({type,id}) => {
+    const root=document.getElementById(id);
+    if (!root || root.dataset.pfmsReady) return;
+    root.innerHTML=pfmsAdminToolsMarkup(type);
+    root.dataset.pfmsReady='true';
+    const search=root.querySelector('[data-pfms-search]');
+    const button=root.querySelector('[data-pfms-search-button]');
+    const run=()=>loadPfmsAdminDirectory(type,root);
+    button.addEventListener('click',run);
+    search.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+    loadPfmsAdminDirectory(type,root);
+  });
+}
+
+async function loadPfmsAdminDirectory(type,root) {
+  const query=root.querySelector('[data-pfms-search]').value.trim();
+  const message=root.querySelector('[data-pfms-message]');
+  const results=root.querySelector('[data-pfms-results]');
+  message.textContent='Daten werden geladen …';
+  results.innerHTML='';
+  try {
+    const rpc=type==='scout'?'pfms_admin_list_scouts':'pfms_admin_search_organizations';
+    const args=type==='scout'?{p_query:query}:{p_type:type,p_query:query};
+    const {data,error}=await pfssSupabase.rpc(rpc,args);
+    if(error)throw error;
+    if(!data?.length){message.textContent='Keine Einträge gefunden.';return;}
+    message.textContent=data.length+' Einträge gefunden.';
+    results.innerHTML=data.map((item,index)=>{
+      const id=type==='scout'?item.user_id:item.id;
+      const name=type==='scout'?(item.display_name||item.username||item.email||'Scout'):(item.name||'Organisation');
+      const code=type==='scout'?item.scout_code:item.organization_code;
+      const meta=type==='scout'?item.scout_type:item.organization_type;
+      return `<button type="button" class="admin-directory-row" data-entry-index="${index}"><span><b>${escapeHtml(name)}</b><small>${escapeHtml(code||id)} · ${escapeHtml(meta||'')}</small></span><span class="tag">${escapeHtml(item.status||'aktiv')}</span></button>`;
+    }).join('');
+    results.querySelectorAll('[data-entry-index]').forEach(button=>button.addEventListener('click',()=>{
+      const item=data[Number(button.dataset.entryIndex)];
+      if(type==='scout')showPfmsScoutDetails(root,item);
+      else showPfmsOrganizationDetails(root,item);
+    }));
+  } catch(error) {
+    message.textContent='Datenbankfunktion nicht verfügbar. Bitte die neue PFMS-Migration in Supabase ausführen.';
+  }
+}
+
+async function showPfmsOrganizationDetails(root,org) {
+  const detail=root.querySelector('[data-pfms-detail]');
+  const body=root.querySelector('[data-pfms-detail-body]');
+  root.querySelector('[data-pfms-detail-title]').textContent=org.name+' · '+org.organization_code;
+  detail.hidden=false;
+  body.innerHTML='<p class="admin-message">Mitglieder werden geladen …</p>';
+  try {
+    const {data,error}=await pfssSupabase.rpc('pfms_admin_list_org_members',{p_org_id:org.id});
+    if(error)throw error;
+    if(!data?.length){body.innerHTML='<p class="admin-message">Noch keine Mitglieder zugeordnet.</p>';return;}
+    body.innerHTML=data.map((m,i)=>`<article class="admin-user-card" data-member-index="${i}">
+      <div class="admin-user-info"><b>${escapeHtml(m.username||m.email||'Mitglied')}</b><small>${escapeHtml(m.user_id)}</small><span class="tag">${escapeHtml(m.member_role)} · ${escapeHtml(m.status)}</span></div>
+      <div class="admin-user-controls"><label>Rolle<select data-member-role>${['owner','admin','manager','scout','coach','member'].map(v=>`<option value="${v}" ${m.member_role===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Status<select data-member-status>${['active','invited','suspended'].map(v=>`<option value="${v}" ${m.status===v?'selected':''}>${v}</option>`).join('')}</select></label></div>
+      <div class="pfms-permission-editor">${[['view_players','Spieler ansehen'],['create_players','Spieler erstellen'],['edit_players','Spieler bearbeiten'],['delete_players','Spieler löschen'],['view_reports','Berichte ansehen'],['create_reports','Berichte erstellen'],['manage_members','Mitglieder verwalten']].map(([key,label])=>`<label><input type="checkbox" data-permission="${key}" ${m.permissions?.[key]===true?'checked':''}> ${label}</label>`).join('')}</div>
+      <button type="button" class="btn btn-secondary" data-save-member>Rechte speichern</button><p class="admin-message" data-member-message></p>
+    </article>`).join('');
+    body.querySelectorAll('[data-member-index]').forEach(card=>{
+      const m=data[Number(card.dataset.memberIndex)];
+      card.querySelector('[data-save-member]').addEventListener('click',async()=>{
+        const save=card.querySelector('[data-save-member]');
+        const permissions={};
+        card.querySelectorAll('[data-permission]').forEach(input=>permissions[input.dataset.permission]=input.checked);
+        save.disabled=true;
+        try{
+          const {error}=await pfssSupabase.rpc('pfms_admin_update_membership',{
+            p_membership_id:m.membership_id,
+            p_member_role:card.querySelector('[data-member-role]').value,
+            p_status:card.querySelector('[data-member-status]').value,
+            p_permissions:permissions
+          });
+          if(error)throw error;
+          card.querySelector('[data-member-message]').textContent='Berechtigungen gespeichert.';
+        }catch(error){card.querySelector('[data-member-message]').textContent='Speichern fehlgeschlagen. Datenbankrechte prüfen.';}
+        finally{save.disabled=false;}
+      });
+    });
+  } catch(error){body.innerHTML='<p class="admin-message">Mitglieder konnten nicht geladen werden. Migration prüfen.</p>';}
+}
+
+function showPfmsScoutDetails(root,scout) {
+  const detail=root.querySelector('[data-pfms-detail]');
+  root.querySelector('[data-pfms-detail-title]').textContent=(scout.display_name||scout.username||'Scout')+' · '+scout.scout_code;
+  detail.hidden=false;
+  root.querySelector('[data-pfms-detail-body]').innerHTML=`<div class="admin-user-card"><b>${escapeHtml(scout.display_name||scout.username||'Scout')}</b><small>Scout-ID: ${escapeHtml(scout.scout_code)}</small><small>User-ID: ${escapeHtml(scout.user_id)}</small><small>Typ: ${escapeHtml(scout.scout_type)}</small><small>Status: ${escapeHtml(scout.status)}</small></div>`;
 }
 
 async function checkPfssAccess(user) {
