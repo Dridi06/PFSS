@@ -858,6 +858,18 @@ let selectedBillingCycle = 'monthly';
 
 const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
+document.querySelectorAll('[data-pricing]').forEach(group => {
+  group.dataset.selectedPlan = 'monthly';
+  group.querySelectorAll('.price-option').forEach(option => {
+    option.addEventListener('click', () => {
+      group.querySelectorAll('.price-option').forEach(item => item.classList.toggle('active', item === option));
+      group.dataset.selectedPlan = option.dataset.plan;
+      if (selectedRegistrationChoice === group.dataset.pricing) {
+        selectedBillingCycle = option.dataset.plan;
+      }
+    });
+  });
+});
 
 const registrationChoiceDetails = {
   user: 'Mitglieder können sich ausschließlich über einen gültigen Einladungslink registrieren. Der Link ordnet das Konto direkt dem einladenden Verein oder der Agentur zu.',
