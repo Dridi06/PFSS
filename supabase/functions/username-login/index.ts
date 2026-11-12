@@ -154,6 +154,7 @@ Deno.serve(async (req: Request) => {
       }
       if (!limitResult.allowed) {
         return json(
+          req,
           { error: "Too many login attempts. Please try again later." },
           429,
           { "Retry-After": String(limitResult.retry_after_seconds) },
