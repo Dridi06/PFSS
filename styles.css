@@ -865,7 +865,7 @@ button,input,select,textarea{max-width:100%}
 
 
 /* Beitrittsdatum-Suchfeld kompakter darstellen */
-#playerSearchJoinDate{width:100%;max-width:220px;box-sizing:border-box}
+#playerSearchJoinDate{width:100%;max-width:280px;box-sizing:border-box}
 
 /* PFSS unified multi-field search */
 .pfss-search-form{display:block;margin:18px 0 22px;padding:18px}
