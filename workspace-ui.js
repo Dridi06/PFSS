@@ -102,6 +102,11 @@
   }
   function activate(id){
     const page=$('pfss-view-'+id);if(!page)return;
+    try {
+      sessionStorage.setItem('pfss_last_page_v1', JSON.stringify({
+        type:'workspace',view:id,userId:window.pfssCurrentUserId||null
+      }));
+    } catch(storageError) {}
     document.querySelectorAll('.main-area>.view').forEach(v=>v.classList.remove('active'));
     page.classList.add('active');
     document.querySelectorAll('.nav-list .nav-item').forEach(n=>n.classList.toggle('active',n.dataset.uiView===id));
