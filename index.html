@@ -6,38 +6,10 @@
   <meta name="theme-color" content="#090a0c">
   <meta name="description" content="PFMS – Professional Football Management System">
   <title>PFMS | Professional Football Management System</title>
-  <link rel="stylesheet" href="styles.css?v=pfms-header-flex-final-20261112-1">
+  <link rel="stylesheet" href="styles.css?v=pfms-header-clean-20261112-1">
   <link rel="stylesheet" href="scout-workspace.css?v=pfss-scout-20261112-1">
   <link rel="stylesheet" href="workspace-ui.css?v=pfss-ui-20261112-1">
-<style id="pfms-mobile-header-hotfix">
-    @media (max-width: 760px) {
-      html body .main-area > header.topbar {
-        display: grid !important;
-        grid-template-columns: 42px minmax(0, 1fr) !important;
-        grid-template-areas: "menu crumb" "tools tools" !important;
-        align-items: center !important;
-        justify-content: initial !important;
-        gap: 10px !important;
-        height: auto !important;
-        min-height: 0 !important;
-        padding: 12px 0 !important;
-      }
-      html body .main-area > header.topbar > #menuToggle { grid-area: menu !important; }
-      html body .main-area > header.topbar > .breadcrumb {
-        grid-area: crumb !important; min-width: 0 !important; max-width: 100% !important;
-        overflow: hidden !important; white-space: nowrap !important;
-      }
-      html body .main-area > header.topbar > .breadcrumb b {
-        min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important;
-      }
-      html body .main-area > header.topbar > .topbar-right {
-        grid-area: tools !important; display: flex !important; flex-wrap: wrap !important;
-        justify-content: flex-start !important; align-items: center !important;
-        width: 100% !important; min-width: 0 !important; margin: 0 !important; gap: 8px !important;
-      }
-      html body .main-area > header.topbar .user-id-pill { max-width: 100% !important; min-width: 0 !important; }
-    }
-  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js?v=pfss-search-20261112-1" defer></script>
   <script src="scout-workspace.js?v=pfss-scout-20261112-1" defer></script>
