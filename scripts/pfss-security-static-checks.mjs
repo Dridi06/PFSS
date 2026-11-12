@@ -74,7 +74,7 @@ requirePattern(loginLimit, /on conflict \(key_hash\) do update/i, "Login rate li
 requirePattern(loginLimit, /security definer/i, "Login rate-limit RPC runs with a controlled definer context");
 requirePattern(loginLimit, /revoke all on function[\s\S]*?from public, anon, authenticated/i, "Login rate-limit RPC is not executable by public or user roles");
 requirePattern(loginLimit, /grant execute on function[\s\S]*?to service_role/i, "Login rate-limit RPC is service-role only");
-if (loginLimit.includes("check (key_hash ~ '^[0-9a-f]{64}$')")) pass("Login rate-limit table stores SHA-256 hex keys only");
+if (loginLimit.includes("check (key_hash ~ '^[0-9a-f]{64}$')")) pass("Login rate-limit table stores HMAC-SHA-256 hex keys only");
 else fail("Login rate-limit table stores SHA-256 hex keys only");
 
 requirePattern(backup, /openssl enc -aes-256-cbc -salt -pbkdf2/, "Backup workflow encrypts database dumps");
