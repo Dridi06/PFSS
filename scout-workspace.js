@@ -1,257 +1,100 @@
-/* PFSS private scout workspace. Data is always read/written through RLS-protected Supabase tables. */
+/* PFSS Scout Workspace – grafische Vorschau ohne Datenbankanbindung */
 (() => {
-  const sections = ['database','reports','photos','videos'];
-  const labels = {database:'Datenbank',reports:'Scoutingberichte',photos:'Fotos',videos:'Videos'};
-  let players = [], reports = [], media = [];
-  let activeSection = 'database';
-  let initializedFor = '';
-
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const sections = ['overview','database','reports','photos','videos'];
+  const labels = {overview:'Übersicht',database:'Spielerdatenbank',reports:'Scoutingberichte',photos:'Fotos',videos:'Videos'};
+  let active = 'overview';
+  let demoPlayers = [
+    {id:'p1',name:'Luca Hartmann',club:'Berliner SC',position:'Mittelfeld',birth:'2007-04-12',foot:'Rechts',rating:'3.8',status:'Top-Potenzial'},
+    {id:'p2',name:'Yassin Benali',club:'VfB Lübeck',position:'Sturm',birth:'2006-09-03',foot:'Links',rating:'3.6',status:'Weiter beobachten'},
+    {id:'p3',name:'Noah Schneider',club:'SV Babelsberg 03',position:'Abwehr',birth:'2008-01-22',foot:'Rechts',rating:'3.4',status:'Erstbeobachtung'}
+  ];
+  const demoReports = [
+    {player:'Luca Hartmann',date:'10.11.2026',rating:'3.8',text:'Sehr gute Übersicht und saubere Entscheidungsfindung im Zentrum.'},
+    {player:'Yassin Benali',date:'08.11.2026',rating:'3.6',text:'Dynamischer Tiefenläufer mit starkem linken Fuß.'}
+  ];
   const el = id => document.getElementById(id);
-  const say = message => { const target=el('scoutWorkspaceMessage'); if(target) target.textContent=message; };
-  const supa = () => window.pfssSupabase || null;
-
-  function addWorkspace() {
-    const nav = document.querySelector('.nav-list');
-    if (!nav || el('scoutWorkspaceNav')) return;
-    const group = document.createElement('div');
-    group.id = 'scoutWorkspaceNav';
-    group.className = 'scout-workspace-nav';
-    group.innerHTML = '<div class="nav-section-label">ABTEILUNG SCOUTS</div>' +
-      sections.map(key => '<button type="button" class="nav-item scout-private-nav" data-scout-section="'+key+'"><span class="nav-icon">'+({database:'▦',reports:'▤',photos:'▧',videos:'▷'}[key])+'</span><span class="nav-label">'+labels[key]+'</span></button>').join('');
-    const firstAdmin = nav.querySelector('.admin-nav-section');
-    nav.insertBefore(group, firstAdmin || null);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function addNav(){
+    const nav=document.querySelector('.nav-list');
+    if(!nav||el('scoutWorkspaceNav'))return;
+    const group=document.createElement('div');group.id='scoutWorkspaceNav';group.className='scout-workspace-nav';
+    group.innerHTML='<div class="nav-section-label">SCOUT WORKSPACE</div>'+sections.map(k=>'<button type="button" class="nav-item scout-private-nav" data-scout-section="'+k+'"><span class="nav-icon">'+({overview:'⌂',database:'▦',reports:'▤',photos:'▧',videos:'▷'}[k])+'</span><span class="nav-label">'+labels[k]+'</span></button>').join('');
+    nav.appendChild(group);
   }
-
-  function addView() {
-    const main = document.querySelector('.main-area');
-    if (!main || el('view-scout-workspace')) return;
-    const view = document.createElement('section');
-    view.id = 'view-scout-workspace';
-    view.className = 'view';
-    view.innerHTML = `
-      <div class="page-heading"><div><div class="eyebrow">PERSÖNLICHER SCOUT-BEREICH</div><h1 id="scoutWorkspaceTitle">Meine Datenbank</h1><p>Deine Spieler, Berichte und Medien – ausschließlich deinem Scout-Konto zugeordnet.</p></div></div>
-      <div class="scout-private-note">🔒 Privater Bereich: Deine Inhalte sind serverseitig von den Daten anderer Scouts getrennt.</div>
+  function addView(){
+    const main=document.querySelector('.main-area');if(!main||el('view-scout-workspace'))return;
+    const view=document.createElement('section');view.id='view-scout-workspace';view.className='view scout-shell';
+    view.innerHTML=`
+      <div class="scout-topline"><span class="scout-live-dot"></span> PERSÖNLICHER SCOUT-BEREICH <span class="scout-preview-tag">DESIGNVORSCHAU</span></div>
+      <header class="scout-hero"><div><p class="scout-kicker">PERFORMANCE · TALENT · ANALYSE</p><h1 id="scoutHeading">Dein Scouting. Dein Überblick.</h1><p class="scout-lead">Alle Beobachtungen, Spielerprofile und Analysen an einem Ort.</p></div><div class="scout-hero-mark">PF<span>SS</span><small>SCOUTING</small></div></header>
+      <div class="scout-private-note">🔒 Persönlicher Arbeitsbereich – die endgültige Datenanbindung folgt im nächsten Schritt.</div>
       <div class="scout-section-tabs" id="scoutSectionTabs">${sections.map(k=>'<button type="button" data-scout-section="'+k+'">'+labels[k]+'</button>').join('')}</div>
-      <div id="scoutWorkspaceMessage" class="scout-workspace-message" role="status" aria-live="polite"></div>
-      <section class="scout-workspace-view" id="scout-section-database">
-        <div class="panel"><div class="panel-heading"><div><div class="eyebrow">SPIELERDATENBANK</div><h3>Spieler gezielt suchen</h3></div><button class="btn btn-primary" id="scoutAddPlayer">＋ Spieler hinzufügen</button></div>
-          <form id="scoutSearchForm" class="scout-form-grid">
-            <label class="field">Nachname<input id="scoutSearchSurname" type="search" placeholder="Nachname"></label>
-            <label class="field">Verein<input id="scoutSearchClub" type="search" placeholder="Verein"></label>
-            <label class="field">Position<select id="scoutSearchPosition"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label>
-            <label class="field">Jahrgang von<input id="scoutSearchFrom" type="number" placeholder="z. B. 2005"></label>
-            <label class="field">Jahrgang bis<input id="scoutSearchTo" type="number" placeholder="z. B. 2010"></label>
-            <label class="field">Spielfuß<select id="scoutSearchFoot"><option value="">Beide / alle</option><option value="Links">LF · Linksfuß</option><option value="Rechts">RF · Rechtsfuß</option><option value="Beidfüßig">Beidfüßig</option></select></label>
-            <label class="field">Beitrittsdatum<input id="scoutSearchJoinDate" type="date"></label>
-            <label class="field">Sortieren nach<select id="scoutSort"><option value="surname">Nachname</option><option value="birth">Jahrgang</option><option value="position">Position</option><option value="join_date">Beitrittsdatum</option></select></label>
-            <label class="field">Reihenfolge<select id="scoutDirection"><option value="asc">Aufsteigend</option><option value="desc">Absteigend</option></select></label>
-            <div class="field full"><button class="btn btn-primary" type="submit">Suchen</button> <button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
-          </form>
+      <div id="scoutWorkspaceMessage" class="scout-workspace-message">Du siehst aktuell eine grafische Vorschau mit Beispieldaten.</div>
+      <div class="scout-workspace-view active" id="scout-section-overview">
+        <div class="scout-kpi-grid">
+          <article class="scout-kpi"><span>SPIELER IM FOKUS</span><strong id="scoutKpiPlayers">03</strong><small>In deiner Beobachtung</small><i>♙</i></article>
+          <article class="scout-kpi"><span>SCOUTINGBERICHTE</span><strong>02</strong><small>Dokumentierte Analysen</small><i>▤</i></article>
+          <article class="scout-kpi"><span>TOP-BEWERTUNG</span><strong>3.8<span>/4</span></strong><small>Aktuelles Spielerprofil</small><i>✦</i></article>
+          <article class="scout-kpi"><span>OFFENE BEOBACHTUNGEN</span><strong>04</strong><small>Für die nächste Sichtung</small><i>◎</i></article>
         </div>
-        <p id="scoutPlayerCount" class="admin-message"></p><div id="scoutPlayerGrid" class="scout-data-grid"></div>
-      </section>
-      <section class="scout-workspace-view" id="scout-section-reports">
-        <div class="page-heading"><div><div class="eyebrow">LEISTUNGSANALYSE</div><h2>Meine Scoutingberichte</h2><p>Bewerte Technik, Taktik, Athletik und Mentalität (Skala 1–4).</p></div><button class="btn btn-primary" id="scoutAddReport">＋ Bericht erstellen</button></div>
-        <div id="scoutReportList" class="scout-data-grid"></div>
-      </section>
-      <section class="scout-workspace-view" id="scout-section-photos">
-        <div class="page-heading"><div><div class="eyebrow">MEDIENBIBLIOTHEK</div><h2>Meine Fotos</h2></div><label class="btn btn-primary upload-button">＋ Fotos hochladen<input id="scoutPhotoInput" type="file" accept="image/*" multiple hidden></label></div>
-        <div id="scoutPhotoGrid" class="scout-media-grid"></div>
-      </section>
-      <section class="scout-workspace-view" id="scout-section-videos">
-        <div class="page-heading"><div><div class="eyebrow">MEDIENBIBLIOTHEK</div><h2>Meine Videos</h2></div><label class="btn btn-primary upload-button">＋ Videos hochladen<input id="scoutVideoInput" type="file" accept="video/mp4,video/quicktime,video/webm" multiple hidden></label></div>
-        <div id="scoutVideoGrid" class="scout-media-grid"></div>
-      </section>
-      <dialog id="scoutPlayerDialog" class="modal"><form id="scoutPlayerForm">
-        <div class="modal-head"><div><div class="eyebrow">MEINE DATENBANK</div><h2>Spieler anlegen</h2></div><button type="button" class="close-button" data-scout-close="scoutPlayerDialog">×</button></div>
-        <div class="scout-form-grid">
-          <label class="field full">Vollständiger Name<input name="name" required maxlength="160"></label>
-          <label class="field">Nachname<input name="surname" maxlength="100"></label>
-          <label class="field">Geburtsdatum<input name="birth" type="date"></label>
-          <label class="field">Beitrittsdatum<input name="join_date" type="date"></label>
-          <label class="field">Nationalität<input name="nationality" maxlength="80"></label>
-          <label class="field">Position<select name="position"><option>Torwart</option><option>Abwehr</option><option selected>Mittelfeld</option><option>Sturm</option></select></label>
-          <label class="field">Verein<input name="club" maxlength="120"></label>
-          <label class="field">Größe (cm)<input name="height" type="number" min="100" max="230"></label>
-          <label class="field">Spielfuß<select name="foot"><option value="">Nicht angegeben</option><option value="Rechts">RF · Rechtsfuß</option><option value="Links">LF · Linksfuß</option><option value="Beidfüßig">Beidfüßig</option></select></label>
-          <label class="field full">Notizen<textarea name="notes" rows="3"></textarea></label>
-        </div><div class="modal-actions"><button type="button" class="btn btn-ghost" data-scout-close="scoutPlayerDialog">Abbrechen</button><button class="btn btn-primary">Spieler speichern</button></div>
-      </form></dialog>
-      <dialog id="scoutReportDialog" class="modal"><form id="scoutReportForm">
-        <div class="modal-head"><div><div class="eyebrow">SPIELERBEWERTUNG</div><h2>Scoutingbericht erstellen</h2></div><button type="button" class="close-button" data-scout-close="scoutReportDialog">×</button></div>
-        <div class="scout-form-grid"><label class="field full">Spieler<select name="player_id" id="scoutReportPlayer" required></select></label><label class="field">Beobachtungsdatum<input name="observation_date" type="date" required></label><label class="field">Gesamtbewertung<input name="overall_rating" type="number" min="1" max="4" step=".5"></label></div>
-        <h3>Technik</h3><div class="scout-score-grid" id="scoutTechScores"></div><h3>Taktik</h3><div class="scout-score-grid" id="scoutTacticScores"></div><h3>Athletik</h3><div class="scout-score-grid" id="scoutAthleticScores"></div><h3>Mentalität</h3><div class="scout-score-grid" id="scoutMentalScores"></div>
-        <label class="field full">Sonstige Bemerkungen<textarea name="notes" rows="4"></textarea></label>
-        <div class="modal-actions"><button type="button" class="btn btn-ghost" data-scout-close="scoutReportDialog">Abbrechen</button><button class="btn btn-primary">Bericht speichern</button></div>
-      </form></dialog>`;
+        <div class="scout-overview-grid">
+          <section class="scout-panel scout-focus-panel"><div class="scout-panel-head"><div><span class="scout-kicker">DEIN FOKUS</span><h2>Spieler im Blick</h2></div><button class="scout-text-action" data-scout-section="database">Alle Spieler →</button></div><div id="scoutOverviewPlayers"></div></section>
+          <section class="scout-panel"><div class="scout-panel-head"><div><span class="scout-kicker">LETZTE AKTIVITÄTEN</span><h2>Scoutingberichte</h2></div><button class="scout-text-action" data-scout-section="reports">Alle Berichte →</button></div><div id="scoutOverviewReports"></div></section>
+        </div>
+        <section class="scout-panel scout-quick-panel"><div><span class="scout-kicker">DIREKT LOSLEGEN</span><h2>Was möchtest du erledigen?</h2></div><div class="scout-quick-actions"><button data-scout-section="database"><b>＋</b><span>Spielerprofil ansehen</span><small>Datenbank öffnen</small></button><button data-scout-section="reports"><b>▤</b><span>Analyse erstellen</span><small>Berichte aufrufen</small></button><button data-scout-section="photos"><b>▧</b><span>Medien verwalten</span><small>Fotobibliothek öffnen</small></button></div></section>
+      </div>
+      <div class="scout-workspace-view" id="scout-section-database">
+        <div class="scout-page-head"><div><span class="scout-kicker">TALENTÜBERSICHT</span><h2>Meine Spielerdatenbank</h2><p>Finde und vergleiche deine beobachteten Spieler.</p></div><button class="btn btn-primary" id="scoutDemoAdd">＋ Spieler vormerken</button></div>
+        <section class="scout-panel"><div class="scout-form-grid"><label class="field">Nachname<input id="scoutFilterName" type="search" placeholder="Spieler suchen …"></label><label class="field">Position<select id="scoutFilterPosition"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label><label class="field">Jahrgang von<input id="scoutFilterFrom" type="number" placeholder="z. B. 2006"></label><label class="field">Jahrgang bis<input id="scoutFilterTo" type="number" placeholder="z. B. 2008"></label></div></section>
+        <div class="scout-results-line"><span id="scoutPlayerCount">3 Spieler</span><span>BEISPIELPROFILE</span></div><div id="scoutPlayerGrid" class="scout-data-grid"></div>
+      </div>
+      <div class="scout-workspace-view" id="scout-section-reports">
+        <div class="scout-page-head"><div><span class="scout-kicker">LEISTUNGSANALYSE</span><h2>Meine Scoutingberichte</h2><p>Beobachtungen strukturiert dokumentieren und bewerten.</p></div><span class="scout-preview-tag">VORSCHAU</span></div><div id="scoutReportList" class="scout-report-list"></div>
+      </div>
+      <div class="scout-workspace-view" id="scout-section-photos"><div class="scout-page-head"><div><span class="scout-kicker">MEDIENBIBLIOTHEK</span><h2>Meine Fotos</h2><p>Spielerbilder und Eindrücke zentral sammeln.</p></div></div><div class="scout-placeholder-grid"><div>▧<b>Spielerporträts</b><small>Profilbilder und Aufnahmen</small></div><div>▧<b>Spieltag</b><small>Beobachtungen vom Spielfeld</small></div><div>＋<b>Upload-Bereich</b><small>Anbindung folgt im nächsten Schritt</small></div></div></div>
+      <div class="scout-workspace-view" id="scout-section-videos"><div class="scout-page-head"><div><span class="scout-kicker">VIDEOANALYSE</span><h2>Meine Videos</h2><p>Spielsequenzen für die spätere Analyse vorbereiten.</p></div></div><div class="scout-video-placeholder"><div class="scout-play">▷</div><h3>Deine Video-Bibliothek</h3><p>Hier erscheinen später hochgeladene Spiel- und Trainingssequenzen.</p><span class="scout-preview-tag">TECHNISCHE ANBINDUNG FOLGT</span></div></div>
+    `;
     main.appendChild(view);
   }
-
-  const scoreGroups = {
-    scoutTechScores:['Dribbling','Passspiel kurz','Passspiel lang','Beidfüßigkeit','Kopfballspiel','1:1 Offensiv','Ball An-/Mitnahme','Erster Kontakt','Repertoire Finten','Variabler Torschuss'],
-    scoutTacticScores:['1:1 Defensiv','Kreativität','Raumverhalten','Spiel ohne Ball','Anspielbereitschaft','Zweikampf','Umschaltspiel','Handlungsschnelligkeit','Antizipationsfähigkeit','Lösen vom Gegner'],
-    scoutAthleticScores:['Laufbild','Laufaktivität','Körperlichkeit','Antrittsschnelligkeit','Schnelligkeit Distanz','Bewegungsgeschicklichkeit'],
-    scoutMentalScores:['Einstellung','Führungsspieler','Kommunikation','Risikofreude','Positive Körpersprache','Teamplayer','Spieleinfluss','Disziplin/Konzentration']
-  };
-  function buildScoreInputs(){
-    Object.entries(scoreGroups).forEach(([id,names])=>{
-      const host=el(id); if(!host || host.dataset.ready) return;
-      host.innerHTML=names.map((name,i)=>'<label class="scout-score-item"><span>'+esc(name)+'</span><select name="score_'+id+'_'+i+'"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>').join('');
-      host.dataset.ready='1';
-    });
+  function playerCard(p){
+    const initials=p.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+    return '<article class="scout-player-card"><div class="scout-player-avatar">'+esc(initials)+'</div><div class="scout-player-main"><div class="scout-player-top"><h3>'+esc(p.name)+'</h3><span class="scout-rating">'+esc(p.rating)+'/4</span></div><p>'+esc(p.club)+' · '+esc(p.position)+'</p><div class="scout-player-tags"><span>'+esc(p.birth.slice(0,4))+'</span><span>'+esc(p.foot)+' Fuß</span><span>'+esc(p.status)+'</span></div></div></article>';
   }
-
-  function switchSection(section){
-    if(!sections.includes(section)) section='database';
-    activeSection=section;
-    const title=el('scoutWorkspaceTitle'); if(title) title.textContent='Meine '+labels[section];
-    document.querySelectorAll('[data-scout-section]').forEach(b=>b.classList.toggle('active',b.dataset.scoutSection===section));
-    sections.forEach(k=>{const node=el('scout-section-'+k); if(node) node.classList.toggle('active',k===section);});
-    const pageTitle=el('pageTitle'); if(pageTitle) pageTitle.textContent=labels[section];
-    if(section==='database') renderPlayers();
-    if(section==='reports') renderReports();
-    if(section==='photos') renderMedia('photo');
-    if(section==='videos') renderMedia('video');
-  }
-
-  async function loadAll(){
-    if(!supa() || !window.pfssCurrentUserId) return;
-    say('Eigene Daten werden geladen …');
-    const [p,r,m]=await Promise.all([
-      supa().from('pfss_scout_players').select('*').order('created_at',{ascending:false}),
-      supa().from('pfss_scout_reports').select('*').order('created_at',{ascending:false}),
-      supa().from('pfss_scout_media').select('*').order('created_at',{ascending:false})
-    ]);
-    if(p.error||r.error||m.error){say('Datenbank noch nicht eingerichtet. Bitte zuerst die PFSS-Scout-Migration in Supabase ausführen.');console.error(p.error||r.error||m.error);return;}
-    players=p.data||[]; reports=r.data||[]; media=m.data||[];
-    say('Deine Datenbank ist bereit.');
-    renderPlayers(); renderReports();
-  }
-
   function renderPlayers(){
-    const host=el('scoutPlayerGrid'); if(!host)return;
-    const val=id=>(el(id)?.value||'').trim().toLocaleLowerCase('de-DE');
-    let list=players.filter(p=>{
-      const surname=(p.surname||p.name.split(/\s+/).pop()).toLocaleLowerCase('de-DE');
-      const year=Number(String(p.birth||'').slice(0,4))||0;
-      return (!val('scoutSearchSurname')||surname.includes(val('scoutSearchSurname'))) &&
-        (!val('scoutSearchClub')||(p.club||'').toLocaleLowerCase('de-DE').includes(val('scoutSearchClub'))) &&
-        (!val('scoutSearchPosition')||p.position===val('scoutSearchPosition')) &&
-        (!val('scoutSearchFoot')||p.foot===val('scoutSearchFoot')) &&
-        (!el('scoutSearchFrom')?.value||year>=Number(el('scoutSearchFrom').value)) &&
-        (!el('scoutSearchTo')?.value||year<=Number(el('scoutSearchTo').value)) &&
-        (!el('scoutSearchJoinDate')?.value||p.join_date===el('scoutSearchJoinDate').value);
-    });
-    const key=el('scoutSort')?.value||'surname', dir=el('scoutDirection')?.value==='desc'?-1:1;
-    list.sort((a,b)=>String(key==='surname'?(a.surname||a.name):(a[key]||'')).localeCompare(String(key==='surname'?(b.surname||b.name):(b[key]||'')),'de',{numeric:true,sensitivity:'base'})*dir);
-    el('scoutPlayerCount').textContent=list.length+' Spieler in deiner Datenbank';
-    host.innerHTML=list.length?list.map(p=>'<article class="scout-data-card"><h3>'+esc(p.name)+'</h3><p>'+esc(p.club||'Verein nicht angegeben')+' · '+esc(p.position)+'<br>Jahrgang: '+esc((p.birth||'').slice(0,4)||'–')+' · '+esc(p.foot||'Spielfuß offen')+'</p><button class="btn btn-secondary" data-scout-report-for="'+esc(p.id)+'">Bericht erstellen</button></article>').join(''):'<div class="empty-state"><b>Noch keine Spieler</b><p>Lege deinen ersten Spieler in deiner persönlichen Datenbank an.</p></div>';
+    const q=(el('scoutFilterName')?.value||'').toLocaleLowerCase('de-DE'),pos=el('scoutFilterPosition')?.value||'',from=Number(el('scoutFilterFrom')?.value||0),to=Number(el('scoutFilterTo')?.value||0);
+    const list=demoPlayers.filter(p=>p.name.toLocaleLowerCase('de-DE').includes(q)&&(!pos||p.position===pos)&&(!from||Number(p.birth.slice(0,4))>=from)&&(!to||Number(p.birth.slice(0,4))<=to));
+    el('scoutPlayerCount').textContent=list.length+' Spieler gefunden';
+    el('scoutPlayerGrid').innerHTML=list.map(playerCard).join('')||'<div class="empty-state">Keine passenden Spieler gefunden.</div>';
   }
-
   function renderReports(){
-    const host=el('scoutReportList'); if(!host)return;
-    host.innerHTML=reports.length?reports.map(r=>{
-      const p=players.find(x=>x.id===r.player_id);
-      const scoreCount=Object.keys(r.scores||{}).length;
-      return '<article class="scout-data-card"><h3>'+esc(p?.name||'Spieler')+'</h3><p>'+esc(r.observation_date)+' · Bewertung: '+esc(r.overall_rating??'–')+'/4<br>'+scoreCount+' Einzelkriterien bewertet</p><p>'+esc(r.notes)+'</p></article>';
-    }).join(''):'<div class="empty-state"><b>Noch keine Berichte</b><p>Erstelle deinen ersten Scoutingbericht.</p></div>';
+    el('scoutReportList').innerHTML=demoReports.map(r=>'<article class="scout-report-card"><div class="scout-report-score">'+esc(r.rating)+'</div><div><span class="scout-kicker">'+esc(r.date)+'</span><h3>'+esc(r.player)+'</h3><p>'+esc(r.text)+'</p></div></article>').join('');
   }
-
-  async function renderMedia(type){
-    const host=el(type==='photo'?'scoutPhotoGrid':'scoutVideoGrid'); if(!host)return;
-    const items=media.filter(x=>x.media_type===type);
-    if(!items.length){host.innerHTML='<div class="empty-state"><b>Noch keine '+(type==='photo'?'Fotos':'Videos')+'</b><p>Lade deine ersten Dateien hoch.</p></div>';return;}
-    host.innerHTML='';
-    for(const item of items){
-      const {data,error}=await supa().storage.from('pfss-scout-private').createSignedUrl(item.storage_path,3600);
-      if(error)continue;
-      const card=document.createElement('article');card.className='scout-media-card';
-      const mediaEl=document.createElement(type==='photo'?'img':'video');
-      mediaEl.src=data.signedUrl; if(type==='video'){mediaEl.controls=true;mediaEl.playsInline=true;} else mediaEl.alt=item.file_name;
-      const caption=document.createElement('p');caption.textContent=item.file_name;
-      card.append(mediaEl,caption);host.appendChild(card);
-    }
+  function renderOverview(){
+    el('scoutOverviewPlayers').innerHTML=demoPlayers.slice(0,3).map(p=>'<div class="scout-mini-player"><span class="scout-mini-avatar">'+esc(p.name.split(' ').map(x=>x[0]).join(''))+'</span><span><b>'+esc(p.name)+'</b><small>'+esc(p.club)+' · '+esc(p.position)+'</small></span><strong>'+esc(p.rating)+'</strong></div>').join('');
+    el('scoutOverviewReports').innerHTML=demoReports.map(r=>'<div class="scout-mini-report"><span class="scout-mini-report-icon">▤</span><span><b>'+esc(r.player)+'</b><small>'+esc(r.date)+' · Bewertung '+esc(r.rating)+'/4</small></span></div>').join('');
   }
-
-  async function uploadFiles(files,type){
-    if(!files?.length)return;
-    say('Dateien werden sicher hochgeladen …');
-    for(const file of files){
-      const path=window.pfssCurrentUserId+'/'+crypto.randomUUID()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-      const {error:uploadError}=await supa().storage.from('pfss-scout-private').upload(path,file,{contentType:file.type,upsert:false});
-      if(uploadError){say('Upload fehlgeschlagen: '+uploadError.message);return;}
-      const {error:rowError}=await supa().from('pfss_scout_media').insert({owner_id:window.pfssCurrentUserId,media_type:type,file_name:file.name,storage_path:path,mime_type:file.type,file_size:file.size});
-      if(rowError){await supa().storage.from('pfss-scout-private').remove([path]);say('Mediendatei konnte nicht registriert werden.');return;}
-    }
-    const {data,error}=await supa().from('pfss_scout_media').select('*').order('created_at',{ascending:false});
-    if(error){say('Medien wurden hochgeladen, konnten aber nicht geladen werden.');return;}
-    media=data||[];say('Upload abgeschlossen.');renderMedia(type);
+  function switchTo(key){
+    if(!sections.includes(key))return;active=key;
+    el('scoutHeading').textContent=key==='overview'?'Dein Scouting. Dein Überblick.':'Meine '+labels[key];
+    sections.forEach(k=>{el('scout-section-'+k)?.classList.toggle('active',k===key);});
+    document.querySelectorAll('[data-scout-section]').forEach(b=>b.classList.toggle('active',b.dataset.scoutSection===key));
+    if(key==='database')renderPlayers();if(key==='reports')renderReports();
+    const title=el('pageTitle');if(title)title.textContent='Scout · '+labels[key];
   }
-
-  function bind(){
-    buildScoreInputs();
-    el('scoutAddPlayer')?.addEventListener('click',()=>el('scoutPlayerDialog').showModal());
-    el('scoutAddReport')?.addEventListener('click',()=>{if(!players.length){say('Bitte zuerst einen Spieler anlegen.');switchSection('database');return;}openReport();});
-    el('scoutSearchForm')?.addEventListener('submit',e=>{e.preventDefault();renderPlayers();});
-    el('scoutSearchForm')?.addEventListener('reset',()=>setTimeout(renderPlayers,0));
-    el('scoutPlayerForm')?.addEventListener('submit',async e=>{
-      e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));
-      data.height=data.height?Number(data.height):null;
-      data.owner_id=window.pfssCurrentUserId;
-      const {error}=await supa().from('pfss_scout_players').insert(data);
-      if(error){say('Spieler konnte nicht gespeichert werden: '+error.message);return;}
-      e.currentTarget.reset();el('scoutPlayerDialog').close();await loadAll();say('Spieler wurde in deiner Datenbank gespeichert.');
-    });
-    el('scoutReportForm')?.addEventListener('submit',async e=>{
-      e.preventDefault();const form=e.currentTarget;const data=Object.fromEntries(new FormData(form));
-      const scores={};
-      form.querySelectorAll('select[name^="score_"]').forEach(s=>{if(s.value)scores[s.closest('.scout-score-item').querySelector('span').textContent]=Number(s.value);});
-      const {error}=await supa().from('pfss_scout_reports').insert({
-        owner_id:window.pfssCurrentUserId,player_id:data.player_id,observation_date:data.observation_date,
-        overall_rating:data.overall_rating?Number(data.overall_rating):null,scores,notes:data.notes||''
-      });
-      if(error){say('Bericht konnte nicht gespeichert werden: '+error.message);return;}
-      form.reset();el('scoutReportDialog').close();await loadAll();switchSection('reports');say('Scoutingbericht wurde gespeichert.');
-    });
-    el('scoutPhotoInput')?.addEventListener('change',e=>{uploadFiles(e.target.files,'photo');e.target.value='';});
-    el('scoutVideoInput')?.addEventListener('change',e=>{uploadFiles(e.target.files,'video');e.target.value='';});
-    document.addEventListener('click',e=>{
-      const section=e.target.closest('[data-scout-section]');
-      if(section){e.preventDefault();e.stopImmediatePropagation();if(el('view-scout-workspace')?.classList.contains('active'))switchSection(section.dataset.scoutSection);else{window.showView?.('scout-workspace',section);switchSection(section.dataset.scoutSection);}return;}
-      const close=e.target.closest('[data-scout-close]');if(close){el(close.dataset.scoutClose)?.close();return;}
-      const report=e.target.closest('[data-scout-report-for]');if(report){openReport(report.dataset.scoutReportFor);}
-    },true);
-  }
-
-  function openReport(playerId=''){
-    const select=el('scoutReportPlayer');
-    select.innerHTML='<option value="">Spieler auswählen</option>'+players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('');
-    if(playerId)select.value=playerId;
-    el('scoutReportDialog').showModal();
-  }
-
-  function activateScoutMode(){
+  function activate(){
     const role=String(window.pfssCurrentRole||'').toLowerCase();
-    const isScout=role.includes('scout') && !window.pfssIsRealAdmin;
-    if(!isScout)return;
-    addWorkspace();addView();
-    document.querySelectorAll('.sidebar [data-view]').forEach(node=>{node.hidden=true;});
-    const group=el('scoutWorkspaceNav');group.hidden=false;
-    document.querySelectorAll('.sidebar .scout-private-nav').forEach(node=>{node.hidden=false;});
-    el('view-scout-workspace').classList.add('active');
-    document.querySelectorAll('.view').forEach(node=>{if(node.id!=='view-scout-workspace')node.classList.remove('active');});
-    switchSection(activeSection);
-    if(initializedFor!==window.pfssCurrentUserId){initializedFor=window.pfssCurrentUserId;loadAll();}
+    if(!role.includes('scout')||window.pfssIsRealAdmin)return;
+    addNav();addView();
+    document.querySelectorAll('.sidebar [data-view]').forEach(n=>n.hidden=true);
+    el('scoutWorkspaceNav').hidden=false;
+    document.querySelectorAll('.sidebar .scout-private-nav').forEach(n=>n.hidden=false);
+    document.querySelectorAll('.view').forEach(n=>n.classList.toggle('active',n.id==='view-scout-workspace'));
+    renderOverview();renderPlayers();renderReports();switchTo(active);
   }
-
-  function watch(){
-    const shell=el('appShell');
-    if(!shell)return;
-    new MutationObserver(()=>{if(!shell.classList.contains('hidden')&&window.pfssCurrentUserId)activateScoutMode();}).observe(shell,{attributes:true,attributeFilter:['class']});
-    const roleTimer=setInterval(()=>{if(window.pfssCurrentUserId)activateScoutMode();},700);
-    setTimeout(()=>clearInterval(roleTimer),12000);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{addWorkspace();addView();bind();watch();});
-  else {addWorkspace();addView();bind();watch();}
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-scout-section]');if(b){e.preventDefault();e.stopImmediatePropagation();if(!el('view-scout-workspace'))return;window.showView?.('scout-workspace',b);switchTo(b.dataset.scoutSection);}});
+  document.addEventListener('input',e=>{if(['scoutFilterName','scoutFilterFrom','scoutFilterTo'].includes(e.target.id))renderPlayers();});
+  document.addEventListener('change',e=>{if(e.target.id==='scoutFilterPosition')renderPlayers();});
+  document.addEventListener('click',e=>{if(e.target.closest('#scoutDemoAdd')){document.getElementById('scoutWorkspaceMessage').textContent='Die Spieleranlage wird nach der grafischen Fertigstellung technisch angebunden.';}});
+  function boot(){addNav();addView();const shell=el('appShell');if(shell)new MutationObserver(activate).observe(shell,{attributes:true,attributeFilter:['class']});setInterval(activate,1000);activate();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
