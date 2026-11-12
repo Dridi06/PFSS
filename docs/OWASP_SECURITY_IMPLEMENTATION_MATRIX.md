@@ -14,7 +14,7 @@ Geltungsbereich: Entwicklungsbranch `foundation/permissions-v1`
 
 | ID | PFSS-Fläche | Sicherheitsziel / Risiko | Technische Grundlage | Nachweis / Test | Stand |
 |---|---|---|---|---|---|
-| SEC-01 | Benutzername-Login | Brute Force, User Enumeration, Oversized Requests, CORS | POST only, JSON-Typprüfung, Request-Body-Limit, generische Fehler, no-store, Origin-Allowlist aus Function Secret | Unit-/Integrationstest für falsche/fehlende Felder, ungültiges JSON, große Payload, fremde Origin, wiederholte Fehlversuche | Teilweise: Code gehärtet; verteilter Rate-Limit-Speicher und Staging-Test offen |
+| SEC-01 | Benutzername-Login | Brute Force, User Enumeration, Oversized Requests, CORS | POST only, JSON-Typprüfung, Request-Body-Limit, generische Fehler, no-store, Origin-Allowlist aus Function Secret | Unit-/Integrationstest für falsche/fehlende Felder, ungültiges JSON, große Payload, fremde Origin, wiederholte Fehlversuche | Teilweise: Code + atomarer Datenbank-RPC vorbereitet; Migration/Integrationstest und zusätzliche IP-basierte Steuerung offen |
 | SEC-02 | R2-Diagnose | Unberechtigter Status-/Infrastrukturzugriff | JWT-Prüfung, serverseitige Auth-Validierung, explizite Auth-User-ID-Allowlist, POST only, Origin-Allowlist | 401 ohne Token, 401 ungültiges Token, 403 Nicht-Admin, 200 Admin, fremde Origin ablehnen | Code vorbereitet; Function Secrets und Deploy-/Live-Test offen |
 | SEC-03 | Scout-Spieler | Fremdzugriff auf Spielerprofile | RLS, owner_id = auth.uid() für Lesen/Schreiben | User A liest/ändert/löscht User B nicht; owner_id-Manipulation ablehnen | Migrationsentwurf gehärtet; DB-Test offen |
 | SEC-04 | Scout-Berichte | Bericht und referenzierter Spieler müssen demselben Owner gehören | RLS plus EXISTS-Prüfung auf Spieler-Owner | Bericht mit fremder player_id lesen/anlegen/ändern/löschen ablehnen | Migrationsentwurf gehärtet; DB-Test offen |
@@ -45,7 +45,7 @@ Diese Variablen gehören ausschließlich in die Supabase-Edge-Function-Secrets d
 
 ## Offene Sicherheitsarbeit, die nicht durch statische Checks ersetzt werden kann
 
-1. Verteilter Rate-Limit-Speicher für Username-Login und R2-Diagnose ergänzen (z. B. per serverseitigem, atomarem RPC oder geeignetem externem Dienst); keine In-Memory-Zähler in Edge-Instanzen.
+1. Username-Login: Die atomare Datenbank-RPC-Rate-Limit-Migration muss auf einem Testprojekt angewendet und parallel getestet werden. Eine zusätzliche IP-basierte Begrenzung bleibt gesondert zu bewerten; keine In-Memory-Zähler in Edge-Instanzen.
 2. Supabase-Preflight in der tatsächlichen Test-/Zielumgebung ausführen und exportieren.
 3. Migrationsentwürfe nur auf einem getrennten Projekt anwenden und anschließend positive sowie negative RLS-Tests durchführen.
 4. Organisationsmodell und Admin-Rollenquelle mit Live-Schema und Produktanforderungen abstimmen.
