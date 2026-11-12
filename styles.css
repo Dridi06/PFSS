@@ -907,3 +907,75 @@ button,input,select,textarea{max-width:100%}
   .topbar .breadcrumb{flex:1 1 auto;min-width:0;margin:0}
   .topbar .topbar-right{flex:0 1 auto;min-width:0;margin-left:auto}
 }
+
+
+/* PFMS mobile header: prevent breadcrumb/status/controls from overlapping */
+@media(max-width:760px){
+  .main-area .topbar{
+    display:grid;
+    grid-template-columns:42px minmax(0,1fr);
+    grid-template-areas:
+      "menu breadcrumb"
+      "right right";
+    align-items:center;
+    justify-content:initial;
+    column-gap:10px;
+    row-gap:10px;
+    width:100%;
+    height:auto;
+    min-height:0;
+    padding:12px 0;
+  }
+  .main-area .topbar .mobile-menu{
+    grid-area:menu;
+    flex:none;
+  }
+  .main-area .topbar .breadcrumb{
+    grid-area:breadcrumb;
+    display:flex;
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    white-space:nowrap;
+    gap:7px;
+  }
+  .main-area .topbar .breadcrumb b{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .main-area .topbar .topbar-right{
+    grid-area:right;
+    display:flex;
+    flex:initial;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-start;
+    min-width:0;
+    width:100%;
+    margin:0;
+    gap:8px;
+  }
+  .main-area .topbar .online-pill{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  .main-area .topbar .admin-preview-switch{
+    flex:0 1 auto;
+    min-width:0;
+    max-width:100%;
+  }
+  .main-area .topbar .admin-preview-switch select{
+    max-width:118px;
+    min-width:0;
+  }
+  .main-area .topbar .user-id-pill{
+    flex:0 1 auto;
+    min-width:0;
+    max-width:100%;
+  }
+  .main-area .topbar #userIdValue{
+    max-width:min(38vw,190px);
+    min-width:0;
+  }
+}
