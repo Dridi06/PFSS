@@ -82,3 +82,26 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 - Keine Secret Keys in Browsercode, Repository, Issues oder Logs.
 - Ein erfolgreicher GitHub-Workflow ist ein statischer Qualitätsnachweis, kein Penetrationstest und keine Bestätigung der Live-Konfiguration.
 - Ein Backup gilt erst nach erfolgreichem Restore-Test als belastbar.
+
+
+## PFSS Finance & Internationalization (added 2026-11-12)
+
+### Visual foundation delivered on `foundation/permissions-v1`
+- Added a dedicated Finance & Administration navigation group and 19 visual module views.
+- Covers finance dashboard, income/contributions, expenses, invoices, open items, banking, budgets/cost centres, employees, payroll handoff, coaches/instructors, travel expenses, membership dues, journal, chart of accounts, tax/compliance, non-profit tax areas, documents, reports/DATEV and approvals/audit.
+- All figures and records in the new screens are explicitly sample data. No accounting, payment, payroll, bank or tax submission actions are active.
+- Added central language preference foundation for German, English and French, including selectors in login and workspace.
+- Added initial translations for finance navigation, module headings, key descriptions and common finance form labels.
+- Spanish, Turkish and Arabic remain future language packs.
+
+### Not yet production-ready
+- Complete translation coverage of every legacy screen, email, PDF, validation message and generated document.
+- Tenant isolation and role/permission enforcement for each club, agency and independent scout.
+- Accounting model, chart-of-accounts configuration, posting validation, period closing, reversals and audit-grade immutability.
+- Tax rule engine with effective dates and expert validation for each legal entity and activity.
+- German payroll provider integration, bank connectivity, SEPA execution, DATEV/ELSTER workflows and E-invoice processing.
+- GoBD procedure documentation, retention/deletion rules, privacy review, security testing and external tax/accounting review.
+- Automated tests and real device/browser verification before release.
+
+### Safety boundary
+Do not run migrations, connect live bank accounts, submit tax/payroll filings, initiate payments, or expose personal/financial records as part of the visual foundation. Production remains out of scope until explicit approval and a separate release plan.
