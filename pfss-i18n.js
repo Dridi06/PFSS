@@ -1,43 +1,116 @@
 /* PFSS Internationalization — German, English, French foundation.
-   Language is stored per browser profile; no personal or financial data is transmitted. */
+   Language preference is local to the user profile/browser. */
 (() => {
   'use strict';
   const dictionaries = {
-    de:{'language.label':'Sprache','language.de':'Deutsch','language.en':'English','language.fr':'Français','nav.finance':'Finance & Administration','finance.dashboard':'Finance-Dashboard','finance.income':'Einnahmen & Beiträge','finance.expenses':'Ausgaben & Kosten','finance.invoices':'Rechnungen','finance.payments':'Zahlungen & Offene Posten','finance.bank':'Bank & Zahlungsverkehr','finance.budgets':'Budgets & Kostenstellen','finance.employees':'Mitarbeiterverwaltung','finance.payroll':'Lohn & Gehalt','finance.coaches':'Trainer & Übungsleiter','finance.travel':'Spesen & Reisekosten','finance.members':'Mitglieder & Beiträge','finance.journal':'Buchungsjournal','finance.accounts':'Konten & Kontenrahmen','finance.tax':'Steuern & Tax Compliance','finance.npo':'Verein: Steuerliche Sphären','finance.documents':'Belege & Dokumente','finance.reports':'Finanzberichte & DATEV','finance.approvals':'Freigaben & Prüfprotokoll','common.preview':'Grafische Vorschau','common.search':'Suchen','common.new':'Neu erfassen','common.open':'Öffnen','common.status':'Status','common.date':'Datum','common.amount':'Betrag','common.period':'Zeitraum','common.department':'Abteilung','common.notConnected':'Nicht verbunden','common.sampleData':'Beispieldaten'},
-    en:{'language.label':'Language','language.de':'German','language.en':'English','language.fr':'French','nav.finance':'Finance & Administration','finance.dashboard':'Finance dashboard','finance.income':'Income & contributions','finance.expenses':'Expenses & costs','finance.invoices':'Invoices','finance.payments':'Payments & open items','finance.bank':'Banking & payments','finance.budgets':'Budgets & cost centres','finance.employees':'Employee management','finance.payroll':'Payroll & salaries','finance.coaches':'Coaches & instructors','finance.travel':'Expenses & travel','finance.members':'Members & contributions','finance.journal':'Accounting journal','finance.accounts':'Accounts & chart of accounts','finance.tax':'Tax & compliance','finance.npo':'Association tax areas','finance.documents':'Receipts & documents','finance.reports':'Financial reports & DATEV','finance.approvals':'Approvals & audit log','common.preview':'Visual preview','common.search':'Search','common.new':'Create new','common.open':'Open','common.status':'Status','common.date':'Date','common.amount':'Amount','common.period':'Period','common.department':'Department','common.notConnected':'Not connected','common.sampleData':'Sample data'},
-    fr:{'language.label':'Langue','language.de':'Allemand','language.en':'Anglais','language.fr':'Français','nav.finance':'Finances et administration','finance.dashboard':'Tableau de bord financier','finance.income':'Recettes et cotisations','finance.expenses':'Dépenses et coûts','finance.invoices':'Factures','finance.payments':'Paiements et postes ouverts','finance.bank':'Banque et paiements','finance.budgets':'Budgets et centres de coûts','finance.employees':'Gestion du personnel','finance.payroll':'Paie et salaires','finance.coaches':'Entraîneurs et éducateurs','finance.travel':'Frais et déplacements','finance.members':'Membres et cotisations','finance.journal':'Journal comptable','finance.accounts':'Comptes et plan comptable','finance.tax':'Fiscalité et conformité','finance.npo':'Régimes fiscaux associatifs','finance.documents':'Justificatifs et documents','finance.reports':'Rapports financiers et DATEV','finance.approvals':'Validations et journal d’audit','common.preview':'Aperçu visuel','common.search':'Rechercher','common.new':'Créer','common.open':'Ouvrir','common.status':'Statut','common.date':'Date','common.amount':'Montant','common.period':'Période','common.department':'Service','common.notConnected':'Non connecté','common.sampleData':'Données fictives'}
+    de:{'language.label':'Sprache','language.de':'Deutsch','language.en':'English','language.fr':'Français'},
+    en:{'language.label':'Language','language.de':'German','language.en':'English','language.fr':'French'},
+    fr:{'language.label':'Langue','language.de':'Allemand','language.en':'Anglais','language.fr':'Français'}
   };
-  const supported=['de','en','fr'], key='pfss_language_v1';
+  const textTranslations = {
+    'Finance-Dashboard':['Finance dashboard','Tableau de bord financier'],
+    'Einnahmen & Beiträge':['Income & contributions','Recettes et cotisations'],
+    'Ausgaben & Kosten':['Expenses & costs','Dépenses et coûts'],
+    'Rechnungen':['Invoices','Factures'],
+    'Zahlungen & Offene Posten':['Payments & open items','Paiements et postes ouverts'],
+    'Bank & Zahlungsverkehr':['Banking & payments','Banque et paiements'],
+    'Budgets & Kostenstellen':['Budgets & cost centres','Budgets et centres de coûts'],
+    'Mitarbeiterverwaltung':['Employee management','Gestion du personnel'],
+    'Lohn & Gehalt':['Payroll & salaries','Paie et salaires'],
+    'Trainer & Übungsleiter':['Coaches & instructors','Entraîneurs et éducateurs'],
+    'Spesen & Reisekosten':['Expenses & travel','Frais et déplacements'],
+    'Mitglieder & Beiträge':['Members & contributions','Membres et cotisations'],
+    'Buchungsjournal':['Accounting journal','Journal comptable'],
+    'Konten & Kontenrahmen':['Accounts & chart of accounts','Comptes et plan comptable'],
+    'Steuern & Tax Compliance':['Tax & compliance','Fiscalité et conformité'],
+    'Verein: Steuerliche Sphären':['Association tax areas','Régimes fiscaux associatifs'],
+    'Belege & Dokumente':['Receipts & documents','Justificatifs et documents'],
+    'Finanzberichte & DATEV':['Financial reports & DATEV','Rapports financiers et DATEV'],
+    'Freigaben & Prüfprotokoll':['Approvals & audit log','Validations et journal d’audit'],
+    'FINANCE CORE':['FINANCE CORE','CŒUR FINANCIER'],
+    'PERSONAL & SPORT':['PEOPLE & SPORT','PERSONNEL & SPORT'],
+    'BUCHHALTUNG & STEUERN':['ACCOUNTING & TAX','COMPTABILITÉ & FISCALITÉ'],
+    'FINANCE & ADMINISTRATION':['FINANCE & ADMINISTRATION','FINANCES ET ADMINISTRATION'],
+    'Finanzstatus, Liquidität und offene Vorgänge':['Financial status, liquidity and open items','Situation financière, liquidités et opérations ouvertes'],
+    'Mitgliedsbeiträge, Sponsoring, Spenden und Erlöse':['Membership fees, sponsorship, donations and revenue','Cotisations, sponsoring, dons et recettes'],
+    'Ausgaben, Lieferanten und Kostenstellen':['Expenses, suppliers and cost centres','Dépenses, fournisseurs et centres de coûts'],
+    'Ausgangs- und Eingangsrechnungen':['Sales and purchase invoices','Factures clients et fournisseurs'],
+    'Forderungen, Verbindlichkeiten und Mahnwesen':['Receivables, payables and reminders','Créances, dettes et relances'],
+    'Konten, Bankumsätze und Zahlungsabgleich':['Accounts, bank transactions and reconciliation','Comptes, opérations bancaires et rapprochement'],
+    'Planung nach Abteilung, Mannschaft und Projekt':['Planning by department, team and project','Planification par service, équipe et projet'],
+    'Personalstammdaten, Verträge und Beschäftigung':['Employee records, contracts and employment','Dossiers du personnel, contrats et emploi'],
+    'Vergütungsübersicht und Payroll-Übergabe':['Compensation overview and payroll handoff','Aperçu des rémunérations et transmission de la paie'],
+    'Trainerverträge, Honorare und Pauschalen':['Coach contracts, fees and allowances','Contrats des entraîneurs, honoraires et indemnités'],
+    'Kilometer, Reisen, Belege und Erstattungen':['Mileage, travel, receipts and reimbursements','Kilométrage, déplacements, justificatifs et remboursements'],
+    'Beitragsgruppen, Forderungen und SEPA-Vorbereitung':['Contribution groups, receivables and SEPA preparation','Groupes de cotisation, créances et préparation SEPA'],
+    'Buchungssätze, Soll und Haben':['Journal entries, debit and credit','Écritures comptables, débit et crédit'],
+    'Sachkonten, Debitoren und Kreditoren':['General ledger, receivables and payables','Comptes généraux, débiteurs et créanciers'],
+    'Steuerprofile, Fristen und Prüfhinweise':['Tax profiles, deadlines and review notices','Profils fiscaux, échéances et alertes de contrôle'],
+    'Digitale Belegablage und Dokumentenprüfung':['Digital receipt storage and document review','Archivage numérique des justificatifs et contrôle des documents'],
+    'Auswertungen, Exporte und Steuerberaterzugang':['Reports, exports and tax adviser access','Rapports, exports et accès au conseiller fiscal'],
+    'Vier-Augen-Prinzip und nachvollziehbare Vorgänge':['Four-eyes principle and traceable processes','Principe des quatre yeux et opérations traçables'],
+    'Alle Finanzen. Ein Überblick.':['All finances. One overview.','Toutes les finances. Une vue d’ensemble.'],
+    'Finanzielle Vorgänge, Personalaufwand und Budgets zentral im Blick. Die angezeigten Werte sind ausschließlich Beispieldaten.':['Track financial activity, personnel costs and budgets in one place. All displayed figures are sample data only.','Suivez les opérations financières, les coûts du personnel et les budgets au même endroit. Toutes les valeurs affichées sont fictives.'],
+    'DESIGNVORSCHAU':['DESIGN PREVIEW','APERÇU VISUEL'],
+    'Grafische Vorschau mit Beispieldaten. Es werden keine Buchungen gespeichert, Zahlungen ausgelöst, Löhne berechnet oder Steuererklärungen übermittelt.':['Visual preview with sample data. No entries are saved, payments initiated, payroll calculated or tax returns submitted.','Aperçu visuel avec données fictives. Aucune écriture n’est enregistrée, aucun paiement n’est déclenché, aucune paie n’est calculée et aucune déclaration fiscale n’est transmise.'],
+    'Suchen …':['Search …','Rechercher …'],
+    'Alle Status':['All statuses','Tous les statuts'],
+    'Offen':['Open','Ouvert'],
+    'In Prüfung':['Under review','En cours de vérification'],
+    'Abgeschlossen':['Completed','Terminé'],
+    '＋ Neu erfassen':['＋ Create new','＋ Créer'],
+    'Vorgang vorbereiten':['Prepare transaction','Préparer une opération'],
+    'Finanzübersicht':['Financial overview','Aperçu financier'],
+    'Direktzugriff':['Quick access','Accès rapide'],
+    'Offene Vorgänge':['Open items','Opérations en attente'],
+    'Mitarbeiter':['Employees','Employés'],
+    'Beispieldaten':['Sample data','Données fictives'],
+    'Prüfung erforderlich':['Review required','Vérification requise'],
+    'Nicht verbunden':['Not connected','Non connecté'],
+    'Steuerprofil':'Tax profile'
+  };
+  const supported=['de','en','fr'], storageKey='pfss_language_v1';
   let current='de';
-  function t(k){return dictionaries[current]?.[k]||dictionaries.de[k]||k;}
+  function t(key){return dictionaries[current]?.[key]||dictionaries.de[key]||key;}
+  function translateTextNodes(root){
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(node=>{
+      if(!node.parentElement||['SCRIPT','STYLE','TEXTAREA'].includes(node.parentElement.tagName))return;
+      if(node.__pfssOriginalText===undefined)node.__pfssOriginalText=node.nodeValue;
+      const original=node.__pfssOriginalText.trim();
+      const translated=textTranslations[original];
+      if(!translated)return;
+      const value=current==='de'?node.__pfssOriginalText:translated[current==='en'?0:1];
+      if(node.nodeValue!==value)node.nodeValue=value;
+    });
+  }
   function apply(root=document){
-    root.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(v!==el.dataset.i18n)el.textContent=v;});
-    root.querySelectorAll('[data-i18n-placeholder]').forEach(el=>el.setAttribute('placeholder',t(el.dataset.i18nPlaceholder)));
-    root.documentElement?.setAttribute('lang',current);
+    root.querySelectorAll?.('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+    root.querySelectorAll?.('[data-i18n-placeholder]').forEach(el=>el.setAttribute('placeholder',t(el.dataset.i18nPlaceholder)));
+    translateTextNodes(root);
     document.documentElement.lang=current;
     document.documentElement.dataset.language=current;
+    const label=document.querySelector('#pfssLanguageControl .pfss-language-label');if(label)label.textContent=t('language.label');
   }
   function setLanguage(lang){
     if(!supported.includes(lang))return;
-    current=lang;
-    try{localStorage.setItem(key,lang);}catch(e){}
-    apply();
+    current=lang;try{localStorage.setItem(storageKey,lang);}catch(e){}
+    apply();const selector=document.getElementById('pfssLanguageSelect');if(selector)selector.value=lang;
     document.dispatchEvent(new CustomEvent('pfss:languagechange',{detail:{language:lang}}));
-    const selector=document.getElementById('pfssLanguageSelect');if(selector&&selector.value!==lang)selector.value=lang;
   }
   function mount(){
-    let saved='de';try{saved=localStorage.getItem(key)||'de';}catch(e){}
+    let saved='de';try{saved=localStorage.getItem(storageKey)||'de';}catch(e){}
     const top=document.querySelector('.topbar-right');
     if(top&&!document.getElementById('pfssLanguageControl')){
       const wrap=document.createElement('label');wrap.id='pfssLanguageControl';wrap.className='pfss-language-control';
-      wrap.innerHTML='<span aria-hidden="true">◎</span><span class="pfss-language-label">'+t('language.label')+'</span><select id="pfssLanguageSelect" aria-label="Language"><option value="de">🇩🇪 DE</option><option value="en">🇬🇧 EN</option><option value="fr">🇫🇷 FR</option></select>';
-      top.prepend(wrap);
-      wrap.querySelector('select').addEventListener('change',e=>setLanguage(e.target.value));
+      wrap.innerHTML='<span aria-hidden="true">◎</span><span class="pfss-language-label">Sprache</span><select id="pfssLanguageSelect" aria-label="Language"><option value="de">🇩🇪 DE</option><option value="en">🇬🇧 EN</option><option value="fr">🇫🇷 FR</option></select>';
+      top.prepend(wrap);wrap.querySelector('select').addEventListener('change',e=>setLanguage(e.target.value));
     }
     setLanguage(supported.includes(saved)?saved:'de');
   }
   window.PFSS_I18N={t,setLanguage,getLanguage:()=>current,supported,apply};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
-  const observer=new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1)apply(n);})));
+  const observer=new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1)apply(n);else if(n.nodeType===3&&n.parentElement)translateTextNodes(n.parentElement);})));
   if(document.documentElement)observer.observe(document.documentElement,{childList:true,subtree:true});
 })();
