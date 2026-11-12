@@ -41,9 +41,9 @@ checks as (
       when criticality='critical' and not table_exists then 'FAIL'
       when criticality='critical' and not rls_enabled then 'FAIL'
       when criticality='critical' and policy_count=0 then 'FAIL'
-      when criticality='tenant' and exists and not rls_enabled then 'FAIL'
-      when criticality='tenant' and exists and policy_count=0 then 'WARN'
-      when criticality='identity' and exists and not rls_enabled then 'WARN'
+      when criticality='tenant' and table_exists and not rls_enabled then 'FAIL'
+      when criticality='tenant' and table_exists and policy_count=0 then 'WARN'
+      when criticality='identity' and table_exists and not rls_enabled then 'WARN'
       else 'WARN'
     end as status,
     'table:' || table_name as check_id,
