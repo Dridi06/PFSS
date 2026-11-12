@@ -371,3 +371,37 @@
  .pfss-rating-bars span{font-size:9px}
  .pfss-activity-bars>div{grid-template-columns:22px minmax(0,1fr) 18px}
 }
+
+
+/* Detailed legacy modules: club, team, admin, reports and media */
+.main-area>.view:not(.pfss-ui-view) .module-grid,
+.main-area>.view:not(.pfss-ui-view) .team-category-grid{gap:13px}
+.main-area>.view:not(.pfss-ui-view) .module-grid .module-card,
+.main-area>.view:not(.pfss-ui-view) .team-category-grid .module-card{position:relative;overflow:hidden;min-height:150px}
+.main-area>.view:not(.pfss-ui-view) .module-grid .module-card:after,
+.main-area>.view:not(.pfss-ui-view) .team-category-grid .module-card:after{content:"";position:absolute;right:-28px;bottom:-42px;width:115px;height:115px;border:1px solid rgba(212,181,117,.12);border-radius:50%;box-shadow:0 0 0 15px rgba(212,181,117,.025)}
+.main-area>.view:not(.pfss-ui-view) .module-wide{grid-column:1/-1}
+.main-area>.view:not(.pfss-ui-view) .permission-preview,
+.main-area>.view:not(.pfss-ui-view) .org-permission-grid{overflow:auto;border:1px solid rgba(212,181,117,.16);border-radius:11px;background:rgba(10,12,13,.3)}
+.main-area>.view:not(.pfss-ui-view) .permission-preview>*,
+.main-area>.view:not(.pfss-ui-view) .org-permission-grid>*{padding:10px;border-bottom:1px solid rgba(255,255,255,.055)}
+.main-area>.view:not(.pfss-ui-view) .admin-placeholder{position:relative;min-height:190px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:28px 28px 28px 90px}
+.main-area>.view:not(.pfss-ui-view) .admin-placeholder:before{content:"✦";position:absolute;left:28px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(212,181,117,.25);border-radius:12px;background:rgba(212,181,117,.07);color:#d4b575;font-size:22px}
+.main-area>.view:not(.pfss-ui-view) .admin-placeholder h3{color:#ead9b8;font-size:16px}
+.main-area>.view:not(.pfss-ui-view) .admin-placeholder p{max-width:650px;color:#a9a194;line-height:1.65}
+.main-area>.view:not(.pfss-ui-view) .report-list{display:grid;gap:13px}
+.main-area>.view:not(.pfss-ui-view) .report-list:empty:after{content:"Noch keine Berichte vorhanden. Erstelle deinen ersten Scouting-Bericht.";display:block;padding:34px 20px;border:1px dashed rgba(212,181,117,.25);border-radius:13px;background:rgba(212,181,117,.035);color:#bcb3a5;text-align:center}
+.main-area>.view:not(.pfss-ui-view) .media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:13px}
+.main-area>.view:not(.pfss-ui-view) .media-grid>*{min-width:0;border:1px solid rgba(212,181,117,.17);border-radius:12px;background:linear-gradient(145deg,#1b1e20,#121415);overflow:hidden}
+.main-area>.view:not(.pfss-ui-view) .club-table-wrap{overflow:auto;border:1px solid rgba(212,181,117,.16);border-radius:12px}
+.main-area>.view:not(.pfss-ui-view) .club-table{min-width:560px;width:100%;border-collapse:collapse}
+.main-area>.view:not(.pfss-ui-view) .club-table th{padding:12px;background:rgba(212,181,117,.075);color:#d9c18e;font-size:10px;text-align:left}
+.main-area>.view:not(.pfss-ui-view) .club-table td{padding:12px;border-top:1px solid rgba(255,255,255,.055);color:#d8d1c5;font-size:11px}
+.main-area>.view:not(.pfss-ui-view) .team-workspace-note{border:1px solid rgba(212,181,117,.18);border-radius:11px;background:rgba(212,181,117,.045);color:#c8bda9;padding:13px 15px}
+.main-area>.view:not(.pfss-ui-view) .admin-user-list{overflow:auto}
+@media(max-width:620px){
+ .main-area>.view:not(.pfss-ui-view) .admin-placeholder{padding:75px 17px 18px;min-height:175px}
+ .main-area>.view:not(.pfss-ui-view) .admin-placeholder:before{left:17px;top:17px;transform:none;width:40px;height:40px}
+ .main-area>.view:not(.pfss-ui-view) .module-wide{grid-column:auto}
+ .main-area>.view:not(.pfss-ui-view) .media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
