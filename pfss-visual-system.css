@@ -111,3 +111,97 @@
 }
 @media(max-width:380px){.pfss-filter-grid{grid-template-columns:minmax(0,1fr)}.pfss-pipeline{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.pfss-ui-view *{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* PFSS PREMIUM GLOSS — restrained metallic highlights */
+.pfss-hero,
+.pfss-stat,
+.pfss-panel,
+.pfss-columns>section,
+.pfss-settings-grid>section,
+.pfss-profile-preview,
+.pfss-shortlist-grid article,
+.pfss-media-grid article,
+.pfss-role-cards article,
+.pfss-task-board article,
+.pfss-pipeline>div {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+}
+.pfss-hero::before,
+.pfss-stat::before,
+.pfss-panel::before,
+.pfss-columns>section::before,
+.pfss-settings-grid>section::before,
+.pfss-profile-preview::before,
+.pfss-shortlist-grid article::before,
+.pfss-media-grid article::before,
+.pfss-role-cards article::before,
+.pfss-task-board article::before,
+.pfss-pipeline>div::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(118deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.018) 17%,transparent 38%),
+    radial-gradient(ellipse at 8% 0%,rgba(232,199,128,.105),transparent 48%);
+  opacity:.78;
+}
+.pfss-hero {
+  border-color:rgba(224,190,119,.48)!important;
+  box-shadow:inset 0 1px rgba(255,245,215,.12),inset 0 -1px rgba(212,181,117,.09),0 18px 48px rgba(0,0,0,.34),0 0 26px rgba(191,151,77,.07)!important;
+}
+.pfss-stat,.pfss-panel,.pfss-columns>section,.pfss-settings-grid>section,
+.pfss-profile-preview,.pfss-shortlist-grid article,.pfss-media-grid article,
+.pfss-role-cards article,.pfss-task-board article,.pfss-pipeline>div {
+  box-shadow:inset 0 1px rgba(255,248,228,.075),inset 0 -1px rgba(212,181,117,.045),0 12px 30px rgba(0,0,0,.22);
+}
+.pfss-action {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-color:#e0c17e!important;
+  background:linear-gradient(112deg,#f4e2b5 0%,#d4b16e 23%,#a77a39 51%,#e2c17e 76%,#b68a48 100%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.55),inset 0 -2px 5px rgba(72,43,8,.2),0 7px 22px rgba(185,145,74,.2)!important;
+}
+.pfss-action::after {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  top:-60%;
+  left:-65%;
+  width:42%;
+  height:220%;
+  transform:rotate(24deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+  transition:left .65s ease;
+  pointer-events:none;
+}
+.pfss-action:hover::after {left:125%}
+.pfss-preview {
+  box-shadow:inset 0 1px rgba(255,255,255,.12),0 0 16px rgba(212,181,117,.08);
+}
+.pfss-player-portrait {
+  position:relative;
+  overflow:hidden;
+  box-shadow:inset 0 1px rgba(255,255,255,.22),inset 0 0 25px rgba(212,181,117,.14),0 9px 22px rgba(0,0,0,.28);
+}
+.pfss-player-portrait::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(125deg,rgba(255,255,255,.19),transparent 35%,transparent 72%,rgba(212,181,117,.11));
+  pointer-events:none;
+}
+.pfss-table-wrap {
+  box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.16);
+}
+.pfss-table th {
+  background:linear-gradient(100deg,rgba(212,181,117,.14),rgba(212,181,117,.045))!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .pfss-action::after{display:none}
+}
