@@ -772,7 +772,7 @@ function applyAdminPreviewMode(mode) {
   }
 }
 
-function showAuthenticatedApp(user, profile) {
+function showAuthenticatedApp(user, profile, options = {}) {
   window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
@@ -866,9 +866,9 @@ function showAuthenticatedApp(user, profile) {
   const welcome = document.getElementById('welcomeSequence');
   const welcomeUser = document.getElementById('welcomeUser');
   if (welcomeUser) welcomeUser.textContent = 'Willkommen, ' + username + '!';
-  if (welcome) welcome.classList.remove('hidden');
   window.clearTimeout(window.pfmsWelcomeTimer);
-  window.pfmsWelcomeTimer = window.setTimeout(() => {
+
+  const openWorkspace = () => {
     window.scrollTo(0, 0);
     if (welcome) welcome.classList.add('hidden');
     document.getElementById('appShell').classList.remove('hidden');
@@ -880,7 +880,15 @@ function showAuthenticatedApp(user, profile) {
     const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === startView &&
       (startView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
     showView(startView, nav, true);
-  }, 4500);
+  };
+
+  if (options.skipWelcome) {
+    if (welcome) welcome.classList.add('hidden');
+    openWorkspace();
+  } else {
+    if (welcome) welcome.classList.remove('hidden');
+    window.pfmsWelcomeTimer = window.setTimeout(openWorkspace, 4500);
+  }
 }
 
 async function loadAdminUsers() {
@@ -1171,7 +1179,7 @@ function showPfmsScoutDetails(root,scout) {
   </div>`;
 }
 
-async function checkPfssAccess(user) {
+async function checkPfssAccess(user, options = {}) {
   const { data: profile, error } = await pfssSupabase
     .from('profiles')
     .select('status, role, username')
@@ -1190,7 +1198,7 @@ async function checkPfssAccess(user) {
     return;
   }
 
-  showAuthenticatedApp(user, profile);
+  showAuthenticatedApp(user, profile, options);
 }
 
 async function pfssLogout() {
@@ -1635,7 +1643,7 @@ async function initializePfssAuth() {
   }
 
   if (data.session?.user) {
-    await checkPfssAccess(data.session.user);
+    await checkPfssAccess(data.session.user, { skipWelcome: true });
   }
 }
 
