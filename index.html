@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090a0c">
   <meta name="description" content="PFMS – Professional Football Management System">
   <title>PFMS | Professional Football Management System</title>
-  <link rel="stylesheet" href="styles.css?v=pfms-userid-inline-20261112-1">
+  <link rel="stylesheet" href="styles.css?v=pfms-header-direct-items-20261112-1">
   <link rel="stylesheet" href="scout-workspace.css?v=pfss-scout-20261112-1">
   <link rel="stylesheet" href="workspace-ui.css?v=pfss-ui-20261112-1">
 <style id="pfms-mobile-header-hotfix">
@@ -408,27 +408,25 @@
           <b id="pageTitle">Dashboard</b>
         </div>
 
-        <div class="topbar-right">
-          <span class="online-pill" id="connectionStatus">
-            <span class="status-dot" id="connectionStatusDot"></span><span id="connectionStatusText">ONLINE</span>
-          </span>
-          <div class="admin-preview-switch" id="adminPreviewSwitch" hidden>
-            <span class="preview-mode-label" id="previewModeLabel">ADMIN-MODUS</span>
-            <select id="adminPreviewMode" aria-label="Benutzeroberfläche als Rolle anzeigen">
-              <option value="admin">Administrator</option>
-              <option value="scout">Scout</option>
-              <option value="agency">Agentur</option>
-              <option value="club">Verein</option>
-              <option value="member">Mitglied</option>
-            </select>
-          </div>
-          <div class="user-id-pill" id="userIdDisplay" hidden>
-            <span class="user-id-value-row"><span class="user-id-label">USER-ID</span><span id="userIdValue">–</span>
-              <button class="user-id-copy-button" id="copyUserIdButton" type="button" title="User-ID kopieren" aria-label="User-ID kopieren"><span class="user-id-copy-icon">⧉</span></button>
-            </span>
-          </div>
-          <div class="top-avatar">PF</div>
+        <span class="online-pill" id="connectionStatus">
+          <span class="status-dot" id="connectionStatusDot"></span><span id="connectionStatusText">ONLINE</span>
+        </span>
+        <div class="admin-preview-switch" id="adminPreviewSwitch" hidden>
+          <span class="preview-mode-label" id="previewModeLabel">ADMIN-MODUS</span>
+          <select id="adminPreviewMode" aria-label="Benutzeroberfläche als Rolle anzeigen">
+            <option value="admin">Administrator</option>
+            <option value="scout">Scout</option>
+            <option value="agency">Agentur</option>
+            <option value="club">Verein</option>
+            <option value="member">Mitglied</option>
+          </select>
         </div>
+        <div class="user-id-pill" id="userIdDisplay" hidden>
+          <span class="user-id-value-row"><span class="user-id-label">USER-ID</span><span id="userIdValue">–</span>
+            <button class="user-id-copy-button" id="copyUserIdButton" type="button" title="User-ID kopieren" aria-label="User-ID kopieren"><span class="user-id-copy-icon">⧉</span></button>
+          </span>
+        </div>
+        <div class="top-avatar">PF</div>
 
       </header>
 
