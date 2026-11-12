@@ -1019,3 +1019,68 @@ button,input,select,textarea{max-width:100%}
   .user-id-value-row{max-width:100%}
   #userIdValue{max-width:34vw;font-size:9px}
 }
+
+
+/* Compact User-ID badge: fixed visual footprint, no UUID wrapping */
+.user-id-pill{
+  box-sizing:border-box;
+  width:220px;
+  max-width:220px;
+  min-width:0;
+  flex:0 1 220px;
+  padding:6px 9px;
+  gap:2px;
+  border-radius:12px;
+  overflow:hidden;
+}
+.user-id-value-row{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  flex-wrap:nowrap;
+  width:100%;
+  min-width:0;
+  gap:6px;
+}
+#userIdValue{
+  display:block;
+  flex:1 1 auto;
+  width:0;
+  min-width:0;
+  max-width:none!important;
+  overflow:hidden;
+  white-space:nowrap!important;
+  text-overflow:ellipsis;
+  overflow-wrap:normal;
+  word-break:normal;
+  line-height:1.25;
+}
+.user-id-copy-button{
+  flex:0 0 23px;
+  width:23px;
+  height:23px;
+}
+@media(max-width:760px){
+  .main-area .topbar .topbar-right{
+    align-items:center!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+  }
+  .main-area .topbar .user-id-pill{
+    width:190px!important;
+    max-width:46vw!important;
+    min-width:0!important;
+    flex:0 1 190px!important;
+  }
+  .main-area .topbar #userIdValue{
+    max-width:none!important;
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:390px){
+  .main-area .topbar .user-id-pill{
+    width:165px!important;
+    max-width:44vw!important;
+    flex-basis:165px!important;
+  }
+}
