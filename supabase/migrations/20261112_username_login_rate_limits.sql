@@ -1,6 +1,6 @@
 -- PFSS username-login distributed rate limit
--- Additive, data-minimizing control. Stores only SHA-256 hashes of normalized
--- usernames, never raw usernames, passwords, email addresses or IP addresses.
+-- Additive, data-minimizing control. Stores only SHA-256 hashes of client IPs
+-- and username/IP pairs, never raw usernames, passwords, email addresses or IPs.
 -- Apply and test on a separate Supabase project before enabling the updated
 -- username-login Edge Function. Do not run automatically against production.
 
@@ -88,6 +88,6 @@ grant execute on function public.pfss_consume_username_login_limit(text, integer
   to service_role;
 
 comment on table public.pfss_username_login_limits is
-  'Server-only rate-limit counters keyed by SHA-256 username hash; no raw user identifiers.';
+  'Server-only rate-limit counters keyed by SHA-256 IP and username/IP hashes; no raw identifiers.';
 comment on function public.pfss_consume_username_login_limit(text, integer, integer) is
-  'Atomic distributed username login rate limiter. Execute only with service_role.';
+  'Atomic distributed IP and username/IP login rate limiter. Execute only with service_role.';
