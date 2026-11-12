@@ -1244,3 +1244,26 @@ button,input,select,textarea{max-width:100%}
     max-width:calc(100vw - 190px)!important;
   }
 }
+
+
+/* Final mobile header placement: direct header children, no nested flex wrapper */
+@media(max-width:760px){
+  .main-area .topbar>.online-pill{
+    grid-area:online!important;
+    justify-self:end!important;
+    align-self:center!important;
+    display:flex!important;
+    margin:0!important;
+  }
+  .main-area .topbar>.admin-preview-switch{
+    grid-area:admin!important;
+    justify-self:start!important;
+    align-self:center!important;
+  }
+  .main-area .topbar>.user-id-pill{
+    grid-area:uid!important;
+    justify-self:end!important;
+    align-self:center!important;
+  }
+  .main-area .topbar>.top-avatar{display:none!important}
+}
