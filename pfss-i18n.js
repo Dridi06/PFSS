@@ -154,17 +154,20 @@
   function setLanguage(lang){
     if(!supported.includes(lang))return;
     current=lang;try{localStorage.setItem(storageKey,lang);}catch(e){}
-    apply();const selector=document.getElementById('pfssLanguageSelect');if(selector)selector.value=lang;
+    apply();document.querySelectorAll('.pfss-language-select').forEach(selector=>selector.value=lang);
     document.dispatchEvent(new CustomEvent('pfss:languagechange',{detail:{language:lang}}));
   }
   function mount(){
     let saved='de';try{saved=localStorage.getItem(storageKey)||'de';}catch(e){}
-    const top=document.querySelector('.topbar-right');
-    if(top&&!document.getElementById('pfssLanguageControl')){
-      const wrap=document.createElement('label');wrap.id='pfssLanguageControl';wrap.className='pfss-language-control';
-      wrap.innerHTML='<span aria-hidden="true">◎</span><span class="pfss-language-label">Sprache</span><select id="pfssLanguageSelect" aria-label="Language"><option value="de">🇩🇪 DE</option><option value="en">🇬🇧 EN</option><option value="fr">🇫🇷 FR</option></select>';
-      top.prepend(wrap);wrap.querySelector('select').addEventListener('change',e=>setLanguage(e.target.value));
-    }
+    const mountSelector=(container,id,prepend)=>{
+      if(!container||document.getElementById(id))return;
+      const wrap=document.createElement('label');wrap.id=id;wrap.className='pfss-language-control';
+      wrap.innerHTML='<span aria-hidden="true">◎</span><span class="pfss-language-label">Sprache</span><select class="pfss-language-select" aria-label="Language"><option value="de">🇩🇪 DE</option><option value="en">🇬🇧 EN</option><option value="fr">🇫🇷 FR</option></select>';
+      if(prepend)container.prepend(wrap);else container.appendChild(wrap);
+      wrap.querySelector('select').addEventListener('change',e=>setLanguage(e.target.value));
+    };
+    mountSelector(document.querySelector('.topbar-right'),'pfssLanguageControl',true);
+    mountSelector(document.querySelector('.auth-brand'),'pfssAuthLanguageControl',false);
     setLanguage(supported.includes(saved)?saved:'de');
   }
   window.PFSS_I18N={t,setLanguage,getLanguage:()=>current,supported,apply};
