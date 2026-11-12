@@ -10,10 +10,14 @@
 -- 3. Granular module permissions are a separate follow-up; do not treat this
 --    file alone as a complete security approval.
 --
--- Preconditions verified in the live project on 2026-11-12:
--- - All 13 organization-domain tables listed below currently contain 0 rows.
--- - RLS is enabled on all 16 pfss_* tables.
--- - Existing simple foreign keys were inventoried before this migration.
+-- LIVE PRECONDITIONS: NOT VERIFIED BY THIS REPOSITORY CHANGE.
+-- Before use, run supabase/preflight/00_schema_security_inventory.sql against
+-- the intended non-production Supabase project and retain its result sets.
+-- Confirm every referenced table/column/constraint exists, inspect duplicate
+-- (organization_id, id) pairs and orphan/cross-tenant references, and verify
+-- row counts. The statements below may fail if these conditions are not met.
+-- RLS status, policies, grants, triggers and function definitions require a
+-- separate review. Do not infer that this migration has been executed.
 --
 -- Parent tables receive UNIQUE (organization_id, id), then child references
 -- are replaced with composite foreign keys that include organization_id.
