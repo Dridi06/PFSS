@@ -332,17 +332,22 @@
           <span class="nav-icon">▧</span>Medien
         </button>
         <div class="admin-nav-section" id="adminNavSection" hidden>
-          <div class="nav-section-label admin-section-title">ADMINISTRATOR</div>
-          <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span>Vereine</button>
-          <button class="nav-item admin-nav-item" data-view="agencies"><span class="nav-icon">◇</span>Agenturen</button>
-          <button class="nav-item admin-nav-item" data-view="scouts"><span class="nav-icon">⌕</span>Scouts</button>
-          <button class="nav-item admin-nav-item" data-view="admin-members"><span class="nav-icon">♟</span>Mitglieder</button>
-          <button class="nav-item admin-nav-item" data-view="players"><span class="nav-icon">⚽</span>Spielerdatenbank</button>
-          <button class="nav-item admin-nav-item" data-view="admin-errors"><span class="nav-icon">!</span>Fehler</button>
-          <button class="nav-item admin-nav-item" data-view="admin-inbox"><span class="nav-icon">✉</span>Postfach</button>
-          <button class="nav-item admin-nav-item" data-view="admin-payments"><span class="nav-icon">€</span>Zahlungen</button>
-          <button class="nav-item admin-nav-item" data-view="admin"><span class="nav-icon">⚙</span>Admin-Einstellungen</button>
-          <button class="nav-item admin-nav-item" data-view="backup"><span class="nav-icon">⇧</span>Datensicherung</button>
+          <div class="admin-nav-brand"><span class="admin-nav-crest">PF</span><span><b>COMMAND CENTER</b><small>ADMINISTRATOR · SYSTEMLEITUNG</small></span></div>
+          <div class="nav-section-label admin-section-title">STEUERZENTRALE</div>
+          <button class="nav-item admin-nav-item" data-view="dashboard"><span class="nav-icon">⌂</span><span class="nav-label">Admin-Dashboard</span><span class="admin-nav-arrow">↗</span></button>
+          <div class="admin-nav-divider"><span>ORGANISATIONEN & NETZWERK</span></div>
+          <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span><span class="nav-label">Vereine</span></button>
+          <button class="nav-item admin-nav-item" data-view="agencies"><span class="nav-icon">◇</span><span class="nav-label">Agenturen</span></button>
+          <button class="nav-item admin-nav-item" data-view="scouts"><span class="nav-icon">⌕</span><span class="nav-label">Scouts</span></button>
+          <button class="nav-item admin-nav-item" data-view="admin-members"><span class="nav-icon">♟</span><span class="nav-label">Mitglieder & Zugänge</span></button>
+          <button class="nav-item admin-nav-item" data-view="players"><span class="nav-icon">⚽</span><span class="nav-label">Globale Spielerdatenbank</span></button>
+          <div class="admin-nav-divider"><span>QUALITÄT & KOMMUNIKATION</span></div>
+          <button class="nav-item admin-nav-item" data-view="admin-inbox"><span class="nav-icon">✉</span><span class="nav-label">Postfach & Anfragen</span></button>
+          <button class="nav-item admin-nav-item" data-view="admin-errors"><span class="nav-icon">!</span><span class="nav-label">Fehler & Meldungen</span></button>
+          <div class="admin-nav-divider"><span>FINANZEN & SYSTEM</span></div>
+          <button class="nav-item admin-nav-item" data-view="admin-payments"><span class="nav-icon">€</span><span class="nav-label">Abonnements & Zahlungen</span></button>
+          <button class="nav-item admin-nav-item" data-view="admin"><span class="nav-icon">⚙</span><span class="nav-label">Benutzer & Berechtigungen</span></button>
+          <button class="nav-item admin-nav-item" data-view="backup"><span class="nav-icon">⇧</span><span class="nav-label">Backups & Datensicherung</span></button>
         </div>
       </nav>
 
@@ -407,142 +412,49 @@
         <section class="first-login-intro" id="firstLoginIntro" hidden>
           <div class="eyebrow">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
           <h2>Herzlich Willkommen bei PFMS!</h2>
-          <p>Schön, dass du dabei bist. PFMS ist deine zentrale Plattform für die professionelle Organisation und Verwaltung des Fußballs – vom Spieler- und Kadermanagement über Scouting und Leistungsberichte bis hin zur Zusammenarbeit von Vereinen, Trainern, Scouts und Agenturen.</p>
+          <p>Deine zentrale Plattform für professionelles Fußballmanagement – von Spielerdaten und Scouting bis zu Vereinen, Mannschaften und Agenturen.</p>
           <div class="first-login-features">
-            <div><b>Spielermanagement</b><span>Spielerprofile, Stammdaten und Kader übersichtlich verwalten.</span></div>
-            <div><b>Scouting & Analyse</b><span>Talente entdecken, beobachten, bewerten und Berichte erstellen.</span></div>
-            <div><b>Vereins- & Teamverwaltung</b><span>Mannschaften, Zuständigkeiten und Berechtigungen zentral organisieren.</span></div>
-            </div>
-          <p class="first-login-closing">Dein Arbeitsplatz für einen modernen, datenbasierten und vernetzten Fußball.</p>
+            <div><b>Spielermanagement</b><span>Profile, Stammdaten und Kader im Überblick.</span></div>
+            <div><b>Scouting & Analyse</b><span>Talente beobachten, bewerten und entwickeln.</span></div>
+            <div><b>Organisation</b><span>Teams, Zuständigkeiten und Zugänge steuern.</span></div>
+          </div>
+          <p class="first-login-closing">Dein professioneller Arbeitsplatz für den vernetzten Fußball.</p>
         </section>
         <div class="returning-welcome" id="returningWelcome" hidden>Willkommen zurück!</div>
-        <div class="dashboard-brand"><img class="pfms-logo dashboard-logo" src="pfms-logo.svg" alt="PFMS – Professional Football Management System"><span>PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</span></div>
-        <div class="page-heading">
-          <div>
-            <div class="eyebrow">ÜBERSICHT</div>
-            <h1>Dashboard</h1>
-            <p>Willkommen bei deinem Professional Football Scouting System.</p>
-            
-          </div>
-          <button class="btn btn-primary" data-action="new-player">
-            ＋ Spieler hinzufügen
-          </button>
+        <div class="dashboard-brand"><img class="pfms-logo dashboard-logo" src="pfms-logo.svg" alt="PFMS – Professional Football Management System"><span>PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</span><span class="dashboard-brand-status"><i></i> PERFORMANCE · PRECISION · FOOTBALL</span></div>
+        <div class="page-heading dashboard-heading">
+          <div><div class="eyebrow">PERFORMANCE OVERVIEW · SAISON 2026/27</div><h1>Dashboard</h1><p>Dein zentraler Überblick über Spieler, Scouting und Fußballorganisation.</p></div>
+          <button class="btn btn-primary" data-action="new-player">＋ Spieler hinzufügen</button>
         </div>
-
-        <div class="hero-panel">
+        <div class="hero-panel dashboard-hero">
           <div class="hero-copy">
-            <span class="hero-tag">PROFESSIONAL FOOTBALL SCOUTING</span>
-            <h2>Entdecke Potenziale.<br><em>Bewerte Leistung.</em></h2>
-            <p>
-              Alle wichtigen Scouting-Informationen an einem Ort –
-              strukturiert, übersichtlich und jederzeit griffbereit.
-            </p>
-            <button class="btn btn-light" data-view="players">
-              Spielerdatenbank öffnen <span>→</span>
-            </button>
+            <span class="hero-tag">PFSS · THE FOOTBALL INTELLIGENCE PLATFORM</span>
+            <h2>Where talent<br><em>meets precision.</em></h2>
+            <p>Spielerpotenziale erkennen. Leistungsdaten einordnen. Entscheidungen mit einem klaren Blick fürs Spiel treffen.</p>
+            <div class="dashboard-hero-actions"><button class="btn btn-light" data-view="players">Spielerdatenbank öffnen <span>→</span></button><span class="dashboard-season-mark">SAISON <b>26 / 27</b></span></div>
           </div>
-
-          <div class="hero-art" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="orbit orbit-two"></div>
-            <div class="pitch">
-              <div class="pitch-line"></div>
-              <div class="pitch-circle"></div>
-              <div class="pitch-box"></div>
-              <span class="pitch-dot"></span>
-            </div>
-            <div class="hero-number">01</div>
-          </div>
+          <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="pitch"><div class="pitch-line"></div><div class="pitch-circle"></div><div class="pitch-box"></div><span class="pitch-dot"></span></div><div class="hero-number">PF</div><div class="dashboard-ball-mark">⚽</div></div>
+          <div class="dashboard-hero-caption">SCOUT · ANALYSE · ENTWICKLUNG</div>
         </div>
-
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-top">
-              <span>SPIELER GESAMT</span><span class="stat-icon">♙</span>
-            </div>
-            <strong id="statPlayers">0</strong>
-            <small>In deiner Datenbank</small>
+        <div class="stats-grid dashboard-stats">
+          <article class="stat-card"><div class="stat-top"><span>SPIELER GESAMT</span><span class="stat-icon">♙</span></div><strong id="statPlayers">0</strong><small>In deiner Datenbank</small><span class="stat-card-foot">PLAYER DATABASE</span></article>
+          <article class="stat-card"><div class="stat-top"><span>SCOUTING-BERICHTE</span><span class="stat-icon">▤</span></div><strong id="statReports">0</strong><small>Erstellte Bewertungen</small><span class="stat-card-foot">PERFORMANCE REPORTS</span></article>
+          <article class="stat-card"><div class="stat-top"><span>MEDIEN-DATEIEN</span><span class="stat-icon">▧</span></div><strong id="statMedia">0</strong><small>In deiner Bibliothek</small><span class="stat-card-foot">VIDEO & MEDIA HUB</span></article>
+          <article class="stat-card accent-stat"><div class="stat-top"><span>Ø BEWERTUNG</span><span class="stat-icon">✧</span></div><strong id="statRating">–</strong><small>Durchschnitt aller Berichte</small><span class="stat-card-foot">SCOUTING INDEX</span></article>
+        </div>
+        <div class="content-grid dashboard-content-grid">
+          <article class="panel dashboard-recent-panel">
+            <div class="panel-heading"><div><div class="eyebrow">PLAYER INTELLIGENCE</div><h3>Zuletzt hinzugefügt</h3></div><button class="text-button" data-view="players">Alle Spieler →</button></div>
+            <div id="recentPlayers" class="empty-state"><span class="empty-icon">♙</span><b>Noch keine Spieler vorhanden</b><p>Lege dein erstes Spielerprofil an und starte deine Scouting-Datenbank.</p><button class="btn btn-secondary" data-action="new-player">Spieler anlegen</button></div>
           </article>
-
-          <article class="stat-card">
-            <div class="stat-top">
-              <span>SCOUTING-BERICHTE</span><span class="stat-icon">▤</span>
-            </div>
-            <strong id="statReports">0</strong>
-            <small>Erstellte Bewertungen</small>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-top">
-              <span>MEDIEN-DATEIEN</span><span class="stat-icon">▧</span>
-            </div>
-            <strong id="statMedia">0</strong>
-            <small>In deiner Bibliothek</small>
-          </article>
-
-          <article class="stat-card accent-stat">
-            <div class="stat-top">
-              <span>Ø BEWERTUNG</span><span class="stat-icon">✧</span>
-            </div>
-            <strong id="statRating">–</strong>
-            <small>Durchschnitt aller Berichte</small>
+          <article class="panel quick-panel dashboard-quick-panel"><div class="eyebrow">MATCHDAY CONTROL</div><h3>Schnellzugriff</h3>
+            <button class="quick-link" data-action="new-player"><span class="quick-icon">＋</span><span><b>Spieler erfassen</b><small>Neues Spielerprofil anlegen</small></span><i>→</i></button>
+            <button class="quick-link" data-action="new-report"><span class="quick-icon">▤</span><span><b>Bericht erstellen</b><small>Leistung dokumentieren</small></span><i>→</i></button>
+            <button class="quick-link" data-view="media"><span class="quick-icon">▧</span><span><b>Medien verwalten</b><small>Fotos und Videos organisieren</small></span><i>→</i></button>
+            <button class="quick-link" data-view="scouts"><span class="quick-icon">⌕</span><span><b>Scouting-Netzwerk</b><small>Scouts und Beobachtungsteam</small></span><i>→</i></button>
           </article>
         </div>
-
-        <div class="content-grid">
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <div class="eyebrow">NEU IM SYSTEM</div>
-                <h3>Zuletzt hinzugefügt</h3>
-              </div>
-              <button class="text-button" data-view="players">
-                Alle Spieler →
-              </button>
-            </div>
-
-            <div id="recentPlayers" class="empty-state">
-              <span class="empty-icon">♙</span>
-              <b>Noch keine Spieler vorhanden</b>
-              <p>Lege deinen ersten Spieler an.</p>
-              <button class="btn btn-secondary" data-action="new-player">
-                Spieler anlegen
-              </button>
-            </div>
-          </article>
-
-          <article class="panel quick-panel">
-            <div class="eyebrow">SCHNELLZUGRIFF</div>
-            <h3>Was möchtest du tun?</h3>
-
-            <button class="quick-link" data-action="new-player">
-              <span class="quick-icon">＋</span>
-              <span>
-                <b>Spieler erfassen</b>
-                <small>Neues Spielerprofil anlegen</small>
-              </span>
-              <i>→</i>
-            </button>
-
-            <button class="quick-link" data-action="new-report">
-              <span class="quick-icon">▤</span>
-              <span>
-                <b>Bericht erstellen</b>
-                <small>Leistung dokumentieren</small>
-              </span>
-              <i>→</i>
-            </button>
-
-            <button class="quick-link" data-view="media">
-              <span class="quick-icon">▧</span>
-              <span>
-                <b>Medien verwalten</b>
-                <small>Fotos und Videos hinzufügen</small>
-              </span>
-              <i>→</i>
-            </button>
-          </article>
-        </div>
+        <div class="dashboard-bottom-line"><span>PFSS INTELLIGENCE</span><span>BUILT FOR THE GAME · DESIGNED FOR DECISIONS</span></div>
       </section>
 
       <section class="view" id="view-players">
