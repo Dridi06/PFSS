@@ -14,6 +14,25 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 - Ein statischer Sicherheitsbericht liegt unter `docs/SECURITY_AUDIT_2026-11-12.md`.
 - Automatisierte statische Qualitätsprüfungen laufen künftig bei Pushes und Pull Requests.
 
+## Selbstständig erledigte Repository-Arbeiten – Durchgang 1 (12.11.2026)
+
+Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und anhand des abgerufenen Quelltexts geprüft. Sie sind bewusst eng abgegrenzt: Ein Quelltext-Check ist kein Live- oder Sicherheitstest.
+
+- [x] Statische JavaScript-Prüfung auf alle fünf zentralen Frontend-Dateien erweitert: `app.js`, `scout-workspace.js`, `workspace-ui.js`, `pfss-finance.js`, `pfss-i18n.js`.
+- [x] Inline-JavaScript in `index.html` in die statische Syntaxprüfung aufgenommen.
+- [x] Prüfung auf doppelte HTML-IDs in `index.html` durchgeführt: 141 IDs, keine Duplikate zum Prüfzeitpunkt.
+- [x] Lokale HTML-Ressourcenprüfung im Validator beibehalten.
+- [x] Warnhinweis zur noch offenen CSP-/SRI-Prüfung im Validator ergänzt.
+- [x] Vorschaucharakter der generierten Workspace- und Finanzmodule im Quelltext bestätigt; diese Module werden nicht als produktiv angebunden ausgegeben.
+
+### Noch nicht als erledigt bestätigt
+- [ ] GitHub-Actions-Lauf des erweiterten Validators erfolgreich abwarten und Ergebnis prüfen.
+- [ ] Validator in einer vollständigen lokalen Repository-Kopie ausführen; der Quelltext wurde hier syntaktisch geprüft, aber kein vollständiger Runner mit allen Repository-Dateien ausgeführt.
+- [ ] Browser-/Gerätetests und Ende-zu-Ende-Funktionstests durchführen.
+- [ ] Live-Supabase-Schema, RLS, Grants, Trigger, Funktionen und Storage-Policies anhand des Preflight-Exports verifizieren.
+- [ ] Edge-Function-Härtung erst nach Festlegung der echten Frontend-Origin-Allowlist und des autoritativen Admin-Rollenmodells umsetzen.
+- [ ] Backup-Workflow, R2-Zugang und Restore praktisch prüfen.
+
 ## Verbindliche Entwicklungsreihenfolge – Gesamtprojekt PFSS
 
 Diese Prioritäten bilden die übergeordnete Reihenfolge für die weitere Entwicklung. Die OWASP-Aufgaben darunter sind Bestandteil insbesondere von Punkt 2 und ergänzen ihn technisch.
