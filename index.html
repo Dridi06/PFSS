@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#090a0c">
   <meta name="description" content="PFMS – Professional Football Management System">
   <title>PFMS | Professional Football Management System</title>
-  <link rel="stylesheet" href="styles.css?v=pfms-gold-stars-20261111-1">
+  <link rel="stylesheet" href="styles.css?v=pfms-search-20261112-1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfss-preview-switch-20261111-1" defer></script>
+  <script src="app.js?v=pfss-search-20261112-1" defer></script>
 </head>
 <body>
 
@@ -529,23 +529,23 @@
           </button>
         </div>
 
-        <div class="toolbar">
-          <label class="search-box">
-            <span>⌕</span>
-            <input id="playerSearch" type="search"
-                   placeholder="Spieler suchen …">
-          </label>
-
-          <select id="positionFilter" aria-label="Position filtern">
-            <option value="">Alle Positionen</option>
-            <option>Torwart</option>
-            <option>Abwehr</option>
-            <option>Mittelfeld</option>
-            <option>Sturm</option>
-          </select>
-        </div>
-
-        <div id="playerGrid" class="player-grid"></div>
+        <form id="playerSearchForm" class="panel pfss-search-form">
+          <div class="panel-heading"><div><div class="eyebrow">SPIELERDATENBANK</div><h3>Spieler gezielt suchen</h3></div></div>
+          <div class="pfss-search-fields">
+            <label class="field">Nachname<input id="playerSearchSurname" type="search" placeholder="Nachname eingeben"></label>
+            <label class="field">Verein<input id="playerSearchClub" type="search" placeholder="Verein eingeben"></label>
+            <label class="field">Position<select id="playerSearchPosition"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label>
+            <label class="field">Jahrgang<input id="playerSearchYear" type="number" min="1900" max="2100" placeholder="z. B. 2008"></label>
+            <label class="field">Beitrittsdatum<input id="playerSearchJoinDate" type="date"></label>
+          </div>
+          <div class="pfss-search-fields pfss-sort-fields">
+            <label class="field">Sortieren nach<select id="playerSortBy"><option value="surname">Nachname</option><option value="year">Jahrgang</option><option value="position">Position</option><option value="joinDate">Beitrittsdatum</option></select></label>
+            <label class="field">Reihenfolge<select id="playerSortDirection"><option value="asc">Aufsteigend</option><option value="desc">Absteigend</option></select></label>
+          </div>
+          <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          <p id="playerSearchCount" class="admin-message" role="status" aria-live="polite">Alle Spieler</p>
+        </form>
+        <div id="playerGrid" class="player-grid player-results-list"></div>
       </section>
 
       <section class="view" id="view-clubs">
@@ -759,7 +759,15 @@
         </div>
         <div class="panel admin-panel">
           <div class="panel-heading"><div><div class="eyebrow">BENUTZERKONTEN</div><h3>Benutzerverwaltung</h3></div></div>
-          <label class="search-box admin-search"><span>⌕</span><input id="adminUserSearch" type="search" placeholder="Benutzername oder ID suchen …"></label>
+          <form id="adminUserSearchForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Benutzername<input id="adminUserSearchName" type="search" placeholder="Benutzername"></label>
+              <label class="field">User-ID<input id="adminUserSearchId" type="search" placeholder="User-ID"></label>
+              <label class="field">Rolle<select id="adminUserSearchRole"><option value="">Alle Rollen</option><option value="user">Mitglied</option><option value="scout">Scout</option><option value="admin">Administrator</option></select></label>
+              <label class="field">Status<select id="adminUserSearchStatus"><option value="">Alle Status</option><option value="pending">Ausstehend</option><option value="approved">Freigegeben</option><option value="suspended">Gesperrt</option></select></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          </form>
           <p id="adminMessage" class="admin-message" role="status" aria-live="polite">Lade Benutzer …</p>
           <div id="adminUserList" class="admin-user-list"></div>
         </div>
@@ -861,6 +869,11 @@
         <label class="field">
           Geburtsdatum
           <input name="birth" type="date">
+        </label>
+
+        <label class="field">
+          Beitrittsdatum
+          <input name="joinDate" type="date">
         </label>
 
         <label class="field">
