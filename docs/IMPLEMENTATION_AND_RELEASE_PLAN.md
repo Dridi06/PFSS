@@ -83,7 +83,7 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 - [~] **3. OWASP Cheat Sheet Series:** als Umsetzungsreferenz für die PFSS-Kontrollbereiche aufgenommen; vollständige modulbezogene Ableitung und Review aller Maßnahmen offen.
 - [ ] **4. OWASP ZAP:** automatisierte Sicherheitsscans in einer isolierten Test-/Staging-Umgebung einrichten.
 - [ ] **5. Manuelle Schwachstellentests:** unter anderem XSS, SQL-Injection, CSRF, IDOR/BOLA und SSRF prüfen.
-- [~] **6. Authentifizierung und Sitzungen:** Login-Request-Prüfungen, sichere Fehlerantworten und datenbankgestütztes Rate-Limit vorbereitet; Migrationstest, MFA, Wiederherstellungstests und Session-Lifecycle-Tests offen.
+- [~] **6. Authentifizierung und Sitzungen:** Login-Request-Prüfungen, sichere Fehlerantworten und datenbankgestütztes Rate-Limit vorbereitet; Migrationstest, IP-Header-Prüfung, MFA, Wiederherstellungstests und Session-Lifecycle-Tests offen.
 - [~] **7. Rollen und Mandantentrennung:** Scout-Eigentümer-Policies und Cross-Reference-Prüfungen im Migrationsentwurf gehärtet; kanonisches Organisationsmodell und Live-Negativtests offen.
 - [~] **8. APIs, Supabase und Datei-Uploads:** CORS-Allowlist, Methoden-/Body-/JSON-Prüfungen, JWT-/Admin-Prüfung und private Storage-Policy-Entwürfe umgesetzt; verteilte Rate-Limits, vollständige Uploadvalidierung und Live-Tests offen.
 - [ ] **9. Datenschutz, Verschlüsselung und Audit:** Datenminimierung, Schlüsselverwaltung, sichere Protokolle und Schutz minderjähriger Spieler umsetzen.
@@ -98,7 +98,7 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 - [~] Die private Scout-Workspace-Migration ist von `public.is_admin()` entkoppelt; Definition und Nutzung der Funktion in übrigen Migrationen/RPCs bleiben live zu prüfen.
 - [ ] Einladungscodes auf Ablauf, Einmalverwendung, Widerruf und Rollenbegrenzung testen.
 - [ ] Negativtests: Scout A darf weder Spieler, Berichte, Medien noch Organisationsdaten von Scout/Verein B lesen oder ändern.
-- [~] Username-Login hat Request-Limits und generische Fehler; ein atomarer, datenbankgestützter Rate-Limit-RPC samt Migration ist im Branch ergänzt. Testprojekt-Migration, Parallel-Request-Test und zusätzliche IP-basierte Begrenzung fehlen.
+- [~] Username-Login hat Request-Limits und generische Fehler; atomare, datenbankgestützte Limits für Client-IP und Username/IP-Paar samt Migration sind im Branch ergänzt. Testprojekt-Migration, verifizierter CF-Connecting-IP-Header und Parallel-Request-Test fehlen.
 - [~] Beide Edge Functions nutzen `PFSS_ALLOWED_ORIGINS`; die exakten Origins müssen vor Deployment als Supabase Function Secret gesetzt und live geprüft werden.
 - [~] R2-Diagnose verlangt im Branch ein gültiges Supabase-JWT und eine `PFSS_R2_ADMIN_USER_IDS`-UUID-Allowlist; Secret-Konfiguration, Deployment und Laufzeittest stehen aus.
 - [~] Private Storage-Migrationsentwürfe erlauben ownergebundenes SELECT/INSERT/DELETE; UPDATE ist absichtlich nicht freigegeben. Live-Policy-Nebenwirkungen und tatsächliche Bucket-Konfiguration noch testen.
