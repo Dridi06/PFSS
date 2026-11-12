@@ -12,7 +12,7 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 - Eine private Scout-Datenstruktur mit RLS ist als Migration vorhanden, aber nicht automatisch als produktiv aktiv anzusehen.
 - Ein verschlüsselter täglicher Datenbank-Backup-Workflow nach Cloudflare R2 ist vorhanden.
 - Ein statischer Sicherheitsbericht liegt unter `docs/SECURITY_AUDIT_2026-11-12.md`.
-- Automatisierte statische Qualitätsprüfungen laufen künftig bei Pushes und Pull Requests.
+- Automatisierte statische Qualitätsprüfungen laufen bei Pushes und Pull Requests; CodeQL prüft JavaScript/TypeScript.
 
 ## Selbstständig erledigte Repository-Arbeiten – Durchgang 1 (12.11.2026)
 
@@ -26,7 +26,7 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] Vorschaucharakter der generierten Workspace- und Finanzmodule im Quelltext bestätigt; diese Module werden nicht als produktiv angebunden ausgegeben.
 
 ### Übergreifende Prüf- und Freigabepunkte
-- [x] GitHub-Actions-Lauf des Validators und der PFSS-Sicherheitsregeln auf dem aktuellen Sicherheitsstand erfolgreich geprüft (Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88`; beide Prüfungen erfolgreich).
+- [x] GitHub-Actions-Lauf des Validators und der PFSS-Sicherheitsregeln auf dem aktuellen Sicherheitsstand erfolgreich geprüft (Commit `8d04f8a34dfb9cd5f9bd0ded5df56cc51d62e106`; beide Prüfungen erfolgreich).
 - [x] Vollständigen Validator auf einem vollständigen GitHub-Runner-Checkout ausgeführt; JavaScript-/HTML-Prüfungen und ergänzende PFSS-Sicherheitsregeln bestanden. Ein separater lokaler Rechnerlauf bleibt nicht zwingend erforderlich.
 - [ ] Browser-/Gerätetests und Ende-zu-Ende-Funktionstests durchführen.
 - [ ] Live-Supabase-Schema, RLS, Grants, Trigger, Funktionen und Storage-Policies anhand des Preflight-Exports verifizieren.
@@ -41,13 +41,13 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] R2-Diagnosefunktion auf POST, Supabase-JWT-Validierung und explizite Admin-UUID-Allowlist umgestellt; `verify_jwt = true` in `supabase/config.toml` gesetzt. Ohne die erforderlichen Function-Secrets ist der Zugriff standardmäßig geschlossen.
 - [x] Private Scout-Workspace-Migration überarbeitet: Eigentümer-only RLS für Spieler, Berichte und Medienmetadaten; Report-/Medienreferenzen müssen auf Spieler desselben Eigentümers zeigen; Tabellenrechte für `anon` und `public` entzogen; privater Storage mit Owner-Ordner und MIME-/Größenlimits. UPDATE auf Storage-Objekten ist nicht gewährt.
 - [x] Nicht belegte Behauptung angeblich bereits geprüfter Live-Voraussetzungen aus der Mandantenmigration entfernt und durch konkrete, noch auszuführende Preflight-Anforderungen ersetzt.
-- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der erfolgreiche Lauf für Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88` führte Static validation und PFSS security guardrails erfolgreich aus.
+- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der erfolgreiche Lauf für Commit `8d04f8a34dfb9cd5f9bd0ded5df56cc51d62e106` führte Static validation und PFSS security guardrails erfolgreich aus.
 - [x] OWASP-Matrix mit PFSS-Kontrollen, konkreten Testideen, offenen Belegen und benötigten Function-Secrets erstellt.
 - [x] Separates ASVS-5.0.0-Requirement-Mapping mit 67 PFSS-relevanten Anforderungs-IDs, Modulzuordnung und geplanten Abnahmetests erstellt (`docs/ASVS_5.0_PFSS_REQUIREMENT_MAP.md`). Anforderungen sind inventarisiert, aber noch nicht getestet oder als erfüllt bestätigt.
 - [x] Restore-Handbuch für die reine Testwiederherstellung erstellt; Durchführung, Storage-Dateisicherung und Integritätsnachweis bleiben offen.
 - [x] Manuellen passiven ZAP-Baseline-Workflow mit festem Staging-Ziel eingerichtet; Action ist auf einen verifizierten v0.15.0-Commit gepinnt, Issue-Erstellung deaktiviert und Scan-Fehler sind zunächst nicht CI-blockierend. Workflow wurde noch nicht gestartet.
 - [x] Atomaren Datenbank-Rate-Limit-RPC für IP und Username/IP-Paar vorbereitet, mit HMAC-SHA-256-Schlüsseln und `service_role`-geschützter Funktion; Migration noch nicht auf Supabase ausgeführt oder live getestet.
-- [x] CodeQL-Workflow (JavaScript/TypeScript, `security-extended` und `security-and-quality`) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Erster CodeQL-Lauf auf Commit `1e53b4ad5691cbaf384af9f12194dc1d4aff589b` erfolgreich.
+- [x] CodeQL-Workflow (JavaScript/TypeScript, `security-extended` und `security-and-quality`) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. CodeQL-Analyse auf Commit `8d04f8a34dfb9cd5f9bd0ded5df56cc51d62e106` erfolgreich.
 - [x] Sicherheitsbericht um den Status der neuen Branch-Änderungen ergänzt.
 
 ### Neue Konfigurations-/Abnahmeaufgaben vor einem Edge-Function-Deployment
