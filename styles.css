@@ -979,3 +979,43 @@ button,input,select,textarea{max-width:100%}
     min-width:0;
   }
 }
+
+
+/* User-ID immer eindeutig beschriften – Label oberhalb der Kennung */
+.user-id-pill{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:3px;
+  white-space:normal;
+}
+.user-id-label{
+  display:block!important;
+  font-size:9px;
+  line-height:1.2;
+  font-weight:800;
+}
+.user-id-value-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  max-width:100%;
+}
+#userIdValue{
+  display:block;
+  min-width:0;
+}
+@media(max-width:520px){
+  .user-id-pill{
+    display:inline-flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:3px!important;
+    max-width:54vw;
+  }
+  .user-id-label{display:block!important}
+  .user-id-value-row{max-width:100%}
+  #userIdValue{max-width:34vw;font-size:9px}
+}
