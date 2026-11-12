@@ -548,6 +548,46 @@ document.getElementById('menuToggle')
     document.body.classList.toggle('sidebar-open', isOpen);
   });
 
+// Mobile Sidebar: mit einer horizontalen Wischbewegung nach links schließen.
+(() => {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+
+  let touchStart = null;
+  const mobileQuery = window.matchMedia('(max-width: 760px)');
+
+  sidebar.addEventListener('touchstart', event => {
+    if (!mobileQuery.matches || !sidebar.classList.contains('open')) {
+      touchStart = null;
+      return;
+    }
+    const touch = event.changedTouches[0];
+    touchStart = { x: touch.clientX, y: touch.clientY };
+  }, { passive: true });
+
+  sidebar.addEventListener('touchend', event => {
+    if (!touchStart || !mobileQuery.matches || !sidebar.classList.contains('open')) {
+      touchStart = null;
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    touchStart = null;
+
+    // Nur eine deutliche Linksbewegung schließt; vertikales Scrollen bleibt normal.
+    if (deltaX <= -65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+      sidebar.classList.remove('open');
+      document.body.classList.remove('sidebar-open');
+    }
+  }, { passive: true });
+
+  sidebar.addEventListener('touchcancel', () => {
+    touchStart = null;
+  }, { passive: true });
+})();
+
 renderDashboard();
 
 document.getElementById('exportBackupButton')
