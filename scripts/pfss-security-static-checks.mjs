@@ -47,7 +47,7 @@ requirePattern(login, /hashRateLimitKey\("user-ip:" \+ normalizedUsername\.toLow
 requirePattern(login, /pfss_consume_username_login_limit/, "Username login uses the shared database rate-limit RPC");
 requirePattern(login, /if \(limitError \|\| !limitResult\)/, "Username login fails closed when the rate limiter is unavailable");
 requirePattern(login, /Retry-After/, "Username login reports a retry delay when rate limited");
-requirePattern(login, /return json\\(\\s*req,\\s*\\{ error: "Too many login attempts/, "Rate-limited login response uses the shared JSON response helper correctly");
+requirePattern(login, /return json\(\s*req,\s*\{ error: "Too many login attempts/, "Rate-limited login response uses the shared JSON response helper correctly");
 requirePattern(loginLimit, /p_max_attempts > 100/, "Login rate-limit RPC accepts the configured 30-attempt IP threshold");
 
 forbidPattern(r2, /Access-Control-Allow-Origin["']?\s*:\s*["']\*["']/, "R2 diagnostics do not enable wildcard CORS");
