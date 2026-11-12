@@ -36,11 +36,12 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 
 ## Selbstständig erledigte Repository-Arbeiten – Durchgang 2 (12.11.2026)
 
-- [x] Username-Login-Edge-Function im Entwicklungsbranch gehärtet: nur POST, JSON-Pflicht, 8-KiB-Body-Limit (auch anhand der tatsächlichen Bytes), Passwortlängenbegrenzung, konfigurierbare CORS-Origin-Allowlist, generische Anmeldefehler und `Cache-Control: no-store`. Noch kein verteilter Rate-Limit-Speicher.
+- [x] Username-Login-Edge-Function im Entwicklungsbranch gehärtet: nur POST, JSON-Pflicht, 8-KiB-Body-Limit (auch anhand der tatsächlichen Bytes), Passwortlängenbegrenzung, konfigurierbare CORS-Origin-Allowlist, generische Anmeldefehler und `Cache-Control: no-store`.
+- [x] Verteiltes Username-Login-Rate-Limit im Code vorbereitet: atomare Datenbankzähler für Client-IP (30/15 Min.) und Username/IP-Paar (8/15 Min.), nur SHA-256-Hashes; fail-closed bei fehlender RPC. Die separate Migration ist noch nicht auf Supabase ausgeführt und muss zuerst im Testprojekt geprüft werden.
 - [x] R2-Diagnosefunktion auf POST, Supabase-JWT-Validierung und explizite Admin-UUID-Allowlist umgestellt; `verify_jwt = true` in `supabase/config.toml` gesetzt. Ohne die erforderlichen Function-Secrets ist der Zugriff standardmäßig geschlossen.
 - [x] Private Scout-Workspace-Migration überarbeitet: Eigentümer-only RLS für Spieler, Berichte und Medienmetadaten; Report-/Medienreferenzen müssen auf Spieler desselben Eigentümers zeigen; Tabellenrechte für `anon` und `public` entzogen; privater Storage mit Owner-Ordner und MIME-/Größenlimits. UPDATE auf Storage-Objekten ist nicht gewährt.
 - [x] Nicht belegte Behauptung angeblich bereits geprüfter Live-Voraussetzungen aus der Mandantenmigration entfernt und durch konkrete, noch auszuführende Preflight-Anforderungen ersetzt.
-- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Lauf für Commit `fade726110d975d53fadef71fcb621feec8802c2`: Static validation und PFSS security guardrails beide erfolgreich.
+- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der neueste fehlerfreie Lauf für Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88` führte Static validation und PFSS security guardrails erfolgreich aus.
 - [x] OWASP-Matrix mit PFSS-Kontrollen, konkreten Testideen, offenen Belegen und benötigten Function-Secrets erstellt.
 - [x] Atomaren Datenbank-Rate-Limit-RPC für Username-Login einschließlich separater, service_role-geschützter Migration vorbereitet; noch nicht gegen Supabase ausgeführt oder live getestet.
 - [x] CodeQL-Workflow (JavaScript/TypeScript, security-extended und security-and-quality) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Der erste CodeQL-Lauf ist noch zu prüfen.
@@ -50,7 +51,7 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [ ] Supabase Function Secret `PFSS_ALLOWED_ORIGINS` im jeweiligen Projekt setzen (für Browser-Calls nur exakte, tatsächlich verwendete HTTPS-Origins eintragen).
 - [ ] Supabase Function Secret `PFSS_R2_ADMIN_USER_IDS` mit den freigegebenen Supabase-Auth-UUIDs der zuständigen Admins setzen.
 - [ ] Nach Secret-Konfiguration die beiden Edge Functions auf einer Testumgebung deployen und Login/R2 mit 200/401/403/413/415/Origin-Negativfällen testen.
-- [ ] Verteiltes Rate-Limit für Username-Login umsetzen und anhand gleichzeitiger Requests testen.
+- [~] Verteiltes Rate-Limit für Username-Login ist durch Edge-Function-Code und separate SQL-Migration vorbereitet; auf Testprojekt anwenden, die vertrauenswürdige IP-Quelle bestätigen und parallele Requests testen.
 
 ## Verbindliche Entwicklungsreihenfolge – Gesamtprojekt PFSS
 
@@ -85,7 +86,7 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 - [ ] **5. Manuelle Schwachstellentests:** unter anderem XSS, SQL-Injection, CSRF, IDOR/BOLA und SSRF prüfen.
 - [~] **6. Authentifizierung und Sitzungen:** Login-Request-Prüfungen, sichere Fehlerantworten und datenbankgestütztes Rate-Limit vorbereitet; Migrationstest, IP-Header-Prüfung, MFA, Wiederherstellungstests und Session-Lifecycle-Tests offen.
 - [~] **7. Rollen und Mandantentrennung:** Scout-Eigentümer-Policies und Cross-Reference-Prüfungen im Migrationsentwurf gehärtet; kanonisches Organisationsmodell und Live-Negativtests offen.
-- [~] **8. APIs, Supabase und Datei-Uploads:** CORS-Allowlist, Methoden-/Body-/JSON-Prüfungen, JWT-/Admin-Prüfung und private Storage-Policy-Entwürfe umgesetzt; verteilte Rate-Limits, vollständige Uploadvalidierung und Live-Tests offen.
+- [~] **8. APIs, Supabase und Datei-Uploads:** CORS-Allowlist, Methoden-/Body-/JSON-Prüfungen, JWT-/Admin-Prüfung, vorbereitete verteilte Login-Rate-Limits und private Storage-Policy-Entwürfe umgesetzt; Testmigration, vollständige Uploadvalidierung und Live-Tests offen.
 - [ ] **9. Datenschutz, Verschlüsselung und Audit:** Datenminimierung, Schlüsselverwaltung, sichere Protokolle und Schutz minderjähriger Spieler umsetzen.
 - [ ] **10. Sicherheitsfreigabe:** Befunde beheben und erneut testen, Ergebnisse dokumentieren und vor Produktivstart einen unabhängigen Penetrationstest einplanen.
 
@@ -98,7 +99,7 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 - [~] Die private Scout-Workspace-Migration ist von `public.is_admin()` entkoppelt; Definition und Nutzung der Funktion in übrigen Migrationen/RPCs bleiben live zu prüfen.
 - [ ] Einladungscodes auf Ablauf, Einmalverwendung, Widerruf und Rollenbegrenzung testen.
 - [ ] Negativtests: Scout A darf weder Spieler, Berichte, Medien noch Organisationsdaten von Scout/Verein B lesen oder ändern.
-- [~] Username-Login hat Request-Limits und generische Fehler; atomare, datenbankgestützte Limits für Client-IP und Username/IP-Paar samt Migration sind im Branch ergänzt. Testprojekt-Migration, verifizierter CF-Connecting-IP-Header und Parallel-Request-Test fehlen.
+- [~] Username-Login hat Request-Limits, generische Fehler und atomare, datenbankgestützte Limits für Client-IP und Username/IP-Paar samt Migration im Branch. Migration auf Testprojekt, Verifizierung des `CF-Connecting-IP`-Headers in der konkreten Supabase-Edge-Umgebung und Parallel-Request-Test fehlen.
 - [~] Beide Edge Functions nutzen `PFSS_ALLOWED_ORIGINS`; die exakten Origins müssen vor Deployment als Supabase Function Secret gesetzt und live geprüft werden.
 - [~] R2-Diagnose verlangt im Branch ein gültiges Supabase-JWT und eine `PFSS_R2_ADMIN_USER_IDS`-UUID-Allowlist; Secret-Konfiguration, Deployment und Laufzeittest stehen aus.
 - [~] Private Storage-Migrationsentwürfe erlauben ownergebundenes SELECT/INSERT/DELETE; UPDATE ist absichtlich nicht freigegeben. Live-Policy-Nebenwirkungen und tatsächliche Bucket-Konfiguration noch testen.
