@@ -65,6 +65,8 @@ $$;
 alter table public.pfss_team_staff
   drop constraint if exists pfss_team_staff_team_id_fkey;
 alter table public.pfss_team_staff
+  drop constraint if exists pfss_team_staff_org_team_fkey;
+alter table public.pfss_team_staff
   add constraint pfss_team_staff_org_team_fkey
   foreign key (organization_id, team_id)
   references public.pfss_teams (organization_id, id)
@@ -74,6 +76,8 @@ alter table public.pfss_team_staff
 alter table public.pfss_player_team_history
   drop constraint if exists pfss_player_team_history_player_id_fkey;
 alter table public.pfss_player_team_history
+  drop constraint if exists pfss_player_team_history_org_player_fkey;
+alter table public.pfss_player_team_history
   add constraint pfss_player_team_history_org_player_fkey
   foreign key (organization_id, player_id)
   references public.pfss_players (organization_id, id)
@@ -81,6 +85,8 @@ alter table public.pfss_player_team_history
 
 alter table public.pfss_player_team_history
   drop constraint if exists pfss_player_team_history_team_id_fkey;
+alter table public.pfss_player_team_history
+  drop constraint if exists pfss_player_team_history_org_team_fkey;
 alter table public.pfss_player_team_history
   add constraint pfss_player_team_history_org_team_fkey
   foreign key (organization_id, team_id)
@@ -91,6 +97,8 @@ alter table public.pfss_player_team_history
 alter table public.pfss_scouting_reports
   drop constraint if exists pfss_scouting_reports_player_id_fkey;
 alter table public.pfss_scouting_reports
+  drop constraint if exists pfss_scouting_reports_org_player_fkey;
+alter table public.pfss_scouting_reports
   add constraint pfss_scouting_reports_org_player_fkey
   foreign key (organization_id, player_id)
   references public.pfss_players (organization_id, id)
@@ -100,6 +108,8 @@ alter table public.pfss_scouting_reports
 alter table public.pfss_shortlist_players
   drop constraint if exists pfss_shortlist_players_shortlist_id_fkey;
 alter table public.pfss_shortlist_players
+  drop constraint if exists pfss_shortlist_players_org_shortlist_fkey;
+alter table public.pfss_shortlist_players
   add constraint pfss_shortlist_players_org_shortlist_fkey
   foreign key (organization_id, shortlist_id)
   references public.pfss_shortlists (organization_id, id)
@@ -107,6 +117,8 @@ alter table public.pfss_shortlist_players
 
 alter table public.pfss_shortlist_players
   drop constraint if exists pfss_shortlist_players_player_id_fkey;
+alter table public.pfss_shortlist_players
+  drop constraint if exists pfss_shortlist_players_org_player_fkey;
 alter table public.pfss_shortlist_players
   add constraint pfss_shortlist_players_org_player_fkey
   foreign key (organization_id, player_id)
@@ -117,6 +129,8 @@ alter table public.pfss_shortlist_players
 alter table public.pfss_contracts
   drop constraint if exists pfss_contracts_player_id_fkey;
 alter table public.pfss_contracts
+  drop constraint if exists pfss_contracts_org_player_fkey;
+alter table public.pfss_contracts
   add constraint pfss_contracts_org_player_fkey
   foreign key (organization_id, player_id)
   references public.pfss_players (organization_id, id)
@@ -124,6 +138,8 @@ alter table public.pfss_contracts
 
 alter table public.pfss_contracts
   drop constraint if exists pfss_contracts_contact_id_fkey;
+alter table public.pfss_contracts
+  drop constraint if exists pfss_contracts_org_contact_fkey;
 alter table public.pfss_contracts
   add constraint pfss_contracts_org_contact_fkey
   foreign key (organization_id, contact_id)
@@ -134,6 +150,8 @@ alter table public.pfss_contracts
 alter table public.pfss_transfer_cases
   drop constraint if exists pfss_transfer_cases_player_id_fkey;
 alter table public.pfss_transfer_cases
+  drop constraint if exists pfss_transfer_cases_org_player_fkey;
+alter table public.pfss_transfer_cases
   add constraint pfss_transfer_cases_org_player_fkey
   foreign key (organization_id, player_id)
   references public.pfss_players (organization_id, id)
@@ -141,6 +159,8 @@ alter table public.pfss_transfer_cases
 
 alter table public.pfss_transfer_cases
   drop constraint if exists pfss_transfer_cases_contact_id_fkey;
+alter table public.pfss_transfer_cases
+  drop constraint if exists pfss_transfer_cases_org_contact_fkey;
 alter table public.pfss_transfer_cases
   add constraint pfss_transfer_cases_org_contact_fkey
   foreign key (organization_id, contact_id)
@@ -151,6 +171,8 @@ alter table public.pfss_transfer_cases
 alter table public.pfss_tasks
   drop constraint if exists pfss_tasks_related_player_id_fkey;
 alter table public.pfss_tasks
+  drop constraint if exists pfss_tasks_org_player_fkey;
+alter table public.pfss_tasks
   add constraint pfss_tasks_org_player_fkey
   foreign key (organization_id, related_player_id)
   references public.pfss_players (organization_id, id)
@@ -158,6 +180,8 @@ alter table public.pfss_tasks
 
 alter table public.pfss_tasks
   drop constraint if exists pfss_tasks_related_transfer_id_fkey;
+alter table public.pfss_tasks
+  drop constraint if exists pfss_tasks_org_transfer_fkey;
 alter table public.pfss_tasks
   add constraint pfss_tasks_org_transfer_fkey
   foreign key (organization_id, related_transfer_id)
@@ -168,6 +192,8 @@ alter table public.pfss_tasks
 alter table public.pfss_calendar_events
   drop constraint if exists pfss_calendar_events_team_id_fkey;
 alter table public.pfss_calendar_events
+  drop constraint if exists pfss_calendar_events_org_team_fkey;
+alter table public.pfss_calendar_events
   add constraint pfss_calendar_events_org_team_fkey
   foreign key (organization_id, team_id)
   references public.pfss_teams (organization_id, id)
@@ -175,6 +201,8 @@ alter table public.pfss_calendar_events
 
 alter table public.pfss_calendar_events
   drop constraint if exists pfss_calendar_events_player_id_fkey;
+alter table public.pfss_calendar_events
+  drop constraint if exists pfss_calendar_events_org_player_fkey;
 alter table public.pfss_calendar_events
   add constraint pfss_calendar_events_org_player_fkey
   foreign key (organization_id, player_id)
@@ -185,6 +213,8 @@ alter table public.pfss_calendar_events
 alter table public.pfss_media
   drop constraint if exists pfss_media_player_id_fkey;
 alter table public.pfss_media
+  drop constraint if exists pfss_media_org_player_fkey;
+alter table public.pfss_media
   add constraint pfss_media_org_player_fkey
   foreign key (organization_id, player_id)
   references public.pfss_players (organization_id, id)
@@ -192,6 +222,8 @@ alter table public.pfss_media
 
 alter table public.pfss_media
   drop constraint if exists pfss_media_report_id_fkey;
+alter table public.pfss_media
+  drop constraint if exists pfss_media_org_report_fkey;
 alter table public.pfss_media
   add constraint pfss_media_org_report_fkey
   foreign key (organization_id, report_id)
