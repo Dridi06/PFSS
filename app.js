@@ -65,6 +65,13 @@ function showView(view, navElement = null, fromPopState = false) {
       );
     }
   }
+  try {
+    sessionStorage.setItem('pfss_last_page_v1', JSON.stringify({
+      type: 'legacy', view, label: selectedLabel,
+      userId: window.pfssCurrentUserId || null
+    }));
+  } catch (storageError) {}
+
   document.querySelectorAll('.view').forEach(el => {
     el.classList.toggle('active', el.id === `view-${view}`);
   });
@@ -877,9 +884,33 @@ function showAuthenticatedApp(user, profile, options = {}) {
       '',
       window.location.pathname + window.location.search
     );
-    const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === startView &&
-      (startView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
-    showView(startView, nav, true);
+    let targetView = startView;
+    let savedPage = null;
+    try {
+      savedPage = JSON.parse(sessionStorage.getItem('pfss_last_page_v1') || 'null');
+    } catch (storageError) {}
+    if (savedPage && (!savedPage.userId || savedPage.userId === user.id)) {
+      if (savedPage.type === 'workspace' && document.getElementById('pfss-view-' + savedPage.view)) {
+        const workspaceButton = document.querySelector('[data-ui-view="' + savedPage.view + '"]');
+        if (workspaceButton && !workspaceButton.hidden) {
+          workspaceButton.click();
+          return;
+        }
+      }
+      if (savedPage.type === 'legacy') {
+        const savedNav = [...document.querySelectorAll('[data-view]')].find(el =>
+          el.dataset.view === savedPage.view &&
+          (!savedPage.label || el.textContent.trim() === savedPage.label) &&
+          !el.hidden
+        );
+        if (savedNav && document.getElementById('view-' + savedPage.view)) {
+          targetView = savedPage.view;
+        }
+      }
+    }
+    const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === targetView &&
+      (targetView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
+    showView(targetView, nav, true);
   };
 
   if (options.skipWelcome) {
