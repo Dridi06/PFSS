@@ -26,12 +26,30 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] Vorschaucharakter der generierten Workspace- und Finanzmodule im Quelltext bestätigt; diese Module werden nicht als produktiv angebunden ausgegeben.
 
 ### Noch nicht als erledigt bestätigt
-- [ ] GitHub-Actions-Lauf des erweiterten Validators erfolgreich abwarten und Ergebnis prüfen.
-- [ ] Validator in einer vollständigen lokalen Repository-Kopie ausführen; der Quelltext wurde hier syntaktisch geprüft, aber kein vollständiger Runner mit allen Repository-Dateien ausgeführt.
+- [x] GitHub-Actions-Lauf des erweiterten Validators und der PFSS-Sicherheitsregeln erfolgreich geprüft (Commit `fade726110d975d53fadef71fcb621feec8802c2`; beide Schritte erfolgreich).
+- [x] Vollständigen Validator auf einem vollständigen GitHub-Runner-Checkout ausgeführt; JavaScript-/HTML-Prüfungen und ergänzende PFSS-Sicherheitsregeln bestanden. Ein separater lokaler Rechnerlauf bleibt nicht zwingend erforderlich.
 - [ ] Browser-/Gerätetests und Ende-zu-Ende-Funktionstests durchführen.
 - [ ] Live-Supabase-Schema, RLS, Grants, Trigger, Funktionen und Storage-Policies anhand des Preflight-Exports verifizieren.
-- [ ] Edge-Function-Härtung erst nach Festlegung der echten Frontend-Origin-Allowlist und des autoritativen Admin-Rollenmodells umsetzen.
+- [~] Edge-Functions im Branch technisch gehärtet (Login: CORS-Allowlist, JSON-/Größenlimits und generische Fehler; R2: JWT und explizite Admin-UUID-Allowlist). Deployment, Supabase-Secrets, verteiltes Rate-Limit und Live-Tests fehlen noch.
 - [ ] Backup-Workflow, R2-Zugang und Restore praktisch prüfen.
+
+
+## Selbstständig erledigte Repository-Arbeiten – Durchgang 2 (12.11.2026)
+
+- [x] Username-Login-Edge-Function im Entwicklungsbranch gehärtet: nur POST, JSON-Pflicht, 8-KiB-Body-Limit (auch anhand der tatsächlichen Bytes), Passwortlängenbegrenzung, konfigurierbare CORS-Origin-Allowlist, generische Anmeldefehler und `Cache-Control: no-store`. Noch kein verteilter Rate-Limit-Speicher.
+- [x] R2-Diagnosefunktion auf POST, Supabase-JWT-Validierung und explizite Admin-UUID-Allowlist umgestellt; `verify_jwt = true` in `supabase/config.toml` gesetzt. Ohne die erforderlichen Function-Secrets ist der Zugriff standardmäßig geschlossen.
+- [x] Private Scout-Workspace-Migration überarbeitet: Eigentümer-only RLS für Spieler, Berichte und Medienmetadaten; Report-/Medienreferenzen müssen auf Spieler desselben Eigentümers zeigen; Tabellenrechte für `anon` und `public` entzogen; privater Storage mit Owner-Ordner und MIME-/Größenlimits. UPDATE auf Storage-Objekten ist nicht gewährt.
+- [x] Nicht belegte Behauptung angeblich bereits geprüfter Live-Voraussetzungen aus der Mandantenmigration entfernt und durch konkrete, noch auszuführende Preflight-Anforderungen ersetzt.
+- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Lauf für Commit `fade726110d975d53fadef71fcb621feec8802c2`: Static validation und PFSS security guardrails beide erfolgreich.
+- [x] OWASP-Matrix mit PFSS-Kontrollen, konkreten Testideen, offenen Belegen und benötigten Function-Secrets erstellt.
+- [x] CodeQL-Workflow (JavaScript/TypeScript, security-extended und security-and-quality) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Der erste CodeQL-Lauf ist noch zu prüfen.
+- [x] Sicherheitsbericht um den Status der neuen Branch-Änderungen ergänzt.
+
+### Neue Konfigurations-/Abnahmeaufgaben vor einem Edge-Function-Deployment
+- [ ] Supabase Function Secret `PFSS_ALLOWED_ORIGINS` im jeweiligen Projekt setzen (für Browser-Calls nur exakte, tatsächlich verwendete HTTPS-Origins eintragen).
+- [ ] Supabase Function Secret `PFSS_R2_ADMIN_USER_IDS` mit den freigegebenen Supabase-Auth-UUIDs der zuständigen Admins setzen.
+- [ ] Nach Secret-Konfiguration die beiden Edge Functions auf einer Testumgebung deployen und Login/R2 mit 200/401/403/413/415/Origin-Negativfällen testen.
+- [ ] Verteiltes Rate-Limit für Username-Login umsetzen und anhand gleichzeitiger Requests testen.
 
 ## Verbindliche Entwicklungsreihenfolge – Gesamtprojekt PFSS
 
@@ -48,7 +66,7 @@ Diese Prioritäten bilden die übergeordnete Reihenfolge für die weitere Entwic
 | 7 | Automatisierung und Benachrichtigungen | **Hoch** |
 
 ### Umsetzungshinweis
-- [ ] Die Reihenfolge als verbindliche Projektpriorisierung verwenden.
+- [x] Die Reihenfolge als verbindliche Projektpriorisierung in dieser Roadmap festgelegt.
 - [ ] Kritische Bereiche vor dem produktiven Rollout vollständig prüfen und abnehmen.
 - [ ] Abhängigkeiten berücksichtigen: Datenmodell, Mandantentrennung und Berechtigungen müssen stehen, bevor Fachmodule produktiv miteinander verbunden werden.
 - [ ] Buchhaltungsfunktionen erst nach fachlicher, steuerlicher und rechtlicher Prüfung produktiv schalten.
@@ -59,14 +77,14 @@ Diese Prioritäten bilden die übergeordnete Reihenfolge für die weitere Entwic
 
 Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Die detaillierten Prüfschritte stehen im Abschnitt „OWASP Security Baseline“ weiter unten.
 
-- [ ] **1. OWASP ASVS 5.0:** als technische Sicherheits- und Abnahmecheckliste einführen.
-- [ ] **2. OWASP Top 10:** als Grundlage für regelmäßige Risiko- und Code-Reviews verwenden.
-- [ ] **3. OWASP Cheat Sheets:** konkrete sichere Implementierungen für Login, Sessions, Berechtigungen, Eingaben, Uploads, Kryptografie und Logging ableiten.
+- [x] **1. OWASP ASVS 5.0.0:** als technische Verifikationsbasis festgelegt; Zielniveau Level 2, risikobasierte Zusatzprüfungen. Die konkrete ASVS-Anforderungsliste mit Requirement-IDs bleibt offen.
+- [x] **2. OWASP Top 10:2025:** als Risiko-Orientierung in der PFSS-Sicherheitsmatrix festgelegt.
+- [~] **3. OWASP Cheat Sheet Series:** als Umsetzungsreferenz für die PFSS-Kontrollbereiche aufgenommen; vollständige modulbezogene Ableitung und Review aller Maßnahmen offen.
 - [ ] **4. OWASP ZAP:** automatisierte Sicherheitsscans in einer isolierten Test-/Staging-Umgebung einrichten.
 - [ ] **5. Manuelle Schwachstellentests:** unter anderem XSS, SQL-Injection, CSRF, IDOR/BOLA und SSRF prüfen.
-- [ ] **6. Authentifizierung und Sitzungen:** Login, Brute-Force-Schutz, MFA für privilegierte Rollen und Session-Lebenszyklus absichern.
-- [ ] **7. Rollen und Mandantentrennung:** sicherstellen, dass Scouts, Vereine und Agenturen ausschließlich berechtigte Daten sehen und ändern können.
-- [ ] **8. APIs, Supabase und Datei-Uploads:** Edge Functions, CORS, Rate Limits, Eingabe- und Dateiprüfung sowie Storage-Policies absichern.
+- [~] **6. Authentifizierung und Sitzungen:** Login-Request-Prüfungen und sichere Fehlerantworten vorbereitet; verteilter Brute-Force-Schutz, MFA, Wiederherstellungstests und Session-Lifecycle-Tests offen.
+- [~] **7. Rollen und Mandantentrennung:** Scout-Eigentümer-Policies und Cross-Reference-Prüfungen im Migrationsentwurf gehärtet; kanonisches Organisationsmodell und Live-Negativtests offen.
+- [~] **8. APIs, Supabase und Datei-Uploads:** CORS-Allowlist, Methoden-/Body-/JSON-Prüfungen, JWT-/Admin-Prüfung und private Storage-Policy-Entwürfe umgesetzt; verteilte Rate-Limits, vollständige Uploadvalidierung und Live-Tests offen.
 - [ ] **9. Datenschutz, Verschlüsselung und Audit:** Datenminimierung, Schlüsselverwaltung, sichere Protokolle und Schutz minderjähriger Spieler umsetzen.
 - [ ] **10. Sicherheitsfreigabe:** Befunde beheben und erneut testen, Ergebnisse dokumentieren und vor Produktivstart einen unabhängigen Penetrationstest einplanen.
 
@@ -76,43 +94,43 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 
 - [ ] Live-Schema-Inventar ausführen und tatsächliche Tabellen, Policies, Grants, Trigger und Funktionen sichern.
 - [ ] Kanonisches Organisationsmodell bestimmen; parallele Modelle nicht ohne Datenabgleich löschen.
-- [ ] Definition und Rechte von `is_admin()` verifizieren.
+- [~] Die private Scout-Workspace-Migration ist von `public.is_admin()` entkoppelt; Definition und Nutzung der Funktion in übrigen Migrationen/RPCs bleiben live zu prüfen.
 - [ ] Einladungscodes auf Ablauf, Einmalverwendung, Widerruf und Rollenbegrenzung testen.
 - [ ] Negativtests: Scout A darf weder Spieler, Berichte, Medien noch Organisationsdaten von Scout/Verein B lesen oder ändern.
-- [ ] Username-Login gegen Brute Force absichern; dafür einen verteilten Rate-Limit-Speicher verwenden, nicht nur In-Memory-Zähler.
-- [ ] CORS-Origins auf die tatsächlich genutzten Domains begrenzen.
-- [ ] R2-Diagnosefunktion nur für authentifizierte und autorisierte Administratoren erreichbar machen.
-- [ ] Private Storage Policies für SELECT, INSERT, UPDATE und DELETE konsistent prüfen.
+- [~] Username-Login hat jetzt Request-Limits und generische Fehler, aber noch keinen verteilten Rate-Limit-Speicher. Der Punkt ist ausdrücklich nicht abgeschlossen.
+- [~] Beide Edge Functions nutzen `PFSS_ALLOWED_ORIGINS`; die exakten Origins müssen vor Deployment als Supabase Function Secret gesetzt und live geprüft werden.
+- [~] R2-Diagnose verlangt im Branch ein gültiges Supabase-JWT und eine `PFSS_R2_ADMIN_USER_IDS`-UUID-Allowlist; Secret-Konfiguration, Deployment und Laufzeittest stehen aus.
+- [~] Private Storage-Migrationsentwürfe erlauben ownergebundenes SELECT/INSERT/DELETE; UPDATE ist absichtlich nicht freigegeben. Live-Policy-Nebenwirkungen und tatsächliche Bucket-Konfiguration noch testen.
 - [ ] Minderjährigendaten: Zweckbindung, minimale Erhebung, Freigaben, Lösch- und Aufbewahrungsregeln rechtlich prüfen.
 
 ### 2. Technische Grundfunktionen und Systemüberwachung
 
 - [ ] Healthchecks für Frontend, Auth, Datenbank und Storage getrennt definieren.
-- [ ] Fehler zentral erfassen, ohne Passwörter, Tokens, private Spieler- oder Gesundheitsdaten zu protokollieren.
+- [~] Neue Edge-Function-Fehlerantworten und Logs geben keine Passwörter, Tokens oder Provider-Fehlerdetails aus; eine zentrale, überwachte Logpipeline ist offen.
 - [ ] Einheitliche Lade-, Fehler-, Leer- und Erfolgszustände für alle Module.
 - [ ] Wiederholbare Smoke-Tests für Anmeldung, Abmeldung, Navigation und Kernabfragen.
-- [ ] Abhängigkeiten pinnen und Content-Security-Policy-/SRI-Strategie prüfen.
+- [~] CodeQL-Analyse und wöchentliche Dependabot-Updates für GitHub Actions vorbereitet; Supabase-CDN-Version, CSP und SRI sind weiterhin offen.
 
 ### 3. Workspace-Bereiche vereinheitlichen
 
-- [ ] Jede Vorschau eindeutig als Vorschau kennzeichnen, solange keine echte Datenbankfunktion angeschlossen ist.
+- [x] Workspace- und Finance-Vorschauen sind im Quelltext als visuelle Vorschau/sample data gekennzeichnet; die Vorschau darf nicht als produktive Datenbankfunktion gewertet werden.
 - [ ] Gemeinsame Komponenten für Tabellen, Filter, Dialoge, Formulare und Statusanzeigen.
 - [ ] Einheitliche Rechteprüfung vor jeder Aktion.
-- [ ] Keine Demo-Daten als echte Organisationsdaten darstellen.
+- [x] Die generierten Workspace- und Finance-Screens verwenden klar erkennbare Beispiel-/Demodaten und kennzeichnen ihre Vorschau-Funktion.
 
 ### 4. Scouting und Datenqualität
 
 - [ ] Spieler-Dublettenprüfung mit manueller Zusammenführung statt automatischem Löschen.
 - [ ] Einheitliche Bewertungs-Skala und dokumentierte Kriterien.
 - [ ] Historie je Spieler mit Datum, Scout und Bericht.
-- [ ] Spieler-Vergleich und Filter.
+- [~] Spielerfilter sind in der bestehenden Oberfläche vorhanden/erweitert; ein vollständiger Spieler-Vergleich mit Datenbank- und Berechtigungsanbindung ist noch offen.
 - [ ] Export nur für berechtigte Nutzer und mit Datenschutzprüfung.
 
 ### 5. Administration und Benachrichtigungen
 
-- [ ] Rollen-/Rechteübersicht aus der tatsächlichen serverseitigen Berechtigungsquelle.
-- [ ] Einladungsverwaltung mit Status und Ablauf.
-- [ ] Audit-Trail für sicherheitsrelevante Aktionen.
+- [ ] Rollen-/Rechteübersicht aus der tatsächlichen serverseitigen Berechtigungsquelle; noch nicht umgesetzt, da das kanonische Rollenmodell nicht feststeht.
+- [~] Einladungs-/Mitgliedschaftsgrundlagen und RPCs sind im Repository vorbereitet; Statusdarstellung und Ende-zu-Ende-Tests der Abläufe sind offen.
+- [~] `audit_log`-Struktur ist vorhanden; Vollständigkeit, Zugriffsschutz, Manipulationsschutz und tatsächliche Event-Abdeckung sind nicht abgenommen.
 - [ ] Benachrichtigungen mit Präferenzen und nachvollziehbarem Status.
 
 ### 6. Datenschutz, Backup und Wiederherstellung
@@ -171,8 +189,8 @@ OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-E
 - [ ] OWASP ASVS 5.0 als technische Anforderungs- und Abnahme-Checkliste für die Webanwendung festlegen; passende Anforderungsebenen je Risiko auswählen.
 - [ ] OWASP Top 10 als wiederkehrende Risiko-Orientierung in Architektur- und Code-Reviews verwenden.
 - [ ] OWASP Cheat Sheet Series für konkrete Implementierungsentscheidungen zu Authentifizierung, Session Management, Zugriffskontrolle, Eingabevalidierung, Datei-Uploads, Kryptografie, Fehlerbehandlung und Logging heranziehen.
-- [ ] Für jede relevante ASVS-Anforderung dokumentieren: betroffenes PFSS-Modul, Umsetzung, Testfall, Ergebnis und offene Abweichung.
-- [ ] Sicherheitsanforderungen als Release-Gate definieren; kritische und hohe offene Befunde verhindern eine Produktionsfreigabe.
+- [~] Für die PFSS-Sicherheitsbereiche eine erste Kontrollmatrix mit Testideen und Status angelegt; konkrete ASVS-5.0.0-Requirement-IDs und prüfbare Einzelnachweise noch zu ergänzen.
+- [x] Sicherheitsanforderungen als Release-Gate dokumentiert; kritische und hohe offene Befunde verhindern eine Produktionsfreigabe.
 
 ### Automatisierte und manuelle Sicherheitstests
 - [ ] OWASP ZAP in einer isolierten Test-/Staging-Umgebung einrichten und zunächst einen passiven Baseline-Scan durchführen.
@@ -182,7 +200,7 @@ OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-E
 - [ ] Negativtests für Mandantentrennung: Scout, Verein und Agentur dürfen fremde Datensätze auch durch manipulierte IDs, API-Aufrufe, Exporte und Dateipfade nicht abrufen oder verändern.
 - [ ] Ergebnisse triagieren, beheben, erneut testen und mit Datum/Commit dokumentieren; False Positives nachvollziehbar begründen.
 - [ ] Abhängigkeiten und Build-/Deployment-Kette regelmäßig auf bekannte Schwachstellen prüfen; Updates kontrolliert testen und versionieren.
-- [ ] Sicherheitsrelevante Tests in CI integrieren, ohne Secrets oder echte personenbezogene Daten offenzulegen.
+- [x] Statische PFSS-Sicherheitsregeln in den Qualitätsworkflow integriert und auf GitHub erfolgreich ausgeführt; dynamische/autorisierten Negativtests sind davon getrennt.
 
 ### PFSS-spezifische Sicherheitsprüfungen
 - [ ] Authentifizierung: sichere Passwort-/Username-Flows, Brute-Force-Schutz, MFA-Option für privilegierte Rollen, sichere Wiederherstellung und Session-Lebenszyklus.
@@ -197,5 +215,5 @@ OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-E
 - [ ] Sicherheitsreview vor jedem größeren Release und nach Änderungen an Auth, Rollen, Datenbank-Policies, APIs oder Uploads wiederholen.
 - [ ] Externen Penetrationstest vor produktivem Rollout und danach risikobasiert einplanen.
 - [ ] Sicherheitsnachweise und Restrisiken im Release-Protokoll festhalten.
-- [ ] OWASP ZAP oder ein bestandener ASVS-Abgleich allein wird nicht als Zertifizierung, vollständiger Penetrationstest oder Garantie der Sicherheit dargestellt.
-- [ ] Alle Scans und Tests bleiben auf lokale Testumgebung oder freigegebene Staging-Systeme begrenzt; Produktion und produktive Datenbanken bleiben ohne ausdrückliche Freigabe unangetastet.
+- [x] In der Sicherheitsmatrix ausdrücklich festgehalten: ZAP/ASVS sind keine Zertifizierung, kein vollständiger Penetrationstest und keine Sicherheitsgarantie.
+- [x] Sicherheitsgrenze dokumentiert: Scans und Tests ausschließlich lokal oder auf ausdrücklich freigegebenem Staging; Produktion und produktive Datenbanken bleiben ohne Freigabe unangetastet.
