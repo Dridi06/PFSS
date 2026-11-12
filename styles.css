@@ -909,372 +909,13 @@ button,input,select,textarea{max-width:100%}
 }
 
 
-/* PFMS mobile header: prevent breadcrumb/status/controls from overlapping */
-@media(max-width:760px){
-  .main-area .topbar{
-    display:grid;
-    grid-template-columns:42px minmax(0,1fr);
-    grid-template-areas:
-      "menu breadcrumb"
-      "right right";
-    align-items:center;
-    justify-content:initial;
-    column-gap:10px;
-    row-gap:10px;
-    width:100%;
-    height:auto;
-    min-height:0;
-    padding:12px 0;
-  }
-  .main-area .topbar .mobile-menu{
-    grid-area:menu;
-    flex:none;
-  }
-  .main-area .topbar .breadcrumb{
-    grid-area:breadcrumb;
-    display:flex;
-    min-width:0;
-    max-width:100%;
-    overflow:hidden;
-    white-space:nowrap;
-    gap:7px;
-  }
-  .main-area .topbar .breadcrumb b{
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .main-area .topbar .topbar-right{
-    grid-area:right;
-    display:flex;
-    flex:initial;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:flex-start;
-    min-width:0;
-    width:100%;
-    margin:0;
-    gap:8px;
-  }
-  .main-area .topbar .online-pill{
-    flex:0 0 auto;
-    white-space:nowrap;
-  }
-  .main-area .topbar .admin-preview-switch{
-    flex:0 1 auto;
-    min-width:0;
-    max-width:100%;
-  }
-  .main-area .topbar .admin-preview-switch select{
-    max-width:118px;
-    min-width:0;
-  }
-  .main-area .topbar .user-id-pill{
-    flex:0 1 auto;
-    min-width:0;
-    max-width:100%;
-  }
-  .main-area .topbar #userIdValue{
-    max-width:min(38vw,190px);
-    min-width:0;
-  }
-}
 
 
-/* User-ID immer eindeutig beschriften – Label oberhalb der Kennung */
-.user-id-pill{
-  display:inline-flex;
-  flex-direction:column;
-  align-items:flex-start;
-  justify-content:center;
-  gap:3px;
-  white-space:normal;
-}
-.user-id-label{
-  display:block!important;
-  font-size:9px;
-  line-height:1.2;
-  font-weight:800;
-}
-.user-id-value-row{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-  max-width:100%;
-}
-#userIdValue{
-  display:block;
-  min-width:0;
-}
-@media(max-width:520px){
-  .user-id-pill{
-    display:inline-flex!important;
-    flex-direction:column!important;
-    align-items:flex-start!important;
-    gap:3px!important;
-    max-width:54vw;
-  }
-  .user-id-label{display:block!important}
-  .user-id-value-row{max-width:100%}
-  #userIdValue{max-width:34vw;font-size:9px}
-}
-
-
-/* Compact User-ID badge: fixed visual footprint, no UUID wrapping */
-.user-id-pill{
-  box-sizing:border-box;
-  width:220px;
-  max-width:220px;
-  min-width:0;
-  flex:0 1 220px;
-  padding:6px 9px;
-  gap:2px;
-  border-radius:12px;
-  overflow:hidden;
-}
-.user-id-value-row{
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  flex-wrap:nowrap;
-  width:100%;
-  min-width:0;
-  gap:6px;
-}
-#userIdValue{
-  display:block;
-  flex:1 1 auto;
-  width:0;
-  min-width:0;
-  max-width:none!important;
-  overflow:hidden;
-  white-space:nowrap!important;
-  text-overflow:ellipsis;
-  overflow-wrap:normal;
-  word-break:normal;
-  line-height:1.25;
-}
-.user-id-copy-button{
-  flex:0 0 23px;
-  width:23px;
-  height:23px;
-}
-@media(max-width:760px){
-  .main-area .topbar .topbar-right{
-    align-items:center!important;
-    flex-wrap:wrap!important;
-    gap:8px!important;
-  }
-  .main-area .topbar .user-id-pill{
-    width:190px!important;
-    max-width:46vw!important;
-    min-width:0!important;
-    flex:0 1 190px!important;
-  }
-  .main-area .topbar #userIdValue{
-    max-width:none!important;
-    white-space:nowrap!important;
-  }
-}
-@media(max-width:390px){
-  .main-area .topbar .user-id-pill{
-    width:165px!important;
-    max-width:44vw!important;
-    flex-basis:165px!important;
-  }
-}
-
-
-/* Mobile header layout v2: status top-right, role left, compact ID right */
-@media(max-width:760px){
-  .main-area .topbar{
-    display:grid!important;
-    grid-template-columns:42px auto minmax(0,1fr) auto!important;
-    grid-template-rows:auto auto!important;
-    grid-template-areas:
-      "menu crumb spacer online"
-      "admin admin spacer uid"!important;
-    align-items:center!important;
-    justify-content:initial!important;
-    column-gap:8px!important;
-    row-gap:10px!important;
-    width:100%!important;
-    height:auto!important;
-    min-height:0!important;
-    padding:12px 0!important;
-  }
-  .main-area .topbar>.mobile-menu{
-    grid-area:menu!important;
-    width:42px!important;
-    height:42px!important;
-    min-width:42px!important;
-  }
-  .main-area .topbar>.breadcrumb{
-    grid-area:crumb!important;
-    min-width:0!important;
-    max-width:100%!important;
-    overflow:hidden!important;
-    white-space:nowrap!important;
-  }
-  .main-area .topbar>.topbar-right{
-    display:contents!important;
-  }
-  .main-area .topbar .online-pill{
-    grid-area:online!important;
-    justify-self:end!important;
-    align-self:center!important;
-    margin:0!important;
-    white-space:nowrap!important;
-  }
-  .main-area .topbar .admin-preview-switch{
-    grid-area:admin!important;
-    justify-self:start!important;
-    align-self:center!important;
-    box-sizing:border-box!important;
-    max-width:100%!important;
-    min-width:0!important;
-    padding:4px 6px!important;
-    gap:4px!important;
-  }
-  .main-area .topbar .preview-mode-label{display:none!important}
-  .main-area .topbar .admin-preview-switch select{
-    width:132px!important;
-    max-width:132px!important;
-    min-width:0!important;
-    padding:7px 5px!important;
-    font-size:11px!important;
-  }
-  .main-area .topbar .user-id-pill{
-    grid-area:uid!important;
-    justify-self:end!important;
-    align-self:center!important;
-    box-sizing:border-box!important;
-    width:154px!important;
-    max-width:154px!important;
-    min-width:0!important;
-    flex:none!important;
-    padding:5px 7px!important;
-    border-radius:10px!important;
-  }
-  .main-area .topbar .user-id-label{
-    display:block!important;
-    font-size:8px!important;
-    line-height:1.1!important;
-  }
-  .main-area .topbar .user-id-value-row{
-    display:flex!important;
-    width:100%!important;
-    min-width:0!important;
-    gap:4px!important;
-  }
-  .main-area .topbar #userIdValue{
-    flex:1 1 auto!important;
-    width:0!important;
-    min-width:0!important;
-    max-width:none!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    font-size:8px!important;
-  }
-  .main-area .topbar .user-id-copy-button{
-    flex:0 0 20px!important;
-    width:20px!important;
-    height:20px!important;
-  }
-  .main-area .topbar .top-avatar{display:none!important}
-}
-@media(max-width:390px){
-  .main-area .topbar{
-    grid-template-columns:38px auto minmax(0,1fr) auto!important;
-    column-gap:6px!important;
-  }
-  .main-area .topbar>.mobile-menu{width:38px!important;min-width:38px!important}
-  .main-area .topbar .admin-preview-switch select{width:120px!important;max-width:120px!important}
-  .main-area .topbar .user-id-pill{width:140px!important;max-width:140px!important}
-}
-
-
-/* User-ID label, identifier and copy control on one compact line */
-@media(max-width:760px){
-  .main-area .topbar .user-id-pill{
-    width:auto!important;
-    max-width:calc(100vw - 210px)!important;
-    min-width:0!important;
-    flex:0 1 auto!important;
-    padding:6px 7px!important;
-    border-radius:10px!important;
-    overflow:hidden!important;
-  }
-  .main-area .topbar .user-id-value-row{
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    flex-wrap:nowrap!important;
-    width:100%!important;
-    min-width:0!important;
-    gap:5px!important;
-  }
-  .main-area .topbar .user-id-label{
-    display:inline!important;
-    flex:0 0 auto!important;
-    white-space:nowrap!important;
-    font-size:8px!important;
-    line-height:1!important;
-  }
-  .main-area .topbar #userIdValue{
-    flex:1 1 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:none!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    font-size:8px!important;
-  }
-  .main-area .topbar .user-id-copy-button{
-    flex:0 0 20px!important;
-    width:20px!important;
-    height:20px!important;
-  }
-}
-@media(max-width:390px){
-  .main-area .topbar .user-id-pill{
-    max-width:calc(100vw - 190px)!important;
-  }
-}
-
-
-/* Final mobile header placement: direct header children, no nested flex wrapper */
-@media(max-width:760px){
-  .main-area .topbar>.online-pill{
-    grid-area:online!important;
-    justify-self:end!important;
-    align-self:center!important;
-    display:flex!important;
-    margin:0!important;
-  }
-  .main-area .topbar>.admin-preview-switch{
-    grid-area:admin!important;
-    justify-self:start!important;
-    align-self:center!important;
-  }
-  .main-area .topbar>.user-id-pill{
-    grid-area:uid!important;
-    justify-self:end!important;
-    align-self:center!important;
-  }
-  .main-area .topbar>.top-avatar{display:none!important}
-}
-
-
-/* Mobile header final layout: flex rows with explicit order (no grid overlap) */
+/* PFMS mobile header — one canonical layout */
 @media (max-width: 760px) {
-  .main-area .topbar {
+  .main-area > .topbar {
     display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-flow: row wrap !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 10px 8px !important;
@@ -1284,7 +925,7 @@ button,input,select,textarea{max-width:100%}
     padding: 12px 0 !important;
   }
 
-  .main-area .topbar > .mobile-menu {
+  .main-area > .topbar > .mobile-menu {
     order: 1 !important;
     flex: 0 0 42px !important;
     width: 42px !important;
@@ -1293,37 +934,35 @@ button,input,select,textarea{max-width:100%}
     margin: 0 !important;
   }
 
-  .main-area .topbar > .breadcrumb {
+  .main-area > .topbar > .breadcrumb {
     order: 2 !important;
     display: flex !important;
-    flex: 1 1 120px !important;
-    min-width: 100px !important;
+    flex: 1 1 100px !important;
+    min-width: 90px !important;
     max-width: none !important;
+    margin: 0 !important;
     overflow: hidden !important;
     white-space: nowrap !important;
-    margin: 0 !important;
     gap: 7px !important;
   }
 
-  .main-area .topbar > .breadcrumb b {
-    display: block !important;
+  .main-area > .topbar > .breadcrumb b {
     min-width: 0 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
-  .main-area .topbar > .online-pill {
+  .main-area > .topbar > .online-pill {
     order: 3 !important;
     display: flex !important;
     flex: 0 0 auto !important;
     align-items: center !important;
-    justify-self: auto !important;
     margin: 0 0 0 auto !important;
     white-space: nowrap !important;
   }
 
-  .main-area .topbar > .admin-preview-switch {
+  .main-area > .topbar > .admin-preview-switch {
     order: 4 !important;
     display: flex !important;
     flex: 0 1 135px !important;
@@ -1331,19 +970,16 @@ button,input,select,textarea{max-width:100%}
     max-width: 135px !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
-    justify-self: auto !important;
-    align-self: center !important;
     margin: 0 !important;
     padding: 4px 6px !important;
     gap: 4px !important;
   }
 
-  .main-area .topbar > .admin-preview-switch .preview-mode-label {
+  .main-area > .topbar > .admin-preview-switch .preview-mode-label {
     display: none !important;
   }
 
-  .main-area .topbar > .admin-preview-switch select {
-    display: block !important;
+  .main-area > .topbar > .admin-preview-switch select {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -1351,7 +987,7 @@ button,input,select,textarea{max-width:100%}
     font-size: 11px !important;
   }
 
-  .main-area .topbar > .user-id-pill {
+  .main-area > .topbar > .user-id-pill {
     order: 5 !important;
     display: inline-flex !important;
     flex: 0 1 200px !important;
@@ -1359,15 +995,13 @@ button,input,select,textarea{max-width:100%}
     max-width: 200px !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
-    justify-self: auto !important;
-    align-self: center !important;
     margin: 0 0 0 auto !important;
     padding: 6px 7px !important;
     overflow: hidden !important;
     border-radius: 10px !important;
   }
 
-  .main-area .topbar > .user-id-pill .user-id-value-row {
+  .main-area > .topbar > .user-id-pill .user-id-value-row {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
@@ -1377,7 +1011,7 @@ button,input,select,textarea{max-width:100%}
     gap: 5px !important;
   }
 
-  .main-area .topbar > .user-id-pill .user-id-label {
+  .main-area > .topbar > .user-id-pill .user-id-label {
     display: inline !important;
     flex: 0 0 auto !important;
     white-space: nowrap !important;
@@ -1385,7 +1019,7 @@ button,input,select,textarea{max-width:100%}
     line-height: 1 !important;
   }
 
-  .main-area .topbar > .user-id-pill #userIdValue {
+  .main-area > .topbar > .user-id-pill #userIdValue {
     display: block !important;
     flex: 1 1 auto !important;
     width: 0 !important;
@@ -1399,7 +1033,7 @@ button,input,select,textarea{max-width:100%}
     font-size: 8px !important;
   }
 
-  .main-area .topbar > .user-id-pill .user-id-copy-button {
+  .main-area > .topbar > .user-id-pill .user-id-copy-button {
     display: inline-flex !important;
     flex: 0 0 20px !important;
     width: 20px !important;
@@ -1407,18 +1041,19 @@ button,input,select,textarea{max-width:100%}
     margin: 0 !important;
   }
 
-  .main-area .topbar > .top-avatar {
+  .main-area > .topbar > .top-avatar {
     display: none !important;
   }
 }
 
 @media (max-width: 380px) {
-  .main-area .topbar > .admin-preview-switch {
+  .main-area > .topbar > .admin-preview-switch {
     flex-basis: 125px !important;
     width: 125px !important;
     max-width: 125px !important;
   }
-  .main-area .topbar > .user-id-pill {
+
+  .main-area > .topbar > .user-id-pill {
     flex-basis: 185px !important;
     width: 185px !important;
     max-width: 185px !important;
