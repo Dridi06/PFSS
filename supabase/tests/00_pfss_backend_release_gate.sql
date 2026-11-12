@@ -22,7 +22,7 @@ with expected_tables(table_name, criticality) as (
 ),
 table_state as (
   select e.table_name, e.criticality,
-         c.oid is not null as exists,
+         c.oid is not null as table_exists,
          coalesce(c.relrowsecurity,false) as rls_enabled,
          coalesce(c.relforcerowsecurity,false) as rls_forced,
          coalesce(p.policy_count,0) as policy_count
@@ -37,8 +37,8 @@ table_state as (
 checks as (
   select
     case
-      when exists and rls_enabled and policy_count > 0 then 'PASS'
-      when criticality='critical' and not exists then 'FAIL'
+      when table_exists and rls_enabled and policy_count > 0 then 'PASS'
+      when criticality='critical' and not table_exists then 'FAIL'
       when criticality='critical' and not rls_enabled then 'FAIL'
       when criticality='critical' and policy_count=0 then 'FAIL'
       when criticality='tenant' and exists and not rls_enabled then 'FAIL'
@@ -48,7 +48,7 @@ checks as (
     end as status,
     'table:' || table_name as check_id,
     case
-      when not exists then 'Table not present in this database.'
+      when not table_exists then 'Table not present in this database.'
       when not rls_enabled then 'RLS is not enabled.'
       when policy_count=0 then 'No RLS policies found; review whether this is intentional.'
       else 'RLS enabled; policies exist. Inspect predicates and test with separate users.'
@@ -78,12 +78,12 @@ private_fk_check as (
   select
     case when exists (
       select 1 from pg_constraint
-      where conrelid='public.pfss_scout_reports'::regclass
+      where conrelid=to_regclass('public.pfss_scout_reports')
         and conname='pfss_scout_reports_owner_player_fkey'
         and contype='f' and convalidated
     ) and exists (
       select 1 from pg_constraint
-      where conrelid='public.pfss_scout_media'::regclass
+      where conrelid=to_regclass('public.pfss_scout_media')
         and conname='pfss_scout_media_owner_player_fkey'
         and contype='f' and convalidated
     ) then 'PASS' else 'FAIL' end as status,
@@ -118,8 +118,10 @@ dual_model_check as (
 rpc_check as (
   select
     case when
-      to_regprocedure('public.pfss_admin_list_profiles()') is not null
-      and to_regprocedure('public.pfms_create_legacy_invitation(uuid,text,text)') is not null
+      exists (select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+              where n.nspname='public' and p.proname='pfss_admin_list_profiles')
+      and exists (select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+                  where n.nspname='public' and p.proname='pfms_create_legacy_invitation')
       then 'PASS' else 'WARN' end as status,
     'legacy_admin_rpc_inventory' as check_id,
     'Frontend uses legacy admin and invitation RPCs; inspect their exact signatures, grants, SECURITY DEFINER and search_path before replacement.' as detail
@@ -130,4 +132,4 @@ union all select status, check_id, detail from private_fk_check
 union all select status, check_id, detail from bucket_check
 union all select status, check_id, detail from dual_model_check
 union all select status, check_id, detail from rpc_check
-order by status desc, check_id;
+order by case status when 'FAIL' then 1 when 'WARN' then 2 else 3 end, check_id;
