@@ -191,7 +191,7 @@ OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-E
 - [ ] OWASP ASVS 5.0 als technische Anforderungs- und Abnahme-Checkliste für die Webanwendung festlegen; passende Anforderungsebenen je Risiko auswählen.
 - [ ] OWASP Top 10 als wiederkehrende Risiko-Orientierung in Architektur- und Code-Reviews verwenden.
 - [ ] OWASP Cheat Sheet Series für konkrete Implementierungsentscheidungen zu Authentifizierung, Session Management, Zugriffskontrolle, Eingabevalidierung, Datei-Uploads, Kryptografie, Fehlerbehandlung und Logging heranziehen.
-- [~] Für die PFSS-Sicherheitsbereiche eine erste Kontrollmatrix mit Testideen und Status angelegt; konkrete ASVS-5.0.0-Requirement-IDs und prüfbare Einzelnachweise noch zu ergänzen.
+- [~] Für die PFSS-Sicherheitsbereiche eine Kontrollmatrix sowie ein Mapping von 67 ASVS-5.0.0-Anforderungs-IDs mit PFSS-Zuordnung und Testideen angelegt; tatsächliche Testergebnisse, Requirement-Einzelnachweise und Abweichungsbehebung bleiben offen.
 - [x] Sicherheitsanforderungen als Release-Gate dokumentiert; kritische und hohe offene Befunde verhindern eine Produktionsfreigabe.
 
 ### Automatisierte und manuelle Sicherheitstests
