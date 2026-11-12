@@ -14,6 +14,21 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 - Ein statischer Sicherheitsbericht liegt unter `docs/SECURITY_AUDIT_2026-11-12.md`.
 - Automatisierte statische Qualitätsprüfungen laufen künftig bei Pushes und Pull Requests.
 
+## Zusätzliche verbindliche OWASP-Aufgaben (10-Punkte-Übersicht)
+
+Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Die detaillierten Prüfschritte stehen im Abschnitt „OWASP Security Baseline“ weiter unten.
+
+- [ ] **1. OWASP ASVS 5.0:** als technische Sicherheits- und Abnahmecheckliste einführen.
+- [ ] **2. OWASP Top 10:** als Grundlage für regelmäßige Risiko- und Code-Reviews verwenden.
+- [ ] **3. OWASP Cheat Sheets:** konkrete sichere Implementierungen für Login, Sessions, Berechtigungen, Eingaben, Uploads, Kryptografie und Logging ableiten.
+- [ ] **4. OWASP ZAP:** automatisierte Sicherheitsscans in einer isolierten Test-/Staging-Umgebung einrichten.
+- [ ] **5. Manuelle Schwachstellentests:** unter anderem XSS, SQL-Injection, CSRF, IDOR/BOLA und SSRF prüfen.
+- [ ] **6. Authentifizierung und Sitzungen:** Login, Brute-Force-Schutz, MFA für privilegierte Rollen und Session-Lebenszyklus absichern.
+- [ ] **7. Rollen und Mandantentrennung:** sicherstellen, dass Scouts, Vereine und Agenturen ausschließlich berechtigte Daten sehen und ändern können.
+- [ ] **8. APIs, Supabase und Datei-Uploads:** Edge Functions, CORS, Rate Limits, Eingabe- und Dateiprüfung sowie Storage-Policies absichern.
+- [ ] **9. Datenschutz, Verschlüsselung und Audit:** Datenminimierung, Schlüsselverwaltung, sichere Protokolle und Schutz minderjähriger Spieler umsetzen.
+- [ ] **10. Sicherheitsfreigabe:** Befunde beheben und erneut testen, Ergebnisse dokumentieren und vor Produktivstart einen unabhängigen Penetrationstest einplanen.
+
 ## Reihenfolge der verbleibenden Arbeiten
 
 ### 1. Sicherheits- und Berechtigungskonzept
