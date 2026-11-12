@@ -37,7 +37,9 @@ requirePattern(login, /new TextEncoder\(\)\.encode\(raw\)\.byteLength/, "Usernam
 requirePattern(login, /content-type[\s\S]{0,180}application\/json/i, "Username login requires JSON content type");
 requirePattern(login, /Cache-Control["']:\s*["']no-store/i, "Username login disables response caching");
 requirePattern(login, /suppliedPassword\.length\s*>\s*MAX_PASSWORD_LENGTH/, "Username login bounds password input length");
-requirePattern(login, /hashUsername\(normalizedUsername\)/, "Username login hashes the normalized username for rate limiting");
+requirePattern(login, /cf-connecting-ip/, "Username login uses the Cloudflare client IP header");
+requirePattern(login, /hashRateLimitKey\("ip:" \+ clientIp\)/, "Username login hashes client IPs for distributed rate limiting");
+requirePattern(login, /hashRateLimitKey\("user-ip:" \+ normalizedUsername\.toLowerCase\(\) \+ ":" \+ clientIp\)/, "Username login also limits username/IP pairs");
 requirePattern(login, /pfss_consume_username_login_limit/, "Username login uses the shared database rate-limit RPC");
 requirePattern(login, /if \(limitError \|\| !limitResult\)/, "Username login fails closed when the rate limiter is unavailable");
 requirePattern(login, /429[\s\S]{0,200}Retry-After/s, "Username login reports a retry delay when rate limited");
