@@ -46,7 +46,7 @@ Diese Variablen gehören ausschließlich in die Supabase-Edge-Function-Secrets d
 
 ## Automatisierter passiver ZAP-Baseline-Scan
 
-Der Workflow `.github/workflows/pfss-zap-baseline.yml` kann manuell gestartet werden. Das Ziel ist fest auf `https://pfss-staging.onrender.com/` begrenzt; es gibt keinen Eingabeparameter für eine fremde URL. Es wird ausschließlich der passive Baseline-Scan verwendet. Die GitHub Action ist per Commit-SHA (v0.15.0) gepinnt. Der Workflow wurde noch nicht ausgeführt; vor einer produktiven Freigabe sind Report, Findings und False Positives zu prüfen. Aktive Scans sind nicht Bestandteil dieses Workflows.
+Der Workflow `.github/workflows/pfss-zap-baseline.yml` kann manuell gestartet werden. Das Ziel ist fest auf `https://pfss-staging.onrender.com/` begrenzt; es gibt keinen Eingabeparameter für eine fremde URL. Es wird ausschließlich der passive Baseline-Scan verwendet. Die GitHub Action ist per Commit-SHA (v0.15.0) gepinnt. Der Workflow wurde noch nicht ausgeführt; vor einer produktiven Freigabe sind Report, Findings und False Positives zu prüfen. Siehe außerdem `docs/BACKUP_RESTORE_RUNBOOK.md`: PostgreSQL-Dumps enthalten keine eigentlichen Supabase-Storage-Dateien. Aktive Scans sind nicht Bestandteil dieses Workflows.
 
 ## Offene Sicherheitsarbeit, die nicht durch statische Checks ersetzt werden kann
 
@@ -56,7 +56,7 @@ Der Workflow `.github/workflows/pfss-zap-baseline.yml` kann manuell gestartet we
 4. Organisationsmodell und Admin-Rollenquelle mit Live-Schema und Produktanforderungen abstimmen.
 5. Einladungs-, Auth-, Upload-, Export- und Tenant-Negativtests automatisieren.
 6. OWASP ZAP Baseline nur auf ausdrücklich freigegebenem, isoliertem Staging durchführen; aktive Scans erst nach Freigabe.
-7. ASVS-5.0.0-Level-2-Anforderungen aus der offiziellen CSV übernehmen, PFSS-Modulen zuordnen und pro Anforderung Test-ID, Ergebnis, Commit und Restrisiko festhalten.
+7. ASVS-5.0.0-Level-2-Anforderungen aus der offiziellen CSV übernehmen, PFSS-Modulen zuordnen und pro Anforderung Test-ID, Ergebnis, Commit und Restrisiko festhalten. Ein erstes Mapping mit 67 relevanten IDs liegt in `docs/ASVS_5.0_PFSS_REQUIREMENT_MAP.md`.
 8. Externes Security-Review und Penetrationstest vor produktiver Freigabe.
 
 ## Referenzen

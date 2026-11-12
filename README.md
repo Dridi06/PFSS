@@ -18,9 +18,9 @@ Open `index.html` through a local static web server for frontend work. The appli
 
 ## Automated checks
 
-GitHub Actions runs `scripts/pfss-validate.mjs` on pushes and pull requests. It checks JavaScript syntax, duplicate HTML IDs and local HTML resource references.
+GitHub Actions runs `scripts/pfss-validate.mjs` and `scripts/pfss-security-static-checks.mjs` on pushes and pull requests. CodeQL analyzes JavaScript/TypeScript, and Dependabot checks GitHub Actions dependencies weekly. A manually triggered ZAP baseline workflow is restricted to the staging URL.
 
-These are static checks only. They do not replace browser/device testing, database policy tests, security review or a successful backup restore.
+These automated checks do not replace browser/device testing, database policy tests, a ZAP report review, external security review or a successful backup restore. See the OWASP ASVS map, security matrix and backup/restore runbook under `docs/`.
 
 ## Important project rules
 

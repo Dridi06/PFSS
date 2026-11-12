@@ -39,14 +39,14 @@ Die Zusammenfassungen sind Arbeitsübersetzungen der Anforderungsziele. Für ver
 | V2.3.3 | 2 | Transaktionssicherheit | Zusammengehörige Geschäftsaktionen müssen atomar gelingen oder zurückrollen. | Fehler-/Rollback-Tests für Einladungen, Buchungen und Überweisungsworkflows. | Offen |
 | V2.4.1 | 2 | Anti-Automation | Automatisierte Überlastung, Datenabgriff und Quota-Verbrauch begrenzen. | Login-, Such-, Export-, Upload- und RPC-Rate-Limits testen. | Teilweise – Branch-Arbeit; Test offen |
 | V3.2.2 | 1 | Sichere DOM-Ausgabe | Textinhalte als Text rendern, nicht als aktives HTML. | XSS-Payloads in allen dynamisch erzeugten Workspace-Ansichten testen. | Offen |
-| V3.3.1 | 1 | Cookie-Secure-Attribut | Falls PFSS-Cookies nutzt, Secure und sichere Prefixes erzwingen. | Cookie-Inventar über alle relevanten Domains/Antworten erfassen. | Nicht anwendbar erst nach Prüfung |
-| V3.3.2 | 2 | Cookie-SameSite | Cookie-SameSite passend zur Auth- und CSRF-Architektur setzen. | Auth- und CSRF-Tests in den tatsächlich verwendeten Browserflows. | Nicht anwendbar erst nach Prüfung |
-| V3.3.4 | 2 | HttpOnly-Sitzungscookies | Nicht per JavaScript lesbare Tokens nur als HttpOnly-Cookies übertragen, soweit Cookie-Sessions genutzt werden. | Entscheiden/dokumentieren, ob Supabase-Session in Cookies oder Client Storage bleibt; Risiken testen. | Nicht anwendbar erst nach Prüfung |
+| V3.3.1 | 1 | Cookie-Secure-Attribut | Falls PFSS-Cookies nutzt, Secure und sichere Prefixes erzwingen. | Cookie-Inventar über alle relevanten Domains/Antworten erfassen. | Anwendbarkeit offen |
+| V3.3.2 | 2 | Cookie-SameSite | Cookie-SameSite passend zur Auth- und CSRF-Architektur setzen. | Auth- und CSRF-Tests in den tatsächlich verwendeten Browserflows. | Anwendbarkeit offen |
+| V3.3.4 | 2 | HttpOnly-Sitzungscookies | Nicht per JavaScript lesbare Tokens nur als HttpOnly-Cookies übertragen, soweit Cookie-Sessions genutzt werden. | Entscheiden/dokumentieren, ob Supabase-Session in Cookies oder Client Storage bleibt; Risiken testen. | Anwendbarkeit offen |
 | V3.4.3 | 2 | Content Security Policy | Strikte CSP mit `object-src 'none'`, `base-uri 'none'` und kontrollierten Quellen einführen. | CSP-Report-Only auf Staging, danach Enforcement und Inline-/CDN-Review. | Offen |
 | V3.4.4 | 2 | MIME-Sniffing-Schutz | Alle HTTP-Antworten mit `X-Content-Type-Options: nosniff` absichern. | Response-Header im Staging und bei Datei-Downloads prüfen. | Offen |
 | V3.4.5 | 2 | Referrer Policy | Technisch sensible Pfad- und Querydaten nicht an Dritte weitergeben. | Header/Meta-Policy und Analytics/CDN-Requests prüfen. | Offen |
 | V3.4.6 | 2 | Frame-Ancestors | Einbettung standardmäßig per CSP `frame-ancestors` verhindern. | Staging-Header und Clickjacking-Test. | Offen |
-| V3.5.5 | 2 | postMessage-Origin-Prüfung | Falls postMessage verwendet wird, Absender-Origin und Nachrichtenschema validieren. | Code-Suche und negative Origin-Tests. | Nicht anwendbar erst nach Prüfung |
+| V3.5.5 | 2 | postMessage-Origin-Prüfung | Falls postMessage verwendet wird, Absender-Origin und Nachrichtenschema validieren. | Code-Suche und negative Origin-Tests. | Anwendbarkeit offen |
 | V3.7.2 | 2 | Externe Redirects | Weiterleitungen auf externe Hosts nur nach Allowlist zulassen. | Open-Redirect-Tests für Login-/Passwort-/Dateilinks. | Offen |
 | V4.1.2 | 2 | HTTPS-Verhalten | Browserzugriff sicher auf HTTPS umstellen; Service-Endpunkte nicht unbemerkt fehlkonfigurieren. | Staging-HTTP/HTTPS- und TLS-Tests. | Offen |
 | V4.1.3 | 2 | Intermediary-Header | Vom Proxy gesetzte Security-Header, insbesondere Client-IP, dürfen nicht vom Client überschrieben werden. | Cloudflare-/Supabase-Edge-Header in Staging prüfen; Spoofing via X-Forwarded-For ausschließen. | Offen |
