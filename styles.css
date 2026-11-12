@@ -878,3 +878,32 @@ button,input,select,textarea{max-width:100%}
 .player-results-list .player-card{width:100%}
 .admin-org-results{display:flex;flex-direction:column;gap:10px}
 @media(max-width:600px){.pfss-search-form{padding:14px}.pfss-search-actions .btn{flex:1 1 140px}}
+
+
+/* PFSS mobile navigation: hamburger always visible at the top left */
+@media(max-width:760px){
+  .topbar{display:flex;justify-content:flex-start;align-items:center;gap:10px}
+  .topbar .mobile-menu{
+    display:inline-flex!important;
+    flex:0 0 42px;
+    width:42px;
+    height:42px;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    z-index:30;
+    margin:0;
+    padding:0;
+    border:1px solid #80683d;
+    border-radius:9px;
+    background:linear-gradient(145deg,#292216,#171513);
+    color:#f0d69a!important;
+    font-size:25px;
+    line-height:1;
+    cursor:pointer;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  .topbar .breadcrumb{flex:1 1 auto;min-width:0;margin:0}
+  .topbar .topbar-right{flex:0 1 auto;min-width:0;margin-left:auto}
+}
