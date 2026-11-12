@@ -44,6 +44,7 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der erfolgreiche Lauf für Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88` führte Static validation und PFSS security guardrails erfolgreich aus.
 - [x] OWASP-Matrix mit PFSS-Kontrollen, konkreten Testideen, offenen Belegen und benötigten Function-Secrets erstellt.
 - [x] Separates ASVS-5.0.0-Requirement-Mapping mit 67 PFSS-relevanten Anforderungs-IDs, Modulzuordnung und geplanten Abnahmetests erstellt (`docs/ASVS_5.0_PFSS_REQUIREMENT_MAP.md`). Anforderungen sind inventarisiert, aber noch nicht getestet oder als erfüllt bestätigt.
+- [x] Manuellen passiven ZAP-Baseline-Workflow mit festem Staging-Ziel eingerichtet; Action ist auf einen verifizierten v0.15.0-Commit gepinnt, Issue-Erstellung deaktiviert und Scan-Fehler sind zunächst nicht CI-blockierend. Workflow wurde noch nicht gestartet.
 - [x] Atomaren Datenbank-Rate-Limit-RPC für IP und Username/IP-Paar vorbereitet, mit SHA-256-Hash-Schlüsseln und `service_role`-geschützter Funktion; Migration noch nicht auf Supabase ausgeführt oder live getestet.
 - [x] CodeQL-Workflow (JavaScript/TypeScript, `security-extended` und `security-and-quality`) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Erster CodeQL-Lauf auf Commit `1e53b4ad5691cbaf384af9f12194dc1d4aff589b` erfolgreich.
 - [x] Sicherheitsbericht um den Status der neuen Branch-Änderungen ergänzt.
@@ -196,7 +197,7 @@ OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-E
 - [x] Sicherheitsanforderungen als Release-Gate dokumentiert; kritische und hohe offene Befunde verhindern eine Produktionsfreigabe.
 
 ### Automatisierte und manuelle Sicherheitstests
-- [ ] OWASP ZAP in einer isolierten Test-/Staging-Umgebung einrichten und zunächst einen passiven Baseline-Scan durchführen.
+- [~] Manuellen OWASP-ZAP-Baseline-Workflow nur für Staging eingerichtet; passiven Scan manuell starten, Report prüfen und Befunde triagieren.
 - [ ] Aktive ZAP-Scans nur gegen ausdrücklich freigegebene Staging-Ziele mit Testdaten durchführen; niemals ungefragt gegen Produktion.
 - [ ] Authentifizierte Tests für Rollen und Mandantentrennung ergänzen; nicht nur öffentlich erreichbare Seiten scannen.
 - [ ] Manuelle Tests auf IDOR/BOLA, CSRF, XSS, SQL-/Command-Injection, SSRF, unsichere Uploads, Session-Fixation, Fehlkonfigurationen und unzureichende Zugriffskontrollen durchführen.

@@ -43,6 +43,10 @@ Diese Variablen gehören ausschließlich in die Supabase-Edge-Function-Secrets d
 
 **Wichtig:** Die Origin-Allowlist wird von beiden Edge Functions verwendet. Ohne `PFSS_ALLOWED_ORIGINS` werden Browser-Origin-Requests absichtlich abgewiesen. Ohne `PFSS_R2_ADMIN_USER_IDS` bleibt die R2-Diagnosefunktion geschlossen (503). Die ID-Allowlist ist eine bewusste Übergangslösung bis das kanonische serverseitige RBAC-Modell abgenommen ist.
 
+## Automatisierter passiver ZAP-Baseline-Scan
+
+Der Workflow `.github/workflows/pfss-zap-baseline.yml` kann manuell gestartet werden. Das Ziel ist fest auf `https://pfss-staging.onrender.com/` begrenzt; es gibt keinen Eingabeparameter für eine fremde URL. Es wird ausschließlich der passive Baseline-Scan verwendet. Die GitHub Action ist per Commit-SHA (v0.15.0) gepinnt. Der Workflow wurde noch nicht ausgeführt; vor einer produktiven Freigabe sind Report, Findings und False Positives zu prüfen. Aktive Scans sind nicht Bestandteil dieses Workflows.
+
 ## Offene Sicherheitsarbeit, die nicht durch statische Checks ersetzt werden kann
 
 1. Username-Login: Die atomare Datenbank-RPC-Rate-Limit-Migration muss auf einem Testprojekt angewendet und parallel getestet werden. Die IP- und Username/IP-Limits sind im Code vorbereitet; keine In-Memory-Zähler in Edge-Instanzen.
