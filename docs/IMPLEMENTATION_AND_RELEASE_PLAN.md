@@ -105,3 +105,41 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 
 ### Safety boundary
 Do not run migrations, connect live bank accounts, submit tax/payroll filings, initiate payments, or expose personal/financial records as part of the visual foundation. Production remains out of scope until explicit approval and a separate release plan.
+
+
+## OWASP Security Baseline (added 2026-11-12)
+
+OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-Entwicklung aufgenommen. Die Verwendung von OWASP ist weder eine Zertifizierung noch ein automatischer Sicherheitsnachweis. Anforderungen müssen implementiert, getestet und dokumentiert werden.
+
+### Standards und verbindliche Prüfbasis
+- [ ] OWASP ASVS 5.0 als technische Anforderungs- und Abnahme-Checkliste für die Webanwendung festlegen; passende Anforderungsebenen je Risiko auswählen.
+- [ ] OWASP Top 10 als wiederkehrende Risiko-Orientierung in Architektur- und Code-Reviews verwenden.
+- [ ] OWASP Cheat Sheet Series für konkrete Implementierungsentscheidungen zu Authentifizierung, Session Management, Zugriffskontrolle, Eingabevalidierung, Datei-Uploads, Kryptografie, Fehlerbehandlung und Logging heranziehen.
+- [ ] Für jede relevante ASVS-Anforderung dokumentieren: betroffenes PFSS-Modul, Umsetzung, Testfall, Ergebnis und offene Abweichung.
+- [ ] Sicherheitsanforderungen als Release-Gate definieren; kritische und hohe offene Befunde verhindern eine Produktionsfreigabe.
+
+### Automatisierte und manuelle Sicherheitstests
+- [ ] OWASP ZAP in einer isolierten Test-/Staging-Umgebung einrichten und zunächst einen passiven Baseline-Scan durchführen.
+- [ ] Aktive ZAP-Scans nur gegen ausdrücklich freigegebene Staging-Ziele mit Testdaten durchführen; niemals ungefragt gegen Produktion.
+- [ ] Authentifizierte Tests für Rollen und Mandantentrennung ergänzen; nicht nur öffentlich erreichbare Seiten scannen.
+- [ ] Manuelle Tests auf IDOR/BOLA, CSRF, XSS, SQL-/Command-Injection, SSRF, unsichere Uploads, Session-Fixation, Fehlkonfigurationen und unzureichende Zugriffskontrollen durchführen.
+- [ ] Negativtests für Mandantentrennung: Scout, Verein und Agentur dürfen fremde Datensätze auch durch manipulierte IDs, API-Aufrufe, Exporte und Dateipfade nicht abrufen oder verändern.
+- [ ] Ergebnisse triagieren, beheben, erneut testen und mit Datum/Commit dokumentieren; False Positives nachvollziehbar begründen.
+- [ ] Abhängigkeiten und Build-/Deployment-Kette regelmäßig auf bekannte Schwachstellen prüfen; Updates kontrolliert testen und versionieren.
+- [ ] Sicherheitsrelevante Tests in CI integrieren, ohne Secrets oder echte personenbezogene Daten offenzulegen.
+
+### PFSS-spezifische Sicherheitsprüfungen
+- [ ] Authentifizierung: sichere Passwort-/Username-Flows, Brute-Force-Schutz, MFA-Option für privilegierte Rollen, sichere Wiederherstellung und Session-Lebenszyklus.
+- [ ] Autorisierung: serverseitige RBAC-/Mandantenprüfung bei jeder Datenoperation; UI-Ausblendung gilt nicht als Zugriffsschutz.
+- [ ] Daten und Datenschutz: Datenminimierung, Verschlüsselung bei Übertragung und Speicherung, sichere Schlüsselverwaltung/Rotation, Protokollierung ohne Geheimnisse.
+- [ ] API und Edge Functions: Methoden-Allowlist, CORS-Allowlist, Authentifizierung/Autorisierung, Rate Limits, Größenlimits, Schema-Validierung und sichere Fehlerantworten.
+- [ ] Storage und Uploads: private Buckets, konsistente SELECT/INSERT/UPDATE/DELETE-Policies, MIME-/Dateitypprüfung, Größenlimits, sichere Dateinamen und Downloadberechtigungen.
+- [ ] Audit und Betrieb: manipulationsgeschützte sicherheitsrelevante Protokolle, Alarmierung, Incident-Response-Ablauf und regelmäßige Rechteprüfung.
+- [ ] Minderjährige Spieler: besonders restriktive Zugriffe, Zweckbindung, Einwilligungs-/Freigabeprozesse sowie rechtlich geprüfte Aufbewahrungs- und Löschregeln.
+
+### Abnahme und Grenzen
+- [ ] Sicherheitsreview vor jedem größeren Release und nach Änderungen an Auth, Rollen, Datenbank-Policies, APIs oder Uploads wiederholen.
+- [ ] Externen Penetrationstest vor produktivem Rollout und danach risikobasiert einplanen.
+- [ ] Sicherheitsnachweise und Restrisiken im Release-Protokoll festhalten.
+- [ ] OWASP ZAP oder ein bestandener ASVS-Abgleich allein wird nicht als Zertifizierung, vollständiger Penetrationstest oder Garantie der Sicherheit dargestellt.
+- [ ] Alle Scans und Tests bleiben auf lokale Testumgebung oder freigegebene Staging-Systeme begrenzt; Produktion und produktive Datenbanken bleiben ohne ausdrückliche Freigabe unangetastet.
