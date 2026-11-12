@@ -26,11 +26,11 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] Vorschaucharakter der generierten Workspace- und Finanzmodule im Quelltext bestätigt; diese Module werden nicht als produktiv angebunden ausgegeben.
 
 ### Noch nicht als erledigt bestätigt
-- [x] GitHub-Actions-Lauf des erweiterten Validators und der PFSS-Sicherheitsregeln erfolgreich geprüft (Commit `fade726110d975d53fadef71fcb621feec8802c2`; beide Schritte erfolgreich).
+- [x] GitHub-Actions-Lauf des Validators und der PFSS-Sicherheitsregeln auf dem aktuellen Sicherheitsstand erfolgreich geprüft (Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88`; beide Prüfungen erfolgreich).
 - [x] Vollständigen Validator auf einem vollständigen GitHub-Runner-Checkout ausgeführt; JavaScript-/HTML-Prüfungen und ergänzende PFSS-Sicherheitsregeln bestanden. Ein separater lokaler Rechnerlauf bleibt nicht zwingend erforderlich.
 - [ ] Browser-/Gerätetests und Ende-zu-Ende-Funktionstests durchführen.
 - [ ] Live-Supabase-Schema, RLS, Grants, Trigger, Funktionen und Storage-Policies anhand des Preflight-Exports verifizieren.
-- [~] Edge-Functions im Branch technisch gehärtet (Login: CORS-Allowlist, JSON-/Größenlimits und generische Fehler; R2: JWT und explizite Admin-UUID-Allowlist). Deployment, Supabase-Secrets, verteiltes Rate-Limit und Live-Tests fehlen noch.
+- [~] Edge-Functions im Branch technisch gehärtet (Login: CORS-Allowlist, JSON-/Größenlimits, generische Fehler und vorbereitetes DB-Rate-Limit; R2: JWT und explizite Admin-UUID-Allowlist). Deployment, Supabase-Secrets, Testmigration und Live-Tests fehlen.
 - [ ] Backup-Workflow, R2-Zugang und Restore praktisch prüfen.
 
 
@@ -41,10 +41,11 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 - [x] R2-Diagnosefunktion auf POST, Supabase-JWT-Validierung und explizite Admin-UUID-Allowlist umgestellt; `verify_jwt = true` in `supabase/config.toml` gesetzt. Ohne die erforderlichen Function-Secrets ist der Zugriff standardmäßig geschlossen.
 - [x] Private Scout-Workspace-Migration überarbeitet: Eigentümer-only RLS für Spieler, Berichte und Medienmetadaten; Report-/Medienreferenzen müssen auf Spieler desselben Eigentümers zeigen; Tabellenrechte für `anon` und `public` entzogen; privater Storage mit Owner-Ordner und MIME-/Größenlimits. UPDATE auf Storage-Objekten ist nicht gewährt.
 - [x] Nicht belegte Behauptung angeblich bereits geprüfter Live-Voraussetzungen aus der Mandantenmigration entfernt und durch konkrete, noch auszuführende Preflight-Anforderungen ersetzt.
-- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der neueste fehlerfreie Lauf für Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88` führte Static validation und PFSS security guardrails erfolgreich aus.
+- [x] Statische PFSS-Sicherheitsregeln erstellt und in den GitHub-Qualitätsworkflow integriert. Der erfolgreiche Lauf für Commit `5177c32d5f4c1a5880d97d299fce165df2c45b88` führte Static validation und PFSS security guardrails erfolgreich aus.
 - [x] OWASP-Matrix mit PFSS-Kontrollen, konkreten Testideen, offenen Belegen und benötigten Function-Secrets erstellt.
-- [x] Atomaren Datenbank-Rate-Limit-RPC für Username-Login einschließlich separater, service_role-geschützter Migration vorbereitet; noch nicht gegen Supabase ausgeführt oder live getestet.
-- [x] CodeQL-Workflow (JavaScript/TypeScript, security-extended und security-and-quality) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Der erste CodeQL-Lauf ist noch zu prüfen.
+- [x] Separates ASVS-5.0.0-Requirement-Mapping mit 67 PFSS-relevanten Anforderungs-IDs, Modulzuordnung und geplanten Abnahmetests erstellt (`docs/ASVS_5.0_PFSS_REQUIREMENT_MAP.md`). Anforderungen sind inventarisiert, aber noch nicht getestet oder als erfüllt bestätigt.
+- [x] Atomaren Datenbank-Rate-Limit-RPC für IP und Username/IP-Paar vorbereitet, mit SHA-256-Hash-Schlüsseln und `service_role`-geschützter Funktion; Migration noch nicht auf Supabase ausgeführt oder live getestet.
+- [x] CodeQL-Workflow (JavaScript/TypeScript, `security-extended` und `security-and-quality`) und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet. Erster CodeQL-Lauf auf Commit `1e53b4ad5691cbaf384af9f12194dc1d4aff589b` erfolgreich.
 - [x] Sicherheitsbericht um den Status der neuen Branch-Änderungen ergänzt.
 
 ### Neue Konfigurations-/Abnahmeaufgaben vor einem Edge-Function-Deployment
@@ -79,7 +80,7 @@ Diese Prioritäten bilden die übergeordnete Reihenfolge für die weitere Entwic
 
 Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Die detaillierten Prüfschritte stehen im Abschnitt „OWASP Security Baseline“ weiter unten.
 
-- [x] **1. OWASP ASVS 5.0.0:** als technische Verifikationsbasis festgelegt; Zielniveau Level 2, risikobasierte Zusatzprüfungen. Die konkrete ASVS-Anforderungsliste mit Requirement-IDs bleibt offen.
+- [x] **1. OWASP ASVS 5.0.0:** als technische Verifikationsbasis festgelegt; Zielniveau Level 2, risikobasierte Zusatzprüfungen. Ein separates Mapping mit 67 PFSS-relevanten Requirement-IDs und Testideen liegt unter `docs/ASVS_5.0_PFSS_REQUIREMENT_MAP.md`.
 - [x] **2. OWASP Top 10:2025:** als Risiko-Orientierung in der PFSS-Sicherheitsmatrix festgelegt.
 - [~] **3. OWASP Cheat Sheet Series:** als Umsetzungsreferenz für die PFSS-Kontrollbereiche aufgenommen; vollständige modulbezogene Ableitung und Review aller Maßnahmen offen.
 - [ ] **4. OWASP ZAP:** automatisierte Sicherheitsscans in einer isolierten Test-/Staging-Umgebung einrichten.
@@ -111,7 +112,7 @@ Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Di
 - [~] Neue Edge-Function-Fehlerantworten und Logs geben keine Passwörter, Tokens oder Provider-Fehlerdetails aus; eine zentrale, überwachte Logpipeline ist offen.
 - [ ] Einheitliche Lade-, Fehler-, Leer- und Erfolgszustände für alle Module.
 - [ ] Wiederholbare Smoke-Tests für Anmeldung, Abmeldung, Navigation und Kernabfragen.
-- [~] CodeQL-Analyse und wöchentliche Dependabot-Updates für GitHub Actions vorbereitet; Supabase-CDN-Version, CSP und SRI sind weiterhin offen.
+- [~] CodeQL-Analyse und wöchentliche Dependabot-Updates für GitHub Actions eingerichtet; der initiale CodeQL-Lauf war erfolgreich. Supabase-CDN-Version, CSP und SRI sind weiterhin offen.
 
 ### 3. Workspace-Bereiche vereinheitlichen
 
@@ -188,7 +189,7 @@ Do not run migrations, connect live bank accounts, submit tax/payroll filings, i
 OWASP wird als kostenlos nutzbarer, fachlicher Sicherheitsmaßstab in die PFSS-Entwicklung aufgenommen. Die Verwendung von OWASP ist weder eine Zertifizierung noch ein automatischer Sicherheitsnachweis. Anforderungen müssen implementiert, getestet und dokumentiert werden.
 
 ### Standards und verbindliche Prüfbasis
-- [ ] OWASP ASVS 5.0 als technische Anforderungs- und Abnahme-Checkliste für die Webanwendung festlegen; passende Anforderungsebenen je Risiko auswählen.
+- [x] OWASP ASVS 5.0.0 als technische Anforderungs- und Abnahme-Checkliste mit Zielniveau Level 2 festgelegt; PFSS-relevante Anforderungen sind in einem Mapping dokumentiert.
 - [ ] OWASP Top 10 als wiederkehrende Risiko-Orientierung in Architektur- und Code-Reviews verwenden.
 - [ ] OWASP Cheat Sheet Series für konkrete Implementierungsentscheidungen zu Authentifizierung, Session Management, Zugriffskontrolle, Eingabevalidierung, Datei-Uploads, Kryptografie, Fehlerbehandlung und Logging heranziehen.
 - [~] Für die PFSS-Sicherheitsbereiche eine Kontrollmatrix sowie ein Mapping von 67 ASVS-5.0.0-Anforderungs-IDs mit PFSS-Zuordnung und Testideen angelegt; tatsächliche Testergebnisse, Requirement-Einzelnachweise und Abweichungsbehebung bleiben offen.
