@@ -215,6 +215,7 @@ function pfssNormalizeSearch(value) {
   return String(value ?? '').trim().toLocaleLowerCase('de-DE');
 }
 function pfssPlayerSurname(player) {
+  if (player.surname) return String(player.surname).trim();
   const parts = String(player.name || '').trim().split(/\s+/);
   return parts.length ? parts[parts.length - 1] : '';
 }
@@ -234,7 +235,7 @@ function renderPlayers() {
     const club = pfssNormalizeSearch(player.club);
     const position = pfssNormalizeSearch(player.position);
     const birthYear = String(player.birth || '').slice(0, 4);
-    const joinDate = String(player.joinDate || player.createdAt || '').slice(0, 10);
+    const joinDate = String(player.joinDate || '').slice(0, 10);
     return (!criteria.surname || surname.includes(criteria.surname)) &&
       (!criteria.club || club.includes(criteria.club)) &&
       (!criteria.position || position === criteria.position) &&
@@ -245,7 +246,11 @@ function renderPlayers() {
     if (sortBy === 'year') return ((Number(String(a.birth||'').slice(0,4))||0) - (Number(String(b.birth||'').slice(0,4))||0)) * direction;
     let left, right;
     if (sortBy === 'position') { left=pfssNormalizeSearch(a.position); right=pfssNormalizeSearch(b.position); }
-    else if (sortBy === 'joinDate') { left=String(a.joinDate||a.createdAt||''); right=String(b.joinDate||b.createdAt||''); }
+    else if (sortBy === 'joinDate') {
+      left=String(a.joinDate||''); right=String(b.joinDate||'');
+      if (!left && right) return 1;
+      if (left && !right) return -1;
+    }
     else { left=pfssNormalizeSearch(pfssPlayerSurname(a)); right=pfssNormalizeSearch(pfssPlayerSurname(b)); }
     return left.localeCompare(right,'de',{numeric:true,sensitivity:'base'}) * direction;
   });
