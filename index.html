@@ -535,7 +535,9 @@
             <label class="field">Nachname<input id="playerSearchSurname" type="search" placeholder="Nachname eingeben"></label>
             <label class="field">Verein<input id="playerSearchClub" type="search" placeholder="Verein eingeben"></label>
             <label class="field">Position<select id="playerSearchPosition"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label>
-            <label class="field">Jahrgang<input id="playerSearchYear" type="number" min="1900" max="2100" placeholder="z. B. 2008"></label>
+            <label class="field">Jahrgang von<input id="playerSearchYearFrom" type="number" min="1900" max="2100" placeholder="z. B. 2005"></label>
+            <label class="field">Jahrgang bis<input id="playerSearchYearTo" type="number" min="1900" max="2100" placeholder="z. B. 2010"></label>
+            <label class="field">Spielfuß<select id="playerSearchFoot"><option value="">Beide / alle</option><option value="Links">LF · Linksfuß</option><option value="Rechts">RF · Rechtsfuß</option><option value="Beidfüßig">Beidfüßig</option></select></label>
             <label class="field">Beitrittsdatum<input id="playerSearchJoinDate" type="date"></label>
           </div>
           <div class="pfss-search-fields pfss-sort-fields">
@@ -910,9 +912,9 @@
           Starker Fuß
           <select name="foot">
             <option value="">Nicht angegeben</option>
-            <option>Rechts</option>
-            <option>Links</option>
-            <option>Beidfüßig</option>
+            <option value="Rechts">RF · Rechtsfuß</option>
+            <option value="Links">LF · Linksfuß</option>
+            <option value="Beidfüßig">Beidfüßig</option>
           </select>
         </label>
 
