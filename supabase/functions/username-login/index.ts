@@ -42,8 +42,8 @@ function json(
   });
 }
 
-async function hashUsername(username: string): Promise<string> {
-  const bytes = new TextEncoder().encode(username.toLowerCase());
+async function hashRateLimitKey(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest))
     .map((value) => value.toString(16).padStart(2, "0"))
@@ -113,27 +113,41 @@ Deno.serve(async (req: Request) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Shared database-backed limiter: survives concurrent Edge Function instances.
-    // Fail closed if the migration/RPC is not installed or the limiter is unavailable.
-    const rateLimitKey = await hashUsername(normalizedUsername);
-    const { data: limitResult, error: limitError } = await adminClient
-      .rpc("pfss_consume_username_login_limit", {
-        p_key_hash: rateLimitKey,
-        p_max_attempts: 8,
-        p_window_seconds: 900,
-      })
-      .maybeSingle();
-
-    if (limitError || !limitResult) {
-      console.error("Username login rate-limit service is unavailable.");
+    // Use the client address supplied by Cloudflare at the edge. Do not trust
+    // the first X-Forwarded-For entry, which a caller may be able to spoof.
+    const clientIp = req.headers.get("cf-connecting-ip")?.trim() ?? "";
+    if (!clientIp || clientIp.length > 64 || !/^[0-9a-fA-F:.]+$/.test(clientIp)) {
+      console.error("Trusted client IP is unavailable for username login rate limiting.");
       return json(req, { error: "Login service unavailable" }, 503);
     }
-    if (!limitResult.allowed) {
-      return json(
-        { error: "Too many login attempts. Please try again later." },
-        429,
-        { "Retry-After": String(limitResult.retry_after_seconds) },
-      );
+
+    // Two distributed counters prevent both one-source abuse and targeted
+    // account lockout: one is per IP, the other per username/IP pair.
+    // Fail closed if the migration/RPC is not installed or unavailable.
+    const rateLimitKeys = [
+      { key: await hashRateLimitKey("ip:" + clientIp), maxAttempts: 30 },
+      { key: await hashRateLimitKey("user-ip:" + normalizedUsername.toLowerCase() + ":" + clientIp), maxAttempts: 8 },
+    ];
+    for (const limit of rateLimitKeys) {
+      const { data: limitResult, error: limitError } = await adminClient
+        .rpc("pfss_consume_username_login_limit", {
+          p_key_hash: limit.key,
+          p_max_attempts: limit.maxAttempts,
+          p_window_seconds: 900,
+        })
+        .maybeSingle();
+
+      if (limitError || !limitResult) {
+        console.error("Username login rate-limit service is unavailable.");
+        return json(req, { error: "Login service unavailable" }, 503);
+      }
+      if (!limitResult.allowed) {
+        return json(
+          { error: "Too many login attempts. Please try again later." },
+          429,
+          { "Retry-After": String(limitResult.retry_after_seconds) },
+        );
+      }
     }
 
     // Resolve the username only on the server; never return the account email.
