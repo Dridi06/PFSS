@@ -52,7 +52,7 @@
     var nodes = [];
     while (walker.nextNode()) {
       var value = walker.currentNode.nodeValue;
-      if (value && /^\\\\n(?:\\s+\\\\n)*$/.test(value.trim())) nodes.push(walker.currentNode);
+      if (value && /^\\n(?:\\s+\\n)*$/.test(value.trim())) nodes.push(walker.currentNode);
     }
     nodes.forEach(function (node) { node.parentNode && node.parentNode.removeChild(node); });
   }
@@ -61,7 +61,7 @@
     records.forEach(function (record) {
       record.addedNodes.forEach(function (node) {
         if (node.nodeType === Node.TEXT_NODE) {
-          if (/^\\\\n(?:\\s+\\\\n)*$/.test(node.nodeValue.trim())) node.parentNode && node.parentNode.removeChild(node);
+          if (/^\\n(?:\\s+\\n)*$/.test(node.nodeValue.trim())) node.parentNode && node.parentNode.removeChild(node);
         } else if (node.nodeType === Node.ELEMENT_NODE) removeEscapedNewlineArtifacts(node);
       });
     });
