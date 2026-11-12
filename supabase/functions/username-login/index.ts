@@ -25,11 +25,29 @@ function corsHeaders(req: Request): HeadersInit {
   return headers;
 }
 
-function json(req: Request, body: Record<string, unknown>, status = 200): Response {
+function json(
+  req: Request,
+  body: Record<string, unknown>,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(req), "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: {
+      ...corsHeaders(req),
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      ...extraHeaders,
+    },
   });
+}
+
+async function hashUsername(username: string): Promise<string> {
+  const bytes = new TextEncoder().encode(username.toLowerCase());
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 Deno.serve(async (req: Request) => {
@@ -94,6 +112,29 @@ Deno.serve(async (req: Request) => {
     const adminClient = createClient(supabaseUrl, secretKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    // Shared database-backed limiter: survives concurrent Edge Function instances.
+    // Fail closed if the migration/RPC is not installed or the limiter is unavailable.
+    const rateLimitKey = await hashUsername(normalizedUsername);
+    const { data: limitResult, error: limitError } = await adminClient
+      .rpc("pfss_consume_username_login_limit", {
+        p_key_hash: rateLimitKey,
+        p_max_attempts: 8,
+        p_window_seconds: 900,
+      })
+      .maybeSingle();
+
+    if (limitError || !limitResult) {
+      console.error("Username login rate-limit service is unavailable.");
+      return json(req, { error: "Login service unavailable" }, 503);
+    }
+    if (!limitResult.allowed) {
+      return json(
+        { error: "Too many login attempts. Please try again later." },
+        429,
+        { "Retry-After": String(limitResult.retry_after_seconds) },
+      );
+    }
 
     // Resolve the username only on the server; never return the account email.
     const { data: profile, error: lookupError } = await adminClient
