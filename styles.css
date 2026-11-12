@@ -865,6 +865,10 @@ button,input,select,textarea{max-width:100%}
 
 
 /* Beitrittsdatum übernimmt die einheitliche Feldbreite des Suchrasters */
+/* iOS: Datumsfeld innerhalb derselben Suchfeld-Spalte halten */
+.pfss-search-fields>.field{width:100%;min-width:0;max-width:100%}
+#playerSearchJoinDate{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+
 /* PFSS unified multi-field search */
 .pfss-search-form{display:block;margin:18px 0 22px;padding:18px}
 .pfss-search-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px}
