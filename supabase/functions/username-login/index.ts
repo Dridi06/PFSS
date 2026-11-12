@@ -42,9 +42,15 @@ function json(
   });
 }
 
-async function hashRateLimitKey(value: string): Promise<string> {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
+async function hashRateLimitKey(value: string, pepper: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(pepper),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest))
     .map((value) => value.toString(16).padStart(2, "0"))
     .join("");
@@ -116,6 +122,11 @@ Deno.serve(async (req: Request) => {
     // Use the client address supplied by Cloudflare at the edge. Do not trust
     // the first X-Forwarded-For entry, which a caller may be able to spoof.
     const clientIp = req.headers.get("cf-connecting-ip")?.trim() ?? "";
+    const rateLimitHashSecret = Deno.env.get("PFSS_RATE_LIMIT_HASH_SECRET") ?? "";
+    if (rateLimitHashSecret.length < 32) {
+      console.error("Username login rate-limit hash secret is missing or too short.");
+      return json(req, { error: "Login service unavailable" }, 503);
+    }
     if (!clientIp || clientIp.length > 64 || !/^[0-9a-fA-F:.]+$/.test(clientIp)) {
       console.error("Trusted client IP is unavailable for username login rate limiting.");
       return json(req, { error: "Login service unavailable" }, 503);
@@ -125,8 +136,8 @@ Deno.serve(async (req: Request) => {
     // account lockout: one is per IP, the other per username/IP pair.
     // Fail closed if the migration/RPC is not installed or unavailable.
     const rateLimitKeys = [
-      { key: await hashRateLimitKey("ip:" + clientIp), maxAttempts: 30 },
-      { key: await hashRateLimitKey("user-ip:" + normalizedUsername.toLowerCase() + ":" + clientIp), maxAttempts: 8 },
+      { key: await hashRateLimitKey("ip:" + clientIp, rateLimitHashSecret), maxAttempts: 30 },
+      { key: await hashRateLimitKey("user-ip:" + normalizedUsername.toLowerCase() + ":" + clientIp, rateLimitHashSecret), maxAttempts: 8 },
     ];
     for (const limit of rateLimitKeys) {
       const { data: limitResult, error: limitError } = await adminClient

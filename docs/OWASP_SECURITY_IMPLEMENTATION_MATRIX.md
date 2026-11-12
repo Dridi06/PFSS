@@ -37,11 +37,12 @@ Diese Variablen gehören ausschließlich in die Supabase-Edge-Function-Secrets d
 |---|---|---|
 | `PFSS_ALLOWED_ORIGINS` | `https://pfss-staging.onrender.com,https://pfss-scouting.onrender.com` | Exakte Browser-Origin-Allowlist; pro Umgebung möglichst nur tatsächlich verwendete Hosts eintragen |
 | `PFSS_R2_ADMIN_USER_IDS` | Kommagetrennte Supabase-Auth-UUIDs | Explizite Admin-Freigabe nur für die R2-Diagnosefunktion |
+| `PFSS_RATE_LIMIT_HASH_SECRET` | Zufälliges Secret mit mindestens 32 Zeichen | HMAC-SHA-256-Pepper für IP- und Username/IP-Rate-Limit-Schlüssel; nur als Supabase Function Secret |
 | `SUPABASE_PUBLISHABLE_KEYS` | Plattformseitig bereitgestelltes JSON-Key-Set | Public key für serverseitige Auth-Token-Prüfung |
 | `SUPABASE_URL` | Projekt-URL | Supabase Auth API |
 | `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT` | Nur als Supabase Function Secrets | R2-Verbindungsprüfung |
 
-**Wichtig:** Die Origin-Allowlist wird von beiden Edge Functions verwendet. Ohne `PFSS_ALLOWED_ORIGINS` werden Browser-Origin-Requests absichtlich abgewiesen. Ohne `PFSS_R2_ADMIN_USER_IDS` bleibt die R2-Diagnosefunktion geschlossen (503). Die ID-Allowlist ist eine bewusste Übergangslösung bis das kanonische serverseitige RBAC-Modell abgenommen ist.
+**Wichtig:** Die Origin-Allowlist wird von beiden Edge Functions verwendet. Ohne `PFSS_RATE_LIMIT_HASH_SECRET` (mindestens 32 Zeichen) bleibt der Username-Login geschlossen (503), statt Rate-Limit-Schlüssel ungeschützt zu speichern. Ohne `PFSS_ALLOWED_ORIGINS` werden Browser-Origin-Requests absichtlich abgewiesen. Ohne `PFSS_R2_ADMIN_USER_IDS` bleibt die R2-Diagnosefunktion geschlossen (503). Die ID-Allowlist ist eine bewusste Übergangslösung bis das kanonische serverseitige RBAC-Modell abgenommen ist.
 
 ## Automatisierter passiver ZAP-Baseline-Scan
 

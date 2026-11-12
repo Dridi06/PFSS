@@ -37,7 +37,7 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 ## Selbstständig erledigte Repository-Arbeiten – Durchgang 2 (12.11.2026)
 
 - [x] Username-Login-Edge-Function im Entwicklungsbranch gehärtet: nur POST, JSON-Pflicht, 8-KiB-Body-Limit (auch anhand der tatsächlichen Bytes), Passwortlängenbegrenzung, konfigurierbare CORS-Origin-Allowlist, generische Anmeldefehler und `Cache-Control: no-store`.
-- [x] Verteiltes Username-Login-Rate-Limit im Code vorbereitet: atomare Datenbankzähler für Client-IP (30/15 Min.) und Username/IP-Paar (8/15 Min.), nur SHA-256-Hashes; fail-closed bei fehlender RPC. Die separate Migration ist noch nicht auf Supabase ausgeführt und muss zuerst im Testprojekt geprüft werden.
+- [x] Verteiltes Username-Login-Rate-Limit im Code vorbereitet: atomare Datenbankzähler für Client-IP (30/15 Min.) und Username/IP-Paar (8/15 Min.), HMAC-SHA-256 mit serverseitigem Pepper statt ungesalzener IP-Hashes; fail-closed bei fehlender RPC oder fehlendem Secret. Die separate Migration ist noch nicht auf Supabase ausgeführt und muss zuerst im Testprojekt geprüft werden.
 - [x] R2-Diagnosefunktion auf POST, Supabase-JWT-Validierung und explizite Admin-UUID-Allowlist umgestellt; `verify_jwt = true` in `supabase/config.toml` gesetzt. Ohne die erforderlichen Function-Secrets ist der Zugriff standardmäßig geschlossen.
 - [x] Private Scout-Workspace-Migration überarbeitet: Eigentümer-only RLS für Spieler, Berichte und Medienmetadaten; Report-/Medienreferenzen müssen auf Spieler desselben Eigentümers zeigen; Tabellenrechte für `anon` und `public` entzogen; privater Storage mit Owner-Ordner und MIME-/Größenlimits. UPDATE auf Storage-Objekten ist nicht gewährt.
 - [x] Nicht belegte Behauptung angeblich bereits geprüfter Live-Voraussetzungen aus der Mandantenmigration entfernt und durch konkrete, noch auszuführende Preflight-Anforderungen ersetzt.
@@ -52,6 +52,7 @@ Diese Punkte wurden in diesem Durchgang direkt im Arbeitsbranch bearbeitet und a
 ### Neue Konfigurations-/Abnahmeaufgaben vor einem Edge-Function-Deployment
 - [ ] Supabase Function Secret `PFSS_ALLOWED_ORIGINS` im jeweiligen Projekt setzen (für Browser-Calls nur exakte, tatsächlich verwendete HTTPS-Origins eintragen).
 - [ ] Supabase Function Secret `PFSS_R2_ADMIN_USER_IDS` mit den freigegebenen Supabase-Auth-UUIDs der zuständigen Admins setzen.
+- [ ] Supabase Function Secret `PFSS_RATE_LIMIT_HASH_SECRET` als zufälligen Wert mit mindestens 32 Zeichen im Username-Login-Projekt setzen; nicht in GitHub committen.
 - [ ] Nach Secret-Konfiguration die beiden Edge Functions auf einer Testumgebung deployen und Login/R2 mit 200/401/403/413/415/Origin-Negativfällen testen.
 - [~] Verteiltes Rate-Limit für Username-Login ist durch Edge-Function-Code und separate SQL-Migration vorbereitet; auf Testprojekt anwenden, die vertrauenswürdige IP-Quelle bestätigen und parallele Requests testen.
 

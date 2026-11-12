@@ -29,6 +29,10 @@ const tenant = read("supabase/migrations/20261112_pfss_tenant_integrity_hardenin
 const config = read("supabase/config.toml");
 const backup = read(".github/workflows/pfss-database-backup.yml");
 const loginLimit = read("supabase/migrations/20261112_username_login_rate_limits.sql");
+requirePattern(login, /PFSS_RATE_LIMIT_HASH_SECRET/, "Username login requires a server-side rate-limit pepper");
+requirePattern(login, /crypto\.subtle\.importKey\([\s\S]*?name: "HMAC",[\s\S]*?hash: "SHA-256"/, "Username login derives rate-limit keys with HMAC-SHA-256");
+requirePattern(login, /rateLimitHashSecret\.length < 32/, "Username login requires at least 32 characters of rate-limit pepper");
+requirePattern(loginLimit, /HMAC-SHA-256/i, "Rate-limit migration documents keyed HMAC identifiers");
 
 forbidPattern(login, /Access-Control-Allow-Origin["']?\s*:\s*["']\*["']/, "Username login does not enable wildcard CORS");
 requirePattern(login, /PFSS_ALLOWED_ORIGINS/, "Username login uses configured CORS origins");
