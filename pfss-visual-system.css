@@ -405,3 +405,85 @@
  .main-area>.view:not(.pfss-ui-view) .module-wide{grid-column:auto}
  .main-area>.view:not(.pfss-ui-view) .media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* =========================================================
+   PFSS LUXURY FOOTBALL SYSTEM — ADMIN / DASHBOARD / HEADER
+   Visual layer only; existing navigation and data hooks kept.
+   ========================================================= */
+:root{--pfss-gold:#d8b777;--pfss-gold-bright:#f3dfad;--pfss-ink:#0b0d10;--pfss-panel:#141619;--pfss-line:rgba(216,183,119,.22)}
+.sidebar.admin-mode{background:radial-gradient(ellipse at 12% 0%,#34291a 0,transparent 34%),linear-gradient(180deg,#111315 0%,#090a0c 78%);border-right:1px solid #66502d;box-shadow:18px 0 55px #0009}
+.admin-nav-brand{display:flex;align-items:center;gap:11px;margin:4px 12px 18px;padding:13px 12px;border:1px solid #705a35;border-radius:13px;background:linear-gradient(130deg,#292219,#111315 70%);box-shadow:inset 0 1px #fff2,0 12px 28px #0005;position:relative;overflow:hidden}
+.admin-nav-brand:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 15%,#fff1 45%,transparent 68%);pointer-events:none}
+.admin-nav-crest{width:38px;height:38px;display:grid;place-items:center;border:1px solid #c8a66b;border-radius:10px;color:#f1d69b;font:900 15px Manrope,sans-serif;background:linear-gradient(145deg,#4b3a20,#171512);box-shadow:0 0 22px #d7b36c22}
+.admin-nav-brand b{display:block;color:#f1dfbd;font:800 10px Manrope,sans-serif;letter-spacing:1.4px}
+.admin-nav-brand small{display:block;color:#a99a7d;font-size:8px;letter-spacing:1.15px;margin-top:4px}
+.sidebar.admin-mode .admin-section-title{color:#e0bf80;letter-spacing:2px;padding:0 15px;margin:7px 0 9px}
+.admin-nav-divider{display:flex;align-items:center;gap:8px;padding:15px 14px 7px;color:#8c7b5d;font:800 8px Manrope,sans-serif;letter-spacing:1.25px}
+.admin-nav-divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,#80643a55,transparent)}
+.sidebar.admin-mode .admin-nav-item{display:flex!important;align-items:center;gap:11px;margin:3px 9px;padding:10px 12px;width:calc(100% - 18px);min-height:42px;border:1px solid transparent;border-radius:9px;color:#c6c0b5;background:transparent;transition:background .2s,border-color .2s,transform .2s}
+.sidebar.admin-mode .admin-nav-item:hover{background:linear-gradient(90deg,#2c2419,#171819);border-color:#5c492d;transform:translateX(2px)}
+.sidebar.admin-mode .admin-nav-item.active{background:linear-gradient(100deg,#49371d,#211c15 72%,#151617);border-color:#967444;box-shadow:inset 3px 0 #e4c17e,0 5px 18px #0005;color:#fff0d2}
+.sidebar.admin-mode .admin-nav-item .nav-icon{width:23px;height:23px;display:grid;place-items:center;border:1px solid #6b5736;border-radius:7px;color:#e0bd7a;background:#201c16;font-size:13px}
+.sidebar.admin-mode .admin-nav-item .nav-label{flex:1;font-size:11px;font-weight:650}
+.admin-nav-arrow{color:#d8b777;font-size:12px}
+.sidebar.admin-mode .sidebar-status{border-color:#66502d;background:linear-gradient(120deg,#211d17,#111315)}
+.sidebar.admin-mode .sidebar-status .status-dot{box-shadow:0 0 10px #b5cf75}
+.main-area>.topbar{position:relative;background:linear-gradient(100deg,#111315 0%,#171819 55%,#111315 100%);border-bottom:1px solid #59472b;box-shadow:0 8px 26px #0003}
+.main-area>.topbar:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#d8b77788 48%,transparent)}
+.main-area>.topbar .breadcrumb{color:#a99d87;letter-spacing:.35px}
+.main-area>.topbar .breadcrumb b{color:#f0e5d1}
+.main-area>.topbar .online-pill{border:1px solid #665535;border-radius:30px;padding:6px 10px;background:#1b1b17;color:#d7c394}
+.main-area>.topbar .top-avatar{border:1px solid #9a7946;background:linear-gradient(145deg,#49381f,#151617);color:#f4dfb0;box-shadow:0 0 18px #d8b77722}
+.dashboard-brand{position:relative;overflow:hidden;background:linear-gradient(105deg,#101316,#211d17 58%,#111315);border:1px solid #765d36;box-shadow:inset 0 1px #ffffff14,0 12px 30px #0003}
+.dashboard-brand:after{content:"";position:absolute;inset:0;background:linear-gradient(112deg,transparent 20%,#fff1 47%,transparent 65%);pointer-events:none}
+.dashboard-brand .dashboard-logo{filter:drop-shadow(0 0 12px #d9b77733)}
+.dashboard-brand-status{margin-left:auto;color:#b9a47a;font:800 8px Manrope,sans-serif;letter-spacing:1.3px;white-space:nowrap}
+.dashboard-brand-status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#a8c77b;box-shadow:0 0 9px #a8c77b;margin-right:7px}
+.dashboard-heading h1{letter-spacing:-1.4px}
+.dashboard-hero{min-height:286px;border:1px solid #78603a;background:radial-gradient(ellipse at 80% 20%,#54412455,transparent 36%),linear-gradient(112deg,#0d1013,#1d1b17 55%,#0c0e10);box-shadow:inset 0 1px #ffffff16,0 18px 45px #0004}
+.dashboard-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 25%,#e1c58b0b 52%,transparent 76%);pointer-events:none}
+.dashboard-hero .hero-tag{color:#e2c487;letter-spacing:2.2px}
+.dashboard-hero .hero-copy h2{font-size:clamp(29px,4vw,43px);letter-spacing:-1.5px}
+.dashboard-hero .hero-copy h2 em{color:#e4c486;text-shadow:0 0 24px #d8b77755}
+.dashboard-hero .hero-copy p{color:#c0b8aa;max-width:470px}
+.dashboard-hero .hero-art{opacity:.92}
+.dashboard-hero .pitch{border-color:#d8b77755;box-shadow:0 0 35px #d8b77712}
+.dashboard-hero .pitch:before,.dashboard-hero .pitch:after,.dashboard-hero .pitch-line,.dashboard-hero .pitch-circle,.dashboard-hero .pitch-box{border-color:#d8b77755}
+.dashboard-hero .pitch-dot{background:#e7c985;box-shadow:0 0 18px #e7c985}
+.dashboard-hero .hero-number{color:#e5c98b10}
+.dashboard-ball-mark{position:absolute;right:38px;top:6px;font-size:24px;color:#e1c48755;filter:drop-shadow(0 0 15px #d8b77744)}
+.dashboard-hero-caption{position:absolute;bottom:13px;left:38px;color:#a18d68;font:800 8px Manrope,sans-serif;letter-spacing:2px}
+.dashboard-season-mark{color:#b5a27f;font:800 9px Manrope,sans-serif;letter-spacing:1.3px}
+.dashboard-season-mark b{color:#f0d69e;font-size:13px;margin-left:5px}
+.dashboard-stats .stat-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#1a1d20,#111315);border-color:#51432c;box-shadow:inset 0 1px #ffffff0c,0 12px 28px #0003}
+.dashboard-stats .stat-card:after{content:"";position:absolute;top:0;left:12%;width:76%;height:1px;background:linear-gradient(90deg,transparent,#e1c17e99,transparent)}
+.dashboard-stats .stat-top{color:#b2a58e}
+.dashboard-stats .stat-icon{color:#e0bf7d}
+.dashboard-stats .stat-card>strong{color:#f4ead8}
+.dashboard-stats .stat-card>small{color:#a39a8c}
+.dashboard-stats .accent-stat{background:linear-gradient(145deg,#292317,#171613);border-color:#9b7944}
+.stat-card-foot{display:block;margin-top:12px;color:#8e7955;font:800 7px Manrope,sans-serif;letter-spacing:1.3px}
+.dashboard-content-grid .panel{background:linear-gradient(145deg,#191c1f,#111315);border-color:#4d402b;box-shadow:inset 0 1px #ffffff0b,0 12px 28px #0003}
+.dashboard-content-grid .panel h3{color:#eee4d3}
+.dashboard-content-grid .eyebrow{color:#c1a36e}
+.dashboard-content-grid .empty-state{color:#aaa294}
+.dashboard-content-grid .empty-state b{color:#eee4d3}
+.dashboard-content-grid .quick-link{color:#e7dece;border-color:#3a3327}
+.dashboard-content-grid .quick-icon{background:linear-gradient(145deg,#44351f,#201c16);border:1px solid #725b35;color:#e5c582}
+.dashboard-content-grid .quick-link small{color:#a69b89}
+.dashboard-bottom-line{display:flex;justify-content:space-between;gap:12px;margin-top:20px;padding:12px 2px;border-top:1px solid #4a3b26;color:#8c7957;font:800 8px Manrope,sans-serif;letter-spacing:1.5px}
+@media(max-width:760px){
+ .dashboard-brand{flex-wrap:wrap;gap:8px;padding:8px 10px}
+ .dashboard-brand .dashboard-logo{width:52px;height:52px;flex-basis:52px}
+ .dashboard-brand-status{font-size:7px;letter-spacing:.8px}
+ .dashboard-hero{min-height:330px;padding:24px 20px}
+ .dashboard-hero .hero-copy{max-width:100%}
+ .dashboard-hero .hero-copy h2{font-size:28px}
+ .dashboard-hero .hero-art{right:-50px;bottom:0;opacity:.38}
+ .dashboard-hero-caption{left:20px;font-size:7px}
+ .dashboard-hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+ .dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .dashboard-bottom-line{font-size:7px;flex-direction:column}
+ .sidebar.admin-mode .admin-nav-item{min-height:44px}
+}
+@media(max-width:390px){.dashboard-brand-status{width:100%;margin-left:62px}.dashboard-stats .stat-card{padding:12px}.dashboard-stats .stat-card>strong{font-size:22px}}
