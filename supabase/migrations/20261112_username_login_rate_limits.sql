@@ -73,7 +73,7 @@ begin
 
   -- Opportunistic cleanup bounds stale-key accumulation without requiring
   -- pg_cron. The updated_at index keeps this periodic task targeted.
-  if mod(extract(epoch from v_now)::bigint, 300) = 0 then
+  if random() < 0.01 then
     delete from public.pfss_username_login_limits
     where updated_at < v_now - interval '1 day';
   end if;
