@@ -14,6 +14,28 @@ Dieses Dokument trennt erledigte Repository-Arbeiten von Aufgaben, die einen Zug
 - Ein statischer Sicherheitsbericht liegt unter `docs/SECURITY_AUDIT_2026-11-12.md`.
 - Automatisierte statische Qualitätsprüfungen laufen künftig bei Pushes und Pull Requests.
 
+## Verbindliche Entwicklungsreihenfolge – Gesamtprojekt PFSS
+
+Diese Prioritäten bilden die übergeordnete Reihenfolge für die weitere Entwicklung. Die OWASP-Aufgaben darunter sind Bestandteil insbesondere von Punkt 2 und ergänzen ihn technisch.
+
+| Reihenfolge | Entwicklungsbereich | Bedeutung |
+|---:|---|---|
+| 1 | Mandantentrennung und Berechtigungen | **Kritisch** |
+| 2 | Datenschutz und IT-Sicherheit | **Kritisch** |
+| 3 | Datenmodell und Datenintegrität | **Kritisch** |
+| 4 | Buchhaltung und rechtliche Anforderungen | **Hoch** |
+| 5 | Backup und Wiederherstellung | **Kritisch** |
+| 6 | Alle Fachmodule funktional verbinden | **Hoch** |
+| 7 | Automatisierung und Benachrichtigungen | **Hoch** |
+
+### Umsetzungshinweis
+- [ ] Die Reihenfolge als verbindliche Projektpriorisierung verwenden.
+- [ ] Kritische Bereiche vor dem produktiven Rollout vollständig prüfen und abnehmen.
+- [ ] Abhängigkeiten berücksichtigen: Datenmodell, Mandantentrennung und Berechtigungen müssen stehen, bevor Fachmodule produktiv miteinander verbunden werden.
+- [ ] Buchhaltungsfunktionen erst nach fachlicher, steuerlicher und rechtlicher Prüfung produktiv schalten.
+- [ ] Backup erst nach einem erfolgreichen Wiederherstellungstest als belastbar einstufen.
+- [ ] Fachmodule erst dann als funktional abgeschlossen markieren, wenn echte Datenbank- und Berechtigungsprüfungen sowie Ende-zu-Ende-Tests bestanden sind.
+
 ## Zusätzliche verbindliche OWASP-Aufgaben (10-Punkte-Übersicht)
 
 Die folgenden zehn Arbeitspakete sind vollständig Teil der PFSS-To-do-Liste. Die detaillierten Prüfschritte stehen im Abschnitt „OWASP Security Baseline“ weiter unten.
