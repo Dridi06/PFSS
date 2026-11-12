@@ -78,6 +78,14 @@ requirePattern(backup, /aws s3api head-object/, "Backup workflow verifies upload
 requirePattern(backup, /PFSS_DATABASE_URL/, "Backup workflow requires a database URL secret");
 requirePattern(backup, /PFSS_BACKUP_ENCRYPTION_PASSPHRASE/, "Backup workflow requires an encryption passphrase");
 
+const zap = read(".github/workflows/pfss-zap-baseline.yml");
+requirePattern(zap, /workflow_dispatch:/, "ZAP baseline requires a manual trigger");
+requirePattern(zap, /target:\s*"https:\/\/pfss-staging\.onrender\.com\//, "ZAP baseline is fixed to PFSS staging");
+forbidPattern(zap, /pfss-scouting\.onrender\.com/, "ZAP baseline does not target production");
+requirePattern(zap, /action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25/, "ZAP action is pinned to the reviewed v0.15.0 commit");
+requirePattern(zap, /allow_issue_writing:\s*false/, "ZAP baseline does not create or update GitHub issues");
+forbidPattern(zap, /action-full-scan|action-api-scan/, "ZAP workflow does not invoke active or API scans");
+
 if (failures.length) {
   console.error("\nSECURITY STATIC CHECKS FAILED");
   for (const item of failures) console.error("- " + item);
