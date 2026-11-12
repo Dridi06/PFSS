@@ -294,3 +294,61 @@
  .pfss-action{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.pfss-ui-view{animation:none}}
+
+
+/* PFSS legacy workspace polish — visual-only layer, header/navigation excluded */
+.main-area>.view:not(.pfss-ui-view){min-width:0;color:#eee7da}
+.main-area>.view:not(.pfss-ui-view) .page-heading{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:5px 0 20px;margin:0 0 20px;border-bottom:1px solid rgba(212,181,117,.2)}
+.main-area>.view:not(.pfss-ui-view) .page-heading h1{color:#f1e7d5;letter-spacing:-.8px}
+.main-area>.view:not(.pfss-ui-view) .page-heading p{color:#a9a194;line-height:1.55}
+.main-area>.view:not(.pfss-ui-view) .eyebrow{color:#c6a86d;letter-spacing:1.35px}
+.main-area>.view:not(.pfss-ui-view) .panel,
+.main-area>.view:not(.pfss-ui-view) .stat-card,
+.main-area>.view:not(.pfss-ui-view) .module-card,
+.main-area>.view:not(.pfss-ui-view) .hero-panel,
+.main-area>.view:not(.pfss-ui-view) .club-hero{border:1px solid rgba(212,181,117,.18);border-radius:14px;background:linear-gradient(145deg,rgba(29,31,32,.98),rgba(17,19,20,.98));box-shadow:inset 0 1px rgba(255,255,255,.035),0 12px 30px rgba(0,0,0,.16)}
+.main-area>.view:not(.pfss-ui-view) .panel{padding:20px}
+.main-area>.view:not(.pfss-ui-view) .panel-heading{gap:12px;padding-bottom:13px;margin-bottom:14px;border-bottom:1px solid rgba(212,181,117,.13)}
+.main-area>.view:not(.pfss-ui-view) .panel-heading h3,
+.main-area>.view:not(.pfss-ui-view) .module-card h3{color:#ead9b8}
+.main-area>.view:not(.pfss-ui-view) .stats-grid{gap:13px}
+.main-area>.view:not(.pfss-ui-view) .stat-card{position:relative;overflow:hidden;min-width:0;padding:18px;transition:transform .18s,border-color .18s}
+.main-area>.view:not(.pfss-ui-view) .stat-card:hover,
+.main-area>.view:not(.pfss-ui-view) .module-card:hover{transform:translateY(-2px);border-color:rgba(212,181,117,.42)}
+.main-area>.view:not(.pfss-ui-view) .stat-card strong{color:#f2e4c7;font-variant-numeric:tabular-nums}
+.main-area>.view:not(.pfss-ui-view) .stat-icon{color:#c6a86d}
+.main-area>.view:not(.pfss-ui-view) .hero-panel{overflow:hidden}
+.main-area>.view:not(.pfss-ui-view) .hero-copy h2{color:#f2e6d0}
+.main-area>.view:not(.pfss-ui-view) .hero-copy p{color:#b9b1a4;line-height:1.65}
+.main-area>.view:not(.pfss-ui-view) .content-grid{gap:15px}
+.main-area>.view:not(.pfss-ui-view) .empty-state,
+.main-area>.view:not(.pfss-ui-view) .org-empty-state{border:1px dashed rgba(212,181,117,.25);border-radius:12px;background:rgba(212,181,117,.035);color:#bcb3a5}
+.main-area>.view:not(.pfss-ui-view) .quick-link{border-bottom:1px solid rgba(212,181,117,.1);transition:background .16s}
+.main-area>.view:not(.pfss-ui-view) .quick-link:hover{background:rgba(212,181,117,.055)}
+.main-area>.view:not(.pfss-ui-view) .quick-icon{color:#d4b575}
+.main-area>.view:not(.pfss-ui-view) .field,
+.main-area>.view:not(.pfss-ui-view) label.field{color:#c9bdab}
+.main-area>.view:not(.pfss-ui-view) input:not([type=checkbox]):not([type=radio]),
+.main-area>.view:not(.pfss-ui-view) select,
+.main-area>.view:not(.pfss-ui-view) textarea{max-width:100%;border-color:#494236;border-radius:9px;background:#101214;color:#eee5d5}
+.main-area>.view:not(.pfss-ui-view) input:focus,
+.main-area>.view:not(.pfss-ui-view) select:focus,
+.main-area>.view:not(.pfss-ui-view) textarea:focus{outline:2px solid rgba(212,181,117,.28);outline-offset:1px;border-color:#c6a86d}
+.main-area>.view:not(.pfss-ui-view) .btn-primary{box-shadow:0 7px 20px rgba(185,145,74,.15)}
+.main-area>.view:not(.pfss-ui-view) .module-status{border-color:rgba(212,181,117,.22);background:rgba(212,181,117,.07);color:#d8bd83}
+.main-area>.view:not(.pfss-ui-view) .club-role-grid{gap:13px}
+.main-area>.view:not(.pfss-ui-view) .module-card{padding:19px}
+.main-area>.view:not(.pfss-ui-view) .module-symbol{color:#d4b575}
+.main-area>.view:not(.pfss-ui-view) .notice{border-color:rgba(212,181,117,.18);border-radius:11px}
+.main-area>.view:not(.pfss-ui-view) .admin-message{color:#b7ad9e}
+.main-area>.view:not(.pfss-ui-view) table{border-color:rgba(212,181,117,.16)}
+.main-area>.view:not(.pfss-ui-view) th{background:rgba(212,181,117,.075);color:#d9c18e}
+.main-area>.view:not(.pfss-ui-view) td{border-color:rgba(255,255,255,.06);color:#d8d1c5}
+@media(max-width:760px){
+ .main-area>.view:not(.pfss-ui-view) .page-heading{align-items:flex-start;flex-direction:column}
+ .main-area>.view:not(.pfss-ui-view) .page-heading>.btn,
+ .main-area>.view:not(.pfss-ui-view) .page-heading>.module-status{align-self:stretch;text-align:center}
+ .main-area>.view:not(.pfss-ui-view) .panel{padding:15px}
+ .main-area>.view:not(.pfss-ui-view) .content-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){.main-area>.view:not(.pfss-ui-view) *{transition:none!important}}
