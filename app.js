@@ -7,6 +7,7 @@ const DB_KEYS = {
 let players = read(DB_KEYS.players, []);
 let reports = read(DB_KEYS.reports, []);
 let mediaItems = [];
+let playerSearchHasRun = false;
 
 function read(key, fallback) {
   try {
@@ -210,28 +211,49 @@ function playerCard(p) {
     </article>`;
 }
 
+function pfssNormalizeSearch(value) {
+  return String(value ?? '').trim().toLocaleLowerCase('de-DE');
+}
+function pfssPlayerSurname(player) {
+  const parts = String(player.name || '').trim().split(/\s+/);
+  return parts.length ? parts[parts.length - 1] : '';
+}
 function renderPlayers() {
-  const query =
-    (document.getElementById('playerSearch').value || '').toLowerCase();
-
-  const pos = document.getElementById('positionFilter').value;
-
-  const filtered = players.filter(p =>
-    (p.name + ' ' + p.club + ' ' + p.nationality)
-      .toLowerCase().includes(query) &&
-    (!pos || p.position === pos)
-  );
-
   const host = document.getElementById('playerGrid');
-
-  host.innerHTML = filtered.length
-    ? filtered.slice().reverse().map(playerCard).join('')
-    : `
-      <div class="empty-state wide">
-        <span class="empty-icon">⌕</span>
-        <b>Keine passenden Spieler gefunden</b>
-        <p>Ändere deine Suche oder lege einen neuen Spieler an.</p>
-      </div>`;
+  const criteria = {
+    surname: pfssNormalizeSearch(document.getElementById('playerSearchSurname')?.value),
+    club: pfssNormalizeSearch(document.getElementById('playerSearchClub')?.value),
+    position: pfssNormalizeSearch(document.getElementById('playerSearchPosition')?.value),
+    year: String(document.getElementById('playerSearchYear')?.value || '').trim(),
+    joinDate: String(document.getElementById('playerSearchJoinDate')?.value || '').trim()
+  };
+  const sortBy = document.getElementById('playerSortBy')?.value || 'surname';
+  const direction = document.getElementById('playerSortDirection')?.value === 'desc' ? -1 : 1;
+  const filtered = players.filter(player => {
+    const surname = pfssNormalizeSearch(pfssPlayerSurname(player));
+    const club = pfssNormalizeSearch(player.club);
+    const position = pfssNormalizeSearch(player.position);
+    const birthYear = String(player.birth || '').slice(0, 4);
+    const joinDate = String(player.joinDate || player.createdAt || '').slice(0, 10);
+    return (!criteria.surname || surname.includes(criteria.surname)) &&
+      (!criteria.club || club.includes(criteria.club)) &&
+      (!criteria.position || position === criteria.position) &&
+      (!criteria.year || birthYear === criteria.year) &&
+      (!criteria.joinDate || joinDate === criteria.joinDate);
+  });
+  filtered.sort((a,b) => {
+    if (sortBy === 'year') return ((Number(String(a.birth||'').slice(0,4))||0) - (Number(String(b.birth||'').slice(0,4))||0)) * direction;
+    let left, right;
+    if (sortBy === 'position') { left=pfssNormalizeSearch(a.position); right=pfssNormalizeSearch(b.position); }
+    else if (sortBy === 'joinDate') { left=String(a.joinDate||a.createdAt||''); right=String(b.joinDate||b.createdAt||''); }
+    else { left=pfssNormalizeSearch(pfssPlayerSurname(a)); right=pfssNormalizeSearch(pfssPlayerSurname(b)); }
+    return left.localeCompare(right,'de',{numeric:true,sensitivity:'base'}) * direction;
+  });
+  host.classList.add('player-results-list');
+  const count=document.getElementById('playerSearchCount');
+  if(count) count.textContent=playerSearchHasRun ? filtered.length+' Treffer gefunden' : players.length+' Spieler insgesamt';
+  host.innerHTML=filtered.length ? filtered.map(playerCard).join('') : `
+    <div class="empty-state wide"><span class="empty-icon">⌕</span><b>Keine passenden Spieler gefunden</b><p>Bitte passe deine Suchkriterien an.</p></div>`;
 }
 
 function renderReports() {
@@ -472,16 +494,17 @@ document.getElementById('reportForm')
     saveReport(e.currentTarget);
   });
 
-document.getElementById('playerSearch')
-  .addEventListener('input', renderPlayers);
-
-document.getElementById('adminUserSearch')
-  .addEventListener('input', loadAdminUsers);
-document.getElementById('refreshAdminButton')
-  .addEventListener('click', loadAdminUsers);
-
-document.getElementById('positionFilter')
-  .addEventListener('change', renderPlayers);
+document.getElementById('playerSearchForm').addEventListener('submit', event => {
+  event.preventDefault(); playerSearchHasRun=true; renderPlayers();
+});
+document.getElementById('playerSearchForm').addEventListener('reset', () => window.setTimeout(() => {
+  playerSearchHasRun=false; renderPlayers();
+},0));
+document.getElementById('adminUserSearchForm').addEventListener('submit', event => {
+  event.preventDefault(); loadAdminUsers();
+});
+document.getElementById('adminUserSearchForm').addEventListener('reset', () => window.setTimeout(loadAdminUsers,0));
+document.getElementById('refreshAdminButton').addEventListener('click',loadAdminUsers);
 
 document.getElementById('mediaInput')
   .addEventListener('change', e => {
@@ -824,8 +847,16 @@ async function loadAdminUsers() {
     document.getElementById('adminPendingUsers').textContent = users.filter(x => x.status === 'pending').length;
     document.getElementById('adminApprovedUsers').textContent = users.filter(x => x.status === 'approved').length;
     document.getElementById('adminSuspendedUsers').textContent = users.filter(x => x.status === 'suspended').length;
-    const query = (document.getElementById('adminUserSearch').value || '').trim().toLowerCase();
-    const filtered = users.filter(x => (x.username || '').toLowerCase().includes(query) || x.id.toLowerCase().includes(query));
+    const nameQuery=pfssNormalizeSearch(document.getElementById('adminUserSearchName')?.value);
+    const idQuery=pfssNormalizeSearch(document.getElementById('adminUserSearchId')?.value);
+    const roleQuery=document.getElementById('adminUserSearchRole')?.value||'';
+    const statusQuery=document.getElementById('adminUserSearchStatus')?.value||'';
+    const filtered=users.filter(user =>
+      (!nameQuery||pfssNormalizeSearch(user.username).includes(nameQuery)) &&
+      (!idQuery||pfssNormalizeSearch(user.id).includes(idQuery)) &&
+      (!roleQuery||user.role===roleQuery) &&
+      (!statusQuery||user.status===statusQuery)
+    ).sort((a,b)=>pfssNormalizeSearch(a.username).localeCompare(pfssNormalizeSearch(b.username),'de',{sensitivity:'base'}));
     host.innerHTML = filtered.length ? filtered.map(user => {
       const self = user.id === window.pfssCurrentUserId;
       return `<article class="admin-user-card" data-user-id="${escapeHtml(user.id)}">
@@ -867,15 +898,21 @@ async function saveAdminUser(button) {
 
 
 function pfmsAdminToolsMarkup(type) {
-  const title = type === 'club' ? 'Vereine' : type === 'agency' ? 'Agenturen' : 'Scouts';
+  const title=type==='club'?'Vereine':type==='agency'?'Agenturen':'Scouts';
+  const fields=type==='scout'
+    ? `<label class="field">Scout-Name<input type="search" data-pfms-name placeholder="Vor- oder Nachname"></label>
+       <label class="field">E-Mail<input type="search" data-pfms-email placeholder="E-Mail-Adresse"></label>
+       <label class="field">User-ID<input type="text" data-pfms-id placeholder="Scout-ID"></label>
+       <label class="field">Status<select data-pfms-status><option value="">Alle Status</option><option value="active">Aktiv</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`
+    : `<label class="field">${type==='club'?'Vereinsname':'Agenturname'}<input type="search" data-pfms-name placeholder="Name eingeben"></label>
+       <label class="field">Organisations-ID<input type="text" data-pfms-id placeholder="Organisations-ID"></label>
+       <label class="field">Status<select data-pfms-status><option value="">Alle Status</option><option value="active">Aktiv</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`;
   return `<div class="panel">
-    <div class="panel-heading"><div><div class="eyebrow">LIVE-DATENBANKVERWALTUNG</div><h3>${title} suchen</h3></div><span class="module-status">Altes Organisationssystem</span></div>
-    <div class="org-search-grid">
-      <label class="field">Name oder Benutzerkennung<input type="search" data-pfms-search placeholder="${type==='scout'?'Scout-Name, E-Mail oder User-ID':'Name oder Organisations-ID'}"></label>
-      <button class="btn btn-primary" type="button" data-pfms-search-button>Suchen</button>
-    </div>
-    <p class="admin-message" data-pfms-message>Einträge werden geladen …</p>
-    <div data-pfms-results class="admin-org-results"></div>
+    <div class="panel-heading"><div><div class="eyebrow">LIVE-DATENBANKVERWALTUNG</div><h3>${title} suchen</h3></div><span class="module-status">Verwaltung</span></div>
+    <form class="pfss-search-form" data-pfms-search-form><div class="pfss-search-fields">${fields}</div>
+      <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+    </form>
+    <p class="admin-message" data-pfms-message>Suchkriterien eingeben und Suche starten.</p><div data-pfms-results class="admin-org-results"></div>
   </div>
   <div class="panel" data-pfms-detail hidden><div class="panel-heading"><div><div class="eyebrow">DETAILS</div><h3 data-pfms-detail-title>Auswahl</h3></div></div><div data-pfms-detail-body></div></div>`;
 }
@@ -892,55 +929,54 @@ function setupPfmsAdminManagement() {
     if (!root || root.dataset.pfmsReady) return;
     root.innerHTML=pfmsAdminToolsMarkup(type);
     root.dataset.pfmsReady='true';
-    const search=root.querySelector('[data-pfms-search]');
-    const button=root.querySelector('[data-pfms-search-button]');
-    const run=()=>loadPfmsAdminDirectory(type,root);
-    button.addEventListener('click',run);
-    search.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+    const form=root.querySelector('[data-pfms-search-form]');
+    form.addEventListener('submit',event=>{event.preventDefault();loadPfmsAdminDirectory(type,root);});
+    form.addEventListener('reset',()=>window.setTimeout(()=>loadPfmsAdminDirectory(type,root),0));
     loadPfmsAdminDirectory(type,root);
   });
 }
 
 async function loadPfmsAdminDirectory(type,root) {
-  const query=root.querySelector('[data-pfms-search]').value.trim();
-  const message=root.querySelector('[data-pfms-message]');
-  const results=root.querySelector('[data-pfms-results]');
-  message.textContent='Daten werden geladen …';
-  results.innerHTML='';
+  const message=root.querySelector('[data-pfms-message]'), results=root.querySelector('[data-pfms-results]');
+  message.textContent='Daten werden geladen …'; results.innerHTML='';
   try {
-    const rpc=type==='scout'
-      ? 'pfms_admin_list_legacy_scouts'
-      : 'pfms_admin_search_legacy_organizations';
-    const args=type==='scout'
-      ? {p_query:query}
-      : {p_type:type,p_query:query};
-    const {data,error}=await pfssSupabase.rpc(rpc,args);
-    if(error)throw error;
-    if(!data?.length){message.textContent='Keine Einträge gefunden.';return;}
-    message.textContent=data.length+' Einträge gefunden.';
-    results.innerHTML=data.map((item,index)=>{
+    const rpc=type==='scout'?'pfms_admin_list_legacy_scouts':'pfms_admin_search_legacy_organizations';
+    const args=type==='scout'?{p_query:''}:{p_type:type,p_query:''};
+    const {data,error}=await pfssSupabase.rpc(rpc,args); if(error)throw error;
+    const nameQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-name]')?.value);
+    const emailQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-email]')?.value);
+    const idQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-id]')?.value);
+    const statusQuery=root.querySelector('[data-pfms-status]')?.value||'';
+    const filtered=(data||[]).filter(item=>{
+      const name=type==='scout'?(item.full_name||item.username||''):(item.name||'');
+      const email=type==='scout'?(item.email||''):'';
+      const id=type==='scout'?(item.user_id||''):(item.id||'');
+      const status=item.profile_status||item.status||'';
+      return (!nameQuery||pfssNormalizeSearch(name).includes(nameQuery)) &&
+        (!emailQuery||pfssNormalizeSearch(email).includes(emailQuery)) &&
+        (!idQuery||pfssNormalizeSearch(id).includes(idQuery)) &&
+        (!statusQuery||status===statusQuery);
+    }).sort((a,b)=>{
+      const left=type==='scout'?(a.full_name||a.username||a.email||''):(a.name||'');
+      const right=type==='scout'?(b.full_name||b.username||b.email||''):(b.name||'');
+      return String(left).localeCompare(String(right),'de',{sensitivity:'base'});
+    });
+    if(!filtered.length){message.textContent='Keine Einträge gefunden.';return;}
+    message.textContent=filtered.length+' Einträge gefunden.';
+    results.innerHTML=filtered.map((item,index)=>{
       const id=type==='scout'?item.user_id:item.id;
-      const name=type==='scout'
-        ? (item.full_name||item.username||item.email||'Scout')
-        : (item.name||'Organisation');
-      const meta=type==='scout'
-        ? (item.email||item.username||'Einzelscout')
-        : item.organization_type;
-      const code=type==='scout'?id:id;
+      const name=type==='scout'?(item.full_name||item.username||item.email||'Scout'):(item.name||'Organisation');
+      const meta=type==='scout'?(item.email||item.username||'Einzelscout'):item.organization_type;
       return `<button type="button" class="admin-directory-row" data-entry-index="${index}">
-        <span><b>${escapeHtml(name)}</b><small>${escapeHtml(code)} · ${escapeHtml(meta||'')}</small></span>
+        <span><b>${escapeHtml(name)}</b><small>${escapeHtml(id)} · ${escapeHtml(meta||'')}</small></span>
         <span class="tag">${escapeHtml(item.profile_status||item.status||'')}</span>
       </button>`;
     }).join('');
     results.querySelectorAll('[data-entry-index]').forEach(button=>button.addEventListener('click',()=>{
-      const item=data[Number(button.dataset.entryIndex)];
-      if(type==='scout')showPfmsScoutDetails(root,item);
-      else showPfmsOrganizationDetails(root,item);
+      const item=filtered[Number(button.dataset.entryIndex)];
+      if(type==='scout')showPfmsScoutDetails(root,item); else showPfmsOrganizationDetails(root,item);
     }));
-  } catch(error) {
-    console.error('PFMS Admin Directory:',error);
-    message.textContent='Suche fehlgeschlagen: '+(error?.message||'Unbekannter Datenbankfehler');
-  }
+  } catch(error) { console.error('PFMS Admin Directory:',error); message.textContent='Suche fehlgeschlagen: '+(error?.message||'Unbekannter Datenbankfehler'); }
 }
 
 async function showPfmsOrganizationDetails(root,org) {
