@@ -510,7 +510,7 @@ input[type=number],input[type=date],input[type=search],input[type=email],input[t
 #appShell{width:100%;min-height:100vh;min-height:100dvh}
 .sidebar{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .nav-list{min-width:0}
-.main-area{min-width:0;width:calc(100% - var(--sidebar-width,0px));max-width:100%;overflow-x:clip}
+.main-area{min-width:0;width:auto;max-width:100%;overflow-x:clip;flex:1 1 auto}
 .main-area>.topbar{min-width:0;max-width:100%;padding-left:var(--pfss-page-gutter);padding-right:var(--pfss-page-gutter);padding-top:env(safe-area-inset-top,0px)}
 .main-area>.view{min-width:0;max-width:100%;width:100%;padding-left:var(--pfss-page-gutter);padding-right:var(--pfss-page-gutter)}
 .main-area>.view>*{min-width:0;max-width:100%}
