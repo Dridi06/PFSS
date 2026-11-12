@@ -42,8 +42,8 @@ requirePattern(login, /application\/json/, "Username login requires JSON content
 requirePattern(login, /Cache-Control["']:\s*["']no-store/, "Username login disables response caching");
 requirePattern(login, /suppliedPassword\.length\s*>\s*MAX_PASSWORD_LENGTH/, "Username login bounds password input length");
 requirePattern(login, /cf-connecting-ip/, "Username login uses the Cloudflare client IP header");
-requirePattern(login, /hashRateLimitKey\("ip:" \+ clientIp\)/, "Username login hashes client IPs for distributed rate limiting");
-requirePattern(login, /hashRateLimitKey\("user-ip:" \+ normalizedUsername\.toLowerCase\(\) \+ ":" \+ clientIp\)/, "Username login also limits username/IP pairs");
+requirePattern(login, /hashRateLimitKey\("ip:" \+ clientIp,\s*rateLimitHashSecret\)/, "Username login hashes client IPs for distributed rate limiting");
+requirePattern(login, /hashRateLimitKey\("user-ip:" \+ normalizedUsername\.toLowerCase\(\) \+ ":" \+ clientIp,\s*rateLimitHashSecret\)/, "Username login also limits username/IP pairs");
 requirePattern(login, /pfss_consume_username_login_limit/, "Username login uses the shared database rate-limit RPC");
 requirePattern(login, /if \(limitError \|\| !limitResult\)/, "Username login fails closed when the rate limiter is unavailable");
 requirePattern(login, /Retry-After/, "Username login reports a retry delay when rate limited");
@@ -75,7 +75,7 @@ requirePattern(loginLimit, /security definer/i, "Login rate-limit RPC runs with 
 requirePattern(loginLimit, /revoke all on function[\s\S]*?from public, anon, authenticated/i, "Login rate-limit RPC is not executable by public or user roles");
 requirePattern(loginLimit, /grant execute on function[\s\S]*?to service_role/i, "Login rate-limit RPC is service-role only");
 if (loginLimit.includes("check (key_hash ~ '^[0-9a-f]{64}$')")) pass("Login rate-limit table stores HMAC-SHA-256 hex keys only");
-else fail("Login rate-limit table stores SHA-256 hex keys only");
+else fail("Login rate-limit table stores HMAC-SHA-256 hex keys only");
 
 requirePattern(backup, /openssl enc -aes-256-cbc -salt -pbkdf2/, "Backup workflow encrypts database dumps");
 requirePattern(backup, /aws s3api head-object/, "Backup workflow verifies uploaded object metadata");
