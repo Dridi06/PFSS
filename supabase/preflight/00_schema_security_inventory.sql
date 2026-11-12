@@ -88,17 +88,15 @@ from pg_catalog.pg_extension e
 join pg_catalog.pg_namespace n on n.oid=e.extnamespace
 order by e.extname;
 
--- 10) Auth profile and organization table counts only (no personal data)
--- Counts help detect whether a proposed migration must preserve existing records.
-select 'profiles' as table_name,count(*)::bigint as row_count from public.profiles
-union all
-select 'organizations',count(*)::bigint from public.organizations
-union all
-select 'organization_memberships',count(*)::bigint from public.organization_memberships
-union all
-select 'organization_invitations',count(*)::bigint from public.organization_invitations
-union all
-select 'players',count(*)::bigint from public.players
-union all
-select 'scouting_reports',count(*)::bigint from public.scouting_reports
-order by table_name;
+-- 10) Approximate row counts for relevant tables (no personal data).
+-- Uses catalog statistics so this still works when an optional table is absent.
+select schemaname,relname as table_name,n_live_tup as approximate_rows
+from pg_catalog.pg_stat_user_tables
+where schemaname='public'
+  and relname in (
+    'profiles','organizations','organization_memberships',
+    'organization_invitations','players','scouting_reports',
+    'pfms_organizations','pfms_memberships',
+    'pfss_scout_players','pfss_scout_reports','pfss_scout_media'
+  )
+order by relname;
