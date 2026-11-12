@@ -225,7 +225,9 @@ function renderPlayers() {
     surname: pfssNormalizeSearch(document.getElementById('playerSearchSurname')?.value),
     club: pfssNormalizeSearch(document.getElementById('playerSearchClub')?.value),
     position: pfssNormalizeSearch(document.getElementById('playerSearchPosition')?.value),
-    year: String(document.getElementById('playerSearchYear')?.value || '').trim(),
+    foot: pfssNormalizeSearch(document.getElementById('playerSearchFoot')?.value),
+    yearFrom: Number(document.getElementById('playerSearchYearFrom')?.value || 0),
+    yearTo: Number(document.getElementById('playerSearchYearTo')?.value || 0),
     joinDate: String(document.getElementById('playerSearchJoinDate')?.value || '').trim()
   };
   const sortBy = document.getElementById('playerSortBy')?.value || 'surname';
@@ -235,11 +237,15 @@ function renderPlayers() {
     const club = pfssNormalizeSearch(player.club);
     const position = pfssNormalizeSearch(player.position);
     const birthYear = String(player.birth || '').slice(0, 4);
+    const foot = pfssNormalizeSearch(player.foot);
+    const birthYearNumber = Number(birthYear) || 0;
     const joinDate = String(player.joinDate || '').slice(0, 10);
     return (!criteria.surname || surname.includes(criteria.surname)) &&
       (!criteria.club || club.includes(criteria.club)) &&
       (!criteria.position || position === criteria.position) &&
-      (!criteria.year || birthYear === criteria.year) &&
+      (!criteria.foot || foot === criteria.foot) &&
+      (!criteria.yearFrom || (birthYearNumber > 0 && birthYearNumber >= criteria.yearFrom)) &&
+      (!criteria.yearTo || (birthYearNumber > 0 && birthYearNumber <= criteria.yearTo)) &&
       (!criteria.joinDate || joinDate === criteria.joinDate);
   });
   filtered.sort((a,b) => {
