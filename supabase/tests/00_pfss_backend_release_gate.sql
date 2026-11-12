@@ -102,6 +102,49 @@ bucket_check as (
     'private_scout_storage_bucket' as check_id,
     'The pfss-scout-private bucket must exist, remain private and enforce a 50 MiB maximum.' as detail
 ),
+private_table_grants_check as (
+  select
+    case when
+      not exists (
+        select 1 from information_schema.role_table_grants
+        where table_schema='public'
+          and table_name in ('pfss_scout_players','pfss_scout_reports','pfss_scout_media')
+          and grantee in ('anon','PUBLIC')
+      )
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_players'),'SELECT')
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_players'),'INSERT')
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_reports'),'SELECT')
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_reports'),'INSERT')
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_media'),'SELECT')
+      and has_table_privilege('authenticated',to_regclass('public.pfss_scout_media'),'INSERT')
+      and not has_table_privilege('authenticated',to_regclass('public.pfss_scout_media'),'UPDATE')
+      then 'PASS' else 'FAIL' end as status,
+    'private_scout_table_grants' as check_id,
+    'No anon/PUBLIC table grants; authenticated users need scoped CRUD for players/reports and no UPDATE privilege for media metadata.' as detail
+  where to_regclass('public.pfss_scout_players') is not null
+    and to_regclass('public.pfss_scout_reports') is not null
+    and to_regclass('public.pfss_scout_media') is not null
+),
+rate_limit_grants_check as (
+  select
+    case when to_regprocedure('public.pfss_consume_username_login_limit(text,integer,integer)') is not null
+      and not has_function_privilege('anon',to_regprocedure('public.pfss_consume_username_login_limit(text,integer,integer)'),'EXECUTE')
+      and not has_function_privilege('authenticated',to_regprocedure('public.pfss_consume_username_login_limit(text,integer,integer)'),'EXECUTE')
+      and has_function_privilege('service_role',to_regprocedure('public.pfss_consume_username_login_limit(text,integer,integer)'),'EXECUTE')
+      then 'PASS' else 'FAIL' end as status,
+    'username_login_rpc_grants' as check_id,
+    'The distributed rate-limit RPC must be executable by service_role only, not anon or authenticated.' as detail
+),
+storage_policy_check as (
+  select
+    case when
+      (select count(*) from pg_policies
+       where schemaname='storage' and tablename='objects'
+         and policyname in ('pfss_scout_storage_select','pfss_scout_storage_insert','pfss_scout_storage_delete')) = 3
+      then 'PASS' else 'FAIL' end as status,
+    'private_scout_storage_policies' as check_id,
+    'The private Storage bucket requires owner-folder SELECT, INSERT and DELETE policies.' as detail
+),
 dual_model_check as (
   select
     case when
@@ -130,6 +173,9 @@ select status, check_id, detail from checks
 union all select status, check_id, detail from rate_limit_check
 union all select status, check_id, detail from private_fk_check
 union all select status, check_id, detail from bucket_check
+union all select status, check_id, detail from private_table_grants_check
+union all select status, check_id, detail from rate_limit_grants_check
+union all select status, check_id, detail from storage_policy_check
 union all select status, check_id, detail from dual_model_check
 union all select status, check_id, detail from rpc_check
 order by case status when 'FAIL' then 1 when 'WARN' then 2 else 3 end, check_id;
