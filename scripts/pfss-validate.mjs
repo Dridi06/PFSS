@@ -38,7 +38,7 @@ if (!existsSync(htmlPath)) {
 
   const refs = [...html.matchAll(/(?:src|href)\s*=\s*["']([^"'#?]+)(?:\?[^"']*)?["']/gi)]
     .map(m => m[1])
-    .filter(value => !/^(?:https?:|data:|mailto:|tel:|javascript:)/i.test(value));
+    .filter(value => !/^(?:https?:|data:|mailto:|tel:|about:|javascript:)/i.test(value));
   let missing = 0;
   for (const ref of refs) {
     const local = resolve(root, ref);
