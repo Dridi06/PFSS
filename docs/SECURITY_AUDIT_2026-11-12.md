@@ -3,6 +3,18 @@
 Stand: 12.11.2026
 Basis: GitHub-Branch `main`, statische Quelltextprüfung. Die produktive Supabase-Datenbank wurde noch nicht direkt ausgelesen.
 
+## Nachtrag zum Entwicklungsbranch `foundation/permissions-v1` (12.11.2026)
+
+Die folgenden Verbesserungen sind im Entwicklungsbranch vorhanden, jedoch noch nicht live bereitgestellt oder gegen eine echte Supabase-Instanz getestet:
+
+- Username-Login: CORS-Origin-Allowlist über `PFSS_ALLOWED_ORIGINS`, POST-/JSON-Prüfung, 8-KiB-Body-Limit, Passwortlängenbegrenzung, generische Anmeldefehler und `Cache-Control: no-store`. Ein verteilter Rate-Limit-Speicher fehlt weiterhin.
+- R2-Diagnose: POST-only, Supabase-JWT-Prüfung, explizite `PFSS_R2_ADMIN_USER_IDS`-Allowlist und CORS-Allowlist. Ohne die benötigten Function-Secrets bleibt die Funktion geschlossen. Noch keine Runtime- oder Rechteprüfung ausgeführt.
+- Private Scout-Workspace-Migration: RLS auf Eigentümer beschränkt, Report-/Medien-Referenzen auf eigene Spieler begrenzt, anonyme/öffentliche Tabellenrechte entzogen. Die Migration wurde nicht ausgeführt; Storage-Policies und RLS müssen auf einem getrennten Testprojekt verifiziert werden.
+- Mandantenmigration: Der frühere Kommentar über bereits verifizierte Live-Voraussetzungen wurde korrigiert. Tatsächliche Tabellen, Zeilen, Fremdschlüssel und RLS-Konfiguration sind weiterhin unbestätigt.
+- GitHub Actions: Der Qualitätsworkflow inklusive der statischen PFSS-Sicherheitsregeln ist am 12.11.2026 mit Erfolg durchgelaufen (Commit `fade726110d975d53fadef71fcb621feec8802c2`). Dies ist kein Laufzeit-, RLS- oder Penetrationstest.
+
+Die konkreten Sicherheitskontrollen und notwendigen Function-Secrets stehen in `docs/OWASP_SECURITY_IMPLEMENTATION_MATRIX.md`.
+
 ## Zweck und Grenzen
 
 Diese Bestandsaufnahme dokumentiert sichtbare Befunde aus dem Repository. Sie ist kein Penetrationstest und keine Bestätigung, dass die Live-Datenbank dieselben Migrationen bereits ausgeführt hat. Es wurden keine produktiven Daten oder Einstellungen verändert.
