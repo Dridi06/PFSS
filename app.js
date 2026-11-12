@@ -548,7 +548,8 @@ document.getElementById('menuToggle')
     document.body.classList.toggle('sidebar-open', isOpen);
   });
 
-// Mobile Sidebar: mit einer horizontalen Wischbewegung nach links schließen.
+// Mobile Sidebar: horizontal nach links wischen, auch wenn der Finger
+// außerhalb des Sidebar-Bereichs losgelassen wird.
 (() => {
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
@@ -565,7 +566,9 @@ document.getElementById('menuToggle')
     touchStart = { x: touch.clientX, y: touch.clientY };
   }, { passive: true });
 
-  sidebar.addEventListener('touchend', event => {
+  // touchend bewusst am Dokument registrieren: Der Finger darf außerhalb
+  // der Sidebar enden, ohne dass das Schließen-Ereignis verloren geht.
+  document.addEventListener('touchend', event => {
     if (!touchStart || !mobileQuery.matches || !sidebar.classList.contains('open')) {
       touchStart = null;
       return;
@@ -576,14 +579,13 @@ document.getElementById('menuToggle')
     const deltaY = touch.clientY - touchStart.y;
     touchStart = null;
 
-    // Nur eine deutliche Linksbewegung schließt; vertikales Scrollen bleibt normal.
-    if (deltaX <= -65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+    if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
       sidebar.classList.remove('open');
       document.body.classList.remove('sidebar-open');
     }
   }, { passive: true });
 
-  sidebar.addEventListener('touchcancel', () => {
+  document.addEventListener('touchcancel', () => {
     touchStart = null;
   }, { passive: true });
 })();
