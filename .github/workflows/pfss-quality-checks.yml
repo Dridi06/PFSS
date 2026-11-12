@@ -32,3 +32,5 @@ jobs:
           node-version: 20
       - name: Validate JavaScript, HTML IDs and local resources
         run: node scripts/pfss-validate.mjs
+      - name: Validate PFSS security guardrails
+        run: node scripts/pfss-security-static-checks.mjs
