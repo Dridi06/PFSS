@@ -352,3 +352,22 @@
  .main-area>.view:not(.pfss-ui-view) .content-grid{grid-template-columns:minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.main-area>.view:not(.pfss-ui-view) *{transition:none!important}}
+
+
+/* Scouting analytics and report composition surfaces */
+.pfss-activity-bars,.pfss-rating-bars{display:grid;gap:13px;margin:8px 0 15px}
+.pfss-activity-bars>div{display:grid;grid-template-columns:28px minmax(0,1fr) 22px;align-items:center;gap:10px}
+.pfss-activity-bars span,.pfss-rating-bars span{color:#bdb3a2;font-size:10px}
+.pfss-activity-bars i,.pfss-rating-bars i{display:block;position:relative;height:9px;overflow:hidden;border-radius:20px;background:#292a27}
+.pfss-activity-bars i:after,.pfss-rating-bars i:after{content:"";display:block;width:var(--bar);height:100%;border-radius:20px;background:linear-gradient(90deg,#8f6b35,#e4c783);box-shadow:0 0 12px rgba(212,181,117,.18)}
+.pfss-activity-bars b,.pfss-rating-bars b{color:#e4cc98;font-size:10px;text-align:right;font-variant-numeric:tabular-nums}
+.pfss-rating-bars>div{display:grid;grid-template-columns:minmax(115px,1fr) minmax(80px,1.3fr) 20px;align-items:center;gap:10px}
+.pfss-scout-overview>.pfss-panel,.pfss-report-summary>.pfss-panel{margin-top:15px}
+.pfss-report-summary .pfss-columns{align-items:stretch}
+.pfss-report-summary .pfss-action{margin-top:8px}
+.pfss-report-summary .pfss-toolbar{margin-bottom:12px}
+@media(max-width:620px){
+ .pfss-rating-bars>div{grid-template-columns:1fr 1fr 18px;gap:7px}
+ .pfss-rating-bars span{font-size:9px}
+ .pfss-activity-bars>div{grid-template-columns:22px minmax(0,1fr) 18px}
+}
