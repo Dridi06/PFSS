@@ -40,7 +40,7 @@ begin
   if p_key_hash is null or p_key_hash !~ '^[0-9a-f]{64}$' then
     raise exception 'Invalid rate-limit key';
   end if;
-  if p_max_attempts < 1 or p_max_attempts > 20 then
+  if p_max_attempts < 1 or p_max_attempts > 100 then
     raise exception 'Invalid rate-limit threshold';
   end if;
   if p_window_seconds < 60 or p_window_seconds > 3600 then
