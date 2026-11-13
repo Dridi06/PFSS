@@ -613,11 +613,17 @@ document.getElementById('backupFileInput')
 // PFSS AUTHENTICATION – SUPABASE
 // ============================================
 
-const PFSS_SUPABASE_URL =
-  'https://nkkajhjdvfjzrvxkbokg.supabase.co';
+const PFSS_CONFIG = window.PFSS_CONFIG || {};
+const PFSS_SUPABASE_URL = String(PFSS_CONFIG.supabaseUrl || '');
+const PFSS_SUPABASE_KEY = String(PFSS_CONFIG.supabasePublishableKey || '');
 
-const PFSS_SUPABASE_KEY =
-  'sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi';
+if (!PFSS_SUPABASE_URL || !PFSS_SUPABASE_KEY) {
+  throw new Error('PFSS Supabase-Konfiguration fehlt. Bitte pfss-config.js prüfen.');
+}
+if (PFSS_CONFIG.environment === 'test' &&
+    !PFSS_SUPABASE_URL.includes('oolvpbzbqiojioazsoun.supabase.co')) {
+  throw new Error('PFSS-Test-Schutz: Die konfigurierte Supabase-URL ist nicht das freigegebene Testprojekt.');
+}
 
 const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_URL,
