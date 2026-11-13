@@ -6,7 +6,7 @@
   const roleLabels = { owner:'Inhaber', admin:'Administrator', scout:'Scout', coach:'Trainer', analyst:'Analyst', finance:'Finanzen', viewer:'Mitglied' };
   const statusLabels = { active:'Aktiv', invited:'Eingeladen', suspended:'Gesperrt', removed:'Entfernt' };
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const client = () => window.pfssSupabase;
+  const client = () => pfssSupabase;
   function say(message, error=false) { const el=$('pfssMemberMessage'); if(el){el.textContent=message;el.classList.toggle('auth-message-error',error);} }
   function selectedOrg() { return state.organizations.find(o=>o.id===state.selectedOrg); }
   async function loadOrganizations() {
