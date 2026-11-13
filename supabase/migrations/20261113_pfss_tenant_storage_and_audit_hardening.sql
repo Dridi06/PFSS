@@ -25,7 +25,7 @@ create policy pfss_tenant_media_read
 on storage.objects for select to authenticated
 using (
   bucket_id='pfss-tenant-private'
-  and name ~ '^[0-9a-fA-F-]{36}/[0-9a-fA-F-]{36}/[^/].*$'
+  and name ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[^/].*$'
   and public.pfss_has_org_role(split_part(name,'/',1)::uuid)
 );
 
@@ -34,7 +34,7 @@ create policy pfss_tenant_media_insert
 on storage.objects for insert to authenticated
 with check (
   bucket_id='pfss-tenant-private'
-  and name ~ '^[0-9a-fA-F-]{36}/[0-9a-fA-F-]{36}/[^/].*$'
+  and name ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[^/].*$'
   and split_part(name,'/',2)::uuid=auth.uid()
   and public.pfss_has_org_role(
     split_part(name,'/',1)::uuid,
@@ -47,7 +47,7 @@ create policy pfss_tenant_media_delete
 on storage.objects for delete to authenticated
 using (
   bucket_id='pfss-tenant-private'
-  and name ~ '^[0-9a-fA-F-]{36}/[0-9a-fA-F-]{36}/[^/].*$'
+  and name ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/[^/].*$'
   and (
     split_part(name,'/',2)::uuid=auth.uid()
     or public.pfss_has_org_role(split_part(name,'/',1)::uuid,array['owner','admin'])
