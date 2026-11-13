@@ -146,6 +146,89 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
   if (view === 'admin') loadAdminUsers();
+  if (view === 'clubs') loadPfssOrganizations();
+}
+
+async function loadPfssOrganizations() {
+  const host = document.getElementById('pfssOrgList');
+  if (!host || !pfssSupabase || !window.pfssCurrentUserId) return;
+  host.innerHTML = '<p class="admin-message">Organisationen werden geladen …</p>';
+  try {
+    const { data, error } = await pfssSupabase
+      .from('pfss_organizations')
+      .select('id,name,organization_type,status,created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data || !data.length) {
+      host.innerHTML = '<div class="empty-state"><b>Noch keine Organisation vorhanden</b><p>Lege oben deinen ersten Verein an.</p></div>';
+      return;
+    }
+    host.innerHTML = data.map(org => `
+      <article class="admin-user-card">
+        <div class="admin-user-info">
+          <b>${escapeHtml(org.name)}</b>
+          <small>${escapeHtml(org.id)}</small>
+          <span class="tag">${escapeHtml(org.status)}</span>
+          <small>Typ: ${escapeHtml(org.organization_type)}</small>
+        </div>
+      </article>`).join('');
+  } catch (error) {
+    host.innerHTML = '<p class="admin-message">Organisationen konnten nicht geladen werden. Bitte Datenbankrechte und Anmeldung prüfen.</p>';
+  }
+}
+
+async function createPfssOrganization(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = document.getElementById('pfssOrgCreateButton');
+  const message = document.getElementById('pfssOrgCreateMessage');
+  const name = form.elements.name.value.trim();
+  const organizationType = form.elements.organizationType.value;
+  const slug = form.elements.slug.value.trim().toLowerCase() || null;
+  if (name.length < 2) {
+    message.textContent = 'Bitte gib einen Vereinsnamen mit mindestens zwei Zeichen ein.';
+    return;
+  }
+  if (slug && !/^[a-z0-9-]{2,80}$/.test(slug)) {
+    message.textContent = 'Die URL-Kennung darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten.';
+    return;
+  }
+  if (!window.pfssCurrentUserId) {
+    message.textContent = 'Deine Anmeldung ist nicht mehr aktiv. Bitte melde dich erneut an.';
+    return;
+  }
+  button.disabled = true;
+  message.textContent = 'Verein wird sicher angelegt …';
+  try {
+    const { data: organizationId, error } = await pfssSupabase.rpc('pfss_create_organization', {
+      p_name: name,
+      p_organization_type: organizationType,
+      p_slug: slug
+    });
+    if (error) throw error;
+    const { data: membership, error: membershipError } = await pfssSupabase
+      .from('pfss_memberships')
+      .select('role,status')
+      .eq('organization_id', organizationId)
+      .eq('user_id', window.pfssCurrentUserId)
+      .single();
+    if (membershipError) throw membershipError;
+    if (membership.role !== 'owner' || membership.status !== 'active') {
+      throw new Error('Die Eigentümerzuordnung konnte nicht bestätigt werden.');
+    }
+    message.textContent = 'Verein erfolgreich angelegt. Du bist als Eigentümer eingetragen.';
+    form.reset();
+    await loadPfssOrganizations();
+  } catch (error) {
+    const detail = String(error?.message || '');
+    message.textContent = detail.includes('duplicate key')
+      ? 'Diese URL-Kennung ist bereits vergeben. Bitte wähle eine andere.'
+      : detail.includes('Invalid organization type')
+        ? 'Der ausgewählte Organisationstyp ist ungültig.'
+        : 'Der Verein konnte nicht angelegt werden. Bitte prüfe die Datenbankfunktion und die Berechtigungen.';
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function openDialog(id) {
@@ -518,6 +601,9 @@ document.getElementById('playerSearchForm').addEventListener('submit', event => 
 document.getElementById('playerSearchForm').addEventListener('reset', () => window.setTimeout(() => {
   playerSearchHasRun=false; renderPlayers();
 },0));
+const pfssOrgCreateForm = document.getElementById('pfssOrgCreateForm');
+if (pfssOrgCreateForm) pfssOrgCreateForm.addEventListener('submit', createPfssOrganization);
+
 document.getElementById('adminUserSearchForm').addEventListener('submit', event => {
   event.preventDefault(); loadAdminUsers();
 });
