@@ -4,5 +4,5 @@
 window.PFSS_CONFIG = Object.freeze({
   environment: 'test',
   supabaseUrl: 'https://oolvpbzbqiojioazsoun.supabase.co',
-  supabasePublishableKey: 'REPLACE_WITH_PFSS_TEST_PUBLISHABLE_KEY'
+  supabasePublishableKey: 'sb_publishable_H-lG0ghKuYdlsssysjOulQ_8r7LamDE'
 });
