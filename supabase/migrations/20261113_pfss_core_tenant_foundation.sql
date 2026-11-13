@@ -13,8 +13,11 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   username text unique,
   display_name text,
-  status text not null default 'active'
-    check (status in ('active','invited','suspended','disabled')),
+  -- Legacy-compatible account fields consumed by the current login/admin UI.
+  -- Platform privileges remain authoritative in pfss_platform_roles.
+  role text not null default 'user',
+  status text not null default 'pending'
+    check (status in ('pending','approved','suspended','disabled')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -213,11 +216,13 @@ returns trigger language plpgsql security definer
 set search_path = pg_catalog, public
 as $$
 begin
-  insert into public.profiles(id,username,display_name)
+  insert into public.profiles(id,username,display_name,role,status)
   values (
     new.id,
     nullif(lower(trim(new.raw_user_meta_data ->> 'username')),''),
-    nullif(trim(new.raw_user_meta_data ->> 'display_name'),'')
+    nullif(trim(new.raw_user_meta_data ->> 'display_name'),''),
+    'user',
+    'pending'
   )
   on conflict (id) do nothing;
   return new;
