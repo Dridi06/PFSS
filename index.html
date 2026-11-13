@@ -20,7 +20,7 @@
   <script src="pfss-i18n.js?v=pfss-i18n-20261112-1" defer></script>
   <script src="workspace-ui.js?v=pfss-ui-20261112-4" defer></script>
   <script src="pfss-finance.js?v=pfss-finance-20261112-1" defer></script>
-</head>
+  <link rel="stylesheet" href="pfss-org-management.css?v=20261113-1">\n  <script src="pfss-org-management.js?v=20261113-1" defer></script>\n</head>
 <body>
 
 <script>
@@ -552,22 +552,12 @@
       </section>
 
       <section class="view" id="view-club-members">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitgliederverwaltung">＋ Mitglied aufnehmen</button></div>
-        <div class="stats-grid">
-          <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder mit aktiver Mitgliedschaft</small></article>
-          <article class="stat-card"><div class="stat-top">PASSIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder ohne aktive Sportteilnahme</small></article>
-          <article class="stat-card"><div class="stat-top">OFFENE BEITRÄGE</div><strong>–</strong><small>Monatliche Beiträge mit Rückstand</small></article>
-          <article class="stat-card accent-stat"><div class="stat-top">BEITRÄGE BEZAHLT</div><strong>–</strong><small>Nach Zahlungseingang bestätigt</small></article>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERSUCHE</div><h3>Mitglieder finden</h3></div><span class="module-status">Datenbank folgt</span></div>
-          <div class="club-search-preview"><span>⌕</span><span>Suche nach Vorname, Nachname oder Geburtsdatum</span></div>
-          <div class="club-table-wrap"><table class="club-table"><thead><tr><th>Mitglied</th><th>Status</th><th>Monatsbeitrag</th><th>Offener Monat</th><th>Zahlungsstatus</th></tr></thead><tbody>
-            <tr><td>Beispielmitglied</td><td>Aktiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-open">Offen</span></td></tr>
-            <tr><td>Beispielmitglied</td><td>Passiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-paid">Bezahlt</span></td></tr>
-          </tbody></table></div>
-          <p class="club-footnote">Beispieldarstellung ohne echte Mitgliederdaten. Mitglieder sollen später ihre Zahlungen erfassen beziehungsweise einen Zahlungsvorgang melden können. Die endgültige Zahlungsbestätigung und Buchungslogik wird gesondert festgelegt.</p>
-        </div>
+        <div class="page-heading"><div><div class="eyebrow">ORGANISATIONSVERWALTUNG</div><h1>Mitglieder & Einladungen</h1><p>Mitglieder verwalten, Rollen vergeben und Einladungen sicher steuern.</p></div><button class="btn btn-secondary" id="pfssMemberReload" type="button">↻ Aktualisieren</button></div>
+        <div class="pfss-member-toolbar"><label class="field">Organisation auswählen<select id="pfssMemberOrg" aria-label="Organisation auswählen"></select></label><label class="field">Mitglied suchen<input id="pfssMemberSearch" type="search" placeholder="Name, E-Mail oder Rolle"></label></div>
+        <div class="pfss-member-stats"><article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong id="pfssMemberCount">–</strong><small>In dieser Organisation</small></article><article class="stat-card"><div class="stat-top">OFFENE EINLADUNGEN</div><strong id="pfssInviteCount">–</strong><small>Noch nicht angenommen</small></article><article class="stat-card accent-stat"><div class="stat-top">DATENSCHUTZ</div><strong>RLS</strong><small>Organisationsbezogene Rechteprüfung</small></article></div>
+        <p id="pfssMemberMessage" class="pfss-member-message" role="status" aria-live="polite">Wähle eine Organisation aus.</p>
+        <div class="pfss-member-layout"><div class="panel"><div class="panel-heading"><div><div class="eyebrow">MITGLIEDERSTAMM</div><h3>Mitglieder dieser Organisation</h3></div><span class="module-status">Live-Daten</span></div><div id="pfssMembersHost"><div class="empty-state">Mitglieder werden geladen …</div></div></div>
+        <div class="panel"><div class="panel-heading"><div><div class="eyebrow">ZUGANG STEUERN</div><h3>Neue Einladung</h3></div><span class="module-status">Einmaliger Code</span></div><form id="pfssInviteForm" class="pfss-invite-form"><label class="field">Mitgliedsrolle<select id="pfssInviteRole"><option value="scout">Scout</option><option value="trainer">Trainer</option><option value="co_trainer">Co-Trainer</option><option value="betreuer">Betreuer</option><option value="member">Mitglied</option></select></label><label class="field">Gültigkeit<select id="pfssInviteDays"><option value="7">7 Tage</option><option value="14">14 Tage</option><option value="30">30 Tage</option></select></label><button class="btn btn-primary" id="pfssInviteButton" type="submit">＋ Einladung erstellen</button></form><div id="pfssInviteResult" class="pfss-invite-result" hidden><b>Einladungslink – nur einmal anzeigen</b><input id="pfssInviteLink" type="text" readonly><button class="btn btn-secondary" id="pfssCopyInvite" type="button">Link kopieren</button><small>Der Code wird nur gehasht gespeichert. Teile den Link ausschließlich mit der vorgesehenen Person.</small></div><div class="divider"></div><div class="panel-heading"><div><div class="eyebrow">EINLADUNGSVERLAUF</div><h3>Offene & frühere Einladungen</h3></div></div><div id="pfssInvitesHost"></div></div></div>
       </section>
 
       <section class="view" id="view-club-admin">
