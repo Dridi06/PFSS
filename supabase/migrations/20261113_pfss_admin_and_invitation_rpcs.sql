@@ -208,7 +208,10 @@ begin
  if not found or v_org_status<>'active' then raise exception 'Organization is not active'; end if;
  v_code:=upper(replace(gen_random_uuid()::text,'-',''));
  insert into public.pfss_invitations(organization_id,email_normalized,role,token_hash,expires_at,created_by)
- values(p_organization_id,'*',p_role,encode(digest(convert_to(v_code,'UTF8'),'sha256'),'hex'),
+ values(p_organization_id,'*',
+        case p_role when 'trainer' then 'coach' when 'co_trainer' then 'coach'
+          when 'betreuer' then 'viewer' when 'member' then 'viewer' else p_role end,
+        encode(digest(convert_to(v_code,'UTF8'),'sha256'),'hex'),
         now()+make_interval(days=>p_expires_in_days),auth.uid());
  return v_code;
 end;
@@ -239,7 +242,8 @@ begin
  end if;
  insert into public.pfss_memberships(organization_id,user_id,role,status)
  values(v_inv.organization_id,new.id,
-   case v_inv.role when 'trainer' then 'coach' when 'co_trainer' then 'coach' else v_inv.role end,'active');
+   case v_inv.role when 'trainer' then 'coach' when 'co_trainer' then 'coach'
+     when 'betreuer' then 'viewer' when 'member' then 'viewer' else v_inv.role end,'active');
  update public.pfss_invitations set accepted_at=now() where id=v_inv.id;
  update public.profiles set role=case when v_inv.role='scout' then 'scout' else 'user' end,status='approved'
  where id=new.id;
