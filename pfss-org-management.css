@@ -1,0 +1,27 @@
+/* PFSS organization member management – premium responsive layout */
+.pfss-member-toolbar{display:flex;gap:14px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin:18px 0}
+.pfss-member-toolbar .field{min-width:220px;flex:1}
+.pfss-member-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.pfss-member-stats .stat-card{min-width:0}
+.pfss-member-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:18px;align-items:start}
+.pfss-member-row,.pfss-invite-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid rgba(214,184,120,.16);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));margin:10px 0}
+.pfss-member-identity{display:flex;align-items:center;gap:12px;min-width:190px}
+.pfss-member-identity>div,.pfss-invite-row>div{display:grid;gap:4px;min-width:0}
+.pfss-member-identity small,.pfss-invite-row small{color:var(--muted,#9b9da3);overflow-wrap:anywhere}
+.pfss-member-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:rgba(205,174,111,.13);border:1px solid rgba(205,174,111,.35);color:#e1c58c;font-weight:800;flex:none}
+.pfss-member-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.pfss-role-pill,.pfss-status-pill,.pfss-protected{font-size:11px;letter-spacing:.04em;border:1px solid rgba(205,174,111,.25);border-radius:999px;padding:6px 9px;color:#dfc38d;white-space:nowrap}
+.pfss-status-pill.active{color:#91d4a5;border-color:rgba(90,190,120,.35)}
+.pfss-status-pill.suspended,.pfss-status-pill.removed{color:#e49a9a;border-color:rgba(220,100,100,.35)}
+.pfss-inline-field{display:grid;gap:4px;font-size:10px;color:var(--muted,#9b9da3)}
+.pfss-inline-field select{min-width:110px;max-width:145px}
+.pfss-small-btn{padding:8px 11px!important;font-size:11px!important}
+.btn-danger{background:rgba(150,45,45,.16)!important;border:1px solid rgba(220,100,100,.35)!important;color:#e9a4a4!important}
+.pfss-invite-form{display:grid;gap:12px}
+.pfss-invite-form .field{display:grid;gap:7px}
+.pfss-invite-form input,.pfss-invite-form select,.pfss-member-toolbar input,.pfss-member-toolbar select{width:100%}
+.pfss-invite-result{margin-top:14px;padding:14px;border:1px solid rgba(205,174,111,.3);border-radius:12px;background:rgba(205,174,111,.07)}
+.pfss-invite-result input{width:100%;margin:8px 0}
+.pfss-member-message{min-height:24px;color:#d7bd87;margin:12px 0}
+@media(max-width:900px){.pfss-member-layout{grid-template-columns:1fr}}
+@media(max-width:650px){.pfss-member-stats{grid-template-columns:1fr 1fr}.pfss-member-row,.pfss-invite-row{align-items:stretch;flex-direction:column}.pfss-member-controls{justify-content:flex-start}.pfss-member-identity{min-width:0}.pfss-inline-field{flex:1}.pfss-inline-field select{max-width:none}.pfss-member-toolbar{align-items:stretch;flex-direction:column}}
