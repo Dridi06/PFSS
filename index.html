@@ -496,7 +496,21 @@
       </section>
 
       <section class="view" id="view-clubs">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · STARTSEITE</div><h1>Vereinsübersicht</h1><p>Zentrale Übersicht für Präsident, Vorstand, Jugendleitung und sportliche Leitung.</p></div><span class="module-status">Platzhalter · Funktionen folgen</span></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · STARTSEITE</div><h1>Vereinsübersicht</h1><p>Zentrale Übersicht für Präsident, Vorstand, Jugendleitung und sportliche Leitung.</p></div><span class="module-status">Organisationsverwaltung · Test</span></div>
+        <div class="panel" id="pfssOrgCreatePanel">
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATION EINRICHTEN</div><h3>Neuen Verein anlegen</h3></div><span class="module-status">Sicher über Supabase</span></div>
+          <p>Lege einen Verein in der PFSS-Testdatenbank an. Dein Benutzerkonto wird automatisch als Eigentümer eingetragen.</p>
+          <form id="pfssOrgCreateForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Vereinsname<input id="pfssOrgName" name="name" type="text" minlength="2" maxlength="160" required placeholder="z. B. PFSS Testverein"></label>
+              <label class="field">Organisationstyp<select id="pfssOrgType" name="organizationType" required><option value="club" selected>Fußballverein</option><option value="academy">Akademie</option><option value="scouting_network">Scouting-Netzwerk</option><option value="other">Sonstige Organisation</option></select></label>
+              <label class="field">Kürzel / URL-Kennung (optional)<input id="pfssOrgSlug" name="slug" type="text" maxlength="80" pattern="[a-zA-Z0-9-]*" placeholder="z. B. pfss-testverein"></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" id="pfssOrgCreateButton" type="submit">＋ Verein anlegen</button></div>
+            <p id="pfssOrgCreateMessage" class="admin-message" role="status" aria-live="polite">Noch keine Organisation angelegt.</p>
+          </form>
+          <div id="pfssOrgList" class="admin-user-list" aria-live="polite"></div>
+        </div>
         <section class="admin-org-console" id="adminClubConsole" hidden>
           <div class="panel">
             <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Verein finden</h3></div><span class="module-status">Verwaltung</span></div>
