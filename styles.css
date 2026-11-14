@@ -978,3 +978,16 @@ button,input,select,textarea{max-width:100%}
 .report-card-actions button{border:1px solid #5a4930;border-radius:7px;padding:7px 10px;background:#191b1d;color:#d7bd82;font:600 10px 'DM Sans';cursor:pointer}
 .report-card-actions button:hover{background:#2a251d;border-color:#a98a50}
 .report-card-actions button:focus-visible{outline:2px solid #d9bd7b;outline-offset:2px}
+
+
+/* PFMS private cloud media library */
+.pfms-cloud-media-card{min-width:0;display:flex;flex-direction:column}
+.pfms-cloud-media-card .media-card-caption{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.pfms-cloud-media-card .media-card-caption b{font-size:11px;overflow-wrap:anywhere;color:var(--ink)}
+.pfms-cloud-media-card .media-card-caption small{font-size:9px;color:var(--muted)}
+.pfms-cloud-media-card .media-card-caption button{font-size:10px;padding:8px 11px;min-height:34px}
+.media-unavailable{height:145px;display:grid;place-items:center;text-align:center;padding:15px;background:var(--surface);color:var(--muted);font-size:11px}
+#mainMediaStatus{margin-top:-8px}
+@media(max-width:640px){
+  .pfms-cloud-media-card .media-card-caption button{width:100%}
+}
