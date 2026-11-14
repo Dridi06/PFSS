@@ -554,6 +554,20 @@ assert.ok(
     && teamEventTravelMigration.includes("for update;"),
   "Event participant and travel updates must serialize against the event row"
 );
+const removeParticipantFunctionStart = teamEventTravelMigration.indexOf("create or replace function public.pfms_remove_legacy_team_event_participant");
+const removeParticipantFunction = teamEventTravelMigration.slice(removeParticipantFunctionStart);
+const removeEventLock = removeParticipantFunction.indexOf("from public.pfms_legacy_team_calendar_events e");
+const removeEventLockClause = removeParticipantFunction.indexOf("for update;", removeEventLock);
+const removeParticipantLock = removeParticipantFunction.indexOf("for update;", removeEventLockClause + 1);
+assert.ok(
+  removeParticipantFunctionStart >= 0
+    && removeEventLock >= 0
+    && removeEventLockClause > removeEventLock
+    && removeParticipantLock > removeEventLockClause
+    && removeParticipantFunction.includes("revoke all on function public.pfms_remove_legacy_team_event_participant(uuid)"),
+  "RSVP removal must lock the event before the participant row and remain protected by EXECUTE grants"
+);
+
 assert.ok(
   app.includes("async function savePfmsLegacyTeamEventTravelPlan")
     && app.includes("async function deletePfmsLegacyTeamEventTravelPlan")
