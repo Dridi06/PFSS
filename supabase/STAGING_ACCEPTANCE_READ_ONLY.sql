@@ -691,6 +691,35 @@ with checks as (
     ), false),
     'Einlösung prüft Einmaligkeit, Widerruf, Ablauf und aktiven Organisationsstatus; Triggerfunktion ist nicht direkt aufrufbar'
 
+
+  union all
+  select
+    'team_task_assignee_current_membership',
+    coalesce((
+      select
+        p_create.prosecdef
+        and p_update.prosecdef
+        and coalesce(p_create.proconfig::text, '') like '%search_path=""%'
+        and coalesce(p_update.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p_create.oid) ilike '%join public.organization_memberships m%'
+        and pg_catalog.pg_get_functiondef(p_create.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p_create.oid) ilike '%m.role = s.role%'
+        and pg_catalog.pg_get_functiondef(p_create.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and pg_catalog.pg_get_functiondef(p_update.oid) ilike '%join public.organization_memberships m%'
+        and pg_catalog.pg_get_functiondef(p_update.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p_update.oid) ilike '%m.role = s.role%'
+        and pg_catalog.pg_get_functiondef(p_update.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and pg_catalog.has_function_privilege('authenticated', p_create.oid, 'EXECUTE')
+        and pg_catalog.has_function_privilege('authenticated', p_update.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p_create.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p_update.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p_create
+      cross join pg_catalog.pg_proc p_update
+      where p_create.oid = pg_catalog.to_regprocedure('public.pfms_create_legacy_team_task(uuid,text,text,uuid,date,text,text)')
+        and p_update.oid = pg_catalog.to_regprocedure('public.pfms_update_legacy_team_task(uuid,text,text,uuid,date,text,text)')
+    ), false),
+    'Task-Zuweisungen verlangen aktive Teamzuordnung, aktive Mitgliedschaft, passende Rolle und aktive Organisation; SECURITY DEFINER mit leerem search_path'
+
 )
 select check_name, passed, details
 from checks
