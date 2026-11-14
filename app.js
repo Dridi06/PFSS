@@ -903,7 +903,7 @@ function showAuthenticatedApp(user, profile) {
 async function loadAdminUsers() {
   const message = document.getElementById('adminMessage');
   const host = document.getElementById('adminUserList');
-  if (window.pfssCurrentRole !== 'admin') {
+  if (!window.pfssIsRealAdmin) {
     message.textContent = 'Kein Administratorzugang.';
     host.innerHTML = '';
     return;
@@ -948,7 +948,7 @@ async function loadAdminUsers() {
 
 async function saveAdminUser(button) {
   const card = button.closest('[data-user-id]');
-  if (!card || window.pfssCurrentRole !== 'admin') return;
+  if (!card || !window.pfssIsRealAdmin) return;
   const userId = card.dataset.userId;
   const role = card.querySelector('[data-role]').value;
   const status = card.querySelector('[data-status]').value;
@@ -988,7 +988,7 @@ function pfmsAdminToolsMarkup(type) {
 }
 
 function setupPfmsAdminManagement() {
-  if (window.pfssCurrentRole !== 'admin') return;
+  if (!window.pfssIsRealAdmin) return;
   const configs = [
     {type:'club',id:'adminClubConsole'},
     {type:'agency',id:'adminAgencyConsole'},
