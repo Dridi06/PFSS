@@ -7750,6 +7750,8 @@ async function checkPfssAccess(user) {
 
 function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
+  pfmsNotifications = [];
+  renderPfmsNotifications();
   pfmsStaffDirectoryRequestId += 1;
   pfmsMainDataLoading = false;
   pfmsMainDataReady = false;
