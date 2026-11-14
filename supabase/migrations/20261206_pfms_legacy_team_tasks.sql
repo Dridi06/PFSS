@@ -381,7 +381,8 @@ create or replace function public.pfms_create_legacy_team_task(
   p_description text default null,
   p_assigned_to uuid default null,
   p_due_date date default null,
-  p_priority text default 'normal'
+  p_priority text default 'normal',
+  p_status text default 'open'
 )
 returns uuid
 language plpgsql
@@ -400,7 +401,8 @@ begin
   if p_title is null
      or pg_catalog.length(pg_catalog.btrim(p_title)) not between 3 and 160
      or (p_description is not null and pg_catalog.length(p_description) > 3000)
-     or p_priority is null or p_priority not in ('low','normal','high') then
+     or p_priority is null or p_priority not in ('low','normal','high')
+     or p_status is null or p_status not in ('open','in_progress','done','cancelled') then
     raise exception 'Invalid team task data' using errcode = '22023';
   end if;
 
@@ -418,11 +420,13 @@ begin
   end if;
 
   insert into public.pfms_legacy_team_tasks (
-    team_id, title, description, assigned_to, due_date, priority, created_by
+    team_id, title, description, assigned_to, due_date, priority, status, completed_at, created_by
   ) values (
     p_team_id, pg_catalog.btrim(p_title),
     nullif(pg_catalog.btrim(coalesce(p_description,'')), ''),
-    v_assignee, p_due_date, p_priority, auth.uid()
+    v_assignee, p_due_date, p_priority, p_status,
+    case when p_status = 'done' then pg_catalog.now() else null end,
+    auth.uid()
   )
   returning id into v_task_id;
 
@@ -519,7 +523,7 @@ $$;
 
 revoke all on function public.pfms_list_legacy_team_tasks(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_tasks(uuid) to authenticated;
-revoke all on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text) from public, anon;
+revoke all on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text, text) from public, anon;
 grant execute on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text) to authenticated;
 revoke all on function public.pfms_update_legacy_team_task(uuid, text, text, uuid, date, text, text) from public, anon;
 grant execute on function public.pfms_update_legacy_team_task(uuid, text, text, uuid, date, text, text) to authenticated;
