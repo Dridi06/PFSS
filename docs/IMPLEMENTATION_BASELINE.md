@@ -1,6 +1,6 @@
 # PFMS – Implementierungs-Baseline und Arbeitsplan
 
-Stand: 14.11.2026
+Stand: 14.11.2026 – nach Umsetzung des persistenten PFMS-Katalogs, der privaten Hauptmedien und der Konto-Isolation
 Arbeitsbranch: feature/pfss-complete-platform-build
 Basisbranch: main
 Produktionsumgebung: unverändert; kein Deployment durch diesen Arbeitsschritt.
@@ -23,7 +23,7 @@ Beim ersten Read-only-Inventar des GitHub-Repositories Dridi06/PFSS wurde festge
 - Zentrale Dateien sind index.html, app.js, styles.css, scout-workspace.js und scout-workspace.css.
 - Supabase wird im Browser über die veröffentlichbare Client-Konfiguration eingebunden; die Username-Login-Edge-Function verwendet serverseitige Laufzeit-Secrets.
 - Es existieren mehrere SQL-Migrationen für Organisationen, Mitgliedschaften, Rollen-/Adminfunktionen, Einladungen und private Scout-Arbeitsbereiche.
-- app.js speichert Spieler und Berichte derzeit zusätzlich in localStorage unter pfss_players_v1 und pfss_reports_v1. Diese Daten sind damit noch kein verlässlicher, organisationsübergreifender Supabase-Datenbestand.
+- Der ursprüngliche Baseline-Befund zu `localStorage` ist inzwischen überholt: Die Haupt-Spielerdatenbank und Haupt-Scoutingberichte verwenden im Feature-Branch `pfms_global_players` und `pfms_main_scouting_reports` mit serverseitiger RLS. Lokale Altbestände werden nur nach ausdrücklicher Admin-Bestätigung über eine transaktionale Import-RPC übernommen. Der private Scout-Bereich und die Haupt-Medienbibliothek verwenden separate, benutzergebundene Supabase-Datenmodelle und private Storage-Pfade. Diese Änderungen sind im Repository und in CI geprüft, aber noch nicht in der externen Staging-Datenbank abgenommen.
 - Der vorhandene Code enthält bereits Login per E-Mail oder Benutzername, Passwort-Reset, Registrierungsabläufe und mehrere vorbereitete Ansichten.
 - Im HTML sind noch uneinheitliche Produktbezeichnungen PFMS/PFSS wurden im Bestand vorgefunden; die sichtbare Marke wird auf PFMS vereinheitlicht. Produktname, Seitentitel, Logo-Alttexte und sichtbare Texte müssen konsistent auf die freigegebene Marke gebracht werden.
 - Die bestehende Datenbankhistorie enthält parallel gewachsene Namensräume/Modelle. Vor neuen Fachmodulen ist das kanonische Datenmodell festzulegen.
