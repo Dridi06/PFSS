@@ -1,10 +1,11 @@
 import { AwsClient } from "npm:aws4fetch@1.0.20";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsForRequest } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
   const cors = corsForRequest(req, "GET, POST, OPTIONS");
   const json = (body: Record<string, unknown>, status = 200) =>
-    Response.json(body, { status, headers: cors.headers });
+    Response.json(body, { status, headers: { ...cors.headers, "Cache-Control": "no-store" } });
 
   if (!cors.allowed) {
     return json({ ok: false, message: "Origin not allowed." }, 403);
@@ -16,6 +17,35 @@ Deno.serve(async (req) => {
 
   if (req.method !== "GET" && req.method !== "POST") {
     return json({ ok: false, message: "Method not allowed" }, 405);
+  }
+
+  // This endpoint checks a privileged storage integration. CORS is not
+  // authentication: require a verified user JWT and a server-side admin role.
+  const authorization = req.headers.get("authorization") || "";
+  if (!/^Bearer\\s+\\S+$/i.test(authorization)) {
+    return json({ ok: false, message: "Authentication required." }, 401);
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
+  const publishableKey = publishableKeys.default;
+  if (!supabaseUrl || !publishableKey) {
+    console.error("R2 check is missing Supabase runtime configuration.");
+    return json({ ok: false, message: "R2 connection check is unavailable." }, 503);
+  }
+
+  const userClient = createClient(supabaseUrl, publishableKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  const { data: userData, error: userError } = await userClient.auth.getUser();
+  if (userError || !userData.user) {
+    return json({ ok: false, message: "Authentication required." }, 401);
+  }
+
+  const { data: isAdmin, error: adminError } = await userClient.rpc("pfms_is_admin");
+  if (adminError || isAdmin !== true) {
+    return json({ ok: false, message: "Administrator access required." }, 403);
   }
 
   try {
