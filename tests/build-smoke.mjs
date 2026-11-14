@@ -1,0 +1,47 @@
+import assert from "node:assert/strict";
+import { access, readFile } from "node:fs/promises";
+import { dirname, resolve, sep } from "node:path";
+
+const outputDirectory = resolve(process.cwd(), "dist");
+const requiredFiles = [
+  "index.html",
+  "rechtliches.html",
+  "styles.css",
+  "scout-workspace.css",
+  "app.js",
+  "scout-workspace.js",
+  "pfms-logo.svg"
+];
+
+for (const file of requiredFiles) {
+  await access(resolve(outputDirectory, file));
+}
+
+for (const page of ["index.html", "rechtliches.html"]) {
+  const pagePath = resolve(outputDirectory, page);
+  const source = await readFile(pagePath, "utf8");
+
+  for (const match of source.matchAll(/\\b(?:src|href)=["']([^"']+)["']/g)) {
+    const value = match[1];
+    if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
+
+    const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]);
+    if (!localPath) continue;
+
+    const targetPath = resolve(dirname(pagePath), localPath);
+    assert.ok(
+      targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
+      `${page} references a path outside dist/: ${value}`
+    );
+    await access(targetPath);
+  }
+}
+
+for (const forbidden of ["supabase", "tests", "docs", "package.json", "render.yaml"]) {
+  await assert.rejects(
+    access(resolve(outputDirectory, forbidden)),
+    `Internal project path must not be published: ${forbidden}`
+  );
+}
+
+console.log("PFMS build smoke tests passed: public assets resolve and internal project files are excluded.");
