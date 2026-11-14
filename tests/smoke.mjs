@@ -5,6 +5,9 @@ const read = (path) => fs.readFile(path, "utf8");
 const html = await read("index.html");
 const app = await read("app.js");
 const scout = await read("scout-workspace.js");
+const cors = await read("supabase/functions/_shared/cors.ts");
+const usernameLogin = await read("supabase/functions/username-login/index.ts");
+const r2Check = await read("supabase/functions/r2-connection-check/index.ts");
 
 const requiredFiles = [
   "index.html",
@@ -43,6 +46,10 @@ for (const tag of html.matchAll(/<(script|link)\b([^>]*)>/gi)) {
 
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
+assert.ok(cors.includes("PFMS_ALLOWED_ORIGINS") && cors.includes("DEFAULT_ALLOWED_ORIGINS"), "CORS allowlist configuration is missing");
+assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Username login must not allow wildcard CORS");
+assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
+assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForRequest"), "Edge Functions must use shared CORS policy");
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
 assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
 assert.match(app, /finishAuthentication\(\);/, "Authentication must complete after the reload path");
