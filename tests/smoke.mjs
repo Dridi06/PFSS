@@ -86,6 +86,7 @@ const requiredFiles = [
   "package.json",
   "deno.json",
   "docs/PROJECT_STATUS.md",
+  "docs/STAGING_DEPLOYMENT.md",
   "docs/OWNER_BOOTSTRAP.md",
   "supabase/STAGING_READ_ONLY_AUDIT.sql",
   "supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql",
