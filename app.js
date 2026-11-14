@@ -1955,6 +1955,9 @@ let pfmsSelectedTeamPermissions = new Map();
 let pfmsEditingLegacyTeamId = null;
 let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
+let pfmsLegacyTrainingSessions = [];
+let pfmsSelectedTrainingSession = null;
+let pfmsLegacyTrainingAttendance = [];
 
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
@@ -3042,6 +3045,298 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   }
 
   await loadPfmsLegacyTeamRoster(teamId);
+}
+
+const PFMS_ATTENDANCE_STATUSES = {
+  pending: 'Offen',
+  present: 'Anwesend',
+  absent: 'Abwesend',
+  excused: 'Entschuldigt',
+  injured: 'Verletzt',
+  late: 'Verspätet'
+};
+
+function pfmsFormatTeamDate(value) {
+  if (!value) return '–';
+  const date = new Date(String(value).slice(0, 10) + 'T12:00:00');
+  return Number.isNaN(date.getTime()) ? '–' : date.toLocaleDateString('de-DE');
+}
+
+function pfmsTeamTime(value) {
+  return String(value || '').slice(0, 5);
+}
+
+function renderPfmsLegacyTeamTraining() {
+  const host = document.getElementById('pfmsTeamTrainingList');
+  const message = document.getElementById('pfmsTeamTrainingMessage');
+  const team = pfmsSelectedLegacyTeam;
+  if (!host || !team) return;
+  const trainingPermission = pfmsSelectedTeamPermissions.get('training') || {};
+  const attendancePermission = pfmsSelectedTeamPermissions.get('attendance') || {};
+  const canEditTraining = trainingPermission.can_edit === true;
+  const canViewAttendance = attendancePermission.can_view === true;
+
+  if (!pfmsLegacyTrainingSessions.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Trainingstermine vorhanden</b><p>' +
+      (canEditTraining ? 'Lege die erste Trainingseinheit für deine Mannschaft an.' : 'Für diese Mannschaft wurden noch keine Einheiten geplant.') +
+      '</p></div>';
+    return;
+  }
+
+  const statuses = { planned: 'Geplant', completed: 'Abgeschlossen', cancelled: 'Abgesagt' };
+  host.innerHTML = pfmsLegacyTrainingSessions.map(session => {
+    const status = statuses[session.session_status] || session.session_status;
+    const statusActions = canEditTraining && session.session_status === 'planned'
+      ? '<div class="pfms-training-actions">' +
+          '<button type="button" class="btn btn-secondary" data-pfms-training-status="completed" data-session-id="' + escapeHtml(session.session_id) + '">Abschließen</button>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-training-status="cancelled" data-session-id="' + escapeHtml(session.session_id) + '">Absagen</button>' +
+        '</div>' : '';
+    const attendanceAction = canViewAttendance
+      ? '<button type="button" class="btn btn-primary" data-pfms-open-attendance="' + escapeHtml(session.session_id) + '">Anwesenheit erfassen</button>'
+      : '';
+    return '<article class="pfms-training-card" data-pfms-training-card="' + escapeHtml(session.session_id) + '">' +
+      '<div class="pfms-training-card-head"><div><span class="eyebrow">' + escapeHtml(pfmsFormatTeamDate(session.session_date)) + '</span>' +
+      '<h4>' + escapeHtml(session.session_title) + '</h4></div><span class="module-status">' + escapeHtml(status) + '</span></div>' +
+      '<div class="pfms-training-meta"><span>' + escapeHtml(pfmsTeamTime(session.starts_at)) +
+      (session.ends_at ? '–' + escapeHtml(pfmsTeamTime(session.ends_at)) : '') + '</span>' +
+      '<span>' + escapeHtml(session.location || 'Ort offen') + '</span>' +
+      '<span>' + escapeHtml(session.focus || 'Kein Schwerpunkt') + '</span></div>' +
+      (session.session_notes ? '<p>' + escapeHtml(session.session_notes) + '</p>' : '') +
+      '<div class="pfms-training-card-actions">' + attendanceAction + statusActions + '</div>' +
+      '</article>';
+  }).join('');
+  if (message) message.textContent = pfmsLegacyTrainingSessions.length + ' Trainingstermin(e) geladen.';
+}
+
+async function loadPfmsLegacyTeamTraining(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamTrainingPanel');
+  const form = document.getElementById('pfmsTeamTrainingForm');
+  const message = document.getElementById('pfmsTeamTrainingMessage');
+  const host = document.getElementById('pfmsTeamTrainingList');
+  if (!team || !panel || !form || !message || !host) return;
+
+  const trainingPermission = pfmsSelectedTeamPermissions.get('training') || {};
+  const attendancePermission = pfmsSelectedTeamPermissions.get('attendance') || {};
+  const canView = trainingPermission.can_view === true || attendancePermission.can_view === true;
+  if (!canView) {
+    panel.hidden = true;
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = trainingPermission.can_edit !== true;
+  message.textContent = 'Trainingstermine werden geladen …';
+  host.innerHTML = '';
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_training', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    pfmsLegacyTrainingSessions = data || [];
+    renderPfmsLegacyTeamTraining();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team training load failed:', error);
+    pfmsLegacyTrainingSessions = [];
+    host.innerHTML = '<div class="empty-state">Trainingstermine konnten nicht geladen werden. Prüfe die Trainingsmigration und Bereichsrechte.</div>';
+    message.textContent = 'Trainingsübersicht derzeit nicht verfügbar.';
+  }
+}
+
+async function savePfmsLegacyTeamTraining(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamTrainingMessage');
+  const button = document.getElementById('pfmsTeamTrainingSave');
+  if (!team || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) {
+    message.textContent = 'Für die Trainingsplanung fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (!data.title?.trim() || !data.session_date || !data.starts_at ||
+      (data.ends_at && data.ends_at <= data.starts_at)) {
+    message.textContent = 'Bitte Titel, Datum und Beginn korrekt ausfüllen. Das Ende muss nach dem Beginn liegen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  message.textContent = 'Trainingstermin wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_create_legacy_team_training', {
+      p_team_id: team.team_id,
+      p_title: data.title.trim(),
+      p_session_date: data.session_date,
+      p_starts_at: data.starts_at,
+      p_ends_at: data.ends_at || null,
+      p_location: data.location || null,
+      p_focus: data.focus || null,
+      p_notes: data.notes || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    form.reset();
+    await loadPfmsLegacyTeamTraining(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast('Trainingstermin wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS training session save failed:', error);
+    message.textContent = 'Trainingstermin konnte nicht gespeichert werden. Prüfe Datum, Uhrzeit und Trainingsrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function updatePfmsLegacyTrainingStatus(button) {
+  const team = pfmsSelectedLegacyTeam;
+  const session = pfmsLegacyTrainingSessions.find(item => item.session_id === button.dataset.sessionId);
+  const status = button.dataset.pfmsTrainingStatus;
+  if (!team || !session || !['completed','cancelled'].includes(status) ||
+      pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+  const label = status === 'completed' ? 'als abgeschlossen markieren' : 'absagen';
+  if (!window.confirm('Diesen Trainingstermin wirklich ' + label + '?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_team_training', {
+      p_session_id: session.session_id,
+      p_title: session.session_title,
+      p_session_date: session.session_date,
+      p_starts_at: session.starts_at,
+      p_ends_at: session.ends_at,
+      p_location: session.location,
+      p_focus: session.focus,
+      p_notes: session.session_notes,
+      p_status: status
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamTraining(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast(status === 'completed' ? 'Trainingseinheit abgeschlossen.' : 'Trainingseinheit wurde abgesagt.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS training session status update failed:', error);
+    document.getElementById('pfmsTeamTrainingMessage').textContent = 'Status konnte nicht gespeichert werden. Prüfe deine Trainingsrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function openPfmsLegacyTrainingAttendance(sessionId) {
+  const session = pfmsLegacyTrainingSessions.find(item => item.session_id === sessionId);
+  const team = pfmsSelectedLegacyTeam;
+  const panel = document.getElementById('pfmsTeamAttendancePanel');
+  const host = document.getElementById('pfmsTeamAttendanceList');
+  const message = document.getElementById('pfmsTeamAttendanceMessage');
+  if (!session || !team || pfmsSelectedTeamPermissions.get('attendance')?.can_view !== true) return;
+  pfmsSelectedTrainingSession = session;
+  panel.hidden = false;
+  document.getElementById('pfmsTeamAttendanceTitle').textContent = 'Anwesenheit · ' + session.session_title;
+  document.getElementById('pfmsTeamAttendanceMeta').textContent =
+    pfmsFormatTeamDate(session.session_date) + ' · ' + pfmsTeamTime(session.starts_at) +
+    (session.location ? ' · ' + session.location : '');
+  host.innerHTML = '';
+  message.textContent = 'Spieler und Anwesenheit werden geladen …';
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_training_attendance', {
+      p_session_id: sessionId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedTrainingSession?.session_id !== sessionId) return;
+    if (error) throw error;
+    pfmsLegacyTrainingAttendance = data || [];
+    renderPfmsLegacyTrainingAttendance();
+    message.textContent = pfmsLegacyTrainingAttendance.length
+      ? pfmsLegacyTrainingAttendance.length + ' Spieler in der Anwesenheitsliste.'
+      : 'Für diese Einheit sind keine Spieler im Kader vorhanden.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS attendance load failed:', error);
+    pfmsLegacyTrainingAttendance = [];
+    host.innerHTML = '<div class="empty-state">Anwesenheitsliste konnte nicht geladen werden. Prüfe die Bereichsrechte.</div>';
+    message.textContent = 'Anwesenheit derzeit nicht verfügbar.';
+  }
+}
+
+function renderPfmsLegacyTrainingAttendance() {
+  const host = document.getElementById('pfmsTeamAttendanceList');
+  if (!host) return;
+  const canEdit = pfmsSelectedTeamPermissions.get('attendance')?.can_edit === true;
+  if (!pfmsLegacyTrainingAttendance.length) {
+    host.innerHTML = '<div class="empty-state">Noch keine Spieler im Mannschaftskader.</div>';
+    return;
+  }
+  const statuses = Object.entries(PFMS_ATTENDANCE_STATUSES);
+  host.innerHTML = pfmsLegacyTrainingAttendance.map(player => {
+    const fullName = [player.player_name, player.player_surname].filter(Boolean).join(' ') || 'Spieler';
+    const options = statuses.map(([value,label]) =>
+      '<option value="' + value + '"' + (player.attendance_status === value ? ' selected' : '') + '>' +
+        escapeHtml(label) + '</option>'
+    ).join('');
+    return '<article class="pfms-attendance-row" data-pfms-attendance-row="' + escapeHtml(player.assignment_id) + '">' +
+      '<div class="pfms-attendance-player"><b>' +
+        (player.jersey_number ? '#' + escapeHtml(player.jersey_number) + ' ' : '') +
+        escapeHtml(fullName) + '</b><small>' +
+        escapeHtml(player.preferred_position || 'Position –') + ' · ' +
+        escapeHtml(player.squad_status || 'Kader') + '</small></div>' +
+      '<label class="field">Status<select data-pfms-attendance-status' + (canEdit ? '' : ' disabled') + '>' + options + '</select></label>' +
+      '<label class="field">Notiz<input type="text" maxlength="1000" data-pfms-attendance-notes value="' +
+        escapeHtml(player.attendance_notes || '') + '"' + (canEdit ? '' : ' disabled') + '></label>' +
+      (canEdit ? '<button type="button" class="btn btn-secondary" data-pfms-save-attendance>Speichern</button>' : '') +
+    '</article>';
+  }).join('');
+}
+
+async function savePfmsLegacyTrainingAttendance(button) {
+  const row = button.closest('[data-pfms-attendance-row]');
+  const session = pfmsSelectedTrainingSession;
+  if (!row || !session || pfmsSelectedTeamPermissions.get('attendance')?.can_edit !== true) return;
+  const status = row.querySelector('[data-pfms-attendance-status]')?.value;
+  const notes = row.querySelector('[data-pfms-attendance-notes]')?.value || '';
+  if (!Object.prototype.hasOwnProperty.call(PFMS_ATTENDANCE_STATUSES, status)) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_mark_legacy_training_attendance', {
+      p_session_id: session.session_id,
+      p_assignment_id: row.dataset.pfmsAttendanceRow,
+      p_attendance_status: status,
+      p_notes: notes || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedTrainingSession?.session_id !== session.session_id) return;
+    if (error) throw error;
+    await openPfmsLegacyTrainingAttendance(session.session_id);
+    toast('Anwesenheit wurde gespeichert.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS attendance save failed:', error);
+    document.getElementById('pfmsTeamAttendanceMessage').textContent =
+      'Anwesenheit konnte nicht gespeichert werden. Prüfe die Bearbeitungsrechte und den Kaderstatus.';
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function setupPfmsLegacyTeamWorkspace() {
