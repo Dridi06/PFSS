@@ -188,6 +188,10 @@ assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.include
 assert.ok(legacyInvitationWorkspaceMigration.includes("pfms_list_my_manageable_legacy_organizations()"), "Managed organization list RPC is missing");
 assert.ok(legacyInvitationWorkspaceMigration.includes("coalesce(m.role, 'platform_admin')") && legacyInvitationWorkspaceMigration.includes("public.is_admin()"), "Platform administrators must be able to administer legacy invitations");
 assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="pfmsLegacyInvitationUrl"'), "Invitation workspace UI is missing");
+
+assert.ok(html.includes('id="pfmsClubOrganizationsGrid"') && html.includes('id="pfmsClubWorkspaceStatus"'), "Live club workspace container is missing");
+assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
+assert.ok(app.includes("data-pfms-club-nav") && app.includes("data-pfms-open-invitation"), "Club workspace navigation and invite actions are not wired");
 assert.ok(html.includes('id="pfmsLegacyMembersFilterForm"') && html.includes('id="pfmsLegacyMemberResults"'), "Organization membership directory UI is missing");
 assert.ok(app.includes("pfms_list_legacy_org_members_for_manager") && app.includes("pfms_update_legacy_org_membership_for_manager"), "Organization membership directory is not connected to its secure RPCs");
 assert.ok(legacyOrgMembershipManagementMigration.includes("public.can_manage_org(p_organization_id)") && legacyOrgMembershipManagementMigration.includes("public.can_manage_org(v_organization_id)"), "Organization membership RPCs must verify manager scope server-side");
