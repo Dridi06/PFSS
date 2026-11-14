@@ -309,3 +309,65 @@ assert.match(supportNotifications, /new\.admin_response is distinct from old\.ad
 assert.match(supportNotifications, /new\.status = 'resolved' and old\.status is distinct from 'resolved'/);
 assert.match(supportNotifications, /after update of admin_response, status on public\.pfms_support_tickets/);
 assert.match(supportNotifications, /revoke all on function public\.pfms_notify_support_ticket_changes\(\) from public, anon, authenticated/);
+
+
+// Protect training, attendance, matchday lineups and tactical analysis boundaries.
+const legacyTeamTraining = (
+  await readFile(resolve(directory, "20261123_pfms_legacy_team_training.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(p_team_id, 'training', 'view'\\)/);
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(p_team_id, 'training', 'edit'\\)/);
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(v_team_id, 'attendance', 'edit'\\)/);
+assert.match(legacyTeamTraining, /v_assignment_team_id <> v_team_id/);
+assert.match(legacyTeamTraining, /p_attendance_status not in \\('pending','present','absent','excused','injured','late'\\)/);
+assert.match(legacyTeamTraining, /if p_attendance_status = 'pending' then delete from public\\.pfms_legacy_training_attendance/);
+assert.match(legacyTeamTraining, /force row level security/);
+assert.doesNotMatch(legacyTeamTraining, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_training_attendance to authenticated/);
+
+const legacyTeamMatches = (
+  await readFile(resolve(directory, "20261125_pfms_legacy_team_matches.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(p_team_id, 'matches', 'edit'\\)/);
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(v_team_id, 'matches', 'edit'\\)/);
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(v_team_id, 'matches', 'view'\\)/);
+assert.match(legacyTeamMatches, /tp\\.team_id = v_team_id/);
+assert.match(legacyTeamMatches, /tp\\.squad_status in \\('active','injured','loaned'\\)/);
+assert.match(legacyTeamMatches, /v_starters > 11 or v_captains > 1/);
+assert.match(legacyTeamMatches, /duplicate player assignments are not allowed/);
+assert.match(legacyTeamMatches, /every lineup player must belong to the selected team/);
+assert.match(legacyTeamMatches, /force row level security/);
+assert.doesNotMatch(legacyTeamMatches, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_match_lineup to authenticated/);
+
+const legacyTeamAnalysis = (
+  await readFile(resolve(directory, "20261202_pfms_legacy_team_analysis.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamAnalysis, /foreign key \\(match_id, team_id\\) references public\\.pfms_legacy_team_matches\\(id, team_id\\)/);
+assert.match(legacyTeamAnalysis, /m\\.id = p_match_id and m\\.team_id = p_team_id/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(p_team_id, 'analysis', 'view'\\)/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(p_team_id, 'analysis', 'edit'\\)/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(v_team_id, 'analysis', 'edit'\\)/);
+assert.match(legacyTeamAnalysis, /force row level security/);
+assert.doesNotMatch(legacyTeamAnalysis, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_analysis to authenticated/);
+
+// Ensure the existing application calls the secured RPCs rather than requiring
+// direct client-side writes to these operational tables.
+const applicationSource = await readFile(resolve(process.cwd(), "app.js"), "utf8");
+for (const rpc of [
+  "pfms_list_legacy_team_training",
+  "pfms_create_legacy_team_training",
+  "pfms_update_legacy_team_training",
+  "pfms_list_legacy_training_attendance",
+  "pfms_mark_legacy_training_attendance",
+  "pfms_list_legacy_team_matches",
+  "pfms_create_legacy_team_match",
+  "pfms_update_legacy_team_match",
+  "pfms_list_legacy_team_match_lineup",
+  "pfms_list_legacy_team_match_candidates",
+  "pfms_save_legacy_team_match_lineup",
+  "pfms_list_legacy_team_analysis",
+  "pfms_create_legacy_team_analysis",
+  "pfms_update_legacy_team_analysis",
+  "pfms_delete_legacy_team_analysis"
+]) {
+  assert.ok(applicationSource.includes(rpc), "Application is missing secured RPC integration: " + rpc);
+}
