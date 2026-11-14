@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   // This endpoint checks a privileged storage integration. CORS is not
   // authentication: require a verified user JWT and a server-side admin role.
   const authorization = req.headers.get("authorization") || "";
-  if (!/^Bearer\\s+\\S+$/i.test(authorization)) {
+  if (!/^Bearer\s+\S+$/i.test(authorization)) {
     return json({ ok: false, message: "Authentication required." }, 401);
   }
 
