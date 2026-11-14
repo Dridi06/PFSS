@@ -84,6 +84,7 @@ const teamAnalysisMigration = await read("supabase/migrations/20261202_pfms_lega
 const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy_team_events.sql");
 const teamEventParticipantsMigration = await read("supabase/migrations/20261204_pfms_legacy_team_event_participants.sql");
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
+const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
 
 
 const requiredFiles = [
@@ -526,6 +527,35 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_event_participants'"),
   "Staging audit must include event participant records"
 );
+assert.ok(
+  teamEventTravelMigration.includes("create table if not exists public.pfms_legacy_team_event_travel_plans")
+    && teamEventTravelMigration.includes("foreign key (event_id, team_id)")
+    && teamEventTravelMigration.includes("force row level security")
+    && teamEventTravelMigration.includes("revoke all on table public.pfms_legacy_team_event_travel_plans")
+    && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'view')")
+    && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'events', 'edit')"),
+  "Detailed event travel plans must be same-team scoped, RLS protected and permission checked"
+);
+assert.ok(
+  app.includes("async function savePfmsLegacyTeamEventTravelPlan")
+    && app.includes("async function deletePfmsLegacyTeamEventTravelPlan")
+    && app.includes("pfms_list_legacy_team_event_travel_plans")
+    && app.includes("pfms_save_legacy_team_event_travel_plan")
+    && app.includes("pfms_delete_legacy_team_event_travel_plan")
+    && app.includes("data-pfms-event-travel-form"),
+  "Event travel planning must load, save and remove a detailed itinerary through the protected RPCs"
+);
+assert.ok(
+  workspaceStyles.includes(".pfms-event-travel-details")
+    && workspaceStyles.includes(".pfms-event-travel-form")
+    && workspaceStyles.includes("@media(max-width:640px)"),
+  "Detailed event travel forms and summaries must be responsive"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_team_event_travel_plans'"),
+  "Staging audit must include event travel plans"
+);
+
 assert.ok(
   mainStyles.includes(".pfms-team-event-card")
     && mainStyles.includes(".pfms-event-form")
