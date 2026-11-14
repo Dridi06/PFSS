@@ -51,7 +51,7 @@ Vorhandene Migrationen betreffen:
 | Haupt-Spielerdatenbank | Daten liegen derzeit in `localStorage` (`pfss_players_v1`) | Persistente Supabase-Daten, Eigentümer-/Organisationsbezug, CRUD- und Mandantentests |
 | Haupt-Scoutingberichte | Daten liegen derzeit in `localStorage` (`pfss_reports_v1`) | Supabase-Persistenz, Beziehungen und CRUD-Tests |
 | Haupt-Medienbereich | lokale Objekt-URLs, nicht dauerhaft | Private Uploads, Metadaten, signierte Abrufe und Löschvorgänge |
-| Privater Scout-Bereich | Code mit privaten Supabase-Tabellen und Storage verbunden | Migration in Staging anwenden; Scoutkonto für CRUD-, RLS- und Storage-Tests verwenden |
+| Privater Scout-Bereich | Code mit privaten Supabase-Tabellen und Storage verbunden; zusätzliche Integritätsmigration für Zeitstempel, Feldgrenzen und Datei-Pfade vorhanden | Migrationen in Staging anwenden; Scoutkonto für CRUD-, RLS- und Storage-Tests verwenden |
 | Vereine und Agenturen | Teile der Oberfläche und Admin-RPCs vorhanden | Besitzer-/Leitungsworkflows, Datenpflege, Einladungen und Mitgliedschaften vervollständigen |
 | Mannschaften und Staff | Oberflächen, überwiegend Platzhalter | Datenmodell, Zuweisungen, zeitliche Zuordnung und Rollenrechte |
 | Trainer-/Team-Workspace | Modulübersicht und Platzhalter | Kader, Training, Anwesenheit, Spiele, Aufstellungen und Rechte |
@@ -78,7 +78,8 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 
 ## 5. Sicherheits- und Integrationsrisiken
 
-- Die eingesehene `username-login`-Edge-Function verwendet derzeit permissive CORS-Antworten (`*`) und enthält kein eigenes Rate-Limit. Zulässige Origins, Rate-Limits und Missbrauchsschutz müssen umgesetzt werden.
+- Beide Edge Functions verwenden im Entwicklungszweig jetzt eine gemeinsame CORS-Origin-Allowlist statt `*`. Standardmäßig sind die bekannte Render-Produktionsdomain und lokale Entwicklungsdomains zugelassen. Für Staging muss `PFMS_ALLOWED_ORIGINS` in den Supabase-Function-Secrets als kommagetrennte Liste aller erlaubten Origins gesetzt werden. Die geänderten Functions sind noch nicht deployed; die Live-Funktionen behalten bis dahin ihre bisherige Konfiguration.
+- Die Username-Login-Funktion begrenzt die Request-Body-Größe und die Passwortzeichenlänge. Ein belastbares serverseitiges Rate-Limit und zusätzlicher Missbrauchsschutz sind weiterhin offen.
 - RLS, Grants, Security-Definer-Funktionen und Storage-Policies sind noch nicht vollständig im tatsächlichen Datenbankzustand geprüft.
 - Jede Organisationsressource braucht einen eindeutigen Mandantenbezug und serverseitige Autorisierung.
 - Owner-Erstregistrierung benötigt einen sicheren, einmaligen Claim-/Provisioning-Prozess. Client-Metadaten dürfen keine Besitzer- oder Adminrechte verleihen.
@@ -87,10 +88,12 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 
 ## 6. Aktuelle Qualitätsbasis und letzte Änderungen
 
+- `supabase/functions/_shared/cors.ts` implementiert eine gemeinsame CORS-Origin-Allowlist; `username-login` und `r2-connection-check` verwenden sie. Die Staging-Origin muss vor dem Deploy über `PFMS_ALLOWED_ORIGINS` freigegeben werden.
+- `supabase/migrations/20261114_scout_workspace_integrity.sql` ergänzt Datenbankgrenzen für Scout-Daten, automatische `updated_at`-Zeitstempel und die Prüfung, dass Medien-Metadaten nur in den eigenen Benutzerordner zeigen. Die Migration wurde im Repository korrigiert, aber noch nicht in Supabase ausgeführt.
 - `package.json` enthält `npm test` und `npm run check:syntax`.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
-- Der GitHub-Actions-Lauf auf Commit `60aa159084e0e0d674dffc5ff2b1f6f03267d267` war erfolgreich. Das ist ein Nachweis für Syntax und statische Smoke-Tests – nicht für die Laufzeitintegration mit Supabase oder Render.
+- Ein GitHub-Actions-Lauf auf Commit `60aa159084e0e0d674dffc5ff2b1f6f03267d267` war erfolgreich. Weitere Läufe nach den zusätzlichen Tests und Sicherheitsänderungen sind getrennt zu prüfen. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
