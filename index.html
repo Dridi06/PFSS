@@ -993,6 +993,37 @@
       </section>
     </section>
   </section>
+  <section class="panel pfms-team-finance-panel" id="pfmsTeamFinancePanel" hidden>
+    <div class="panel-heading">
+      <div><div class="eyebrow">TEAMORGANISATION · FINANZEN</div><h3>Mannschaftskasse</h3><p>Alle Beträge in Euro. Buchungen bleiben nachvollziehbar; Korrekturen erfolgen über eine begründete Stornierung.</p></div>
+    </div>
+    <div class="pfms-finance-kpis">
+      <article><span>EINNAHMEN</span><strong id="pfmsTeamFinanceIncome">0,00 €</strong></article>
+      <article><span>AUSGABEN</span><strong id="pfmsTeamFinanceExpenses">0,00 €</strong></article>
+      <article><span>AKTUELLER KASSENSTAND</span><strong id="pfmsTeamFinanceBalance">0,00 €</strong></article>
+      <article><span>BUCHUNGEN</span><strong id="pfmsTeamFinanceCount">0</strong></article>
+    </div>
+    <form id="pfmsTeamFinanceForm" class="pfms-finance-form" hidden>
+      <div class="eyebrow">NEUE BUCHUNG</div>
+      <div class="pfms-finance-form-grid">
+        <label class="field">Datum<input type="date" name="transaction_date" required></label>
+        <label class="field">Buchungstyp<select name="entry_type" required><option value="income">Einnahme</option><option value="expense">Ausgabe</option></select></label>
+        <label class="field">Kategorie<select name="category" required>
+          <option value="team_contribution">Teambeitrag</option><option value="membership">Mitgliedsbeitrag</option>
+          <option value="donation">Spende</option><option value="tournament">Turnier</option>
+          <option value="equipment">Ausrüstung</option><option value="travel">Fahrt / Reise</option>
+          <option value="facility">Platz / Halle</option><option value="referee">Schiedsrichter</option>
+          <option value="other">Sonstiges</option></select></label>
+        <label class="field">Betrag (EUR)<input type="number" name="amount" min="0.01" max="1000000" step="0.01" required placeholder="0,00"></label>
+        <label class="field full">Beschreibung<input type="text" name="description" maxlength="300" required placeholder="z. B. Bälle für die Mannschaft"></label>
+        <label class="field full">Beleg-/Referenznummer (optional)<input type="text" name="external_reference" maxlength="100" placeholder="Keine Bank- oder Kontodaten eintragen"></label>
+      </div>
+      <button class="btn btn-primary" id="pfmsTeamFinanceSave" type="submit">Buchung speichern</button>
+    </form>
+    <p id="pfmsTeamFinanceMessage" class="admin-message" role="status" aria-live="polite"></p>
+    <div class="pfms-finance-list-wrap"><div id="pfmsTeamFinanceList" class="pfms-finance-list"></div></div>
+  </section>
+
   <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
     <article class="module-card module-feature" data-pfms-team-module="squad"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
     <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung und Einheiten je Mannschaft.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-training>Trainingstermine öffnen</button></article>
@@ -1000,7 +1031,7 @@
     <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Besprechungen, Turniere, Spieltermine und Veranstaltungen.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-calendar>Kalender öffnen</button></article>
     <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-matches>Spiele öffnen</button></article>
     <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Teambezogene Ausgaben und Kassenübersicht mit nachvollziehbarer Buchungslogik.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben und nachvollziehbare Buchungshistorie in Euro.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-finance>Kasse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
   </div></section>
       
