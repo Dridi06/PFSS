@@ -43,7 +43,7 @@ Vor dem Deploy der Username-Login-Function müssen eine eigene Upstash-Redis-Dat
 - `UPSTASH_REDIS_REST_TOKEN`
 - `PFMS_RATE_LIMIT_HMAC_KEY` (zufällig, mindestens 32 Zeichen)
 
-Die Erstellung und Secret-Befüllung ist in [EDGE_FUNCTION_CONFIGURATION.md](EDGE_FUNCTION_CONFIGURATION.md#2-username-login-gemeinsames-rate-limit) beschrieben. Ohne diese Werte antwortet die Function absichtlich mit HTTP 503; es gibt keinen ungeschützten Fallback.
+Das Limit zählt nur fehlgeschlagene Anmeldungen; erfolgreiche Logins verbrauchen kein Kontingent. Die Erstellung und Secret-Befüllung ist in [EDGE_FUNCTION_CONFIGURATION.md](EDGE_FUNCTION_CONFIGURATION.md#2-username-login-gemeinsames-rate-limit) beschrieben. Ohne diese Werte antwortet die Function absichtlich mit HTTP 503; es gibt keinen ungeschützten Fallback.
 
 ## 3. Edge Functions bereitstellen
 
