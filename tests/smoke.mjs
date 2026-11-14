@@ -98,6 +98,16 @@ const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_l
 const inAppNotificationsMigration = await read("supabase/migrations/20261207_pfms_in_app_notifications.sql");
 const supportNotificationsMigration = await read("supabase/migrations/20261208_pfms_support_ticket_notifications.sql");
 const stagingAcceptanceSql = await read("supabase/STAGING_ACCEPTANCE_READ_ONLY.sql");
+const edgeFunctionGuide = await read("docs/EDGE_FUNCTION_CONFIGURATION.md");
+assert.ok(
+  !/PFMS_ALLOWED_ORIGINS="[^"]*pfss-scouting\\.onrender\\.com/i.test(edgeFunctionGuide),
+  "Staging Edge Function examples must not allow the production Render origin"
+);
+assert.ok(
+  edgeFunctionGuide.includes('PFMS_ALLOWED_ORIGINS="https://<tatsaechliche-staging-domain>"'),
+  "Staging Edge Function example must use only the dedicated staging origin"
+);
+
 
 
 const requiredFiles = [
