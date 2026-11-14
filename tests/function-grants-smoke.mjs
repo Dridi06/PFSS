@@ -630,31 +630,31 @@ assert.match(
 // Team module permissions must be explicit, granular and fail closed.
 const teamPermissions = (
   await readFile(resolve(directory, "20261122_pfms_legacy_team_permissions.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(teamPermissions, /p_module_key in \\('squad','training','attendance','finance','events','calendar','matches','analysis'\\)/);
-assert.match(teamPermissions, /p_action in \\('view','edit'\\)/);
-assert.match(teamPermissions, /check \\(not can_edit or can_view\\)/);
-assert.match(teamPermissions, /jsonb_array_length\\(p_permissions\\) <> 8/);
-assert.match(teamPermissions, /count\\(distinct value ->> 'module_key'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamPermissions, /p_module_key in \('squad','training','attendance','finance','events','calendar','matches','analysis'\)/);
+assert.match(teamPermissions, /p_action in \('view','edit'\)/);
+assert.match(teamPermissions, /check \(not can_edit or can_view\)/);
+assert.match(teamPermissions, /jsonb_array_length\(p_permissions\) <> 8/);
+assert.match(teamPermissions, /count\(distinct value ->> 'module_key'\)/);
 assert.match(teamPermissions, /if v_can_edit and not v_can_view then/);
-assert.match(teamPermissions, /pfms_can_manage_legacy_team\\(v_team_id\\)/);
-assert.match(teamPermissions, /s\\.status = 'active'/);
+assert.match(teamPermissions, /pfms_can_manage_legacy_team\(v_team_id\)/);
+assert.match(teamPermissions, /s\.status = 'active'/);
 
 // Staff can only be assigned from the same active organization membership and role.
 const teamManagement = (
   await readFile(resolve(directory, "20261121_pfms_legacy_team_management.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(teamManagement, /m\\.organization_id = v_organization_id/);
-assert.match(teamManagement, /m\\.user_id = p_user_id/);
-assert.match(teamManagement, /m\\.status = 'active'/);
-assert.match(teamManagement, /m\\.role = p_role/);
-assert.match(teamManagement, /pfms_can_manage_legacy_team\\(p_team_id\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamManagement, /m\.organization_id = v_organization_id/);
+assert.match(teamManagement, /m\.user_id = p_user_id/);
+assert.match(teamManagement, /m\.status = 'active'/);
+assert.match(teamManagement, /m\.role = p_role/);
+assert.match(teamManagement, /pfms_can_manage_legacy_team\(p_team_id\)/);
 
 // Attendance entries must never combine a session from one team with a player from another.
 const teamTraining = (
   await readFile(resolve(directory, "20261123_pfms_legacy_team_training.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(teamTraining, /pfms_has_legacy_team_permission\\(v_team_id, 'attendance', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamTraining, /pfms_has_legacy_team_permission\(v_team_id, 'attendance', 'edit'\)/);
 assert.match(teamTraining, /select team_id into v_assignment_team_id/);
 assert.match(teamTraining, /v_assignment_team_id <> v_team_id/);
 assert.match(teamTraining, /for share/);
@@ -662,11 +662,11 @@ assert.match(teamTraining, /for share/);
 // Match lineups must contain players from the match's own squad, not merely any valid roster.
 const teamMatches = (
   await readFile(resolve(directory, "20261125_pfms_legacy_team_matches.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(teamMatches, /pfms_has_legacy_team_permission\\(v_team_id, 'matches', 'edit'\\)/);
-assert.match(teamMatches, /tp\\.team_id = v_team_id/);
-assert.match(teamMatches, /tp\\.squad_status in \\('active','injured','loaned'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamMatches, /pfms_has_legacy_team_permission\(v_team_id, 'matches', 'edit'\)/);
+assert.match(teamMatches, /tp\.team_id = v_team_id/);
+assert.match(teamMatches, /tp\.squad_status in \('active','injured','loaned'\)/);
 assert.match(teamMatches, /v_starters > 11 or v_captains > 1/);
-assert.match(teamMatches, /count\\(distinct value ->> 'assignment_id'\\)/);
+assert.match(teamMatches, /count\(distinct value ->> 'assignment_id'\)/);
 assert.match(teamMatches, /unique \(match_id, team_player_assignment_id\)/);
 
