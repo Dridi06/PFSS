@@ -86,7 +86,8 @@ for insert to authenticated
 with check (
   owner_id = auth.uid()
   and pg_catalog.split_part(storage_path, '/', 1) = auth.uid()::text
-  and storage_path ~ ('^' || auth.uid()::text || '/[^/]+
+  and storage_path ~ ('^' || auth.uid()::text || '/[^/]+$')
+);
 
 -- Existing rows are deliberately not rewritten. The read-only staging audit and
 -- a backup must be reviewed before applying this migration to any database.
