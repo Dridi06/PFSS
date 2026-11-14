@@ -614,7 +614,15 @@ const PFSS_SUPABASE_KEY =
 
 const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_URL,
-  PFSS_SUPABASE_KEY
+  PFSS_SUPABASE_KEY,
+  {
+    auth: {
+      // Die Anmeldung bleibt beim normalen Neuladen der Seite erhalten.
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
 );
 
 function updateConnectionStatus() {
@@ -1623,20 +1631,24 @@ document.getElementById('logoutPending')
 
 // Bestehende Sitzung beim Laden wiederherstellen
 async function initializePfssAuth() {
-  showAuthScreen();
-
   const { data, error } =
     await pfssSupabase.auth.getSession();
 
   if (error) {
+    showAuthScreen();
     document.getElementById('authMessage').textContent =
-      'Sitzung konnte nicht geladen werden.';
+      'Sitzung konnte nicht geladen werden. Bitte lade die Seite erneut.';
     return;
   }
 
   if (data.session?.user) {
+    // Vorhandene Sitzung wiederverwenden – kein erneuter Login beim Reload.
     await checkPfssAccess(data.session.user);
+    return;
   }
+
+  // Nur ohne gespeicherte Sitzung den Login anzeigen.
+  showAuthScreen();
 }
 
 initializePfssAuth();
