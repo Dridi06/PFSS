@@ -1356,3 +1356,12 @@ button,input,select,textarea{max-width:100%}
 .task-overdue{color:#e58a7b!important;font-weight:700}
 .priority-high{color:#e5a18e!important}.priority-low{color:#a7b49a!important}
 @media(max-width:620px){.pfms-personal-task-actions{display:grid;grid-template-columns:1fr}.pfms-personal-task-actions select,.pfms-personal-task-actions button{width:100%}}
+
+.pfms-support-ticket-list{display:grid;gap:12px;margin-top:12px}
+.pfms-support-ticket-card{border:1px solid rgba(198,161,91,.2);background:rgba(255,255,255,.025);border-radius:12px;padding:14px;display:grid;gap:10px}
+.pfms-support-ticket-head,.pfms-support-ticket-meta,.pfms-support-ticket-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-support-ticket-meta{font-size:11px;color:var(--muted,#aaa)}
+.pfms-support-response{border-left:2px solid #c6a15b;padding:8px 12px;background:rgba(198,161,91,.06)}
+.pfms-support-response p{margin:6px 0 0}
+.pfms-support-ticket-actions select{min-width:150px}
+@media(max-width:620px){.pfms-support-ticket-actions{display:grid;grid-template-columns:1fr}.pfms-support-ticket-actions select,.pfms-support-ticket-actions button{width:100%}}
