@@ -606,6 +606,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
+  if (view === 'staff' && window.pfssCurrentUserId) void loadPfmsStaffDirectory();
   if (view === 'tasks' && window.pfssCurrentUserId) void loadPfmsPersonalTasks();
   if (view === 'support' && window.pfssCurrentUserId) void loadPfmsSupportTickets();
   if (view === 'admin-inbox' && window.pfssIsRealAdmin) void loadPfmsAdminSupportTickets();
@@ -2959,7 +2960,7 @@ function renderPfmsLegacyTeamCards() {
 async function loadPfmsLegacyTeams() {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
-  if (!requestUserId) return;
+  if (!requestUserId) return false;
   const messages = ['pfmsTeamsMessage', 'pfmsMyTeamsMessage']
     .map(id => document.getElementById(id)).filter(Boolean);
   messages.forEach(message => message.textContent = 'Mannschaften werden geladen …');
@@ -2969,7 +2970,7 @@ async function loadPfmsLegacyTeams() {
       pfssSupabase.rpc('pfms_list_my_legacy_teams'),
       pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations')
     ]);
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
     if (teamsResult.error) throw teamsResult.error;
 
     pfmsLegacyTeams = teamsResult.data || [];
@@ -2983,17 +2984,18 @@ async function loadPfmsLegacyTeams() {
         : 'Für dieses Konto sind noch keine Mannschaften zugeordnet.';
     });
     renderPfmsLegacyTeamCards();
+    return true;
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
     console.error('PFMS team workspace load failed:', error);
     pfmsLegacyTeams = [];
     pfmsManageableLegacyOrganizations = [];
     renderPfmsLegacyTeamCards();
     messages.forEach(message => message.textContent =
       'Mannschaftsverwaltung noch nicht verfügbar. Bitte die Team-Migration in der Testdatenbank anwenden und deine Vereinszuordnung prüfen.');
+    return false;
   }
 }
-
 function openPfmsLegacyTeamDialog(team = null) {
   if (!team && !pfmsManageableLegacyOrganizations.length) {
     toast('Du benötigst aktive Leitungsrechte in einem freigegebenen Verein, um Mannschaften anzulegen.');
@@ -3084,6 +3086,111 @@ async function savePfmsLegacyTeam(event) {
   } finally {
     button.disabled = false;
   }
+}
+
+let pfmsStaffDirectoryRequestId = 0;
+
+function renderPfmsStaffDirectory(entries, messageText = '') {
+  const host = document.getElementById('pfmsStaffDirectory');
+  const message = document.getElementById('pfmsStaffMessage');
+  if (!host) return;
+  if (message) message.textContent = messageText;
+
+  if (!entries.length) {
+    host.innerHTML = '<div class="empty-state"><b>Keine Mannschaften zugeordnet</b><p>Dein Konto ist aktuell keinem Trainerteam zugeordnet. Eine Vereinsleitung kann dich einer Mannschaft hinzufügen.</p><button type="button" class="btn btn-secondary" data-view="teams">Mannschaften ansehen</button></div>';
+    return;
+  }
+
+  host.innerHTML = entries.map(({ team, staff, error }) => {
+    const isArchived = String(team.team_status || '').toLowerCase() === 'archived';
+    const staffMarkup = error
+      ? '<p class="admin-message">Trainerteam konnte nicht geladen werden.</p>'
+      : staff.length
+        ? '<div class="pfms-staff-directory-members">' + staff.map(member =>
+            '<div class="pfms-staff-directory-member">' +
+              '<span class="pfms-staff-avatar">' + escapeHtml(
+                String(member.full_name || member.username || member.email || 'PF')
+                  .trim().split(/\\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase()
+              ) + '</span>' +
+              '<span class="pfms-staff-directory-person"><b>' +
+                escapeHtml(member.full_name || member.username || member.email || 'Mitglied') +
+              '</b><small>' + escapeHtml(member.email || '') + '</small></span>' +
+              '<span class="module-status">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</span>' +
+            '</div>'
+          ).join('') + '</div>'
+        : '<div class="empty-state">Für diese Mannschaft sind noch keine Trainer oder Betreuer eingetragen.</div>';
+
+    const actions = team.can_manage && !isArchived
+      ? '<button type="button" class="btn btn-primary" data-pfms-team-staff="' + escapeHtml(team.team_id) + '">Trainerteam verwalten</button>'
+      : '<button type="button" class="btn btn-secondary" data-pfms-open-team="' + escapeHtml(team.team_id) + '">Mannschaft öffnen</button>';
+
+    return '<article class="module-card pfms-staff-directory-card">' +
+      '<div class="eyebrow">' + escapeHtml(team.organization_name || 'Verein') +
+        (isArchived ? ' · Archiviert' : '') + '</div>' +
+      '<div class="pfms-staff-directory-head"><div><h3>' + escapeHtml(team.team_name) +
+      '</h3><p>' + escapeHtml([team.age_group, team.gender, team.season].filter(Boolean).join(' · ')) +
+      '</p></div><span class="module-status">' + staff.length + ' Personen</span></div>' +
+      staffMarkup +
+      '<div class="pfms-team-actions">' + actions + '</div>' +
+    '</article>';
+  }).join('');
+}
+
+async function loadPfmsStaffDirectory() {
+  const host = document.getElementById('pfmsStaffDirectory');
+  const message = document.getElementById('pfmsStaffMessage');
+  if (!host) return false;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsStaffDirectoryRequestId;
+
+  if (!requestUserId) {
+    host.innerHTML = '';
+    if (message) message.textContent = 'Bitte melde dich an, um dein Trainerteam zu laden.';
+    return false;
+  }
+
+  host.innerHTML = '<div class="empty-state">Mannschaften und Trainerteams werden geladen …</div>';
+  if (message) message.textContent = 'Deine aktiven Teamzuordnungen werden geprüft …';
+
+  const teamsLoaded = await loadPfmsLegacyTeams();
+  if (requestId !== pfmsStaffDirectoryRequestId ||
+      requestGeneration !== pfmsAuthGeneration ||
+      requestUserId !== window.pfssCurrentUserId) return false;
+
+  if (!teamsLoaded) {
+    renderPfmsStaffDirectory([], 'Trainerteam konnte nicht geladen werden. Prüfe Team-Migration und Mitgliedschaft.');
+    return false;
+  }
+
+  const teams = pfmsLegacyTeams.filter(team =>
+    String(team.team_status || '').toLowerCase() !== 'deleted'
+  );
+  const results = await Promise.all(teams.map(async team => {
+    const result = await pfssSupabase.rpc('pfms_list_legacy_team_staff', {
+      p_team_id: team.team_id
+    });
+    return {
+      team,
+      staff: result.error ? [] : (result.data || []),
+      error: result.error || null
+    };
+  }));
+
+  if (requestId !== pfmsStaffDirectoryRequestId ||
+      requestGeneration !== pfmsAuthGeneration ||
+      requestUserId !== window.pfssCurrentUserId) return false;
+
+  const failed = results.filter(item => item.error).length;
+  renderPfmsStaffDirectory(
+    results,
+    failed
+      ? 'Trainerteam teilweise geladen. ' + failed + ' Mannschaft(en) konnten nicht gelesen werden.'
+      : results.length + ' Mannschaft(en) und ' +
+        results.reduce((sum, item) => sum + item.staff.length, 0) +
+        ' Teamzuordnung(en) geladen.'
+  );
+  return failed === 0;
 }
 
 function renderPfmsTeamStaffList(teamId, staff, canManage) {
@@ -6556,6 +6663,9 @@ function setupPfmsLegacyTeamWorkspace() {
 
   document.getElementById('pfmsAddTeamButton')?.addEventListener('click', () =>
     openPfmsLegacyTeamDialog());
+  document.getElementById('pfmsStaffRefreshButton')?.addEventListener('click', () => {
+    void loadPfmsStaffDirectory();
+  });
   teamForm.addEventListener('submit', savePfmsLegacyTeam);
   staffForm.addEventListener('submit', assignPfmsLegacyTeamStaff);
   document.getElementById('pfmsTeamRosterForm')?.addEventListener('submit', addPfmsLegacyTeamPlayer);
@@ -7186,6 +7296,7 @@ async function checkPfssAccess(user) {
 
 function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
+  pfmsStaffDirectoryRequestId += 1;
   pfmsMainDataLoading = false;
   pfmsMainDataReady = false;
   pfmsMainDataError = '';
