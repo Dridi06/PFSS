@@ -5,7 +5,7 @@ Diese Anleitung beschreibt ausschließlich eine Wiederherstellung in eine **neue
 ## 1. Voraussetzungen
 
 - Zugriff auf das Cloudflare-R2-Backup-Bucket.
-- PostgreSQL-Werkzeuge `pg_restore` und `psql` sowie AWS CLI.
+- PostgreSQL-Werkzeuge `pg_restore` und `psql`, AWS CLI sowie Python 3 für den HMAC-Integritätscheck.
 - Die korrekte Backup-Passphrase aus einem sicheren Secret-Manager.
 - Eine frisch bereitgestellte, isolierte PostgreSQL-/Supabase-Testdatenbank ohne produktive Daten.
 
@@ -20,7 +20,9 @@ Folgende Werte müssen sicher als Umgebungsvariablen bereitgestellt werden:
 
 Passwörter und URLs nicht in Befehlszeilen, Chat, GitHub-Dateien oder Shell-Verlauf eintragen.
 
-## 2. Verschlüsseltes Backup herunterladen und prüfen
+## 2. Verschlüsseltes Backup und Integritätsmanifest herunterladen und prüfen
+
+Jedes verschlüsselte Backup besitzt eine separate `.hmac`-Datei. Der HMAC-SHA-256-Schlüssel wird mit dem Kontextpräfix `PFSS-R2-BACKUP-HMAC-v1:` aus derselben hochentropischen Backup-Passphrase abgeleitet. Die HMAC-Prüfung muss vor der Entschlüsselung erfolgreich sein. Ein fehlendes oder abweichendes Manifest ist ein Abbruchgrund.
 
 Den konkreten Dateinamen aus dem R2-Backup-Verzeichnis einsetzen:
 
@@ -39,7 +41,35 @@ aws s3 cp \
   --region auto \
   --only-show-errors
 
+aws s3 cp \
+  "s3://$R2_BUCKET_NAME/database/daily/$BACKUP_FILE.hmac" \
+  "$WORK_DIR/$BACKUP_FILE.hmac" \
+  --endpoint-url "$R2_ENDPOINT" \
+  --region auto \
+  --only-show-errors
+
 test -s "$WORK_DIR/$BACKUP_FILE"
+test -s "$WORK_DIR/$BACKUP_FILE.hmac"
+
+# Authenticate ciphertext before decryption. Do not skip this step.
+python3 - "$WORK_DIR/$BACKUP_FILE" "$WORK_DIR/$BACKUP_FILE.hmac" <<'PY'
+import hashlib
+import hmac
+import os
+import sys
+
+passphrase = os.environ["PFSS_BACKUP_ENCRYPTION_PASSPHRASE"].encode()
+key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()
+digest = hmac.new(key, digestmod=hashlib.sha256)
+with open(sys.argv[1], "rb") as source:
+    for chunk in iter(lambda: source.read(1024 * 1024), b""):
+        digest.update(chunk)
+with open(sys.argv[2], "r", encoding="ascii") as manifest:
+    expected = manifest.read().strip()
+if not hmac.compare_digest(digest.hexdigest(), expected):
+    raise SystemExit("Backup HMAC verification failed; refusing to decrypt.")
+print("Backup integrity verified.")
+PY
 
 openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
   -in "$WORK_DIR/$BACKUP_FILE" \
@@ -82,7 +112,7 @@ In der isolierten Umgebung mindestens prüfen:
 
 1. Auth-Benutzer und Profile sind vorhanden und die IDs passen zusammen.
 2. Legacy-Organisationen und Mitgliedschaften sind vorhanden; das zusätzliche `pfms_organizations`-Modell wird separat ausgewertet.
-3. Teamzuordnungen, Rollen und die acht Team-Berechtigungsbereiche sind vorhanden.
+3. Teamzuordnungen, Rollen und die neun Team-Berechtigungsbereiche sind vorhanden.
 4. Spieler, Scoutingberichte, private Medien-Metadaten und Storage-Objekte sind konsistent.
 5. RLS-Policies und `EXECUTE`-Grants entsprechen dem Staging-Read-only-Audit.
 6. Ein Testkonto ohne Berechtigung kann keine fremden Organisations-, Team- oder Medienressourcen lesen oder ändern.
