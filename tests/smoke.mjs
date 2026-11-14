@@ -104,6 +104,15 @@ assert.ok(
   !/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout),
   "Scout workspace must not ship demo data or preview copy"
 );
+const mediaDeleteStart = scout.indexOf("async function deleteMedia(id)");
+const mediaDeleteBody = scout.slice(mediaDeleteStart, scout.indexOf("\n  function bindEvents", mediaDeleteStart));
+const storageDeletePosition = mediaDeleteBody.indexOf(".storage.from(BUCKET).remove");
+const metadataDeletePosition = mediaDeleteBody.indexOf(".from(TABLES.media).delete");
+assert.ok(
+  mediaDeleteStart >= 0 && storageDeletePosition >= 0 &&
+  metadataDeletePosition > storageDeletePosition,
+  "Private media object must be deleted before its metadata row"
+);
 
 const knownGaps = [];
 if (/pfss_players_v1|pfss_reports_v1/.test(app)) knownGaps.push("Haupt-Spieler und Berichte verwenden noch localStorage.");
