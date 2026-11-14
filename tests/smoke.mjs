@@ -33,7 +33,9 @@ for (const view of navViews) {
 
 for (const tag of html.matchAll(/<(script|link)\b([^>]*)>/gi)) {
   const attribute = tag[1].toLowerCase() === "script" ? "src" : "href";
-  const value = tag[2].match(new RegExp("\\b" + attribute + "=[\\"']([^\\"']+)[\\"']", "i"))?.[1];
+  const doubleQuoted = tag[2].match(new RegExp("\\b" + attribute + '="([^"]+)"', "i"))?.[1];
+  const singleQuoted = tag[2].match(new RegExp("\\b" + attribute + "='([^']+)'", "i"))?.[1];
+  const value = doubleQuoted || singleQuoted;
   if (!value || /^(https?:|data:|#)/i.test(value)) continue;
   const localPath = decodeURIComponent(value.split("?")[0]);
   await fs.access(localPath);
