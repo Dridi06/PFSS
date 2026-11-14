@@ -398,6 +398,180 @@ begin
        or pg_catalog.jsonb_typeof(v_item -> 'exercise_id') is distinct from 'string'
        or pg_catalog.jsonb_typeof(v_item -> 'sort_order') is distinct from 'number'
        or pg_catalog.jsonb_typeof(v_item -> 'planned_duration_minutes') is distinct from 'number'
+       or (v_item ->> 'sort_order') !~ '^[0-9]+
+      raise exception 'Invalid training plan entry' using errcode = '22023';
+    end if;
+
+    v_exercise_id := (v_item ->> 'exercise_id')::uuid;
+    v_order := (v_item ->> 'sort_order')::integer;
+    v_duration := (v_item ->> 'planned_duration_minutes')::integer;
+    v_notes := nullif(pg_catalog.btrim(coalesce(v_item ->> 'notes','')), '');
+
+    if v_order not between 1 and 30
+       or v_duration not between 1 and 180
+       or (v_notes is not null and pg_catalog.length(v_notes) > 2000) then
+      raise exception 'Invalid training plan duration, order or notes' using errcode = '22023';
+    end if;
+
+    if not exists (
+      select 1 from public.pfms_legacy_team_training_exercises e
+      where e.id = v_exercise_id and e.team_id = v_team_id
+    ) then
+      raise exception 'Every exercise must belong to the selected team' using errcode = '42501';
+    end if;
+
+    v_count := v_count + 1;
+    v_total_duration := v_total_duration + v_duration;
+  end loop;
+
+  if v_total_duration > 480 then
+    raise exception 'Training plan cannot exceed 480 minutes' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'exercise_id')::uuid)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'An exercise may only appear once in a training plan' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'sort_order')::integer)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'Training plan order must be unique' using errcode = '22023';
+  end if;
+
+  delete from public.pfms_legacy_training_session_exercises
+  where session_id = p_session_id and team_id = v_team_id;
+
+  for v_item in
+    select value from pg_catalog.jsonb_array_elements(p_items)
+  loop
+    insert into public.pfms_legacy_training_session_exercises (
+      session_id, exercise_id, team_id, sort_order,
+      planned_duration_minutes, notes, created_by
+    ) values (
+      p_session_id,
+      (v_item ->> 'exercise_id')::uuid,
+      v_team_id,
+      (v_item ->> 'sort_order')::smallint,
+      (v_item ->> 'planned_duration_minutes')::smallint,
+      nullif(pg_catalog.btrim(coalesce(v_item ->> 'notes','')), ''),
+      auth.uid()
+    );
+  end loop;
+
+  return v_count;
+end;
+$$;
+
+revoke all on function public.pfms_list_legacy_team_training_exercises(uuid) from public, anon;
+revoke all on function public.pfms_create_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) from public, anon;
+revoke all on function public.pfms_update_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) from public, anon;
+revoke all on function public.pfms_delete_legacy_team_training_exercise(uuid) from public, anon;
+revoke all on function public.pfms_list_legacy_training_session_exercises(uuid) from public, anon;
+revoke all on function public.pfms_save_legacy_training_session_exercises(uuid,jsonb) from public, anon;
+
+grant execute on function public.pfms_list_legacy_team_training_exercises(uuid) to authenticated;
+grant execute on function public.pfms_create_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) to authenticated;
+grant execute on function public.pfms_update_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) to authenticated;
+grant execute on function public.pfms_delete_legacy_team_training_exercise(uuid) to authenticated;
+grant execute on function public.pfms_list_legacy_training_session_exercises(uuid) to authenticated;
+grant execute on function public.pfms_save_legacy_training_session_exercises(uuid,jsonb) to authenticated;
+
+comment on table public.pfms_legacy_team_training_exercises is
+  'Team-owned exercise library. All read/write access is guarded by training.view/edit.';
+comment on table public.pfms_legacy_training_session_exercises is
+  'Ordered exercises attached to a specific training session. Composite foreign keys prevent cross-team plans.';
+
+       or (v_item ->> 'planned_duration_minutes') !~ '^[0-9]+
+      raise exception 'Invalid training plan entry' using errcode = '22023';
+    end if;
+
+    v_exercise_id := (v_item ->> 'exercise_id')::uuid;
+    v_order := (v_item ->> 'sort_order')::integer;
+    v_duration := (v_item ->> 'planned_duration_minutes')::integer;
+    v_notes := nullif(pg_catalog.btrim(coalesce(v_item ->> 'notes','')), '');
+
+    if v_order not between 1 and 30
+       or v_duration not between 1 and 180
+       or (v_notes is not null and pg_catalog.length(v_notes) > 2000) then
+      raise exception 'Invalid training plan duration, order or notes' using errcode = '22023';
+    end if;
+
+    if not exists (
+      select 1 from public.pfms_legacy_team_training_exercises e
+      where e.id = v_exercise_id and e.team_id = v_team_id
+    ) then
+      raise exception 'Every exercise must belong to the selected team' using errcode = '42501';
+    end if;
+
+    v_count := v_count + 1;
+    v_total_duration := v_total_duration + v_duration;
+  end loop;
+
+  if v_total_duration > 480 then
+    raise exception 'Training plan cannot exceed 480 minutes' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'exercise_id')::uuid)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'An exercise may only appear once in a training plan' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'sort_order')::integer)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'Training plan order must be unique' using errcode = '22023';
+  end if;
+
+  delete from public.pfms_legacy_training_session_exercises
+  where session_id = p_session_id and team_id = v_team_id;
+
+  for v_item in
+    select value from pg_catalog.jsonb_array_elements(p_items)
+  loop
+    insert into public.pfms_legacy_training_session_exercises (
+      session_id, exercise_id, team_id, sort_order,
+      planned_duration_minutes, notes, created_by
+    ) values (
+      p_session_id,
+      (v_item ->> 'exercise_id')::uuid,
+      v_team_id,
+      (v_item ->> 'sort_order')::smallint,
+      (v_item ->> 'planned_duration_minutes')::smallint,
+      nullif(pg_catalog.btrim(coalesce(v_item ->> 'notes','')), ''),
+      auth.uid()
+    );
+  end loop;
+
+  return v_count;
+end;
+$$;
+
+revoke all on function public.pfms_list_legacy_team_training_exercises(uuid) from public, anon;
+revoke all on function public.pfms_create_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) from public, anon;
+revoke all on function public.pfms_update_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) from public, anon;
+revoke all on function public.pfms_delete_legacy_team_training_exercise(uuid) from public, anon;
+revoke all on function public.pfms_list_legacy_training_session_exercises(uuid) from public, anon;
+revoke all on function public.pfms_save_legacy_training_session_exercises(uuid,jsonb) from public, anon;
+
+grant execute on function public.pfms_list_legacy_team_training_exercises(uuid) to authenticated;
+grant execute on function public.pfms_create_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) to authenticated;
+grant execute on function public.pfms_update_legacy_team_training_exercise(uuid,text,text,smallint,smallint,smallint,text,text,text,text,text,text) to authenticated;
+grant execute on function public.pfms_delete_legacy_team_training_exercise(uuid) to authenticated;
+grant execute on function public.pfms_list_legacy_training_session_exercises(uuid) to authenticated;
+grant execute on function public.pfms_save_legacy_training_session_exercises(uuid,jsonb) to authenticated;
+
+comment on table public.pfms_legacy_team_training_exercises is
+  'Team-owned exercise library. All read/write access is guarded by training.view/edit.';
+comment on table public.pfms_legacy_training_session_exercises is
+  'Ordered exercises attached to a specific training session. Composite foreign keys prevent cross-team plans.';
+
        or pg_catalog.jsonb_typeof(v_item -> 'notes') not in ('string','null') then
       raise exception 'Invalid training plan entry' using errcode = '22023';
     end if;
