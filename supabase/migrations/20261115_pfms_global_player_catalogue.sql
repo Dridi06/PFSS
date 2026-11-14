@@ -50,7 +50,7 @@ create index if not exists pfms_global_players_club_idx
 
 create table if not exists public.pfms_main_scouting_reports (
   id uuid primary key default gen_random_uuid(),
-  player_id uuid not null references public.pfms_global_players(id) on delete cascade,
+  player_id uuid not null references public.pfms_global_players(id) on delete restrict,
   author_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   observation_date date not null default current_date,
   overall_rating numeric(3,1) not null,
