@@ -32,7 +32,8 @@ const [
   teamPermissionsMigration,
   legacyTeamTrainingMigration,
   legacyTeamCalendarMigration,
-  legacyTeamMatchesMigration
+  legacyTeamMatchesMigration,
+  legacyTeamTrainingExercisesMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -62,7 +63,8 @@ const [
   read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql"),
   read("supabase/migrations/20261123_pfms_legacy_team_training.sql"),
   read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql"),
-  read("supabase/migrations/20261125_pfms_legacy_team_matches.sql")
+  read("supabase/migrations/20261125_pfms_legacy_team_matches.sql"),
+  read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql")
 ]);
 
 const requiredFiles = [
@@ -405,6 +407,61 @@ assert.ok(
   legacyTeamMatchesMigration.includes("where is_captain") &&
   legacyTeamMatchesMigration.includes("jsonb_typeof(p_lineup) is distinct from 'array'"),
   "Match lineup must enforce unique ordering, one captain and safe array validation"
+);
+
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("public.pfms_legacy_team_training_exercises") &&
+  legacyTeamTrainingExercisesMigration.includes("public.pfms_legacy_training_session_exercises"),
+  "Team exercise library and session plan tables are missing"
+);
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("pfms_list_legacy_team_training_exercises") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_create_legacy_team_training_exercise") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_update_legacy_team_training_exercise") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_delete_legacy_team_training_exercise") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_list_legacy_training_session_exercises") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_save_legacy_training_session_exercises"),
+  "Team exercise CRUD and session plan RPCs are incomplete"
+);
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'training', 'view')") &&
+  legacyTeamTrainingExercisesMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'training', 'edit')") &&
+  legacyTeamTrainingExercisesMigration.includes("Every exercise must belong to the selected team"),
+  "Training exercise operations must enforce training permissions and team isolation"
+);
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("foreign key (session_id, team_id)") &&
+  legacyTeamTrainingExercisesMigration.includes("foreign key (exercise_id, team_id)") &&
+  legacyTeamTrainingExercisesMigration.includes("v_total_duration > 480") &&
+  legacyTeamTrainingExercisesMigration.includes("jsonb_array_length(p_items) > 30"),
+  "Training plan must enforce composite team links and bounded duration/entry counts"
+);
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("force row level security") &&
+  legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
+  legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_training_session_exercises"),
+  "Training exercise tables must deny direct client writes and enforce RLS"
+);
+assert.ok(
+  html.includes('id="pfmsTeamExerciseLibraryPanel"') &&
+  html.includes('id="pfmsTeamExerciseForm"') &&
+  html.includes('id="pfmsTeamSessionPlanPanel"') &&
+  html.includes('id="pfmsTeamSessionPlanExercises"'),
+  "Team exercise library and session plan UI is incomplete"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamExercises") &&
+  app.includes("async function savePfmsLegacyTeamExercise") &&
+  app.includes("async function openPfmsLegacyTrainingPlan") &&
+  app.includes("async function savePfmsLegacyTrainingSessionPlan"),
+  "Team exercise library and session planner frontend handlers are incomplete"
+);
+assert.ok(
+  app.includes("pfms_list_legacy_team_training_exercises") &&
+  app.includes("pfms_save_legacy_training_session_exercises") &&
+  app.includes("data-pfms-open-training-plan") &&
+  app.includes("pfmsLegacyTeamExercises = []"),
+  "Training plan UI must load team exercises and clear state on team/account changes"
 );
 
 assert.ok(
