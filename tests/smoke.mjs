@@ -27,7 +27,8 @@ const [
   legacyOrgManagerMigration,
   legacyInvitationWorkspaceMigration,
   legacyOrgMembershipManagementMigration,
-  legacyTeamManagementMigration
+  legacyTeamManagementMigration,
+  teamPermissionsMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -52,7 +53,8 @@ const [
   read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql"),
   read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql"),
   read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql"),
-  read("supabase/migrations/20261121_pfms_legacy_team_management.sql")
+  read("supabase/migrations/20261121_pfms_legacy_team_management.sql"),
+  read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql")
 ]);
 
 const requiredFiles = [
@@ -199,6 +201,14 @@ assert.ok(legacyTeamManagementMigration.includes("pfms_create_legacy_team") && l
 assert.ok(app.includes("async function loadPfmsLegacyTeams") && app.includes("setupPfmsLegacyTeamWorkspace") && app.includes("pfms_list_legacy_team_staff_candidates"), "Legacy team workspace frontend is not connected to its RPCs");
 assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
 assert.ok(stagingAudit.includes("'pfms_legacy_teams'") && stagingAudit.includes("'pfms_legacy_team_staff'"), "Staging audit must inspect team and staff data");
+assert.ok(html.includes('id="pfmsTeamPermissionsForm"') && html.includes('id="pfmsTeamPermissionsList"'), "Per-team permission editor UI is missing");
+assert.ok(app.includes("pfms_list_legacy_team_permissions") && app.includes("pfms_save_legacy_team_permissions"), "Team permission editor is not connected to Supabase");
+assert.ok(app.includes("data-pfms-team-permissions") && app.includes("PFMS_TEAM_PERMISSION_MODULES"), "Team staff cards must expose the per-module permission editor");
+assert.ok(teamPermissionsMigration.includes("public.pfms_legacy_team_permissions") && teamPermissionsMigration.includes("force row level security"), "Per-team module permissions must be stored separately with forced RLS");
+assert.ok(teamPermissionsMigration.includes("pfms_has_legacy_team_permission") && teamPermissionsMigration.includes("pfms_get_my_legacy_team_permissions"), "Team module permissions must expose server-side effective authorization");
+assert.ok(teamPermissionsMigration.includes("pfms_save_legacy_team_permissions") && teamPermissionsMigration.includes("can_edit and not v_can_view"), "Team permission saving must validate edit/view consistency");
+assert.ok(teamPermissionsMigration.includes("Exactly eight module permission entries are required"), "All team modules must be explicitly configured");
+
 
 // Legacy organization invitation authorization must be available in the tracked migrations.
 assert.ok(legacyOrgManagerMigration.includes("create or replace function public.can_manage_org(p_organization_id uuid)"), "Legacy organization manager helper is missing");
