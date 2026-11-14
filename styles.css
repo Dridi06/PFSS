@@ -1335,3 +1335,9 @@ button,input,select,textarea{max-width:100%}
   .pfms-finance-form-grid{grid-template-columns:1fr}
   .pfms-finance-form-grid .field.full{grid-column:1}
 }
+
+.pfms-club-organization-card{border:1px solid rgba(198,161,91,.22);background:linear-gradient(145deg,#1b1e20,#151719);display:flex;flex-direction:column;gap:12px}
+.pfms-club-organization-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted,#a4a4a4);font-size:12px}
+.pfms-club-organization-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.pfms-club-organization-actions .btn{min-height:38px}
+@media(max-width:620px){.pfms-club-organization-actions{display:grid;grid-template-columns:1fr}.pfms-club-organization-actions .btn{width:100%}}
