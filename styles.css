@@ -1096,3 +1096,22 @@ button,input,select,textarea{max-width:100%}
   #pfmsTeamDialog .modal-actions,#pfmsTeamStaffDialog .modal-actions{flex-direction:column-reverse}
   #pfmsTeamDialog .modal-actions .btn,#pfmsTeamStaffDialog .modal-actions .btn{width:100%}
 }
+
+/* PFMS per-team module permissions */
+.pfms-team-staff-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.pfms-team-staff-actions .btn{padding:7px 10px;font-size:10px}
+.pfms-team-permissions-list{display:grid;gap:8px;max-height:55vh;overflow:auto;margin:15px 0}
+.pfms-team-permission-row{
+  display:grid;grid-template-columns:minmax(0,1fr) 105px 130px;align-items:center;gap:12px;
+  padding:12px 13px;border:1px solid rgba(198,161,91,.2);border-radius:9px;background:#171a1c;
+}
+.pfms-team-permission-row>b{color:#e8dfcc;font-size:12px}
+.pfms-team-permission-row label{display:flex;align-items:center;gap:7px;color:#c7c0b4;font-size:11px;white-space:nowrap}
+.pfms-team-permission-row input{accent-color:#c7a15b}
+.pfms-team-permission-row input:disabled+span{opacity:.45}
+#pfmsTeamPermissionsMessage{min-height:19px}
+@media(max-width:560px){
+  .pfms-team-permission-row{grid-template-columns:minmax(0,1fr) 1fr 1fr;gap:7px;padding:10px}
+  .pfms-team-permission-row>b{grid-column:1/-1}
+  .pfms-team-permission-row label{font-size:10px}
+}
