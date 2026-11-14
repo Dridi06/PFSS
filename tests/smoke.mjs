@@ -1702,6 +1702,23 @@ const knownGaps = [];
 if (/Platzhalter|Funktionen folgen/i.test(html)) knownGaps.push("Einige Vereins-/Mannschafts- und Betriebsbereiche sind noch Platzhalter.");
 if (/kein Zahlungsanbieter|noch keine Zahlung/i.test(html)) knownGaps.push("Echte Zahlungsabwicklung ist noch nicht eingerichtet.");
 if (/Kontaktformular \/ Ticketversand: noch nicht/i.test(html)) knownGaps.push("Kontakt-/Supportfunktion ist noch nicht angebunden.");
+const rosterMutationHandlers = [
+  ["addPfmsLegacyTeamPlayer", "updatePfmsLegacyTeamPlayer"],
+  ["updatePfmsLegacyTeamPlayer", "removePfmsLegacyTeamPlayer"],
+  ["removePfmsLegacyTeamPlayer", "assignPfmsLegacyTrainingSessionToWeek"]
+];
+for (const [handler, nextHandler] of rosterMutationHandlers) {
+  const start = app.indexOf("async function " + handler);
+  const end = app.indexOf("async function " + nextHandler, start + 1);
+  const source = app.slice(start, end);
+  assert.ok(
+    start >= 0 && end > start &&
+    source.includes("const teamId = team?.team_id") &&
+    source.includes("pfmsSelectedLegacyTeam?.team_id !== teamId") &&
+    source.includes("pfmsSelectedLegacyTeam?.team_id === teamId"),
+    handler + " must bind roster writes, errors and UI cleanup to the original team"
+  );
+}
 console.log("PFMS smoke tests passed. " + navViews.size + " navigation targets verified.");
 if (knownGaps.length) {
   console.log("\nKnown unfinished areas (tracked, not hidden):");
