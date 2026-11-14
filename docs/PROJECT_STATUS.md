@@ -446,3 +446,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Passkey-Aufrufe für Registrierung, Anmeldung, Listen, Umbenennen und Löschen stimmen mit der aktuellen Supabase-JavaScript-Referenz überein.
 - Die Funktion selbst wird weiterhin als experimentell geführt und muss zusätzlich im Supabase-Projekt aktiviert sein. Der neue Smoke-Test prüft den SDK-Pin und verhindert die Rückkehr zum veralteten Opt-in.
 - Diese Aktualisierung ist noch nicht durch den nachfolgenden GitHub-Actions-Lauf bestätigt. Keine Staging- oder Produktionsbereitstellung durchgeführt.
+
+
+### CI-Abnahme und Integrationsübersicht aktualisiert – 15.11.2026
+
+- Der vollständige GitHub-Actions-Lauf für Commit `0778f08aa6a0cc205c57b1407dc7e1933b445ee8` ist erfolgreich. Beide Jobs (Node-Projekt-/Smoke-/Accessibility-/SQL-/Backup-Prüfungen sowie Deno-Typprüfung aller drei Edge Functions) wurden mit `success` abgeschlossen: [Run 43651944730](https://github.com/Dridi06/PFSS/actions/runs/43651944730).
+- Der offene Draft-Pull-Request #1 wurde aktualisiert: Passkey-Integration, SDK-Stand 2.119.0, RP-ID-Risiko, aktueller CI-Nachweis und offene Staging-/Produktionsblocker sind dokumentiert. Der PR bleibt Draft und wurde nicht gemergt.
+- Die vorherige Aussage, der neue CI-Lauf stehe noch aus, ist damit überholt. Der aktuelle geprüfte Stand ist `0778f08`.
+- Nächster Umsetzungsschritt: Staging-Umgebung anhand des tatsächlichen Render-Hostnamens und des dedizierten Supabase-Projekts `PFSS-Test` vorbereiten. Ohne Zugriff auf das Render-/Supabase-Dashboard können tatsächliche Service-Existenz, Projekt-Referenz, Secrets und Domain nicht verifiziert oder eingerichtet werden.
+- Keine Änderung an `main`, Produktions-Supabase, Live-Render-Service oder Produktivdaten. Kein Deployment.
