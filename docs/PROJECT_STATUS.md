@@ -516,3 +516,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Neue additive Migration `20261213_pfms_training_cycle_session_date_guard.sql` ergänzt einen Datenbanktrigger. Bei Einfügen bzw. Änderung von Team, Datum oder Zykluswochen-Zuordnung wird geprüft, dass Team und Datum weiterhin zur ausgewählten Mikrozykluswoche passen. Die Wochenzeile wird während der Prüfung mit `FOR SHARE` gesperrt.
 - Der Trigger ist nicht direkt durch Browserrollen aufrufbar; die Änderung erfolgt innerhalb der bereits berechtigten Trainings-RPCs. Neue Regressionstests und ein Read-only-Staging-Abnahmepunkt prüfen die Triggerdefinition, Aktivierung und Funktionsrechte.
 - Noch nicht auf Supabase angewendet oder gegen echte Staging-Daten getestet. Staging muss positiv eine Einheit innerhalb der Woche speichern und negativ eine Datumsverschiebung vor Wochenbeginn, nach Wochenende sowie eine teamfremde Zuordnung ablehnen.
+
+
+### Spieltagsaufstellungen: Teamzugehörigkeit auf Datenbankebene erzwungen – 15.11.2026
+
+- Die Spieltagsaufstellung prüfte beim Speichern bereits, ob ein Kaderspieler zum ausgewählten Team gehört. Die ursprüngliche Tabellenstruktur hatte diese Beziehung aber nicht zusätzlich relational abgesichert.
+- Neue additive Migration `20261214_pfms_match_lineup_team_integrity.sql` ergänzt eine nicht-nullbare Team-ID an jeder Aufstellungszeile. Zusammengesetzte Fremdschlüssel erzwingen, dass sowohl das Spiel als auch die Kaderzuordnung exakt zu diesem Team gehören.
+- Ein Trigger setzt die Team-ID beim Schreiben aus dem Spieldatensatz. Vorhandene widersprüchliche Zeilen lassen die Migration bewusst abbrechen, statt sie stillschweigend zu verändern.
+- Regressionstest und Read-only-Staging-Audit prüfen beide Fremdschlüssel, die Triggeraktivierung und die RLS-Konfiguration. Noch nicht in Supabase angewendet oder mit realen Staging-Daten getestet.
