@@ -5,7 +5,7 @@
 
 create table if not exists public.pfms_system_events (
   id uuid primary key default gen_random_uuid(),
-  actor_id uuid not null default auth.uid()
+  actor_id uuid default auth.uid()
     references auth.users(id) on delete set null,
   event_type text not null default 'frontend_error'
     check (event_type in ('frontend_error')),
