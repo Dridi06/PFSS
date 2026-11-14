@@ -3334,7 +3334,7 @@ const PFMS_TEAM_ANALYSIS_STATUS_LABELS = {
 function pfmsSafeAnalysisVideoUrl(value) {
   try {
     const url = new URL(String(value || '').trim());
-    return url.protocol === 'https:' && url.hostname ? url.href : '';
+    return url.protocol === 'https:' && url.hostname && !url.username && !url.password ? url.href : '';
   } catch {
     return '';
   }
@@ -3463,6 +3463,7 @@ function resetPfmsLegacyTeamAnalysisForm() {
   pfmsEditingTeamAnalysisId = null;
   form.reset();
   form.elements.analysis_id.value = '';
+  form.elements.video_url.required = false;
   form.elements.observation_date.value = new Date().toISOString().slice(0, 10);
   if (form.elements.video_url) {
     form.elements.video_url.required = form.elements.analysis_type.value === 'video';
@@ -3481,6 +3482,7 @@ function openPfmsLegacyTeamAnalysis(record = null) {
   form.elements.analysis_id.value = pfmsEditingTeamAnalysisId || '';
   form.elements.title.value = record?.analysis_title || '';
   form.elements.analysis_type.value = record?.analysis_type || 'tactical';
+  form.elements.video_url.required = form.elements.analysis_type.value === 'video';
   form.elements.match_id.value = record?.match_id || '';
   form.elements.phase.value = record?.phase || 'general';
   form.elements.observation_date.value = record?.observation_date || new Date().toISOString().slice(0, 10);
@@ -3539,6 +3541,7 @@ async function savePfmsLegacyTeamAnalysis(event) {
     p_phase: data.phase,
     p_observation_date: data.observation_date,
     p_summary: data.summary.trim(),
+    p_status: data.status || 'draft',
     p_match_id: data.match_id || null,
     p_video_url: videoUrl,
     p_video_timestamp_seconds: timestamp,
