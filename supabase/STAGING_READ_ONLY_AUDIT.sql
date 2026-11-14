@@ -115,6 +115,33 @@ function_rows AS (
       )
     )
 ),
+function_grant_rows AS (
+  SELECT
+    'FUNCTION_GRANTS'::text AS section,
+    n.nspname || '.' || p.proname || '(' ||
+      pg_get_function_identity_arguments(p.oid) || ')' AS object_name,
+    jsonb_build_object(
+      'grantee', coalesce(gr.rolname, 'PUBLIC'),
+      'privilege', acl.privilege_type,
+      'is_grantable', acl.is_grantable,
+      'security_definer', p.prosecdef
+    ) AS details
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+  CROSS JOIN LATERAL aclexplode(
+    coalesce(p.proacl, acldefault('f', p.proowner))
+  ) AS acl
+  LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
+  WHERE n.nspname = 'public'
+    AND (
+      p.proname ILIKE 'pfms_%'
+      OR p.proname ILIKE 'pfss_%'
+      OR p.proname IN (
+        'is_admin', 'is_org_member', 'can_manage_org',
+        'can_access_org_team', 'can_view_shared_scouting_report'
+      )
+    )
+),
 grant_rows AS (
   SELECT 'TABLE_GRANTS'::text AS section,
          table_schema || '.' || table_name AS object_name,
@@ -186,6 +213,7 @@ FROM (
   UNION ALL SELECT * FROM constraint_rows
   UNION ALL SELECT * FROM trigger_rows
   UNION ALL SELECT * FROM function_rows
+  UNION ALL SELECT * FROM function_grant_rows
   UNION ALL SELECT * FROM grant_rows
   UNION ALL SELECT * FROM bucket_rows
   UNION ALL SELECT * FROM row_estimate_rows
