@@ -2359,6 +2359,8 @@ let pfmsLegacyTeamAnalysisMatches = [];
 let pfmsEditingTeamAnalysisId = null;
 let pfmsLegacyTeamEvents = [];
 let pfmsEditingTeamEventId = null;
+let pfmsLegacyTeamEvents = [];
+let pfmsEditingTeamEventId = null;
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -3861,6 +3863,257 @@ async function deletePfmsLegacyTeamAnalysis(analysisId) {
     console.error('PFMS team analysis delete failed:', error);
     const message = document.getElementById('pfmsTeamAnalysisMessage');
     if (message) message.textContent = 'Analyse konnte nicht gelöscht werden. Prüfe die Analyse-Rechte.';
+  }
+}
+
+const PFMS_TEAM_EVENT_TYPE_LABELS = {
+  event: 'Veranstaltung',
+  tournament: 'Turnier'
+};
+const PFMS_TEAM_EVENT_STATUS_LABELS = {
+  planned: 'Geplant',
+  completed: 'Abgeschlossen',
+  cancelled: 'Abgesagt'
+};
+
+function resetPfmsLegacyTeamEventsState() {
+  pfmsLegacyTeamEvents = [];
+  pfmsEditingTeamEventId = null;
+
+  const panel = document.getElementById('pfmsTeamEventsPanel');
+  if (panel) panel.hidden = true;
+
+  const form = document.getElementById('pfmsTeamEventForm');
+  form?.reset();
+  if (form?.elements.event_id) form.elements.event_id.value = '';
+
+  const host = document.getElementById('pfmsTeamEventsList');
+  if (host) host.replaceChildren();
+
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (message) message.textContent = '';
+
+  const save = document.getElementById('pfmsTeamEventSave');
+  if (save) save.textContent = 'Veranstaltung speichern';
+  document.getElementById('pfmsTeamEventCancelEdit')?.setAttribute('hidden', '');
+}
+
+function resetPfmsLegacyTeamEventForm() {
+  const form = document.getElementById('pfmsTeamEventForm');
+  if (!form) return;
+  pfmsEditingTeamEventId = null;
+  form.reset();
+  form.elements.event_id.value = '';
+  form.elements.event_date.value = new Date().toISOString().slice(0, 10);
+  form.elements.status.value = 'planned';
+  const save = document.getElementById('pfmsTeamEventSave');
+  const cancel = document.getElementById('pfmsTeamEventCancelEdit');
+  if (save) save.textContent = 'Veranstaltung speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+function renderPfmsLegacyTeamEvents() {
+  const host = document.getElementById('pfmsTeamEventsList');
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (!host) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('events')?.can_edit === true;
+  if (!pfmsLegacyTeamEvents.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Veranstaltungen geplant</b><p>' +
+      (canEdit ? 'Lege ein Turnier oder eine Veranstaltung an. Termine werden zusätzlich im Mannschaftskalender geführt.' : 'Für diese Mannschaft liegen noch keine Veranstaltungs- oder Turniereinträge vor.') +
+      '</p></div>';
+    if (message) message.textContent = '0 Veranstaltungen geladen.';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyTeamEvents.map(item => {
+    const date = pfmsFormatTeamDate(item.event_date);
+    const start = String(item.starts_at || '').slice(0, 5);
+    const end = item.ends_at ? String(item.ends_at).slice(0, 5) : '';
+    const time = start + (end ? ' – ' + end : '');
+    return '<article class="pfms-team-event-card" data-pfms-team-event-card="' + escapeHtml(item.event_id) + '">' +
+      '<div class="pfms-team-event-card-head"><div><span class="eyebrow">' +
+        escapeHtml(PFMS_TEAM_EVENT_TYPE_LABELS[item.event_type] || item.event_type) + ' · ' + escapeHtml(date) +
+        '</span><h4>' + escapeHtml(item.event_title) + '</h4></div>' +
+        '<span class="module-status">' + escapeHtml(PFMS_TEAM_EVENT_STATUS_LABELS[item.event_status] || item.event_status) + '</span></div>' +
+      '<div class="pfms-team-event-meta">' +
+        '<span>' + escapeHtml(time || 'Uhrzeit offen') + '</span>' +
+        '<span>' + escapeHtml(item.location || 'Ort noch offen') + '</span>' +
+      '</div>' +
+      (item.event_notes ? '<p class="pfms-team-event-notes">' + escapeHtml(item.event_notes) + '</p>' : '') +
+      (canEdit
+        ? '<div class="pfms-team-event-actions"><button type="button" class="btn btn-secondary" data-pfms-event-edit="' +
+            escapeHtml(item.event_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-event-delete="' +
+            escapeHtml(item.event_id) + '">Löschen</button></div>'
+        : '') +
+      '</article>';
+  }).join('');
+
+  if (message) message.textContent = pfmsLegacyTeamEvents.length + ' Veranstaltung(en) geladen.';
+}
+
+async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamEventsPanel');
+  const form = document.getElementById('pfmsTeamEventForm');
+  const host = document.getElementById('pfmsTeamEventsList');
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (!team || !panel || !form || !host || !message) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('events') || {};
+  if (permission.can_view !== true) {
+    resetPfmsLegacyTeamEventsState();
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Veranstaltungen werden geladen …';
+  host.replaceChildren();
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_events', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    pfmsLegacyTeamEvents = data || [];
+    renderPfmsLegacyTeamEvents();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team events load failed:', error);
+    pfmsLegacyTeamEvents = [];
+    host.innerHTML = '<div class="empty-state">Veranstaltungen konnten nicht geladen werden. Prüfe die Event-Migration und Bereichsrechte.</div>';
+    message.textContent = 'Veranstaltungsbereich derzeit nicht verfügbar.';
+  }
+}
+
+function openPfmsLegacyTeamEvent(record = null) {
+  const form = document.getElementById('pfmsTeamEventForm');
+  if (!form || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+  resetPfmsLegacyTeamEventForm();
+  pfmsEditingTeamEventId = record?.event_id || null;
+  form.elements.event_id.value = pfmsEditingTeamEventId || '';
+  form.elements.title.value = record?.event_title || '';
+  form.elements.event_type.value = record?.event_type || 'event';
+  form.elements.event_date.value = record?.event_date || new Date().toISOString().slice(0, 10);
+  form.elements.starts_at.value = record?.starts_at ? String(record.starts_at).slice(0, 5) : '';
+  form.elements.ends_at.value = record?.ends_at ? String(record.ends_at).slice(0, 5) : '';
+  form.elements.location.value = record?.location || '';
+  form.elements.notes.value = record?.event_notes || '';
+  form.elements.status.value = record?.event_status || 'planned';
+  const save = document.getElementById('pfmsTeamEventSave');
+  const cancel = document.getElementById('pfmsTeamEventCancelEdit');
+  if (save) save.textContent = record ? 'Änderungen speichern' : 'Veranstaltung speichern';
+  if (cancel) cancel.hidden = !record;
+  form.hidden = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.title.focus();
+}
+
+async function savePfmsLegacyTeamEvent(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  const button = document.getElementById('pfmsTeamEventSave');
+  if (!team || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) {
+    if (message) message.textContent = 'Für Veranstaltungen fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const title = String(data.title || '').trim();
+  if (title.length < 1 || title.length > 140 || !data.event_date || !data.starts_at) {
+    if (message) message.textContent = 'Bitte Bezeichnung, Art, Datum und Beginn vollständig angeben.';
+    return;
+  }
+  if (data.ends_at && data.ends_at <= data.starts_at) {
+    if (message) message.textContent = 'Die Endzeit muss nach der Beginnzeit liegen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isEditing = Boolean(pfmsEditingTeamEventId);
+  const args = {
+    p_title: title,
+    p_event_type: data.event_type,
+    p_event_date: data.event_date,
+    p_starts_at: data.starts_at,
+    p_ends_at: data.ends_at || null,
+    p_location: String(data.location || '').trim() || null,
+    p_notes: String(data.notes || '').trim() || null
+  };
+  button.disabled = true;
+  if (message) message.textContent = 'Veranstaltung wird gespeichert …';
+
+  try {
+    const result = isEditing
+      ? await pfssSupabase.rpc('pfms_update_legacy_team_event', {
+          p_event_id: pfmsEditingTeamEventId,
+          ...args,
+          p_status: data.status
+        })
+      : await pfssSupabase.rpc('pfms_create_legacy_team_event', {
+          p_team_id: team.team_id,
+          ...args
+        });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (result.error) throw result.error;
+
+    resetPfmsLegacyTeamEventForm();
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
+      if (message) message.textContent = isEditing ? 'Veranstaltung wurde aktualisiert.' : 'Veranstaltung wurde gespeichert.';
+      toast(isEditing ? 'Veranstaltung aktualisiert.' : 'Veranstaltung gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team event save failed:', error);
+    if (message) message.textContent = 'Veranstaltung konnte nicht gespeichert werden. Prüfe Datum, Uhrzeit und Event-Rechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deletePfmsLegacyTeamEvent(eventId) {
+  const team = pfmsSelectedLegacyTeam;
+  const record = pfmsLegacyTeamEvents.find(item => item.event_id === eventId);
+  if (!team || !record || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+  if (!window.confirm('"' + record.event_title + '" wirklich löschen?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_delete_legacy_team_event', {
+      p_event_id: eventId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    toast('Veranstaltung wurde gelöscht.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team event delete failed:', error);
+    const message = document.getElementById('pfmsTeamEventsMessage');
+    if (message) message.textContent = 'Veranstaltung konnte nicht gelöscht werden. Prüfe die Event-Rechte.';
   }
 }
 
