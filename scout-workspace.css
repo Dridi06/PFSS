@@ -153,3 +153,22 @@
   .pfms-team-event-card{padding:13px}
   .pfms-team-event-card-head{align-items:flex-start}
 }
+
+
+/* Detailed trip and transport plans attached to an event */
+.pfms-event-travel-details{margin-top:12px;border:1px solid rgba(214,181,112,.22);border-radius:10px;background:rgba(255,255,255,.025)}
+.pfms-event-travel-details>summary{padding:11px 13px;color:#e4c88f;font-weight:700;cursor:pointer}
+.pfms-event-travel-summary{display:flex;flex-wrap:wrap;gap:8px 16px;padding:0 13px 12px;color:#d5c8aa;font-size:12px}
+.pfms-event-travel-summary>span{display:inline-block}
+.pfms-event-travel-summary>b{width:100%;color:#f0dfbb}
+.pfms-event-travel-summary p{flex-basis:100%;margin:0;color:#d0ccc3;white-space:pre-wrap}
+.pfms-event-travel-empty{margin:0;padding:0 13px 12px;color:#a9a398;font-size:12px}
+.pfms-event-travel-form{padding:0 13px 14px}
+.pfms-event-travel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pfms-event-travel-grid .field.full{grid-column:1/-1}
+.pfms-event-travel-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+@media(max-width:640px){
+  .pfms-event-travel-grid{grid-template-columns:1fr}
+  .pfms-event-travel-grid .field.full{grid-column:auto}
+  .pfms-event-travel-actions{display:grid;grid-template-columns:1fr}
+}
