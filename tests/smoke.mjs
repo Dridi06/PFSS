@@ -1325,7 +1325,7 @@ assert.ok(scout.includes(".storage.from(BUCKET).upload") && scout.includes("crea
 assert.ok(scout.includes("data-scout-edit-player") && scout.includes("data-scout-delete-player") && scout.includes("data-scout-edit-report") && scout.includes("data-scout-delete-report"), "Scout CRUD controls are incomplete");
 assert.ok(!/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout), "Scout workspace must not ship preview data");
 for (const [fileName, source] of [["app.js", app], ["scout-workspace.js", scout]]) {
-  const declarations = [...source.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\\(/g)].map(match => match[1]);
+  const declarations = [...source.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(match => match[1]);
   const counts = new Map();
   for (const name of declarations) counts.set(name, (counts.get(name) || 0) + 1);
   const duplicates = [...counts].filter(([, count]) => count > 1).map(([name]) => name);
