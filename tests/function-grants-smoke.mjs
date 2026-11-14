@@ -790,7 +790,7 @@ const taskAssigneeScope = (
   )
 ).replace(/\s+/g, " ").toLowerCase();
 assert.equal(
-  (taskAssigneeScope.match(/join public\.organization_memberships m/g) || []).length,
+  (taskAssigneeScope.match(/o\.status in \('approved','active'\)/g) || []).length,
   2,
   "Both task creation and update must verify current organization membership"
 );
