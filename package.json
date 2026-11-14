@@ -1,0 +1,11 @@
+{
+  "name": "pfms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PFMS – Professionell Football Management System",
+  "type": "module",
+  "scripts": {
+    "check:syntax": "node --check app.js && node --check scout-workspace.js",
+    "test": "npm run check:syntax && node tests/smoke.mjs"
+  }
+}
