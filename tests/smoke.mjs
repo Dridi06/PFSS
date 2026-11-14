@@ -455,6 +455,21 @@ assert.ok(
   "Team event frontend must connect list, create, update and delete workflows"
 );
 assert.ok(
+  app.includes("function resetPfmsLegacyTeamEventsState()")
+    && app.includes("resetPfmsLegacyTeamEventsState();")
+    && app.includes("savePfmsLegacyTeamEvent")
+    && app.includes("resetPfmsLegacyTeamEventForm")
+    && app.includes("data-pfms-event-edit")
+    && app.includes("data-pfms-event-delete")
+    && app.includes("data-pfms-show-events"),
+  "Event UI must connect create, edit, delete, panel navigation and clear its state between teams or accounts"
+);
+assert.ok(
+  teamEventsMigration.includes("v_current_type not in ('tournament','event')")
+    && teamEventsMigration.includes("v_event_type not in ('tournament','event')"),
+  "Event update and delete RPCs must not allow event-only users to mutate matches or meetings"
+);
+assert.ok(
   html.includes('id="pfmsTeamEventsPanel"')
     && html.includes('id="pfmsTeamEventForm"')
     && html.includes('id="pfmsTeamEventsList"')
@@ -462,9 +477,9 @@ assert.ok(
   "Team event UI must include the independent events workspace and module navigation"
 );
 assert.ok(
-  workspaceStyles.includes(".pfms-team-event-card")
-    && workspaceStyles.includes(".pfms-event-form")
-    && workspaceStyles.includes("@media(max-width:640px)"),
+  mainStyles.includes(".pfms-team-event-card")
+    && mainStyles.includes(".pfms-event-form")
+    && mainStyles.includes("@media(max-width:640px)"),
   "Team event UI must have responsive card and form styling"
 );
 
