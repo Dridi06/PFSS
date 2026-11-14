@@ -282,7 +282,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_team_id uuid;
   v_event_type text;
@@ -344,7 +344,7 @@ begin
 
   return v_participant_id;
 end;
-$;
+$$;
 
 create or replace function public.pfms_update_legacy_team_event_participant(
   p_participant_id uuid,
@@ -355,7 +355,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_team_id uuid;
   v_event_id uuid;
@@ -430,7 +430,7 @@ begin
       updated_at = pg_catalog.now()
   where id = p_participant_id;
 end;
-$;
+$$;
 
 revoke all on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
   from public, anon;
