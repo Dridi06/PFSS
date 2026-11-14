@@ -50,11 +50,20 @@ jobs:
           mkdir -p backup
           FILE="pfss-db-$(date -u +%Y%m%dT%H%M%SZ).dump"
           pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "backup/$FILE"
+          pg_restore --list "backup/$FILE" >/dev/null
+
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
             -in "backup/$FILE" -out "backup/$FILE.enc" \
             -pass env:BACKUP_ENCRYPTION_PASSPHRASE
-          rm "backup/$FILE"
+
+          VERIFY_FILE="backup/restore-check-$FILE"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in "backup/$FILE.enc" -out "$VERIFY_FILE" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          pg_restore --list "$VERIFY_FILE" >/dev/null
+          rm "$VERIFY_FILE" "backup/$FILE"
           echo "BACKUP_FILE=$FILE.enc" >> "$GITHUB_ENV"
+          echo "Backup archive and encrypted restore verification passed."
 
       - name: Upload encrypted backup to Cloudflare R2
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
