@@ -3,118 +3,117 @@
 Stand: 14.11.2026  
 Arbeitsbranch: `feature/pfss-complete-platform-build`  
 Produktivbranch: `main`  
-Produktionsfreigabe: **nicht erteilt**  
-Grundsatz: Alle Implementierungen und Tests laufen zunächst ausschließlich im Entwicklungszweig bzw. in einer getrennten Testumgebung.
+Produktionsfreigabe: **nicht erteilt**
+
+> Alle Implementierungen erfolgen zunächst im Entwicklungszweig und in einer getrennten Testumgebung. Es gibt kein Produktionsdeployment ohne dokumentierte Abnahme und ausdrückliche Freigabe.
 
 ## 1. Gesamtbefund
 
-Der vorhandene Stand ist ein umfangreicher statischer Frontend-Prototyp mit Supabase-Authentifizierung und mehreren Datenbankmigrationen. Er ist noch kein durchgehend integriertes Fußballmanagementsystem.
+PFMS ist noch kein vollständig integriertes Fußballmanagementsystem. Der Bestand besteht aus einem umfangreichen statischen Frontend, Supabase-Authentifizierung, mehreren vorhandenen SQL-Migrationen und teilweise bereits angebundenen Verwaltungsfunktionen. Viele fachliche Module sind bisher nur Oberflächen oder Teilfunktionen.
 
-Die Repository-Bestandsaufnahme umfasst aktuell 33 Einträge einschließlich Verzeichnissen. Es gibt derzeit keine erkennbare Projekt-/Build-Konfiguration (`package.json`), kein automatisiertes Anwendungstest-Verzeichnis, keine zentrale CI-Qualitätsprüfung und keine im Repository abgelegte Render-/Container-Konfiguration. Die tatsächliche Render-Service-Konfiguration muss im Render-Konto geprüft werden.
+Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichnissen. Seitdem wurden eine Node-Projektkonfiguration, Smoke-Tests und ein GitHub-Actions-Workflow ergänzt. Eine Render-Service-Konfiguration ist weiterhin nicht im Repository abgelegt; der konkrete Render-Service-Typ muss im Render-Konto verifiziert werden.
 
-## 2. Vorhandene technische Bausteine
+## 2. Vorhandene Bausteine
 
-### Frontend und Oberfläche
-- `index.html`: Hauptanwendung mit ca. 18 Hauptansichten und 141 DOM-IDs.
-- `app.js`: zentrale Anwendungslogik, Navigation, Authentifizierung, Dashboard, lokale Spieler-/Berichtsfunktionen und Administrator-RPCs.
+### Frontend
+- `index.html`: Hauptanwendung mit rund 18 Hauptansichten.
+- `app.js`: Navigation, Authentifizierung, Dashboard, Haupt-Spieler-/Berichtsfunktionen und Administrator-RPCs.
 - `styles.css`, `scout-workspace.css`: Designbasis.
-- `scout-workspace.js`: separater Scout-Bereich; derzeit eine grafische Vorschau mit Beispieldaten, ohne Datenbankanbindung.
-- `rechtliches.html`: Rechts-/Informationsseite; Impressum, Kontakt und weitere Angaben sind ausdrücklich noch nicht veröffentlichungsfertig.
+- `scout-workspace.js`: jetzt mit Supabase-CRUD für private Scout-Spieler und -Berichte sowie privatem Medien-Upload, signierten Medienabrufen und Löschfunktionen verbunden.
+- `rechtliches.html`: rechtliche Informationsseite; Impressum und Kontaktdaten sind noch nicht veröffentlichungsfertig.
 
-### Authentifizierung und Benutzer
-- Supabase Auth über den Browser-Client.
-- Anmeldung per E-Mail oder Benutzername; Benutzername wird über die Edge Function `username-login` aufgelöst.
-- Passwort-Wiederherstellung und Registrierung sind im Frontend vorhanden.
+### Authentifizierung und Administration
+- Supabase Auth wird im Browser verwendet.
+- Anmeldung per E-Mail oder Benutzername; die Benutzernamenauflösung läuft über `username-login`.
+- Passwort-Wiederherstellung, Registrierung und Profilprüfung sind vorhanden.
 - Profile werden aus `public.profiles` geladen.
-- Administrator-Benutzerverwaltung nutzt `pfss_admin_list_profiles` und `pfss_admin_update_profile`.
-- Sitzungs-Persistenz ist explizit konfiguriert.
-- Regulärer Seiten-Reload zeigt nach dem letzten Fix nicht mehr die 4,5-Sekunden-Willkommenssequenz; die Wiederherstellung muss noch im Browser getestet werden.
+- Die zentrale Benutzerverwaltung verwendet `pfss_admin_list_profiles` und `pfss_admin_update_profile`.
+- Sitzungspersistenz ist explizit aktiviert.
+- Normaler Reload überspringt jetzt die Willkommensanimation und stellt die bestehende Sitzung direkt wieder her.
+- Clientseitige Admin-Prüfungen verwenden `pfssIsRealAdmin`, um sowohl `admin` als auch `administrator` konsistent zu behandeln.
 
 ### Datenbank und Edge Functions
 Vorhandene Migrationen betreffen:
-- Admin-Kontrollfunktionen und Benutzername-Registrierung.
-- Bestehende Organisationsverwaltung und Mitgliedschafts-Einladungen.
+- Benutzername-Registrierung und Admin-Kontrollfunktionen.
+- Legacy-Organisationen, Mitgliedschaften und Einladungen.
 - Ein zusätzliches neues Organisations-/Mitgliedschaftsmodell.
 - Private Scout-Spieler, Berichte, Medien und einen privaten Storage-Bucket.
 - Edge Functions: `username-login`, `r2-connection-check`.
 
 ### Sicherung
-- GitHub-Actions-Workflow für verschlüsselte Datenbank-Backups nach Cloudflare R2 ist vorhanden.
-- Die tatsächliche Ausführung hängt von korrekt gesetzten Repository-Secrets sowie einem erfolgreichen Restore-Test ab.
+- Ein GitHub-Actions-Workflow erstellt verschlüsselte PostgreSQL-Dumps und lädt sie in Cloudflare R2.
+- Der reale Lauf hängt von korrekt gesetzten Repository-Secrets ab; die Wiederherstellung muss in einer isolierten Staging-Umgebung getestet werden.
 
-## 3. Verifiziert offene bzw. unvollständige Bereiche
+## 3. Offene bzw. unvollständige Funktionen
 
-| Bereich | Tatsächlicher Stand | Nächster Nachweis |
+| Bereich | Aktueller Stand | Noch erforderlicher Nachweis / Arbeit |
 |---|---|---|
-| Haupt-Spielerdatenbank | Daten in `localStorage` (`pfss_players_v1`) | Supabase-Persistenz, Mandantenzuordnung, CRUD-Tests |
-| Haupt-Scoutingberichte | Daten in `localStorage` (`pfss_reports_v1`) | Persistente Datenbank, Beziehungen, CRUD-Tests |
-| Haupt-Medienbereich | Objekt-URLs nur im aktuellen Browserfenster | Privater Upload, Metadaten, signierte Abrufe, Löschen |
-| Scout-Arbeitsbereich | Beispieldaten und Vorschau | Anbindung an private Scout-Tabellen und Storage |
-| Vereine/Agenturen | Ansichten und Admin-RPCs teilweise vorhanden | Besitzer-/Leitungsworkflows, Einladungen, Mitgliederverwaltung |
-| Mannschaften/Staff | Teile der Oberfläche, überwiegend Platzhalter | Tabellen, Zuweisungen, Rollen und vollständige Workflows |
-| Trainer-/Team-Workspace | Geplante Modulübersicht | Kader, Training, Anwesenheit, Spiele und Rechte |
-| Vereinsmitgliedschaften | Teilweise Oberflächen und ältere Datenbankfunktionen | Aufnahme, Beiträge, Status, Kündigung/Wechsel und Rechte |
-| Vereins-Scouting | Übersicht/Oberfläche | Scout-Zuordnung, Beobachtungsgebiete, Freigaben |
-| Administration | Benutzerverwaltung und Organisationssuch-RPCs teilweise vorhanden | vollständige Verwaltung, Audit, Sperren, Fehler-/Supportprozesse |
-| Zahlungen | Vorschau; kein Zahlungsanbieter | Anbieterentscheidung, Webhooks, Steuer-/Rechtsprüfung |
-| Kalender/Aufgaben/Nachrichten | nur geplant bzw. Platzhalter | Datenmodell, Rollen, Benachrichtigungslogik |
-| Sicherheit | einige RLS-Policies und Security-Definer-Funktionen | vollständige Policy-/Grant-/Storage-/Negativtests |
-| Backup | Workflow vorhanden | Secret-Prüfung und Restore-Probe |
-| Render | Service nicht abschließend verifiziert | korrekter Static-Site-/Web-Service-Typ, Build/Start, Health-Test |
-| Qualitätssicherung | kein automatisiertes Frontend-Testgerüst | Syntax-, UI-, Integrations- und Mandantentests |
+| Haupt-Spielerdatenbank | Daten liegen derzeit in `localStorage` (`pfss_players_v1`) | Persistente Supabase-Daten, Eigentümer-/Organisationsbezug, CRUD- und Mandantentests |
+| Haupt-Scoutingberichte | Daten liegen derzeit in `localStorage` (`pfss_reports_v1`) | Supabase-Persistenz, Beziehungen und CRUD-Tests |
+| Haupt-Medienbereich | lokale Objekt-URLs, nicht dauerhaft | Private Uploads, Metadaten, signierte Abrufe und Löschvorgänge |
+| Privater Scout-Bereich | Code mit privaten Supabase-Tabellen und Storage verbunden | Migration in Staging anwenden; Scoutkonto für CRUD-, RLS- und Storage-Tests verwenden |
+| Vereine und Agenturen | Teile der Oberfläche und Admin-RPCs vorhanden | Besitzer-/Leitungsworkflows, Datenpflege, Einladungen und Mitgliedschaften vervollständigen |
+| Mannschaften und Staff | Oberflächen, überwiegend Platzhalter | Datenmodell, Zuweisungen, zeitliche Zuordnung und Rollenrechte |
+| Trainer-/Team-Workspace | Modulübersicht und Platzhalter | Kader, Training, Anwesenheit, Spiele, Aufstellungen und Rechte |
+| Vereinsmitgliedschaften | Teilweise Oberflächen und ältere Datenbankfunktionen | Aufnahme, Beiträge, Status, Wechsel/Austritt und Berechtigungen |
+| Vereins-Scouting | Oberfläche/Übersicht | Scout-Zuordnung, Beobachtungsgebiete, Berichtsfreigaben |
+| Administration | Benutzerverwaltung und Organisationssuch-RPCs teilweise vorhanden | Vollständige Organisations-/Mitgliederverwaltung, Audit, Sperren, Fehler- und Supportprozesse |
+| Zahlungen | Vorschau, kein Anbieter angebunden | Anbieterentscheidung, Webhooks, Abrechnungslogik und Rechtsprüfung |
+| Kalender, Aufgaben, Nachrichten | geplant bzw. Platzhalter | Datenmodell, Rollen, Workflows und Benachrichtigungen |
+| Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
+| Backup | Workflow im Repository | Secrets prüfen, Backup ausführen und Restore-Probe dokumentieren |
+| Render | Service-Konfiguration nicht verifiziert | Service-Typ prüfen, Test-Build, Health-Check und Browser-Test |
+| Qualitätssicherung | `npm test` und GitHub Actions für Syntax und statische Smoke-Tests | Browser-/E2E-, Datenbank-, RLS- und Mandantentests |
 
-## 4. Architekturentscheidungen, die vor weiteren Fachmodulen nötig sind
+## 4. Kritische Architekturentscheidung: Organisationsmodell
 
-### 4.1 Ein kanonisches Organisationsmodell
+Die vorhandenen Migrationen belegen zwei parallele Datenmodelle:
 
-Die Migrationen zeigen zwei Modelle:
-- ältere, von vorhandenen Anwendungs-RPCs verwendete Tabellen `organizations` und `organization_memberships`;
-- neuere Tabellen `pfms_organizations`, `pfms_memberships` und `pfms_scout_profiles`.
+1. Ältere Tabellen: `public.organizations` und `public.organization_memberships`. Die bestehende Admin-Verwaltung und die Einladungsfunktion verwenden dieses Modell.
+2. Neuere Tabellen: `public.pfms_organizations`, `public.pfms_memberships` und `public.pfms_scout_profiles`. Eine neue Signup-Triggerfunktion provisioniert in dieses zweite Modell.
 
-Die Admin-Oberfläche nutzt aktuell RPCs auf dem älteren Modell; die neuere Migration erzeugt ein separates Modell. Vor weiteren Modulen muss anhand des tatsächlichen Staging-Schemas und der bestehenden Testdaten festgelegt werden, welches Modell kanonisch ist. Keine automatische Datenmigration und kein Löschen ohne Schema-Audit und Backup.
+Bevor weitere Organisations- oder Teamfunktionen ergänzt werden, muss der tatsächliche Staging-Schema-Stand aufgenommen und ein einziges kanonisches Modell festgelegt werden. Es erfolgt keine automatische Zusammenführung, Löschung oder Migration auf Grundlage bloßer Annahmen.
 
-### 4.2 Datenhoheit und Rollen
+Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript ist rein lesend und erfasst Tabellen/Spalten, RLS, Policies, Grants, Constraints, Trigger, relevante Funktionen und den privaten Scout-Bucket. Es muss im **Staging-Supabase-Projekt** ausgeführt und das Ergebnis geprüft werden.
 
-- Rollen und Mitgliedschaftsrechte müssen serverseitig geprüft werden.
-- Client-Metadaten dürfen keine administrativen Rechte vergeben.
-- Jede Organisationsressource erhält eine eindeutige Organisationszuordnung.
-- Private Scout-Daten bleiben strikt eigentümergebunden, sofern keine explizite Freigabe erfolgt.
-- Owner-Erstregistrierung und Besitzübertragung benötigen einen sicheren, einmaligen Claim-/Provisioning-Prozess.
+## 5. Sicherheits- und Integrationsrisiken
 
-### 4.3 Integrationen und Sicherheit
+- Die eingesehene `username-login`-Edge-Function verwendet derzeit permissive CORS-Antworten (`*`) und enthält kein eigenes Rate-Limit. Zulässige Origins, Rate-Limits und Missbrauchsschutz müssen umgesetzt werden.
+- RLS, Grants, Security-Definer-Funktionen und Storage-Policies sind noch nicht vollständig im tatsächlichen Datenbankzustand geprüft.
+- Jede Organisationsressource braucht einen eindeutigen Mandantenbezug und serverseitige Autorisierung.
+- Owner-Erstregistrierung benötigt einen sicheren, einmaligen Claim-/Provisioning-Prozess. Client-Metadaten dürfen keine Besitzer- oder Adminrechte verleihen.
+- Zahlungsfunktionen bleiben deaktiviert, bis Anbieter, serverseitige Webhooks, Abrechnungslogik und rechtliche Voraussetzungen umgesetzt und getestet sind.
+- Legale Betreiber-/Impressumsangaben und Datenschutztexte müssen vor einem öffentlichen Start fachlich und rechtlich geprüft werden.
 
-- `username-login` verwendet aktuell permissive CORS-Antworten (`*`) und weist in der eingesehenen Funktion kein eigenes Rate-Limit auf.
-- RLS, Grants, Security-Definer-Funktionen und Storage-Policies müssen im tatsächlichen Datenbankzustand geprüft werden.
-- Für Medien werden private Storage-Objekte und kurzlebige signierte URLs benötigt.
-- Zahlungsfunktionen bleiben deaktiviert, bis Provider, Webhooks und die rechtlichen Voraussetzungen umgesetzt und getestet sind.
+## 6. Aktuelle Qualitätsbasis und letzte Änderungen
 
-## 5. Entwicklungsreihenfolge und Abnahmekriterien
+- `package.json` enthält `npm test` und `npm run check:syntax`.
+- `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
+- `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
+- Der GitHub-Actions-Lauf auf Commit `60aa159084e0e0d674dffc5ff2b1f6f03267d267` war erfolgreich. Das ist ein Nachweis für Syntax und statische Smoke-Tests – nicht für die Laufzeitintegration mit Supabase oder Render.
+- Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
+- Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
+- Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
 
-1. **Stabilisierung und Qualitätsbasis:** Branch-/Umgebungsinventar, Reproduzierbarkeit, Syntaxprüfung, automatisierte Smoke-Tests, Render-Testumgebung.
-2. **Identität und Organisation:** Profil, sicherer Owner-Claim, ein Organisationsmodell, Mitgliedschaften, Rollen, Rechte, Einladungen, Audit.
-3. **Fußball-Stammdaten:** Vereine/Agenturen, Mannschaften, Staff, Spielerprofile und Historie.
-4. **Scouting:** private Scout-Daten, organisationsbezogene Berichte, Bewertungsskalen, Shortlists, Medien und Freigaben.
-5. **Betrieb:** Training, Anwesenheit, Spiele, Kalender, Aufgaben, Kommunikation, Finanzen und Exporte.
-6. **Geschäft und Betrieb:** Abos/Zahlungen, Monitoring, Backups/Restore, Datenschutz-/Rechtsprüfung und Produktionsfreigabe.
+Die tatsächliche Browser-, Supabase-, Storage- und Render-Ende-zu-Ende-Prüfung steht noch aus.
 
-Ein Modul ist erst fertig, wenn Oberfläche, Datenbank, serverseitige Rechte, Fehlerfälle, Tests und Dokumentation zusammen funktionieren. Ein Platzhalter, Menüpunkt oder erfolgreicher Seitenaufruf zählt nicht als Funktionsnachweis.
+## 7. Verbindliche Reihenfolge
 
-## 6. Aktueller Änderungsstand
+1. **Testumgebung stabilisieren:** Render-Service-Typ und Branch-Zuordnung prüfen; reproduzierbaren Teststart sicherstellen.
+2. **Staging-Datenbank inventarisieren:** Nur-Lese-Audit ausführen; Tabellen, Trigger, Policies und tatsächliche Daten vergleichen.
+3. **Identität und Organisation vereinheitlichen:** kanonisches Modell, sicherer Owner-Claim, Mitgliedschaften, Rollen, Rechte, Einladungen und Audit.
+4. **Datenpersistenz und Fußball-Stammdaten:** Haupt-Spieler, Berichte, Vereine, Agenturen, Mannschaften und Staff mit serverseitiger Mandantenprüfung.
+5. **Scouting und Medien:** Scout-Bereich in Staging Ende-zu-Ende prüfen; organisationsbezogene Freigaben, Bewertungen, Shortlists und Medien ergänzen.
+6. **Betriebsmodule:** Training, Anwesenheit, Spiele, Kalender, Aufgaben, Nachrichten, Finanzen und Exporte.
+7. **Geschäft und Produktionsbetrieb:** Abos/Zahlungen, Monitoring, Backups/Restore, Datenschutz-/Rechtsprüfung und formale Freigabe.
 
-Auf dem Feature-Branch wurden zuletzt:
-- PFMS-Markenangaben in mehreren sichtbaren Bereichen vereinheitlicht;
-- Supabase-Sitzungspersistenz explizit konfiguriert;
-- die Willkommensanimation beim normalen Reload übersprungen;
-- ein sichtbarer Schreibfehler in der Sidebar-Markenbezeichnung korrigiert;
-- die Scout-Workspace-Kurzmarke auf PFMS umgestellt.
+Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehlerfälle, Tests und Dokumentation zusammen funktionieren. Ein Menüpunkt, eine Vorschau oder ein erfolgreicher Seitenaufruf allein ist kein Funktionsnachweis.
 
-Diese Änderungen sind noch nicht im Produktivbranch und wurden noch nicht im echten Browser bzw. in Render-End-to-End getestet.
-
-## 7. Änderungsregeln
+## 8. Änderungsregeln
 
 - Keine direkte Änderung an `main` oder produktiven Daten.
-- Vor einer SQL-Migration: tatsächliches Staging-Schema, bestehende Policies und Daten prüfen.
+- Keine SQL-Migration ohne vorherigen Staging-Schema-Audit und Backup.
 - Keine Secrets im Repository oder Chat.
-- Änderungen klein genug halten, dass Ursache und Wirkung nachvollziehbar bleiben.
-- Jede Funktion nach Fertigstellung mit positiven und negativen Tests belegen.
-- Produktionsdeployment nur nach dokumentierter Abnahme und ausdrücklicher Freigabe.
+- Jede Änderung bleibt klein, nachvollziehbar und überprüfbar.
+- Jede abgeschlossene Funktion erhält positive und negative Tests.
+- Produktionsdeployment erst nach dokumentierter Abnahme und ausdrücklicher Freigabe.
