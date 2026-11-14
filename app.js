@@ -339,7 +339,7 @@ function saveReport(form) {
 
 function exportPfssBackup() {
   const backup = {
-    product: 'PFSS',
+    product: 'PFMS',
     formatVersion: 1,
     exportedAt: new Date().toISOString(),
     data: { players, reports }
@@ -348,12 +348,12 @@ function exportPfssBackup() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `PFSS-Backup-${new Date().toISOString().slice(0,10)}.json`;
+  link.download = `PFMS-Backup-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  toast('PFSS-Backup wurde erstellt.');
+  toast('PFMS-Backup wurde erstellt.');
 }
 
 function importPfssBackup(file) {
@@ -362,9 +362,9 @@ function importPfssBackup(file) {
   reader.onload = () => {
     try {
       const backup = JSON.parse(String(reader.result || ''));
-      if (backup?.product !== 'PFSS' || backup?.formatVersion !== 1 ||
+      if (!['PFMS','PFSS'].includes(backup?.product) || backup?.formatVersion !== 1 ||
           !Array.isArray(backup?.data?.players) || !Array.isArray(backup?.data?.reports)) {
-        throw new Error('Ungültiges PFSS-Backupformat');
+        throw new Error('Ungültiges PFMS-Backupformat');
       }
       const importedPlayers = backup.data.players;
       const importedReports = backup.data.reports;
@@ -603,7 +603,7 @@ document.getElementById('backupFileInput')
   });
 
 // ============================================
-// PFSS AUTHENTICATION – SUPABASE
+// PFMS AUTHENTICATION – SUPABASE
 // ============================================
 
 const PFSS_SUPABASE_URL =
