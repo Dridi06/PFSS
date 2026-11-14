@@ -761,12 +761,12 @@ assert.ok(
   "Existing training plans must not be deleted before entry validation"
 );
 assert.equal(
-  (legacyTeamTrainingExercisesMigration.match(/create or replace function public\\.pfms_save_legacy_training_session_exercises/g) || []).length,
+  (legacyTeamTrainingExercisesMigration.match(/create or replace function public\.pfms_save_legacy_training_session_exercises/g) || []).length,
   1,
   "Training plan save RPC must be declared once"
 );
 assert.equal(
-  (legacyTeamTrainingExercisesMigration.match(/grant execute on function public\\.pfms_save_legacy_training_session_exercises\\(uuid,jsonb\\) to authenticated;/g) || []).length,
+  (legacyTeamTrainingExercisesMigration.match(/grant execute on function public\.pfms_save_legacy_training_session_exercises\(uuid,jsonb\) to authenticated;/g) || []).length,
   1,
   "Training plan save RPC must have one matching authenticated grant"
 );
