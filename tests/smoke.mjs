@@ -92,6 +92,7 @@ const teamEventParticipantsMigration = await read("supabase/migrations/20261204_
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
 const inAppNotificationsMigration = await read("supabase/migrations/20261207_pfms_in_app_notifications.sql");
+const supportNotificationsMigration = await read("supabase/migrations/20261208_pfms_support_ticket_notifications.sql");
 const stagingAcceptanceSql = await read("supabase/STAGING_ACCEPTANCE_READ_ONLY.sql");
 
 
@@ -236,6 +237,31 @@ assert.ok(
     && app.includes("loadPfmsNotifications()"),
   "Notification inbox actions and unread badges must be wired"
 );
+assert.ok(
+  supportNotificationsMigration.includes("support_ticket_replied")
+    && supportNotificationsMigration.includes("support_ticket_resolved")
+    && supportNotificationsMigration.includes("pfms_support_tickets_notify_changes")
+    && supportNotificationsMigration.includes("new.owner_id is distinct from v_actor_id")
+    && supportNotificationsMigration.includes("revoke all on function public.pfms_notify_support_ticket_changes()"),
+  "Support replies and resolutions must notify only the ticket owner through a restricted database trigger"
+);
+assert.ok(
+  supportNotificationsMigration.includes("references public.pfms_support_tickets(id) on delete set null")
+    && app.includes("support_ticket_id")
+    && app.includes("data-pfms-notification-support")
+    && app.includes("data-pfms-support-ticket"),
+  "Support notifications must deep-link only into the signed-in owner's ticket"
+);
+assert.ok(
+  stagingAcceptanceSql.includes("support_ticket_notification_trigger")
+    && stagingAcceptanceSql.includes("support_notification_trigger_function"),
+  "Read-only Staging acceptance must verify the support notification trigger and its security context"
+);
+assert.ok(
+  app.includes("neun getrennte Modulrechte") || html.includes("neun getrennte Rechtebereiche"),
+  "The club administration interface must describe all nine team permission modules"
+);
+
 
 assert.ok(
   html.includes('id="view-notifications"')
