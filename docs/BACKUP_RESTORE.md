@@ -59,7 +59,7 @@ import os
 import sys
 
 passphrase = os.environ["PFSS_BACKUP_ENCRYPTION_PASSPHRASE"].encode()
-key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()
+key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)
 digest = hmac.new(key, digestmod=hashlib.sha256)
 with open(sys.argv[1], "rb") as source:
     for chunk in iter(lambda: source.read(1024 * 1024), b""):
