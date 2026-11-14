@@ -396,44 +396,108 @@ function renderReports() {
   }).join('');
 }
 
-function savePlayer(form) {
+async function savePlayer(form) {
+  if (!window.pfssIsRealAdmin) {
+    toast('Nur Plattformadministratoren dürfen den globalen Spielerkatalog verändern.');
+    return;
+  }
+  if (!pfmsMainDataReady) {
+    toast('Die Cloud-Datenbank ist noch nicht verfügbar.');
+    return;
+  }
+
   const data = Object.fromEntries(new FormData(form).entries());
+  const row = {
+    name: String(data.name || '').trim(),
+    surname: String(data.surname || '').trim() || null,
+    birth: data.birth || null,
+    join_date: data.joinDate || null,
+    nationality: String(data.nationality || '').trim() || null,
+    position: data.position || 'Mittelfeld',
+    club: String(data.club || '').trim() || null,
+    height: data.height ? Number(data.height) : null,
+    foot: data.foot || null,
+    notes: String(data.notes || '').trim() || null,
+    created_by: window.pfssCurrentUserId
+  };
+  if (!row.name) {
+    toast('Bitte gib einen Spielernamen ein.');
+    return;
+  }
 
-  players.push({
-    id: crypto.randomUUID
-      ? crypto.randomUUID()
-      : String(Date.now()),
-    ...data,
-    createdAt: new Date().toISOString()
-  });
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const { data: saved, error } = await pfssSupabase
+      .from('pfms_global_players')
+      .insert(row)
+      .select('*')
+      .single();
+    if (error) throw error;
 
-  write();
-  form.reset();
-  closeDialog('playerDialog');
-  renderDashboard();
-  renderPlayers();
-  toast('Spielerprofil wurde gespeichert.');
+    players.push(mapPfmsPlayerRow(saved));
+    form.reset();
+    closeDialog('playerDialog');
+    renderDashboard();
+    renderPlayers();
+    toast('Spielerprofil wurde in der globalen PFMS-Datenbank gespeichert.');
+  } catch (error) {
+    console.error('PFMS global player insert failed:', error);
+    toast('Spieler konnte nicht gespeichert werden. Bitte Datenbankmigration und Administratorrechte prüfen.');
+  } finally {
+    button.disabled = false;
+  }
 }
 
-function saveReport(form) {
+async function saveReport(form) {
+  if (!pfmsMainDataReady) {
+    toast('Die Cloud-Datenbank ist noch nicht verfügbar.');
+    return;
+  }
+
   const data = Object.fromEntries(new FormData(form).entries());
+  const playerId = String(data.playerId || '');
+  const rating = Number(data.rating);
+  const notes = String(data.notes || '').trim();
 
-  reports.push({
-    id: crypto.randomUUID
-      ? crypto.randomUUID()
-      : String(Date.now()),
-    ...data,
-    createdAt: new Date().toISOString()
-  });
+  if (!players.some(player => player.id === playerId)) {
+    toast('Bitte wähle einen gültigen Spieler aus dem globalen Katalog.');
+    return;
+  }
+  if (!Number.isFinite(rating) || rating < 1 || rating > 10 || !notes) {
+    toast('Bitte gib eine Bewertung von 1 bis 10 und eine Beobachtung ein.');
+    return;
+  }
 
-  write();
-  form.reset();
-  closeDialog('reportDialog');
-  renderDashboard();
-  renderReports();
-  toast('Scouting-Bericht wurde gespeichert.');
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const { data: saved, error } = await pfssSupabase
+      .from('pfms_main_scouting_reports')
+      .insert({
+        player_id: playerId,
+        author_id: window.pfssCurrentUserId,
+        observation_date: data.date || new Date().toISOString().slice(0, 10),
+        overall_rating: rating,
+        notes
+      })
+      .select('*')
+      .single();
+    if (error) throw error;
+
+    reports.push(mapPfmsReportRow(saved));
+    form.reset();
+    closeDialog('reportDialog');
+    renderDashboard();
+    renderReports();
+    toast('Scouting-Bericht wurde sicher in der Cloud gespeichert.');
+  } catch (error) {
+    console.error('PFMS scouting report insert failed:', error);
+    toast('Bericht konnte nicht gespeichert werden. Bitte Datenbankmigration und Kontostatus prüfen.');
+  } finally {
+    button.disabled = false;
+  }
 }
-
 
 function exportPfssBackup() {
   const backup = {
