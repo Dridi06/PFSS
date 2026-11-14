@@ -168,6 +168,175 @@ function toast(message) {
   );
 }
 
+function renderPfmsPersonalTasks() {
+  const host = document.getElementById('pfmsPersonalTaskList');
+  if (!host) return;
+  const statusFilter = document.getElementById('pfmsPersonalTaskStatus')?.value || '';
+  const items = pfmsPersonalTasks.filter(task => !statusFilter || task.status === statusFilter);
+  if (!items.length) {
+    host.innerHTML = '<div class="empty-state"><b>Keine Aufgaben gefunden</b><p>Lege eine Aufgabe an oder ändere den Statusfilter.</p></div>';
+    return;
+  }
+  const priorityLabels = { high: 'Hoch', normal: 'Normal', low: 'Niedrig' };
+  const statusLabels = { open: 'Offen', in_progress: 'In Bearbeitung', done: 'Erledigt' };
+  host.innerHTML = items.map(task => {
+    const due = task.due_date
+      ? new Date(task.due_date + 'T00:00:00').toLocaleDateString('de-DE')
+      : 'Kein Fälligkeitsdatum';
+    const overdue = task.due_date && task.status !== 'done' && task.due_date < new Date().toISOString().slice(0,10);
+    return '<article class="pfms-personal-task-card ' + (task.status === 'done' ? 'is-done' : '') + '">' +
+      '<div class="pfms-personal-task-head"><strong>' + escapeHtml(task.title) + '</strong><span class="module-status">' + escapeHtml(statusLabels[task.status] || task.status) + '</span></div>' +
+      (task.description ? '<p>' + escapeHtml(task.description) + '</p>' : '') +
+      '<div class="pfms-personal-task-meta"><span class="priority-' + escapeHtml(task.priority) + '">Priorität: ' + escapeHtml(priorityLabels[task.priority] || task.priority) + '</span><span class="' + (overdue ? 'task-overdue' : '') + '">Fällig: ' + escapeHtml(due) + '</span></div>' +
+      '<div class="pfms-personal-task-actions">' +
+      '<select aria-label="Aufgabenstatus" data-pfms-task-status="' + escapeHtml(task.id) + '">' +
+        ['open','in_progress','done'].map(value => '<option value="' + value + '"' + (task.status === value ? ' selected' : '') + '>' + statusLabels[value] + '</option>').join('') +
+      '</select>' +
+      '<button type="button" class="btn btn-secondary" data-pfms-task-delete="' + escapeHtml(task.id) + '">Löschen</button>' +
+      '</div></article>';
+  }).join('');
+}
+
+async function loadPfmsPersonalTasks() {
+  const host = document.getElementById('pfmsPersonalTaskList');
+  const message = document.getElementById('pfmsPersonalTaskListMessage');
+  if (!host || !message) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) {
+    pfmsPersonalTasks = [];
+    renderPfmsPersonalTasks();
+    message.textContent = 'Bitte anmelden.';
+    return;
+  }
+  message.textContent = 'Aufgaben werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase.from('pfms_personal_tasks')
+      .select('id,owner_id,title,description,due_date,priority,status,completed_at,created_at,updated_at')
+      .eq('owner_id', requestUserId)
+      .order('due_date', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsPersonalTasks = data || [];
+    renderPfmsPersonalTasks();
+    message.textContent = pfmsPersonalTasks.length + ' Aufgabe(n) geladen.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS personal tasks load failed:', error);
+    pfmsPersonalTasks = [];
+    renderPfmsPersonalTasks();
+    message.textContent = 'Aufgaben konnten nicht geladen werden. Bitte prüfe die Aufgabenmigration und den Kontostatus.';
+  }
+}
+
+async function savePfmsPersonalTask(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsPersonalTaskFormMessage');
+  const button = document.getElementById('pfmsPersonalTaskSubmit');
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) {
+    message.textContent = 'Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.';
+    return;
+  }
+  const data = Object.fromEntries(new FormData(form).entries());
+  const title = String(data.title || '').trim();
+  if (!title) {
+    message.textContent = 'Bitte gib einen Aufgabentitel ein.';
+    return;
+  }
+  button.disabled = true;
+  message.textContent = 'Aufgabe wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.from('pfms_personal_tasks').insert({
+      owner_id: requestUserId,
+      title,
+      description: String(data.description || '').trim() || null,
+      due_date: data.due_date || null,
+      priority: ['low','normal','high'].includes(data.priority) ? data.priority : 'normal',
+      status: 'open'
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    form.reset();
+    message.textContent = 'Aufgabe gespeichert.';
+    await loadPfmsPersonalTasks();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS personal task save failed:', error);
+    message.textContent = 'Aufgabe konnte nicht gespeichert werden. Prüfe die Migration und deine Berechtigung.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function updatePfmsPersonalTaskStatus(taskId, status) {
+  if (!['open','in_progress','done'].includes(status)) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const task = pfmsPersonalTasks.find(item => item.id === taskId);
+  if (!requestUserId || !task || task.owner_id !== requestUserId) return;
+  try {
+    const { error } = await pfssSupabase.from('pfms_personal_tasks')
+      .update({ status })
+      .eq('id', taskId)
+      .eq('owner_id', requestUserId);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    await loadPfmsPersonalTasks();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS personal task status update failed:', error);
+    toast('Aufgabenstatus konnte nicht gespeichert werden.');
+    await loadPfmsPersonalTasks();
+  }
+}
+
+async function deletePfmsPersonalTask(taskId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const task = pfmsPersonalTasks.find(item => item.id === taskId);
+  if (!requestUserId || !task || task.owner_id !== requestUserId) return;
+  if (!window.confirm('Aufgabe "' + task.title + '" wirklich löschen?')) return;
+  try {
+    const { error } = await pfssSupabase.from('pfms_personal_tasks')
+      .delete()
+      .eq('id', taskId)
+      .eq('owner_id', requestUserId);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    await loadPfmsPersonalTasks();
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) toast('Aufgabe gelöscht.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS personal task deletion failed:', error);
+    toast('Aufgabe konnte nicht gelöscht werden.');
+  }
+}
+
+function setupPfmsPersonalTasks() {
+  if (pfmsPersonalTasksBound) return;
+  const form = document.getElementById('pfmsPersonalTaskForm');
+  const refresh = document.getElementById('pfmsPersonalTaskRefresh');
+  const filter = document.getElementById('pfmsPersonalTaskStatus');
+  const list = document.getElementById('pfmsPersonalTaskList');
+  if (!form || !refresh || !filter || !list) return;
+  form.addEventListener('submit', savePfmsPersonalTask);
+  refresh.addEventListener('click', loadPfmsPersonalTasks);
+  filter.addEventListener('change', renderPfmsPersonalTasks);
+  list.addEventListener('change', event => {
+    const select = event.target.closest('[data-pfms-task-status]');
+    if (select) updatePfmsPersonalTaskStatus(select.dataset.pfmsTaskStatus, select.value);
+  });
+  list.addEventListener('click', event => {
+    const button = event.target.closest('[data-pfms-task-delete]');
+    if (button) deletePfmsPersonalTask(button.dataset.pfmsTaskDelete);
+  });
+  pfmsPersonalTasksBound = true;
+}
+
 function showView(view, navElement = null, fromPopState = false) {
   const selectedLabel = navElement?.textContent?.trim() || (
     view === 'team-workspace' ? 'Mannschaftsübersicht' : ''
@@ -227,6 +396,7 @@ function showView(view, navElement = null, fromPopState = false) {
     admin: 'Administration',
     'admin-members': 'Mitgliederverwaltung',
     'admin-errors': 'Fehlerprotokoll',
+    tasks: 'Meine Aufgaben',
     backup: 'Datensicherung',
     'team-workspace': 'Meine Mannschaft'
   };
@@ -251,6 +421,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
+  if (view === 'tasks' && window.pfssCurrentUserId) void loadPfmsPersonalTasks();
   if (view === 'admin') loadAdminUsers();
   if (view === 'admin-members') loadPfmsAdminMembers();
   if (view === 'admin-errors') loadPfmsAdminErrors();
@@ -1616,6 +1787,7 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsAdminErrors();
   setupPfmsLegacyInvitationWorkspace();
   setupPfmsClubScouting();
+  setupPfmsPersonalTasks();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -2008,6 +2180,8 @@ let pfmsLegacyTrainingAttendance = [];
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
 let pfmsLegacyInvitationOrganizations = [];
+let pfmsPersonalTasks = [];
+let pfmsPersonalTasksBound = false;
 
 function renderPfmsClubWorkspace() {
   const host = document.getElementById('pfmsClubOrganizationsGrid');
@@ -2079,6 +2253,11 @@ async function loadPfmsLegacyInvitationOrganizations() {
     panel.hidden = true;
     membersPanel.hidden = true;
     pfmsLegacyInvitationOrganizations = [];
+  pfmsPersonalTasks = [];
+  const personalTaskList = document.getElementById('pfmsPersonalTaskList');
+  if (personalTaskList) personalTaskList.replaceChildren();
+  const personalTaskMessage = document.getElementById('pfmsPersonalTaskListMessage');
+  if (personalTaskMessage) personalTaskMessage.textContent = 'Bitte anmelden.';
     renderPfmsClubWorkspace();
     return;
   }
