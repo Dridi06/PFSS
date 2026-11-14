@@ -31,4 +31,40 @@ for (const filename of migrationFiles) {
   );
 }
 
-console.log("PFMS migration smoke tests passed: " + migrationFiles.length + " SQL migration files checked.");
+const migrationSources = await Promise.all(
+  migrationFiles.map((filename) => readFile(resolve(migrationsDirectory, filename), "utf8"))
+);
+const combinedMigrationSql = migrationSources.join("\n");
+const normalizedMigrationSql = combinedMigrationSql.replace(/\\s+/g, " ").toLowerCase();
+const functionDefinitions = combinedMigrationSql.matchAll(
+  /create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.([a-z0-9_]+)\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$[\\s\\S]*?\\$\\$;/gi
+);
+
+let securityDefinerCount = 0;
+for (const match of functionDefinitions) {
+  const definition = match[0];
+  const header = definition.slice(0, definition.search(/\\bas\\s+\\$\\$/i));
+  if (!/security\\s+definer/i.test(header)) continue;
+
+  const functionName = match[1].toLowerCase();
+  assert.match(
+    header,
+    /set\\s+search_path\\s*=/i,
+    functionName + " is SECURITY DEFINER but has no fixed search_path"
+  );
+  assert.ok(
+    normalizedMigrationSql.includes("revoke all on function public." + functionName),
+    functionName + " is SECURITY DEFINER but its default function privileges are not explicitly revoked"
+  );
+  securityDefinerCount += 1;
+}
+
+assert.ok(securityDefinerCount > 0, "No SECURITY DEFINER migration functions were checked.");
+
+console.log(
+  "PFMS migration smoke tests passed: " +
+  migrationFiles.length +
+  " SQL migrations and " +
+  securityDefinerCount +
+  " SECURITY DEFINER definitions checked."
+);
