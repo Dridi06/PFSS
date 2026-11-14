@@ -1073,3 +1073,26 @@ button,input,select,textarea{max-width:100%}
   .pfms-org-member-card{align-items:stretch}
   .pfms-org-member-card .admin-user-controls{min-width:0;width:100%;grid-template-columns:1fr}
 }
+
+/* PFMS legacy club team management */
+.pfms-team-card{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pfms-team-card h3{margin:0;color:#f1e9d8;font-size:20px}
+.pfms-team-meta{display:grid;gap:5px;color:#aaa69d;font-size:11px}
+.pfms-team-meta span{overflow-wrap:anywhere}
+.pfms-team-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto;padding-top:6px}
+.pfms-team-actions .btn{min-height:36px;padding:8px 11px;font-size:11px}
+#pfmsTeamsMessage,#pfmsMyTeamsMessage{min-height:20px;margin:10px 0;color:#cbb77e;font-size:12px}
+#pfmsTeamDialog,#pfmsTeamStaffDialog{width:min(760px,calc(100% - 24px));max-height:90vh;overflow:auto}
+#pfmsTeamDialog .modal-actions,#pfmsTeamStaffDialog .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:19px}
+#pfmsTeamStaffCandidate{width:100%}
+#pfmsTeamStaffList{display:grid;gap:9px;max-height:320px;overflow:auto;margin-top:12px}
+#pfmsSelectedTeamPanel{margin-top:18px}
+#pfmsSelectedTeamStaff{display:grid;gap:9px}
+#pfmsTeamModules{margin-top:18px}
+#pfmsTeamModules[hidden],#pfmsSelectedTeamPanel[hidden]{display:none!important}
+@media(max-width:650px){
+  .pfms-team-actions{display:grid;grid-template-columns:1fr}
+  .pfms-team-actions .btn{width:100%}
+  #pfmsTeamDialog .modal-actions,#pfmsTeamStaffDialog .modal-actions{flex-direction:column-reverse}
+  #pfmsTeamDialog .modal-actions .btn,#pfmsTeamStaffDialog .modal-actions .btn{width:100%}
+}
