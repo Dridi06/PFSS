@@ -935,3 +935,17 @@ button,input,select,textarea{max-width:100%}
 #ownerBootstrapSection .auth-message{min-height:18px;margin:10px 0;color:#d9c38d;font-size:12px}
 #ownerBootstrapSection .btn{width:100%}
 @media(max-width:600px){#ownerBootstrapSection{width:calc(100% - 24px);padding:17px}}
+
+
+/* PFMS global administrator member directory */
+#pfmsAdminMembersResults{display:grid;gap:12px}
+.pfms-global-member-card{min-width:0}
+.pfms-global-member-card .admin-user-info{min-width:0;overflow-wrap:anywhere}
+.pfms-global-member-card .admin-user-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.pfms-global-member-card .admin-user-controls label{min-width:170px;flex:1}
+.pfms-global-member-card .admin-message{min-height:18px}
+@media(max-width:640px){
+  .pfms-global-member-card .admin-user-controls{display:grid;grid-template-columns:1fr}
+  .pfms-global-member-card .admin-user-controls label{min-width:0}
+  .pfms-global-member-card [data-save-global-membership]{width:100%}
+}
