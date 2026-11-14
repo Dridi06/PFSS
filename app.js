@@ -3880,6 +3880,10 @@ async function savePfmsLegacyTeamEvent(event) {
     if (message) message.textContent = 'Die Endzeit muss nach der Beginnzeit liegen.';
     return;
   }
+  if (data.registration_deadline && data.registration_deadline > data.event_date) {
+    if (message) message.textContent = 'Der Anmeldeschluss darf nicht nach dem Veranstaltungstag liegen.';
+    return;
+  }
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
