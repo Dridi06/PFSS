@@ -743,6 +743,9 @@ assert.match(ownerIntegrity, /p_role is null or p_role not in/);
 assert.match(ownerIntegrity, /p_status is null or p_status not in/);
 
 // Legacy team access must follow current organization membership and status.
+const stagingAcceptanceScope = await readFile(resolve(process.cwd(), "supabase/STAGING_ACCEPTANCE_READ_ONLY.sql"), "utf8");
+assert.match(stagingAcceptanceScope, /'legacy_team_access_requires_active_org_membership'/);
+
 const teamMembershipScope = (
   await readFile(resolve(directory, "20261211_pfms_legacy_team_membership_scope.sql"), "utf8")
 ).replace(/\s+/g, " ").toLowerCase();
