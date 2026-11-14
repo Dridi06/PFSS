@@ -2361,6 +2361,7 @@ let pfmsLegacyTeamEvents = [];
 let pfmsEditingTeamEventId = null;
 let pfmsLegacyTeamEventParticipants = [];
 let pfmsLegacyTeamEventPlayerOptions = [];
+let pfmsLegacyTeamEventTravelPlans = [];
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -3632,6 +3633,7 @@ function resetPfmsLegacyTeamEventsState() {
   pfmsLegacyTeamEvents = [];
   pfmsLegacyTeamEventParticipants = [];
   pfmsLegacyTeamEventPlayerOptions = [];
+  pfmsLegacyTeamEventTravelPlans = [];
   pfmsEditingTeamEventId = null;
 
   const panel = document.getElementById('pfmsTeamEventsPanel');
@@ -3664,6 +3666,125 @@ function resetPfmsLegacyTeamEventForm() {
   const cancel = document.getElementById('pfmsTeamEventCancelEdit');
   if (save) save.textContent = 'Veranstaltung speichern';
   if (cancel) cancel.hidden = true;
+}
+
+function pfmsDateTimeLocalValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function pfmsFormatTravelDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? ''
+    : new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
+function pfmsDateTimeLocalIso(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+async function savePfmsLegacyTeamEventTravelPlan(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const team = pfmsSelectedLegacyTeam;
+  const eventId = form.dataset.pfmsEventTravelForm;
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (!team || !eventId || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) {
+    if (message) message.textContent = 'Für die Reiseplanung fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const meetup = pfmsDateTimeLocalIso(data.meetup_at);
+  const departure = pfmsDateTimeLocalIso(data.departure_at);
+  const arrival = pfmsDateTimeLocalIso(data.arrival_at);
+  const returnDeparture = pfmsDateTimeLocalIso(data.return_departure_at);
+  const seats = data.seat_capacity === '' ? null : Number(data.seat_capacity);
+  const cost = data.estimated_cost === '' ? 0 : Number(data.estimated_cost);
+
+  if (!data.origin?.trim() || data.origin.trim().length > 180 ||
+      !data.destination?.trim() || data.destination.trim().length > 180 ||
+      !departure || !Number.isFinite(cost) || cost < 0 || cost > 100000 ||
+      (seats !== null && (!Number.isInteger(seats) || seats < 1 || seats > 80)) ||
+      (meetup && meetup > departure) ||
+      (arrival && arrival < departure) ||
+      (returnDeparture && arrival && returnDeparture < arrival)) {
+    if (message) message.textContent = 'Bitte Abfahrtsort, Ziel, Zeiten, Sitzplätze und Gesamtkosten prüfen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const submit = form.querySelector('button[type="submit"]');
+  if (submit) submit.disabled = true;
+
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_save_legacy_team_event_travel_plan', {
+      p_event_id: eventId,
+      p_origin: data.origin.trim(),
+      p_destination: data.destination.trim(),
+      p_meetup_at: meetup,
+      p_departure_at: departure,
+      p_arrival_at: arrival,
+      p_return_departure_at: returnDeparture,
+      p_transport_provider: data.transport_provider?.trim() || null,
+      p_vehicle_label: data.vehicle_label?.trim() || null,
+      p_seat_capacity: seats,
+      p_estimated_cost: cost,
+      p_notes: data.notes?.trim() || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    toast('Fahrt- und Transportplan gespeichert.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS event travel plan save failed:', error);
+    if (message) message.textContent = 'Fahrtplan konnte nicht gespeichert werden. Prüfe Zeiten, Fahrzeugdaten und Event-Rechte.';
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
+async function deletePfmsLegacyTeamEventTravelPlan(button) {
+  const eventId = button.dataset.pfmsEventTravelDelete;
+  const team = pfmsSelectedLegacyTeam;
+  if (!eventId || !team || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+  if (!window.confirm('Diesen Fahrt- und Transportplan wirklich entfernen?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_delete_legacy_team_event_travel_plan', {
+      p_event_id: eventId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    toast('Fahrtplan wurde entfernt.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS event travel plan delete failed:', error);
+    const message = document.getElementById('pfmsTeamEventsMessage');
+    if (message) message.textContent = 'Fahrtplan konnte nicht entfernt werden.';
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function renderPfmsLegacyTeamEvents() {
@@ -3753,6 +3874,42 @@ function renderPfmsLegacyTeamEvents() {
       ? '<div class="pfms-event-logistics">' + logisticsItems.join('') +
         (item.transport_notes ? '<p>' + escapeHtml(item.transport_notes) + '</p>' : '') + '</div>'
       : '';
+    const travelPlan = pfmsLegacyTeamEventTravelPlans.find(plan => plan.event_id === item.event_id);
+    const travelSummary = travelPlan
+      ? '<div class="pfms-event-travel-summary"><b>Fahrtplan</b><span>' +
+          escapeHtml(travelPlan.origin + ' → ' + travelPlan.destination) + '</span>' +
+          '<span>Abfahrt: ' + escapeHtml(pfmsFormatTravelDateTime(travelPlan.departure_at)) + '</span>' +
+          (travelPlan.arrival_at ? '<span>Ankunft: ' + escapeHtml(pfmsFormatTravelDateTime(travelPlan.arrival_at)) + '</span>' : '') +
+          (travelPlan.return_departure_at ? '<span>Rückfahrt: ' + escapeHtml(pfmsFormatTravelDateTime(travelPlan.return_departure_at)) + '</span>' : '') +
+          (travelPlan.transport_provider ? '<span>Anbieter: ' + escapeHtml(travelPlan.transport_provider) + '</span>' : '') +
+          (travelPlan.vehicle_label ? '<span>Fahrzeug: ' + escapeHtml(travelPlan.vehicle_label) + '</span>' : '') +
+          (travelPlan.seat_capacity ? '<span>Sitzplätze: ' + escapeHtml(String(travelPlan.seat_capacity)) + '</span>' : '') +
+          '<span>Geschätzte Transportkosten gesamt: ' + escapeHtml(Number(travelPlan.estimated_cost || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })) + '</span>' +
+          (travelPlan.notes ? '<p>' + escapeHtml(travelPlan.notes) + '</p>' : '') +
+        '</div>'
+      : '<p class="pfms-event-travel-empty">Noch kein detaillierter Fahrtplan hinterlegt.</p>';
+    const travelMarkup = canEdit
+      ? '<details class="pfms-event-travel-details"><summary>Fahrt- und Transportplanung</summary>' +
+          travelSummary +
+          '<form class="pfms-event-travel-form" data-pfms-event-travel-form="' + escapeHtml(item.event_id) + '">' +
+            '<div class="pfms-event-travel-grid">' +
+              '<label class="field">Abfahrtsort<input name="origin" maxlength="180" required value="' + escapeHtml(travelPlan?.origin || '') + '" placeholder="z. B. Vereinsgelände"></label>' +
+              '<label class="field">Zielort<input name="destination" maxlength="180" required value="' + escapeHtml(travelPlan?.destination || item.location || '') + '" placeholder="Sportanlage / Veranstaltungsort"></label>' +
+              '<label class="field">Treffzeitpunkt<input name="meetup_at" type="datetime-local" value="' + escapeHtml(pfmsDateTimeLocalValue(travelPlan?.meetup_at)) + '"></label>' +
+              '<label class="field">Abfahrt<input name="departure_at" type="datetime-local" required value="' + escapeHtml(pfmsDateTimeLocalValue(travelPlan?.departure_at)) + '"></label>' +
+              '<label class="field">Ankunft<input name="arrival_at" type="datetime-local" value="' + escapeHtml(pfmsDateTimeLocalValue(travelPlan?.arrival_at)) + '"></label>' +
+              '<label class="field">Rückfahrt<input name="return_departure_at" type="datetime-local" value="' + escapeHtml(pfmsDateTimeLocalValue(travelPlan?.return_departure_at)) + '"></label>' +
+              '<label class="field">Transportanbieter<input name="transport_provider" maxlength="160" value="' + escapeHtml(travelPlan?.transport_provider || '') + '" placeholder="Busunternehmen / Fahrdienst"></label>' +
+              '<label class="field">Fahrzeug / Kennung<input name="vehicle_label" maxlength="100" value="' + escapeHtml(travelPlan?.vehicle_label || '') + '" placeholder="Bus 1 / Kennung"></label>' +
+              '<label class="field">Sitzplätze<input name="seat_capacity" type="number" min="1" max="80" step="1" value="' + escapeHtml(travelPlan?.seat_capacity ?? '') + '"></label>' +
+              '<label class="field">Transportkosten gesamt (€)<input name="estimated_cost" type="number" min="0" max="100000" step="0.01" value="' + escapeHtml(travelPlan?.estimated_cost ?? 0) + '"></label>' +
+              '<label class="field full">Fahrthinweise<textarea name="notes" rows="2" maxlength="4000">' + escapeHtml(travelPlan?.notes || '') + '</textarea></label>' +
+            '</div>' +
+            '<div class="pfms-event-travel-actions"><button class="btn btn-primary" type="submit">Fahrtplan speichern</button>' +
+            (travelPlan ? '<button class="btn btn-secondary" type="button" data-pfms-event-travel-delete="' + escapeHtml(item.event_id) + '">Fahrtplan entfernen</button>' : '') +
+            '</div>' +
+          '</form></details>'
+      : (travelPlan ? '<details class="pfms-event-travel-details"><summary>Fahrt- und Transportplanung</summary>' + travelSummary + '</details>' : '');
 
     return '<article class="pfms-team-event-card" data-pfms-team-event-card="' + escapeHtml(item.event_id) + '">' +
       '<div class="pfms-team-event-card-head"><div><span class="eyebrow">' +
@@ -3764,7 +3921,7 @@ function renderPfmsLegacyTeamEvents() {
         '<span>' + escapeHtml(item.location || 'Ort noch offen') + '</span>' +
       '</div>' +
       (item.event_notes ? '<p class="pfms-team-event-notes">' + escapeHtml(item.event_notes) + '</p>' : '') +
-      logisticsMarkup + participantList + participantControls +
+      logisticsMarkup + travelMarkup + participantList + participantControls +
       (canEdit
         ? '<div class="pfms-team-event-actions"><button type="button" class="btn btn-secondary" data-pfms-event-edit="' +
             escapeHtml(item.event_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-event-delete="' +
@@ -3801,10 +3958,11 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
   host.replaceChildren();
 
   try {
-    const [eventResult, participantResult, playerResult] = await Promise.all([
+    const [eventResult, participantResult, playerResult, travelResult] = await Promise.all([
       pfssSupabase.rpc('pfms_list_legacy_team_events_with_logistics', { p_team_id: teamId }),
       pfssSupabase.rpc('pfms_list_legacy_team_event_participants', { p_team_id: teamId }),
-      pfssSupabase.rpc('pfms_list_legacy_team_event_player_options', { p_team_id: teamId })
+      pfssSupabase.rpc('pfms_list_legacy_team_event_player_options', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_event_travel_plans', { p_team_id: teamId })
     ]);
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
@@ -3812,10 +3970,12 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
     if (eventResult.error) throw eventResult.error;
     if (participantResult.error) throw participantResult.error;
     if (playerResult.error) throw playerResult.error;
+    if (travelResult.error) throw travelResult.error;
 
     pfmsLegacyTeamEvents = eventResult.data || [];
     pfmsLegacyTeamEventParticipants = participantResult.data || [];
     pfmsLegacyTeamEventPlayerOptions = playerResult.data || [];
+    pfmsLegacyTeamEventTravelPlans = travelResult.data || [];
     renderPfmsLegacyTeamEvents();
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration ||
@@ -3825,6 +3985,7 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
     pfmsLegacyTeamEvents = [];
     pfmsLegacyTeamEventParticipants = [];
     pfmsLegacyTeamEventPlayerOptions = [];
+    pfmsLegacyTeamEventTravelPlans = [];
     host.innerHTML = '<div class="empty-state">Veranstaltungen und Anmeldelisten konnten nicht geladen werden. Prüfe die Event-Migrationen und Bereichsrechte.</div>';
     message.textContent = 'Veranstaltungsbereich derzeit nicht verfügbar.';
   }
@@ -6495,7 +6656,16 @@ function setupPfmsLegacyTeamWorkspace() {
       return;
     }
     const removeParticipantButton = event.target.closest('[data-pfms-event-participant-remove]');
-    if (removeParticipantButton) removePfmsLegacyTeamEventParticipant(removeParticipantButton);
+    if (removeParticipantButton) {
+      removePfmsLegacyTeamEventParticipant(removeParticipantButton);
+      return;
+    }
+    const removeTravelButton = event.target.closest('[data-pfms-event-travel-delete]');
+    if (removeTravelButton) deletePfmsLegacyTeamEventTravelPlan(removeTravelButton);
+  });
+  document.getElementById('pfmsTeamEventsList')?.addEventListener('submit', event => {
+    const travelForm = event.target.closest('[data-pfms-event-travel-form]');
+    if (travelForm) savePfmsLegacyTeamEventTravelPlan(event);
   });
   document.getElementById('pfmsTeamEventsList')?.addEventListener('change', event => {
     const statusSelect = event.target.closest('[data-pfms-event-participant-status]');
