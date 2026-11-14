@@ -44,6 +44,7 @@ Vorhandene Migrationen betreffen:
 ### Sicherung
 - Ein GitHub-Actions-Workflow erstellt verschlüsselte PostgreSQL-Dumps und lädt sie in Cloudflare R2.
 - Der reale Lauf hängt von korrekt gesetzten Repository-Secrets ab; die Wiederherstellung muss in einer isolierten Staging-Umgebung getestet werden.
+- Der kontrollierte Ablauf für Migrationen, Edge-Function-Deploy, Read-only-Audit, Rollen-/Negativtests und Render-Staging ist in `docs/STAGING_DEPLOYMENT.md` dokumentiert.
 
 ## 3. Offene bzw. unvollständige Funktionen
 
