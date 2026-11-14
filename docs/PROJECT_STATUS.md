@@ -508,3 +508,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Neue additive Migration `20261212_pfms_legacy_team_task_assignee_membership.sql` härtet Erstellung und Änderung von Teamaufgaben. Ein Empfänger muss jetzt gleichzeitig eine aktive Teamzuordnung, eine aktive Mitgliedschaft derselben Organisation mit übereinstimmender Rolle und eine Organisation im Status `approved` oder `active` haben. Die relevanten Zeilen werden während der Prüfung gesperrt.
 - Der Read-only-Staging-Audit prüft beide RPC-Funktionsdefinitionen und ihre Rechte. Regressionstests verhindern, dass eine der beiden Prüfungen später entfernt wird.
 - Diese Änderung ist noch nicht auf eine Supabase-Datenbank angewendet. Staging muss zusätzlich mit einem zuvor aktiven und anschließend entzogenen Teammitglied testen, dass eine neue Zuweisung abgewiesen wird.
+
+
+### Trainingszyklen: Datumsintegrität der zugeordneten Einheiten – 15.11.2026
+
+- Bei der Prüfung der Trainingszyklen wurde eine Integritätslücke gefunden: Beim Zuordnen einer Einheit zu einer Mikrozykluswoche wurde ihr Datum geprüft. Eine spätere Datumsänderung der Trainingseinheit über die reguläre Trainings-RPC konnte die Einheit jedoch außerhalb dieser Woche verschieben.
+- Neue additive Migration `20261213_pfms_training_cycle_session_date_guard.sql` ergänzt einen Datenbanktrigger. Bei Einfügen bzw. Änderung von Team, Datum oder Zykluswochen-Zuordnung wird geprüft, dass Team und Datum weiterhin zur ausgewählten Mikrozykluswoche passen. Die Wochenzeile wird während der Prüfung mit `FOR SHARE` gesperrt.
+- Der Trigger ist nicht direkt durch Browserrollen aufrufbar; die Änderung erfolgt innerhalb der bereits berechtigten Trainings-RPCs. Neue Regressionstests und ein Read-only-Staging-Abnahmepunkt prüfen die Triggerdefinition, Aktivierung und Funktionsrechte.
+- Noch nicht auf Supabase angewendet oder gegen echte Staging-Daten getestet. Staging muss positiv eine Einheit innerhalb der Woche speichern und negativ eine Datumsverschiebung vor Wochenbeginn, nach Wochenende sowie eine teamfremde Zuordnung ablehnen.
