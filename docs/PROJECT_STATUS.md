@@ -438,3 +438,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Sicherheitsrelevanter Befund: `onrender.com` ist in der Public Suffix List als Public Suffix eingetragen. Es darf daher nicht als gemeinsame RP-ID für PFMS verwendet werden. Der vollständige konkrete Staging-Hostname kann als RP-ID dienen; ein eigenes PFMS-Custom-Domain ist langfristig vorzuziehen.
 - Eine Änderung der RP-ID macht bereits registrierte Passkeys unbrauchbar. Staging- und Produktionsdomains bleiben getrennte Credential-Bereiche.
 - Beleg: Supabase Passkey-Konfigurationsanleitung und W3C WebAuthn-RP-ID-Regeln; Public-Suffix-Eintrag von Render. Staging-Konfiguration wurde noch nicht im Dashboard geändert.
+
+
+### Supabase-JS-Aktualisierung und Passkey-API-Abgleich – 15.11.2026
+
+- Supabase-JS-CDN wurde von `2.105.0` auf `2.119.0` aktualisiert. Laut Supabase-Changelog ist `2.117.0` die Version, ab der die Passkey-API standardmäßig aktiviert ist; das frühere `auth.experimental.passkey`-Opt-in ist seitdem deprecated und wirkungslos. Die veraltete Client-Option wurde entfernt.
+- Die Passkey-Aufrufe für Registrierung, Anmeldung, Listen, Umbenennen und Löschen stimmen mit der aktuellen Supabase-JavaScript-Referenz überein.
+- Die Funktion selbst wird weiterhin als experimentell geführt und muss zusätzlich im Supabase-Projekt aktiviert sein. Der neue Smoke-Test prüft den SDK-Pin und verhindert die Rückkehr zum veralteten Opt-in.
+- Diese Aktualisierung ist noch nicht durch den nachfolgenden GitHub-Actions-Lauf bestätigt. Keine Staging- oder Produktionsbereitstellung durchgeführt.
