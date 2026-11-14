@@ -205,6 +205,7 @@ assert.ok(html.includes('id="view-support"') && html.includes('id="pfmsSupportTi
 assert.ok(app.includes("async function createPfmsSupportTicket") && app.includes("async function loadPfmsAdminSupportTickets") && app.includes("async function savePfmsAdminSupportTicket"), "Support ticket submission and admin workflow are incomplete");
 assert.ok(supportTicketsMigration.includes("force row level security") && supportTicketsMigration.includes("owner_id = auth.uid()") && supportTicketsMigration.includes("public.pfms_is_admin()"), "Support inbox must use private owner/admin ticket policies");
 assert.ok(supportTicketsMigration.includes("grant update (status, admin_response)") && supportTicketsMigration.includes("pfms_support_tickets_insert_own"), "Support tickets must restrict users to submission and admins to response/status updates");
+assert.ok(app.includes("document.getElementById('pfmsSupportTicketForm')?.reset()") && app.includes("document.getElementById('pfmsPersonalTaskForm')?.reset()"), "Support drafts must clear on account changes");
 assert.ok(stagingAudit.includes("'pfms_support_tickets'"), "Staging audit must include support tickets");
 
 assert.ok(personalTasksMigration.includes("force row level security") && personalTasksMigration.includes("owner_id = auth.uid()") && personalTasksMigration.includes("pfms_current_user_is_approved()"), "Personal tasks must enforce approved owner-only access");
