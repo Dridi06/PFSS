@@ -425,8 +425,9 @@ assert.ok(
   teamAnalysisMigration.includes("pfms_legacy_team_analysis")
     && teamAnalysisMigration.includes("force row level security")
     && teamAnalysisMigration.includes("foreign key (match_id, team_id)")
-    && teamAnalysisMigration.includes("video_url ~ '^https://"),
-  "Team analysis must be private, team-bound and accept only HTTPS video references"
+    && teamAnalysisMigration.includes("video_url ~ '^https://[[:alnum:]]")
+    && (teamAnalysisMigration.match(/p_video_url !~ '\\^https:\\/\\/\\[\[:alnum:\]\]/g) || []).length === 2,
+  "Team analysis must be private, team-bound and reject empty-host or credential-bearing video references in both write RPCs"
 );
 assert.ok(
   teamAnalysisMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'analysis', 'edit')")
