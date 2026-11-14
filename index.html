@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="styles.css?v=pfms-search-20261112-1">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfms-team-management-20261121-1" defer></script>
+  <script src="app.js?v=pfms-team-permissions-20261122-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -1052,6 +1052,20 @@
     </div>
     <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="pfmsTeamStaffDialog">Schließen</button><button class="btn btn-primary" type="submit" id="pfmsTeamStaffSaveButton">Person zuordnen</button></div>
     <h3>Aktuelle Zuordnungen</h3><div id="pfmsTeamStaffList" class="admin-user-list"></div>
+  </form>
+</dialog>
+<dialog id="pfmsTeamPermissionsDialog" class="modal">
+  <form id="pfmsTeamPermissionsForm" method="dialog">
+    <div class="modal-head">
+      <div><div class="eyebrow">INDIVIDUELLE ZUGRIFFSRECHTE</div><h2 id="pfmsTeamPermissionsTitle">Bereichsrechte</h2></div>
+      <button type="button" class="close-button" data-close="pfmsTeamPermissionsDialog">×</button>
+    </div>
+    <p class="admin-message" id="pfmsTeamPermissionsMessage" role="status" aria-live="polite">Berechtigungen werden geladen …</p>
+    <div id="pfmsTeamPermissionsList" class="pfms-team-permissions-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" type="button" data-close="pfmsTeamPermissionsDialog">Abbrechen</button>
+      <button class="btn btn-primary" type="submit" id="pfmsTeamPermissionsSave">Berechtigungen speichern</button>
+    </div>
   </form>
 </dialog>
 <footer class="footer"><span>© 2026 PFMS · Professionell Football Management System</span><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav></footer>
