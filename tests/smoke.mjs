@@ -687,6 +687,7 @@ assert.ok(systemEventsHardeningMigration.includes("System event evidence is immu
 assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
 assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect system event records");
 assert.ok(stagingAudit.includes("FUNCTION_GRANTS") && stagingAudit.includes("aclexplode"), "Staging audit must inventory effective function EXECUTE grants, including Security Definer routines");
+assert.ok(stagingAudit.includes("'configuration', p.proconfig"), "Staging audit must expose explicit function security configuration such as search_path");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 assert.ok(
