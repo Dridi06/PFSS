@@ -83,6 +83,7 @@ const trainingCyclesMigration = await read("supabase/migrations/20261201_pfms_le
 const teamAnalysisMigration = await read("supabase/migrations/20261202_pfms_legacy_team_analysis.sql");
 const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy_team_events.sql");
 const teamEventParticipantsMigration = await read("supabase/migrations/20261204_pfms_legacy_team_event_participants.sql");
+const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 
 
 const requiredFiles = [
@@ -124,6 +125,7 @@ const requiredFiles = [
   "supabase/migrations/20261202_pfms_legacy_team_analysis.sql",
   "supabase/migrations/20261203_pfms_legacy_team_events.sql",
   "supabase/migrations/20261204_pfms_legacy_team_event_participants.sql",
+  "supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -532,6 +534,46 @@ assert.ok(
   "Team event UI must have responsive card and form styling"
 );
 
+assert.ok(
+  teamEventLogisticsMigration.includes("create table if not exists public.pfms_legacy_team_event_logistics")
+    && teamEventLogisticsMigration.includes("foreign key (event_id, team_id)")
+    && teamEventLogisticsMigration.includes("revoke all on table public.pfms_legacy_team_event_logistics")
+    && teamEventLogisticsMigration.includes("force row level security"),
+  "Event logistics must be team-bound and read-only outside the permission-checked RPC"
+);
+assert.ok(
+  teamEventLogisticsMigration.includes("pfms_save_legacy_team_event")
+    && teamEventLogisticsMigration.includes("pfms_list_legacy_team_events_with_logistics")
+    && teamEventLogisticsMigration.includes("p_capacity")
+    && teamEventLogisticsMigration.includes("v_participant_count >= v_capacity"),
+  "Event logistics RPCs must save and list transport details and enforce capacity in the database"
+);
+assert.ok(
+  app.includes("pfms_save_legacy_team_event")
+    && app.includes("pfms_list_legacy_team_events_with_logistics")
+    && app.includes("p_meeting_point")
+    && app.includes("p_transport_mode")
+    && app.includes("p_fee_per_person")
+    && app.includes("p_capacity"),
+  "Event frontend must submit and display event logistics and capacity through the secure RPC"
+);
+assert.ok(
+  html.includes('name="meeting_point"')
+    && html.includes('name="registration_deadline"')
+    && html.includes('name="transport_mode"')
+    && html.includes('name="transport_notes"')
+    && html.includes('name="fee_per_person"')
+    && html.includes('name="capacity"'),
+  "Event editor must include meeting point, deadline, transport, fees and capacity fields"
+);
+assert.ok(
+  mainStyles.includes(".pfms-event-logistics"),
+  "Event logistics summary must have responsive styling"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_team_event_logistics'"),
+  "Staging audit must inventory the event logistics table"
+);
 assert.ok(
   teamAnalysisMigration.includes("revoke all on table public.pfms_legacy_team_analysis")
     && teamAnalysisMigration.includes("grant select on table public.pfms_legacy_team_analysis to authenticated")
