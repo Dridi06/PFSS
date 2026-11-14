@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir, rm } from "node:fs/promises";
+import { access, copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -75,6 +75,12 @@ const runtimeConfig = readSupabaseBuildConfig();
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
+await writeFile(
+  resolve(outputDirectory, "pfms-config.js"),
+  "window.PFMS_CONFIG = Object.freeze(" + JSON.stringify(runtimeConfig) + ");\\n",
+  "utf8"
+);
+
 for (const relativePath of publicFiles) {
   const sourcePath = resolve(repositoryRoot, relativePath);
   const targetPath = resolve(outputDirectory, relativePath);
@@ -88,4 +94,4 @@ for (const relativePath of publicFiles) {
   await copyFile(sourcePath, targetPath);
 }
 
-console.log(`PFMS static build complete: ${publicFiles.length} public files written to dist/.`);
+console.log(`PFMS static build complete: ${publicFiles.length + 1} public files written to dist/ (${runtimeConfig.buildTarget}).`);
