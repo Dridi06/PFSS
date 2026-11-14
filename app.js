@@ -8052,6 +8052,108 @@ async function pfssLogout() {
   showAuthScreen();
 }
 
+async function refreshPfmsPasskeys() {
+  const host = document.getElementById('pfmsPasskeyList');
+  const status = document.getElementById('passkeySetupMessage');
+  if (!host || !status) return;
+
+  if (typeof pfssSupabase.auth.passkey?.list !== 'function') {
+    host.textContent = 'Die Passkey-Verwaltung ist mit dieser SDK-Version nicht verfügbar.';
+    return;
+  }
+
+  host.textContent = 'Registrierte Passkeys werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase.auth.passkey.list();
+    if (error) throw error;
+    const passkeys = Array.isArray(data) ? data : [];
+    if (!passkeys.length) {
+      host.textContent = 'Für dieses Konto ist noch kein Passkey registriert.';
+      return;
+    }
+
+    host.innerHTML = passkeys.map((passkey, index) => {
+      const name = escapeHtml(passkey.friendly_name || 'Passkey ' + (index + 1));
+      const created = passkey.created_at
+        ? new Date(passkey.created_at).toLocaleDateString('de-DE')
+        : 'Datum nicht verfügbar';
+      const lastUsed = passkey.last_used_at
+        ? new Date(passkey.last_used_at).toLocaleDateString('de-DE')
+        : 'Noch nicht verwendet';
+      return '<article class="pfms-passkey-item">' +
+        '<div><strong>' + name + '</strong><small>Erstellt: ' + escapeHtml(created) +
+        ' · Zuletzt verwendet: ' + escapeHtml(lastUsed) + '</small></div>' +
+        '<div class="pfms-passkey-actions">' +
+        '<button type="button" class="btn btn-secondary" data-pfms-passkey-rename="' + escapeHtml(passkey.id) + '">Umbenennen</button>' +
+        '<button type="button" class="btn btn-secondary" data-pfms-passkey-delete="' + escapeHtml(passkey.id) + '">Entfernen</button>' +
+        '</div></article>';
+    }).join('');
+  } catch (error) {
+    console.warn('PFMS passkey list failed:', error?.message || error);
+    host.textContent = 'Passkeys konnten nicht geladen werden. Prüfe die Passkey-Konfiguration im Testprojekt.';
+  }
+}
+
+document.getElementById('pfmsPasskeyRefreshButton')
+  ?.addEventListener('click', refreshPfmsPasskeys);
+
+document.getElementById('pfmsPasskeyList')
+  ?.addEventListener('click', async event => {
+    const renameButton = event.target.closest('[data-pfms-passkey-rename]');
+    const deleteButton = event.target.closest('[data-pfms-passkey-delete]');
+    if (!renameButton && !deleteButton) return;
+
+    const passkeyId = (renameButton || deleteButton).dataset.pfmsPasskeyRename ||
+      (renameButton || deleteButton).dataset.pfmsPasskeyDelete;
+    const status = document.getElementById('passkeySetupMessage');
+    if (!passkeyId || !status) return;
+
+    if (renameButton) {
+      const currentName = renameButton.closest('.pfms-passkey-item')?.querySelector('strong')?.textContent || '';
+      const friendlyName = window.prompt('Neuer Name für diesen Passkey:', currentName);
+      if (friendlyName === null) return;
+      const normalizedName = friendlyName.trim();
+      if (!normalizedName || normalizedName.length > 120) {
+        status.textContent = 'Der Name muss zwischen 1 und 120 Zeichen lang sein.';
+        return;
+      }
+      renameButton.disabled = true;
+      try {
+        const { error } = await pfssSupabase.auth.passkey.update({
+          passkeyId,
+          friendlyName: normalizedName
+        });
+        if (error) throw error;
+        status.textContent = 'Passkey wurde umbenannt.';
+        await refreshPfmsPasskeys();
+      } catch (error) {
+        console.warn('PFMS passkey rename failed:', error?.message || error);
+        status.textContent = 'Passkey konnte nicht umbenannt werden.';
+        renameButton.disabled = false;
+      }
+      return;
+    }
+
+    const passkeyItems = document.querySelectorAll('#pfmsPasskeyList [data-pfms-passkey-delete]');
+    if (passkeyItems.length <= 1) {
+      status.textContent = 'Der letzte registrierte Passkey kann hier nicht entfernt werden. Richte zuerst einen zweiten Passkey ein.';
+      return;
+    }
+    if (!window.confirm('Diesen Passkey wirklich entfernen? Diese Anmeldung funktioniert danach nicht mehr mit diesem Passkey.')) return;
+
+    deleteButton.disabled = true;
+    try {
+      const { error } = await pfssSupabase.auth.passkey.delete({ passkeyId });
+      if (error) throw error;
+      status.textContent = 'Passkey wurde entfernt.';
+      await refreshPfmsPasskeys();
+    } catch (error) {
+      console.warn('PFMS passkey delete failed:', error?.message || error);
+      status.textContent = 'Passkey konnte nicht entfernt werden.';
+      deleteButton.disabled = false;
+    }
+  });
+
 document.getElementById('registerPasskeyButton')
   ?.addEventListener('click', async () => {
     const button = document.getElementById('registerPasskeyButton');
@@ -8073,6 +8175,7 @@ document.getElementById('registerPasskeyButton')
       message.textContent = 'Passkey erfolgreich eingerichtet. Verwende nach Möglichkeit ein zweites Gerät oder einen separaten Sicherheitsschlüssel als Wiederherstellungszugang.';
       button.textContent = 'Weiteren Passkey einrichten';
       if (data?.id) console.info('PFMS passkey registered:', data.id);
+      await refreshPfmsPasskeys();
     } catch (error) {
       console.warn('PFMS passkey registration failed:', error?.message || error);
       message.textContent = error?.name === 'NotAllowedError'
