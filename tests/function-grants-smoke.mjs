@@ -570,7 +570,7 @@ assert.match(usernameLogin, /UPSTASH_REDIS_REST_URL/);
 assert.match(usernameLogin, /UPSTASH_REDIS_REST_TOKEN/);
 assert.match(usernameLogin, /PFMS_RATE_LIMIT_HMAC_KEY/);
 assert.match(usernameLogin, /crypto\.subtle\.sign\([\s\S]*?"HMAC"/);
-assert.match(usernameLogin, /status = 429/);
+assert.match(usernameLogin, /\},\s*429,\s*\{/);
 assert.match(usernameLogin, /"Retry-After"/);
 assert.match(usernameLogin, /Login service temporarily unavailable/);
 assert.doesNotMatch(usernameLogin, /x-forwarded-for|cf-connecting-ip|x-real-ip/i);
