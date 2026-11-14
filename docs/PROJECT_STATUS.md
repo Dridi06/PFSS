@@ -21,6 +21,8 @@ Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichniss
 - Der Staging-Build verlangt die exakte Staging-Projekt-Referenz und stoppt, wenn sie nicht zur Supabase-URL passt.
 - Browser-Builds akzeptieren nur Publishable-/Anon-Keys; Secret-/Service-Role-Schlüssel werden abgewiesen.
 - GitHub-CI baut mit einem Platzhalterprojekt und greift nicht auf eine echte Supabase-Instanz zu.
+- Der Staging-Build bricht nachweislich bei fehlenden Verbindungsdaten, abweichender Projekt-ID/URL und Secret-Schlüsseln ab; diese Fälle sind automatisiert regressionsgetestet.
+- Die Edge-Function-CORS-Fallbackliste erlaubt nur lokale Entwicklungs-Origins; Staging und Produktion müssen ihre Origins explizit konfigurieren.
 - Render benötigt die vier Staging-Variablen im Environment des getrennten Static-Site-Dienstes. Bis diese gesetzt sind und der Build im Render-Konto erfolgreich ist, ist Staging nicht deployfähig.
 
 
