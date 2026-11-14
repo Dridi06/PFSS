@@ -25,7 +25,7 @@ for (const file of requiredFiles) {
 }
 
 const runtimeConfigSource = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
-const runtimeConfigMatch = runtimeConfigSource.match(/Object\\.freeze\\((\\{.*\\})\\);/s);
+const runtimeConfigMatch = runtimeConfigSource.match(/Object\.freeze\((\{.*\})\);/s);
 assert.ok(runtimeConfigMatch, "Generated frontend config must be valid JSON data");
 const runtimeConfig = JSON.parse(runtimeConfigMatch[1]);
 assert.ok(["ci", "staging"].includes(runtimeConfig.buildTarget), "Build must explicitly identify CI or Staging target");
