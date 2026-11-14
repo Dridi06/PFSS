@@ -256,6 +256,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
+  if (view === 'club-members' && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'admin') loadAdminUsers();
 }
 
@@ -1089,6 +1090,19 @@ document.addEventListener('click', event => {
   }
 
   const action = event.target.closest('[data-action]')?.dataset.action;
+  if (action === 'show-legacy-invitation') {
+    const panel = document.getElementById('pfmsLegacyInvitationPanel');
+    if (panel) panel.hidden = false;
+    void loadPfmsLegacyInvitationOrganizations();
+    return;
+  }
+
+  if (action === 'hide-legacy-invitation') {
+    const panel = document.getElementById('pfmsLegacyInvitationPanel');
+    if (panel) panel.hidden = true;
+    return;
+  }
+
 
   if (action === 'new-player') {
     openDialog('playerDialog');
@@ -1568,6 +1582,7 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsAdminManagement();
   setupPfmsAdminMembers();
   setupPfmsAdminErrors();
+  setupPfmsLegacyInvitationWorkspace();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -1929,6 +1944,137 @@ const PFMS_MEMBERSHIP_STATUSES = {
   active: 'Aktiv',
   suspended: 'Gesperrt'
 };
+
+let pfmsLegacyInvitationBound = false;
+let pfmsLegacyInvitationOrganizations = [];
+
+async function loadPfmsLegacyInvitationOrganizations() {
+  const panel = document.getElementById('pfmsLegacyInvitationPanel');
+  const form = document.getElementById('pfmsLegacyInvitationForm');
+  const select = document.getElementById('pfmsLegacyInvitationOrganization');
+  const message = document.getElementById('pfmsLegacyInvitationMessage');
+  const result = document.getElementById('pfmsLegacyInvitationResult');
+  if (!panel || !form || !select || !message) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = true;
+  result.hidden = true;
+  select.innerHTML = '<option value="">Organisationen werden geladen …</option>';
+  message.textContent = 'Deine verwaltbaren Organisationen werden geprüft …';
+
+  if (!requestUserId) {
+    panel.hidden = true;
+    return;
+  }
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations');
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+
+    pfmsLegacyInvitationOrganizations = data || [];
+    const eligible = pfmsLegacyInvitationOrganizations.filter(org =>
+      ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
+    );
+
+    if (!eligible.length) {
+      select.innerHTML = '<option value="">Keine freigegebene Organisation vorhanden</option>';
+      message.textContent = pfmsLegacyInvitationOrganizations.length
+        ? 'Deine Organisation ist noch nicht freigegeben. Einladungen können erst nach Freigabe erstellt werden.'
+        : 'Für dieses Konto ist keine Organisation mit Einladungsrechten hinterlegt.';
+      return;
+    }
+
+    select.innerHTML = eligible.map(org =>
+      '<option value="' + escapeHtml(org.organization_id) + '">' +
+        escapeHtml(org.organization_name) + ' · ' +
+        escapeHtml(org.organization_type === 'agency' ? 'Agentur' : 'Verein') +
+      '</option>'
+    ).join('');
+    form.hidden = false;
+    message.textContent = eligible.length + ' Organisation(en) mit Einladungsrecht verfügbar.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS legacy invitation organizations:', error);
+    select.innerHTML = '<option value="">Nicht verfügbar</option>';
+    message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
+  }
+}
+
+async function createPfmsLegacyInvitation(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsLegacyInvitationMessage');
+  const resultPanel = document.getElementById('pfmsLegacyInvitationResult');
+  const urlInput = document.getElementById('pfmsLegacyInvitationUrl');
+  const button = document.getElementById('pfmsLegacyInvitationSubmit');
+  const data = Object.fromEntries(new FormData(form).entries());
+  const organizationId = String(data.organization_id || '');
+  const role = String(data.role || '');
+  const expiresInDays = Number(data.expires_in_days);
+
+  if (!organizationId || !['scout','trainer','co_trainer','betreuer','member'].includes(role) ||
+      !Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) {
+    message.textContent = 'Bitte Organisation, Rolle und Gültigkeit korrekt auswählen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) {
+    message.textContent = 'Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.';
+    return;
+  }
+
+  button.disabled = true;
+  resultPanel.hidden = true;
+  message.textContent = 'Einmaliger Einladungscode wird sicher erstellt …';
+  try {
+    const { data: code, error } = await pfssSupabase.rpc('pfms_create_legacy_invitation', {
+      p_organization_id: organizationId,
+      p_role: role,
+      p_expires_in_days: expiresInDays
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error || typeof code !== 'string' || !/^[A-F0-9]{32}$/i.test(code)) {
+      throw error || new Error('Invalid invitation response');
+    }
+
+    const inviteUrl = new URL(window.location.origin + window.location.pathname);
+    inviteUrl.searchParams.set('invite', code);
+    urlInput.value = inviteUrl.href;
+    resultPanel.hidden = false;
+    message.textContent = 'Einladung erstellt. Der Code ist ein Einmalcode und wird nur jetzt angezeigt.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS legacy invitation creation failed:', error);
+    message.textContent = 'Einladung konnte nicht erstellt werden. Prüfe Organisationsstatus, Leitungsrechte und Datenbankmigration.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function setupPfmsLegacyInvitationWorkspace() {
+  const form = document.getElementById('pfmsLegacyInvitationForm');
+  const copyButton = document.getElementById('pfmsLegacyInvitationCopy');
+  if (!form || pfmsLegacyInvitationBound) return;
+  form.addEventListener('submit', createPfmsLegacyInvitation);
+  copyButton?.addEventListener('click', async () => {
+    const url = document.getElementById('pfmsLegacyInvitationUrl')?.value || '';
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      const message = document.getElementById('pfmsLegacyInvitationMessage');
+      if (message) message.textContent = 'Einladungslink wurde in die Zwischenablage kopiert.';
+    } catch (error) {
+      window.prompt('Einladungslink kopieren:', url);
+    }
+  });
+  pfmsLegacyInvitationBound = true;
+}
+
 
 async function loadPfmsAdminMembers() {
   const message = document.getElementById('pfmsAdminMembersMessage');
