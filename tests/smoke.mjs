@@ -519,9 +519,10 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_event_participants'"),
   "Staging audit must include event participant records"
 );
-  workspaceStyles.includes(".pfms-team-event-card")
-    && workspaceStyles.includes(".pfms-event-form")
-    && workspaceStyles.includes("@media(max-width:640px)"),
+assert.ok(
+  mainStyles.includes(".pfms-team-event-card")
+    && mainStyles.includes(".pfms-event-form")
+    && mainStyles.includes("@media(max-width:640px)"),
   "Team event UI must have responsive card and form styling"
 );
 
