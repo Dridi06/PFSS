@@ -30,7 +30,7 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - Der Staging-Build bricht nachweislich bei fehlenden Verbindungsdaten, abweichender Projekt-ID/URL und Secret-Schlüsseln ab; diese Fälle sind automatisiert regressionsgetestet.
 - Die Edge-Function-CORS-Fallbackliste erlaubt nur lokale Entwicklungs-Origins; Staging und Produktion müssen ihre Origins explizit konfigurieren.
 - Die Signup-Trigger für Benutzernamen-Synchronisierung und das ergänzende Organisationsmodell verwenden jetzt einen leeren festen `search_path`; direkte Ausführung durch Browserrollen ist entzogen. Das Verhalten der Trigger bleibt unverändert, bis das doppelte Organisationsmodell nach dem Staging-Audit entschieden wird.
-- Der aktuelle Entwicklungsstand `075a94d54cc24dae52697f33ea55e985e512981b` besteht beide GitHub-Actions-Jobs (Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen einschließlich Staging-Build-Fehlkonfigurationen und Deno-Typprüfung der Edge Functions; Runs 535 und 536).
+- Der aktuelle Entwicklungsstand `c4d955c2ff30e1d6c607e0d7f561a69d7a9a7564` besteht beide GitHub-Actions-Jobs (Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen einschließlich Staging-Build-Fehlkonfigurationen und SECURITY-DEFINER-Suchpfad-/Revoke-Prüfungen sowie Deno-Typprüfung der Edge Functions; Runs 556 und 557).
 - Render benötigt die vier Staging-Variablen im Environment des getrennten Static-Site-Dienstes. Bis diese gesetzt sind und der Build im Render-Konto erfolgreich ist, ist Staging nicht deployfähig.
 
 
@@ -230,7 +230,7 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Regressionstests prüfen die Admin-Authentifizierung des R2-Endpunkts und dessen JWT-Konfiguration.
 - Die Render-CSP erlaubt zusätzlich ausschließlich die konkret benötigte Google-Fonts-Stylesheet-Origin `https://fonts.googleapis.com`; der Build-Smoke-Test prüft diese Abhängigkeit. Font-Dateien bleiben durch `font-src https:` abgedeckt.
 - **Staging-Blocker:** Die Build-Konfiguration ist jetzt getrennt und fail-closed. Vor dem ersten Render-Staging-Deployment muss ein dediziertes Staging-Supabase-Projekt festgelegt und dessen Projekt-Referenz, URL und Publishable-Key in den Render-Environment-Variablen eingetragen werden. Ein vorhandener Render-Dienst fragt `sync: false`-Werte nicht automatisch nachträglich ab; diese sind manuell zu setzen.
-- Die Signup-Trigger-Härtung in `20261130_pfms_auth_trigger_hardening.sql` setzt einen leeren `search_path` und entzieht Browserrollen die direkte Funktionsausführung, ohne das bisherige Provisionierungsverhalten zu ändern.
+- Die Signup-Trigger-Härtung in `20261130_pfms_auth_trigger_hardening.sql` und `20261131_pfms_legacy_invitation_status_guard.sql` setzt einen leeren `search_path` und entzieht Browserrollen die direkte Funktionsausführung, ohne das bisherige Provisionierungsverhalten zu ändern.
 - Das read-only Staging-Audit erfasst jetzt auch effektive `EXECUTE`-Grants einschließlich impliziter `PUBLIC`-Freigaben für PFMS-/PFSS-Funktionen.
 - Der aktuelle CI-Stand `075a94d54cc24dae52697f33ea55e985e512981b` ist mit beiden Jobs erfolgreich (Runs 535 und 536).
 
