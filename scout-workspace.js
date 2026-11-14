@@ -568,14 +568,19 @@
     if (!item || !window.confirm('Datei "' + item.file_name + '" wirklich löschen?')) return;
     try {
       const client = supabase();
-      const removedRow = await client.from(TABLES.media).delete().eq('id', id);
-      if (removedRow.error) throw removedRow.error;
+      // Keep the metadata row if Storage refuses deletion, so the file remains discoverable.
       const removedFile = await client.storage.from(BUCKET).remove([item.storage_path]);
-      if (removedFile.error) {
-        showMessage('Medieneintrag wurde gelöscht, die Datei konnte aber nicht aus dem privaten Speicher entfernt werden: ' + removedFile.error.message, true);
+      if (removedFile.error) throw removedFile.error;
+
+      const removedRow = await client.from(TABLES.media).delete().eq('id', id);
+      if (removedRow.error) {
+        showMessage('Die Datei wurde aus dem privaten Speicher entfernt, aber der Datenbankeintrag konnte nicht gelöscht werden: ' + removedRow.error.message, true);
+        await loadData();
+        return;
       }
+
       await loadData();
-      if (!removedFile.error) notify('Datei wurde gelöscht.');
+      notify('Datei wurde gelöscht.');
     } catch (error) {
       showMessage('Datei konnte nicht gelöscht werden: ' + (error?.message || 'Speicherfehler'), true);
     }
