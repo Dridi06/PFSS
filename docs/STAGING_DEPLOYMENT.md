@@ -234,3 +234,11 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Einladungstests: gültiger Code genau einmal; derselbe Code ein zweites Mal; widerrufener Code; abgelaufener Code; Organisation im gesperrten Status; parallele Einlösung desselben Codes. Nur der erste gültige Vorgang bei aktiver/freigegebener Organisation darf eine Mitgliedschaft erzeugen.
 - Der globale Spielerkatalog ist absichtlich für freigegebene Konten lesbar; Schreiboperationen bleiben Plattformadministratoren vorbehalten. Die Team-Kaderzuordnung und private Scout-Kopien sind davon getrennte Datensätze. Bei der Abnahme daher globale Katalogsichtbarkeit nicht mit Zugriff auf fremde Teamdaten oder private Scout-Arbeitsbereiche verwechseln.
 - Tests mit Testkonto, Benutzer-ID, Tabellen-/Objekt-ID, erwarteter Berechtigung und tatsächlichem Ergebnis protokollieren. Diese Tests sind erst nach separatem Staging-Setup auszuführen; keine Produktionsdaten verwenden.
+
+
+### Teamaufgaben: Empfängerstatus und Organisationsmitgliedschaft
+
+- `team_task_assignee_current_membership` muss im Read-only-Abnahmeskript `passed = true` melden.
+- Positivtest: Ein aktiver Teammitarbeiter mit aktiver Organisationsmitgliedschaft und übereinstimmender Rolle kann als Aufgabenempfänger ausgewählt werden.
+- Negativtests: Eine weiterhin aktive Team-Personalzuordnung darf nicht ausreichen, wenn die Organisationsmitgliedschaft entzogen/gesperrt, die Rolle geändert oder die Organisation gesperrt wurde. Erstellung und Änderung einer Aufgabe müssen die Zuweisung in allen diesen Fällen serverseitig ablehnen.
+- Auch bei einem Wechsel der Mitgliedschaft zwischen Formularanzeige und Speichern muss die Datenbankprüfung maßgeblich sein. Ergebnisse mit zwei Testkonten dokumentieren.
