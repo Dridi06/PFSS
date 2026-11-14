@@ -31,6 +31,7 @@ create index if not exists pfms_notifications_recipient_unread_idx
   where not is_read;
 
 alter table public.pfms_notifications enable row level security;
+alter table public.pfms_notifications force row level security;
 
 drop policy if exists pfms_notifications_select_own on public.pfms_notifications;
 create policy pfms_notifications_select_own
