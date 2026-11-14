@@ -6447,7 +6447,21 @@ function setupPfmsLegacyTeamWorkspace() {
       return;
     }
     const deleteButton = event.target.closest('[data-pfms-event-delete]');
-    if (deleteButton) deletePfmsLegacyTeamEvent(deleteButton.dataset.pfmsEventDelete);
+    if (deleteButton) {
+      deletePfmsLegacyTeamEvent(deleteButton.dataset.pfmsEventDelete);
+      return;
+    }
+    const addParticipantButton = event.target.closest('[data-pfms-event-participant-add]');
+    if (addParticipantButton) {
+      addPfmsLegacyTeamEventParticipant(addParticipantButton);
+      return;
+    }
+    const removeParticipantButton = event.target.closest('[data-pfms-event-participant-remove]');
+    if (removeParticipantButton) removePfmsLegacyTeamEventParticipant(removeParticipantButton);
+  });
+  document.getElementById('pfmsTeamEventsList')?.addEventListener('change', event => {
+    const statusSelect = event.target.closest('[data-pfms-event-participant-status]');
+    if (statusSelect) updatePfmsLegacyTeamEventParticipant(statusSelect);
   });
   document.getElementById('pfmsTeamAnalysisForm')?.addEventListener('submit', savePfmsLegacyTeamAnalysis);
   document.getElementById('pfmsTeamAnalysisCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamAnalysisForm);
