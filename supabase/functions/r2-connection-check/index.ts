@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       }, 500);
     }
 
-    const expectedEndpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+    const expectedEndpoint = "https://" + accountId + ".r2.cloudflarestorage.com";
     if (endpoint !== expectedEndpoint) {
       return json({
         ok: false,
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       region: "auto",
     });
 
-    const url = new URL(`${endpoint}/${encodeURIComponent(bucket!)}`);
+    const url = new URL(endpoint + "/" + encodeURIComponent(bucket!));
     url.searchParams.set("list-type", "2");
     url.searchParams.set("max-keys", "1");
 
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
           ? "Cloudflare rejected the credentials or bucket permissions (HTTP 403)."
           : response.status === 404
           ? "The R2 bucket or endpoint was not found (HTTP 404)."
-          : `Cloudflare R2 returned HTTP ${response.status}.`,
+          : "Cloudflare R2 returned HTTP " + response.status + ".";
       }, 502);
     }
 
