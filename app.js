@@ -5302,7 +5302,9 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
     }
     applyPfmsLegacyTeamModulePermissions();
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS selected team access load failed:', error);
     staffHost.textContent = 'Teamzugriff und Bereichsrechte konnten nicht geladen werden. Prüfe die Team- und Rechte-Migrationen.';
     if (notice) {
@@ -5659,6 +5661,9 @@ async function savePfmsLegacyTeamMatchLineup() {
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const teamId = pfmsSelectedLegacyTeam?.team_id;
+  const matchId = match.match_id;
+  if (!requestUserId || !teamId) return;
   button.disabled = true;
   message.textContent = 'Aufstellung wird gespeichert …';
   try {
@@ -5668,24 +5673,35 @@ async function savePfmsLegacyTeamMatchLineup() {
     });
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
-        pfmsSelectedTeamMatch?.match_id !== match.match_id) return;
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTeamMatch?.match_id !== matchId) return;
     if (error) throw error;
-    const teamId = pfmsSelectedLegacyTeam?.team_id;
-    if (!teamId) return;
     await loadPfmsLegacyTeamMatches(teamId);
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
-        pfmsSelectedTeamMatch?.match_id !== match.match_id) return;
-    await openPfmsLegacyTeamMatchLineup(match.match_id);
-    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTeamMatch?.match_id !== matchId) return;
+    await openPfmsLegacyTeamMatchLineup(matchId);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId &&
+        pfmsSelectedTeamMatch?.match_id === matchId) {
       toast('Spielaufstellung wurde gespeichert.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTeamMatch?.match_id !== matchId) return;
     console.error('PFMS match lineup save failed:', error);
     message.textContent = 'Aufstellung konnte nicht gespeichert werden. Prüfe Kaderzuordnung, Reihenfolge und Spielrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId &&
+        pfmsSelectedTeamMatch?.match_id === matchId) {
+      button.disabled = false;
+    }
   }
 }
 
