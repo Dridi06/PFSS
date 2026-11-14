@@ -491,3 +491,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Regressionstests und ein neuer Read-only-Staging-Abnahmepunkt prüfen Organisationsstatus, aktive Mitgliedschaft, Rollenabgleich und Funktionsrechte. GitHub Push-CI für Commit `8cc4f47f9768bc024c00c75b76482812024e553b` erfolgreich: [Run 43653337563](https://github.com/Dridi06/PFSS/actions/runs/43653337563). Der zugehörige Pull-Request-Lauf ist noch in Bearbeitung.
 - Noch nicht in Supabase angewendet oder gegen echte Staging-Daten getestet. Vor Freigabe mit getrennten Konten testen: aktive Vereinsleitung, aktiver Trainer, gesperrtes Organisationskonto, entzogene Mitgliedschaft, Rollenwechsel und Zugriff auf ein fremdes Team.
 - Keine Produktionsänderung, kein Deployment, keine Änderung an `main`; Draft-PR #1 bleibt offen und ungemergt.
+
+
+### Private Scout-Daten und Einladungsprüfung – 15.11.2026
+
+- Die Migrationen für private Scout-Arbeitsbereiche wurden geprüft: Spieler, Berichte und Medienmetadaten sind an `owner_id = auth.uid()` gebunden; Berichte und Medien dürfen nur Spieler aus demselben Scout-Arbeitsbereich referenzieren. Die Medienablage verwendet einen privaten Bucket mit UID-Ordnerstruktur. Die nachträgliche Hardening-Migration erzwingt RLS und validiert Medienpfad sowie MIME-Typ.
+- Der globale Spielerkatalog ist ausdrücklich als gemeinsamer Katalog angelegt: freigegebene Konten dürfen lesen, nur Plattformadministratoren dürfen globale Spieler anlegen, ändern oder löschen. Teambezogene Kaderzuordnungen bleiben separat und sind durch die Teamrechte geschützt. Das ist eine bewusste Produktentscheidung, kein versehentlicher Mandantenzugriff.
+- Die Einlösung von Organisations-Einladungen prüft Einmaligkeit, Widerruf, Ablauf und den Status der Zielorganisation. Zeilensperren serialisieren die Einlösung gegen parallele Einlösungen und Organisationssperren.
+- Das Read-only-Staging-Abnahmeskript prüft nun zusätzlich FORCE RLS der drei Scout-Tabellen, Owner-/Spielerbindung, private Storage-Policies und den Einladungsstatus-Guard. Die Smoke-Tests sichern diese vier Prüfungen gegen versehentliche Entfernung ab.
+- Diese Änderungen sind ausschließlich im Feature-Branch vorbereitet. Noch keine Migration in Supabase ausgeführt und keine Laufzeit-/Storage-Negativtests gegen eine reale Staging-Instanz vorgenommen.
