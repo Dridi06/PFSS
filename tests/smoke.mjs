@@ -1391,6 +1391,24 @@ assert.ok(
   app.includes("requestGeneration !== pfmsAuthGeneration"),
   "Match and lineup state must clear and reject stale team/account responses"
 );
+const teamWorkspaceAccessLoader = app.slice(
+  app.indexOf("async function openPfmsLegacyTeamWorkspace"),
+  app.indexOf("const PFMS_TEAM_MATCH_STATUSES")
+);
+assert.ok(
+  teamWorkspaceAccessLoader.includes("pfmsSelectedLegacyTeam?.team_id !== teamId"),
+  "Late team-access failures must not overwrite the currently selected team's workspace"
+);
+const lineupSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyTeamMatchLineup"),
+  app.indexOf("const PFMS_TEAM_CALENDAR_TYPES")
+);
+assert.ok(
+  lineupSaver.includes("const teamId = pfmsSelectedLegacyTeam?.team_id") &&
+  lineupSaver.includes("pfmsSelectedLegacyTeam?.team_id !== teamId") &&
+  lineupSaver.includes("pfmsSelectedTeamMatch?.match_id !== matchId"),
+  "Lineup saves must remain bound to the original team and match across success, failure and cleanup"
+);
 
 
 
