@@ -29,6 +29,7 @@ Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichniss
 
 
 ### Frontend
+- Die vier Zugangspakete (Mitglied, Verein, Agentur, Einzelscout) werden untereinander dargestellt; Monats-/Jahreswahl ist je kostenpflichtiger Karte direkt möglich, der aktive Zyklus ist für Screenreader über `aria-pressed` erkennbar. Die Jahresersparnis ist ausgewiesen. Eine echte Zahlungsabwicklung ist weiterhin deaktiviert.
 - `index.html`: Hauptanwendung mit rund 18 Hauptansichten.
 - `app.js`: Navigation, Authentifizierung, Dashboard, Haupt-Spieler-/Berichtsfunktionen und Administrator-RPCs.
 - `styles.css`, `scout-workspace.css`: Designbasis.
