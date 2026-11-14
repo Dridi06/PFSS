@@ -630,11 +630,11 @@ assert.ok(
 );
 
 assert.ok(
-  app.includes("function openPfmsLegacyTeamMatch(matchRecord = null) {\\n  const form = document.getElementById('pfmsTeamMatchForm');\\n  if (!form || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true) return;"),
+  /function openPfmsLegacyTeamMatch\(matchRecord = null\) \{\s*const form = document\.getElementById\('pfmsTeamMatchForm'\);\s*if \(!form \|\| pfmsSelectedTeamPermissions\.get\('matches'\)\?\.can_edit !== true\) return;/.test(app),
   "The match editor must independently enforce matches.edit before opening"
 );
 assert.ok(
-  app.includes("function openPfmsLegacyCalendarEvent(eventRecord = null) {\\n  const form = document.getElementById('pfmsTeamCalendarForm');\\n  if (!form || pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true) return;"),
+  /function openPfmsLegacyCalendarEvent\(eventRecord = null\) \{\s*const form = document\.getElementById\('pfmsTeamCalendarForm'\);\s*if \(!form \|\| pfmsSelectedTeamPermissions\.get\('calendar'\)\?\.can_edit !== true\) return;/.test(app),
   "The calendar editor must independently enforce calendar.edit before opening"
 );
 
