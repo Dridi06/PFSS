@@ -66,6 +66,8 @@ Ergebnisse sichern und insbesondere prüfen:
 - Security-Definer-Funktionen besitzen einen festen `search_path` und passende Grants.
 - Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
 
+**Zusätzlicher read-only Abnahmebericht:** Nach dem Anwenden der Feature-Migrationen und nach dem normalen Schema-Audit zusätzlich `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` im SQL-Editor des dedizierten Staging-Projekts ausführen. Die Abfrage liefert je Prüfung `check_name`, `passed` und `details`. Jede Zeile muss `passed = true` liefern, bevor die jeweilige Funktion in den positiven Rollen-/Negativtests freigegeben wird. Das Skript liest ausschließlich Kataloge, Privilegien und Metadaten; es verändert weder Schema noch Nutzerdaten. Ein fehlgeschlagener Check ist ein Stop-Kriterium, keine Aufforderung, Rechte im Dashboard spontan zu öffnen.
+
 ## 5. Funktionale Abnahme
 
 Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
