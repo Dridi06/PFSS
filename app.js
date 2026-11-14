@@ -2353,6 +2353,7 @@ let pfmsEditingLegacyTeamId = null;
 let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
 let pfmsLegacyTrainingSessions = [];
+let pfmsLegacyTrainingCycles = [];
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -4680,6 +4681,350 @@ async function savePfmsLegacyTrainingSessionPlan() {
   }
 }
 
+async function loadPfmsLegacyTrainingCycles(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const panel = document.getElementById('pfmsTeamTrainingCyclesPanel');
+  const form = document.getElementById('pfmsTeamTrainingCycleForm');
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  const host = document.getElementById('pfmsTeamTrainingCyclesList');
+  const weekSelect = document.getElementById('pfmsTeamTrainingCycleWeek');
+  if (!panel || !form || !message || !host || !teamId) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('training') || {};
+  if (permission.can_view !== true) {
+    panel.hidden = true;
+    form.hidden = true;
+    pfmsLegacyTrainingCycles = [];
+    if (weekSelect) weekSelect.innerHTML = '<option value="">Ohne Zykluszuordnung</option>';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Trainingszyklen werden geladen …';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_training_cycles', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+
+    pfmsLegacyTrainingCycles = (data || []).map(cycle => ({
+      ...cycle,
+      weeks: Array.isArray(cycle.weeks) ? cycle.weeks : []
+    }));
+    renderPfmsLegacyTrainingCycles();
+    if (message) {
+      const weekCount = pfmsLegacyTrainingCycles.reduce((total, cycle) => total + cycle.weeks.length, 0);
+      message.textContent = pfmsLegacyTrainingCycles.length
+        ? pfmsLegacyTrainingCycles.length + ' Trainingszyklus/-zyklen und ' + weekCount + ' Planungswoche(n) geladen.'
+        : 'Noch keine Trainingszyklen angelegt.';
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS training cycles load failed:', error);
+    pfmsLegacyTrainingCycles = [];
+    renderPfmsLegacyTrainingCycles();
+    message.textContent = 'Trainingszyklen konnten nicht geladen werden. Prüfe die Migration und die Trainingsrechte.';
+  }
+}
+
+function renderPfmsLegacyTrainingCycles() {
+  const host = document.getElementById('pfmsTeamTrainingCyclesList');
+  const form = document.getElementById('pfmsTeamTrainingCycleForm');
+  const weekSelect = document.getElementById('pfmsTeamTrainingCycleWeek');
+  if (!host) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('training')?.can_edit === true;
+  const selectedWeek = weekSelect?.value || '';
+  const statusLabels = {
+    planned: 'Geplant',
+    active: 'Aktiv',
+    completed: 'Abgeschlossen',
+    archived: 'Archiviert'
+  };
+  const loadLabels = {
+    1: '1 · Regenerativ',
+    2: '2 · Niedrig',
+    3: '3 · Mittel',
+    4: '4 · Hoch',
+    5: '5 · Sehr hoch'
+  };
+
+  if (!pfmsLegacyTrainingCycles.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Trainingszyklen</b><p>' +
+      (canEdit ? 'Erstelle einen Trainingsblock. Die Wochen werden automatisch aus Start- und Enddatum angelegt.' : 'Für diese Mannschaft sind noch keine Trainingsblöcke geplant.') +
+      '</p></div>';
+  } else {
+    host.innerHTML = pfmsLegacyTrainingCycles.map(cycle => {
+      const weeks = Array.isArray(cycle.weeks) ? cycle.weeks : [];
+      const weekMarkup = weeks.map(week => {
+        const sessions = Array.isArray(week.sessions) ? week.sessions : [];
+        const targetLoad = week.target_load == null ? '' : String(week.target_load);
+        const sessionOptions = pfmsLegacyTrainingSessions
+          .filter(session => session.session_status === 'planned' &&
+            !pfmsLegacyTrainingCycles.some(otherCycle =>
+              otherCycle.weeks.some(otherWeek =>
+                otherWeek.sessions.some(linked => linked.session_id === session.session_id)
+              )
+            ))
+          .map(session =>
+            '<option value="' + escapeHtml(session.session_id) + '">' +
+              escapeHtml(pfmsFormatTeamDate(session.session_date) + ' · ' + session.session_title) +
+            '</option>'
+          ).join('');
+        const linkedSessions = sessions.length
+          ? '<div class="pfms-cycle-linked-sessions"><b>Zugeordnete Einheiten</b>' +
+            sessions.map(session =>
+              '<div class="pfms-cycle-linked-session"><span>' +
+                escapeHtml(pfmsFormatTeamDate(session.session_date) + ' · ' + session.title) +
+              '</span>' +
+              (canEdit ? '<button type="button" class="pfms-inline-action" data-pfms-cycle-session-unassign="' +
+                escapeHtml(session.session_id) + '">Zuordnung lösen</button>' : '') +
+              '</div>'
+            ).join('') + '</div>'
+          : '<p class="pfms-cycle-no-sessions">Noch keine Trainingstermine dieser Woche zugeordnet.</p>';
+
+        return '<details class="pfms-cycle-week" data-pfms-cycle-week="' + escapeHtml(week.week_id) + '">' +
+          '<summary><span>Woche ' + escapeHtml(week.week_number) + '</span><span>' +
+            escapeHtml(pfmsFormatTeamDate(week.starts_on) + ' – ' + pfmsFormatTeamDate(week.ends_on)) +
+          '</span><small>' + escapeHtml(week.focus || cycle.cycle_focus || 'Schwerpunkt offen') + '</small></summary>' +
+          '<div class="pfms-cycle-week-body">' +
+            (canEdit
+              ? '<form class="pfms-cycle-week-form" data-pfms-cycle-week-form="' + escapeHtml(week.week_id) + '">' +
+                  '<label class="field">Wochenschwerpunkt<input name="focus" maxlength="160" value="' + escapeHtml(week.focus || '') + '" placeholder="z. B. Pressing und Umschalten"></label>' +
+                  '<label class="field">Belastungssteuerung<select name="target_load">' +
+                    '<option value="">Nicht festgelegt</option>' +
+                    [1,2,3,4,5].map(level => '<option value="' + level + '"' + (targetLoad === String(level) ? ' selected' : '') + '>' + loadLabels[level] + '</option>').join('') +
+                  '</select></label>' +
+                  '<label class="field full">Wochenziele<textarea name="objectives" rows="2" maxlength="3000" placeholder="Technische, taktische und athletische Lernziele">' + escapeHtml(week.objectives || '') + '</textarea></label>' +
+                  '<label class="field full">Trainerhinweise<textarea name="coach_notes" rows="2" maxlength="3000" placeholder="Coachingpunkte, Regeneration und Besonderheiten">' + escapeHtml(week.coach_notes || '') + '</textarea></label>' +
+                  '<button class="btn btn-primary" type="submit">Woche speichern</button>' +
+                '</form>'
+              : '<div class="pfms-cycle-week-readonly">' +
+                  '<p><b>Wochenziele:</b> ' + escapeHtml(week.objectives || 'Noch nicht festgelegt') + '</p>' +
+                  '<p><b>Belastung:</b> ' + escapeHtml(targetLoad ? loadLabels[targetLoad] : 'Nicht festgelegt') + '</p>' +
+                  (week.coach_notes ? '<p><b>Trainerhinweise:</b> ' + escapeHtml(week.coach_notes) + '</p>' : '') +
+                '</div>') +
+            linkedSessions +
+            (canEdit && sessionOptions
+              ? '<div class="pfms-cycle-assign-session"><label class="field">Trainingstermin zuordnen<select data-pfms-cycle-session-select><option value="">Trainingstermin auswählen</option>' + sessionOptions + '</select></label>' +
+                '<button type="button" class="btn btn-secondary" data-pfms-cycle-session-assign="' + escapeHtml(week.week_id) + '">Einheit zuordnen</button></div>'
+              : '') +
+          '</div></details>';
+      }).join('');
+
+      return '<article class="pfms-training-cycle-card" data-pfms-cycle-card="' + escapeHtml(cycle.cycle_id) + '">' +
+        '<div class="pfms-training-cycle-head"><div><span class="eyebrow">' +
+          escapeHtml(pfmsFormatTeamDate(cycle.cycle_start) + ' – ' + pfmsFormatTeamDate(cycle.cycle_end)) +
+          '</span><h4>' + escapeHtml(cycle.cycle_title) + '</h4></div><span class="module-status">' +
+          escapeHtml(statusLabels[cycle.cycle_status] || cycle.cycle_status) + '</span></div>' +
+        (cycle.cycle_focus ? '<p class="pfms-cycle-focus">' + escapeHtml(cycle.cycle_focus) + '</p>' : '') +
+        (cycle.cycle_notes ? '<p>' + escapeHtml(cycle.cycle_notes) + '</p>' : '') +
+        (canEdit
+          ? '<div class="pfms-cycle-status-actions"><label class="field">Status<select data-pfms-cycle-status-select>' +
+              Object.entries(statusLabels).map(([value,label]) => '<option value="' + value + '"' +
+                (cycle.cycle_status === value ? ' selected' : '') + '>' + label + '</option>').join('') +
+            '</select></label><button type="button" class="btn btn-secondary" data-pfms-cycle-status-save="' +
+              escapeHtml(cycle.cycle_id) + '">Status übernehmen</button></div>'
+          : '') +
+        '<div class="pfms-cycle-weeks">' + weekMarkup + '</div></article>';
+    }).join('');
+  }
+
+  if (weekSelect) {
+    const options = pfmsLegacyTrainingCycles.flatMap(cycle =>
+      cycle.weeks.map(week =>
+        '<option value="' + escapeHtml(week.week_id) + '">' +
+          escapeHtml(cycle.cycle_title + ' · Woche ' + week.week_number + ' · ' +
+            pfmsFormatTeamDate(week.starts_on) + ' – ' + pfmsFormatTeamDate(week.ends_on)) +
+        '</option>'
+      )
+    ).join('');
+    weekSelect.innerHTML = '<option value="">Ohne Zykluszuordnung</option>' + options;
+    if (selectedWeek && [...weekSelect.options].some(option => option.value === selectedWeek)) {
+      weekSelect.value = selectedWeek;
+    }
+    if (form) weekSelect.disabled = form.hidden;
+  }
+}
+
+async function savePfmsLegacyTrainingCycle(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  const button = document.getElementById('pfmsTeamTrainingCycleSave');
+  if (!team || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) {
+    message.textContent = 'Für Trainingszyklen fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (!data.title?.trim() || !data.start_date || !data.end_date) {
+    message.textContent = 'Bitte Zyklusname, Startdatum und Enddatum angeben.';
+    return;
+  }
+  const start = new Date(data.start_date + 'T00:00:00Z');
+  const end = new Date(data.end_date + 'T00:00:00Z');
+  const days = (end.getTime() - start.getTime()) / 86400000;
+  if (!Number.isFinite(days) || days < 0 || days > 363) {
+    message.textContent = 'Ein Trainingszyklus muss zwischen 1 und 364 Tagen umfassen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  message.textContent = 'Trainingszyklus und Wochen werden erstellt …';
+  try {
+    const { data: cycleId, error } = await pfssSupabase.rpc('pfms_create_legacy_training_cycle', {
+      p_team_id: team.team_id,
+      p_title: data.title.trim(),
+      p_focus: data.focus || null,
+      p_start_date: data.start_date,
+      p_end_date: data.end_date,
+      p_notes: data.notes || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    form.reset();
+    await loadPfmsLegacyTrainingCycles(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
+      message.textContent = 'Trainingszyklus wurde erstellt. Die Wochen sind automatisch angelegt.';
+      toast('Trainingszyklus wurde erstellt.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS training cycle save failed:', error);
+    message.textContent = 'Trainingszyklus konnte nicht gespeichert werden. Prüfe Start-/Enddatum und Trainingsrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function savePfmsLegacyTrainingCycleWeek(form) {
+  const weekId = form.dataset.pfmsCycleWeekForm;
+  const teamId = pfmsSelectedLegacyTeam?.team_id;
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  if (!weekId || !teamId || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const targetLoad = data.target_load === '' ? null : Number(data.target_load);
+  if (targetLoad !== null && (!Number.isInteger(targetLoad) || targetLoad < 1 || targetLoad > 5)) {
+    message.textContent = 'Bitte eine Belastungsstufe zwischen 1 und 5 auswählen.';
+    return;
+  }
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const button = form.querySelector('button[type="submit"]');
+  if (button) button.disabled = true;
+  message.textContent = 'Wochenplanung wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_training_cycle_week', {
+      p_week_id: weekId,
+      p_focus: data.focus || null,
+      p_objectives: data.objectives || null,
+      p_target_load: targetLoad,
+      p_coach_notes: data.coach_notes || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTrainingCycles(teamId);
+    message.textContent = 'Wochenziele und Belastung wurden gespeichert.';
+    toast('Wochenplanung gespeichert.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS training cycle week save failed:', error);
+    message.textContent = 'Wochenplanung konnte nicht gespeichert werden. Prüfe die Teamrechte und Eingaben.';
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function updatePfmsLegacyTrainingCycleStatus(button) {
+  const cycleId = button.dataset.pfmsCycleStatusSave;
+  const teamId = pfmsSelectedLegacyTeam?.team_id;
+  const card = button.closest('[data-pfms-cycle-card]');
+  const select = card?.querySelector('[data-pfms-cycle-status-select]');
+  const status = select?.value;
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  if (!cycleId || !teamId || !['planned','active','completed','archived'].includes(status) ||
+      pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_training_cycle_status', {
+      p_cycle_id: cycleId,
+      p_status: status
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTrainingCycles(teamId);
+    toast('Zyklusstatus wurde aktualisiert.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS training cycle status update failed:', error);
+    message.textContent = 'Zyklusstatus konnte nicht gespeichert werden.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function assignPfmsLegacyTrainingSessionToWeek(button, weekId, sessionId = null) {
+  const teamId = pfmsSelectedLegacyTeam?.team_id;
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  if (!teamId || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_assign_legacy_training_session_cycle_week', {
+      p_session_id: sessionId,
+      p_week_id: weekId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTrainingCycles(teamId);
+    message.textContent = sessionId
+      ? 'Trainingstermin wurde der Kalenderwoche zugeordnet.'
+      : 'Zykluszuordnung wurde gelöst.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS training cycle session assignment failed:', error);
+    message.textContent = 'Zuordnung fehlgeschlagen. Der Termin muss zum gewählten Team und Wochenzeitraum gehören.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function renderPfmsLegacyTeamTraining() {
   const host = document.getElementById('pfmsTeamTrainingList');
   const message = document.getElementById('pfmsTeamTrainingMessage');
@@ -4765,6 +5110,7 @@ async function loadPfmsLegacyTeamTraining(teamId = pfmsSelectedLegacyTeam?.team_
     if (error) throw error;
     pfmsLegacyTrainingSessions = data || [];
     await loadPfmsLegacyTeamExercises(teamId);
+    await loadPfmsLegacyTrainingCycles(teamId);
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
         pfmsSelectedLegacyTeam?.team_id !== teamId) return;
