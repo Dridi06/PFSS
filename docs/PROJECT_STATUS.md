@@ -57,6 +57,7 @@ Vorhandene Migrationen betreffen:
 | Trainer-/Team-Workspace | Modulübersicht und Platzhalter | Kader, Training, Anwesenheit, Spiele, Aufstellungen und Rechte |
 | Vereinsmitgliedschaften | Teilweise Oberflächen und ältere Datenbankfunktionen | Aufnahme, Beiträge, Status, Wechsel/Austritt und Berechtigungen |
 | Vereins-Scouting | Oberfläche/Übersicht | Scout-Zuordnung, Beobachtungsgebiete, Berichtsfreigaben |
+| Plattforminhaber | Einmaliger Owner-Claim und Aktivierungsoberfläche im Entwicklungszweig vorbereitet | Staging-Migration/Secret/Edge-Function deployen; bestätigte E-Mail, korrekter Owner, Zweitclaim-Sperre und Negativtests abnehmen |
 | Administration | Benutzerverwaltung und Organisationssuch-RPCs teilweise vorhanden | Vollständige Organisations-/Mitgliederverwaltung, Audit, Sperren, Fehler- und Supportprozesse |
 | Zahlungen | Vorschau, kein Anbieter angebunden | Anbieterentscheidung, Webhooks, Abrechnungslogik und Rechtsprüfung |
 | Kalender, Aufgaben, Nachrichten | geplant bzw. Platzhalter | Datenmodell, Rollen, Workflows und Benachrichtigungen |
@@ -82,7 +83,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - Die Username-Login-Funktion begrenzt die Request-Body-Größe und die Passwortzeichenlänge. Ein belastbares serverseitiges Rate-Limit und zusätzlicher Missbrauchsschutz sind weiterhin offen.
 - RLS, Grants, Security-Definer-Funktionen und Storage-Policies sind noch nicht vollständig im tatsächlichen Datenbankzustand geprüft.
 - Jede Organisationsressource braucht einen eindeutigen Mandantenbezug und serverseitige Autorisierung.
-- Owner-Erstregistrierung benötigt einen sicheren, einmaligen Claim-/Provisioning-Prozess. Client-Metadaten dürfen keine Besitzer- oder Adminrechte verleihen.
+- Der einmalige Owner-Bootstrap ist nun im Entwicklungszweig implementiert: bestätigte E-Mail, dedizierter Registrierungsweg, separates Supabase-Function-Secret, serverseitige JWT-Prüfung, service-role-RPC und Singleton-Owner-Tabelle. Die Datenbank verweigert den Erst-Claim zusätzlich, wenn bereits ein freigegebener Administrator existiert. Noch offen sind Staging-Migration, Secret-Konfiguration, Edge-Function-Deploy und positive/negative Ende-zu-Ende-Tests. Client-Metadaten allein verleihen keine Besitzer- oder Adminrechte.
 - Zahlungsfunktionen bleiben deaktiviert, bis Anbieter, serverseitige Webhooks, Abrechnungslogik und rechtliche Voraussetzungen umgesetzt und getestet sind.
 - Legale Betreiber-/Impressumsangaben und Datenschutztexte müssen vor einem öffentlichen Start fachlich und rechtlich geprüft werden.
 
@@ -91,6 +92,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql` und `supabase/functions/pfms-owner-bootstrap/index.ts` ergänzen einen einmaligen Owner-Claim: verifizierte Supabase-Sitzung, separater Function-Secret, ausschließlich service-role-RPC und Singleton-Datensatz. UI für einmalige Registrierung und Aktivierung ist vorhanden; noch nicht in Staging angewendet oder deployed.
 - `supabase/functions/_shared/cors.ts` implementiert eine gemeinsame CORS-Origin-Allowlist; `username-login` und `r2-connection-check` verwenden sie. Die Staging-Origin muss vor dem Deploy über `PFMS_ALLOWED_ORIGINS` freigegeben werden.
 - `supabase/migrations/20261114_scout_workspace_integrity.sql` ergänzt Datenbankgrenzen für Scout-Daten, automatische `updated_at`-Zeitstempel und die Prüfung, dass Medien-Metadaten nur in den eigenen Benutzerordner zeigen. Die Migration wurde im Repository korrigiert, aber noch nicht in Supabase ausgeführt.
+- `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql`, die Edge Function `pfms-owner-bootstrap` und `docs/OWNER_BOOTSTRAP.md` enthalten jetzt den sicheren Erstbesitzer-Ablauf. Die Migration ist noch nicht auf Staging angewendet, das Function-Secret noch nicht gesetzt und die Function noch nicht deployed.
 - `package.json` enthält `npm test` und `npm run check:syntax`.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
