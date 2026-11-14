@@ -98,6 +98,14 @@ assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("auth.role()") && ownerMigration.includes("'service_role'"), "Owner migration must enforce a single server-side owner claim");
 assert.ok(supabaseConfig.includes("[functions.pfms-owner-bootstrap]") && supabaseConfig.includes("verify_jwt = true"), "Owner bootstrap must require JWT verification");
 assert.ok(app.includes("pfms_global_players") && app.includes("pfms_main_scouting_reports"), "Main player catalogue and reports must use Supabase");
+assert.ok(app.includes("data-global-player-edit") && app.includes("data-global-player-delete"), "Global player edit/delete controls are missing");
+assert.ok(app.includes("editingGlobalPlayerId") && app.includes("query.update(row)"), "Global player updates must be persisted to Supabase");
+assert.ok(app.includes("editingMainReportId"), "Main report edit state is missing");
+assert.ok(app.includes("data-main-report-edit") && app.includes("data-main-report-delete"), "Main report edit/delete controls are missing");
+assert.ok(app.includes("query.update(payload)") && app.includes("query.insert(payload)"), "Main report create/update must use Supabase");
+assert.ok(app.includes("authorId === window.pfssCurrentUserId") && app.includes("window.pfssIsRealAdmin"), "Report controls must be limited to report authors and administrators");
+assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pfms_is_admin()"), "Report RLS must restrict read/update/delete to the author or an administrator");
+assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve reports rather than cascade-delete history");
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy local data must have an explicit safe cloud import path");
 assert.ok(globalCatalogueMigration.includes("public.pfms_global_players") && globalCatalogueMigration.includes("public.pfms_main_scouting_reports"), "Persistent global catalogue migration is incomplete");
 assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalCatalogueMigration.includes("pfms_current_user_is_approved"), "Global catalogue RLS must enforce approved users and administrator writes");
