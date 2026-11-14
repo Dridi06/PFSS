@@ -5,6 +5,7 @@ const read = (path) => fs.readFile(path, "utf8");
 const mainStyles = await read("styles.css");
 const workspaceStyles = await read("scout-workspace.css");
 const scoutForceRlsMigration = await read("supabase/migrations/20261118_pfms_scout_force_rls.sql");
+const scoutWorkspaceBaseMigration = await read("supabase/migrations/20261112_private_scout_workspaces.sql");
 
 const [
   html,
@@ -1369,6 +1370,11 @@ assert.ok(
 assert.ok(scout.includes('normalized(player.surname).includes(query)') && scout.includes('normalized(fullName(player)).includes(query)'), 'Global Scout search must match both surname and full name');
 assert.ok(globalCatalogueMigration.includes("source_global_player_id") && globalCatalogueMigration.includes("pfss_scout_players_owner_global_source_uidx"), "Private Scout copies must retain their global source link");
 assert.ok(scoutIntegrityMigration.includes("pfss_scout_players_touch_updated_at") && scoutIntegrityMigration.includes("pfss_scout_reports_rating_range"), "Scout integrity migration is incomplete");
+assert.ok(
+  ![...scoutWorkspaceBaseMigration.matchAll(/create\\s+policy[\\s\\S]*?;/gi)]
+    .some((match) => match[0].includes("public.is_admin()")),
+  "Scout RLS policies must use the canonical PFMS admin helper available earlier in migration order"
+);
 assert.ok(
   scoutForceRlsMigration.includes("alter table public.pfss_scout_players force row level security") &&
   scoutForceRlsMigration.includes("alter table public.pfss_scout_reports force row level security") &&
