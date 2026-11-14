@@ -110,6 +110,9 @@ language plpgsql
 set search_path = pg_catalog
 as $$
 begin
+  if tg_op = 'UPDATE' and new.created_by is distinct from old.created_by then
+    raise exception 'Event creator cannot be changed' using errcode = '42501';
+  end if;
   new.updated_at := pg_catalog.now();
   new.updated_by := auth.uid();
   return new;
