@@ -1519,6 +1519,9 @@ async function showAuthenticatedApp(user, profile) {
   document.querySelectorAll('.sidebar [data-view]').forEach(item => {
     if (!item.classList.contains('admin-nav-item')) item.hidden = isAdmin;
   });
+  if (window.pfssCurrentUserId && window.pfssCurrentUserId !== user.id) {
+    resetPfmsAuthenticatedState();
+  }
   window.pfssCurrentUserId = user.id;
   window.pfssCurrentRole = profile.role;
   window.pfssIsRealAdmin = isAdmin;
