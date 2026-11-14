@@ -991,3 +991,46 @@ button,input,select,textarea{max-width:100%}
 @media(max-width:640px){
   .pfms-cloud-media-card .media-card-caption button{width:100%}
 }
+
+
+/* PFMS one-time organization invitations */
+.pfms-invitation-panel{
+  margin:0 0 22px;
+  border:1px solid rgba(198,161,91,.3);
+  background:linear-gradient(145deg,rgba(32,29,23,.92),rgba(20,22,24,.98));
+}
+.pfms-invitation-panel[hidden]{display:none!important}
+.pfms-invitation-panel .panel-heading{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+}
+.pfms-invitation-panel .panel-heading h3{margin:4px 0 6px;color:#ead3a0}
+.pfms-invitation-panel .panel-heading p{margin:0;color:#aaa69d;font-size:12px;line-height:1.5}
+.pfms-invitation-form{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;
+  margin-top:19px;
+}
+.pfms-invitation-form .field{display:grid;gap:7px;min-width:0;color:#c8c1b4;font-size:12px}
+.pfms-invitation-form select{
+  box-sizing:border-box;width:100%;min-width:0;height:42px;padding:0 11px;
+  border:1px solid rgba(198,161,91,.28);border-radius:8px;
+  background:#191c1e;color:#f1ede4;font:inherit;
+}
+.pfms-invitation-form .btn{min-height:42px}
+#pfmsLegacyInvitationMessage{min-height:18px;margin:13px 0 0;color:#cdb77f;font-size:12px}
+.pfms-invitation-result{
+  margin-top:15px;padding:15px;border:1px solid rgba(198,161,91,.25);
+  border-radius:10px;background:rgba(198,161,91,.07);
+}
+.pfms-invitation-result[hidden]{display:none!important}
+.pfms-invitation-result p{margin:7px 0 12px;color:#aaa69d;font-size:12px;line-height:1.5}
+.pfms-invitation-copy-row{display:flex;gap:9px;min-width:0}
+.pfms-invitation-copy-row input{
+  flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid rgba(198,161,91,.22);
+  border-radius:8px;background:#131618;color:#e7d7b3;font-size:11px;
+}
+@media(max-width:760px){
+  .pfms-invitation-form{grid-template-columns:1fr}
+  .pfms-invitation-form .btn{width:100%}
+  .pfms-invitation-copy-row{flex-direction:column}
+  .pfms-invitation-copy-row .btn{width:100%}
+}
