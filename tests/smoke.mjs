@@ -71,7 +71,14 @@ assert.match(scoutIntegrityMigration, /pfss_scout_reports_touch_updated_at/);
 assert.match(scoutIntegrityMigration, /pfss_scout_reports_rating_range/);
 assert.match(scoutIntegrityMigration, /pfss_scout_media_insert/);
 assert.match(scoutIntegrityMigration, /storage_path ~/);
-assert.ok(scoutIntegrityMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/[^/]+
+assert.ok(
+  scoutIntegrityMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/[^/]+$')"),
+  "Scout media metadata must be limited to the uploader's private storage folder"
+);
+assert.ok(
+  !/\n\)\s*\);\s*$/m.test(scoutIntegrityMigration),
+  "Scout integrity migration has an orphaned policy closure"
+);
 
 assert.ok(
   scout.includes("pfss_scout_players") &&
