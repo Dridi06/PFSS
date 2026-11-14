@@ -42,7 +42,8 @@ const [
   supportTicketsMigration,
   teamTasksMigration,
   backupWorkflow,
-  backupRunbook
+  backupRunbook,
+  backupHmacHelper
 ] = await Promise.all([
   read("index.html"),
   read("rechtliches.html"),
@@ -80,7 +81,8 @@ const [
   read("supabase/migrations/20261129_pfms_support_tickets.sql"),
   read("supabase/migrations/20261206_pfms_legacy_team_tasks.sql"),
   read(".github/workflows/pfss-database-backup.yml"),
-  read("docs/BACKUP_RESTORE.md")
+  read("docs/BACKUP_RESTORE.md"),
+  read("scripts/backup-hmac.py")
 ]);
 
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
