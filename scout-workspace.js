@@ -13,10 +13,11 @@
     'image/jpeg', 'image/png', 'image/webp', 'image/heic',
     'video/mp4', 'video/quicktime', 'video/webm'
   ]);
-  const sections = ['overview', 'database', 'reports', 'photos', 'videos'];
+  const sections = ['overview', 'global-search', 'database', 'reports', 'photos', 'videos'];
   const labels = {
     overview: 'Übersicht',
-    database: 'Spielerdatenbank',
+    'global-search': 'Globale Spielersuche',
+    database: 'Meine Spielerdatenbank',
     reports: 'Scoutingberichte',
     photos: 'Fotos',
     videos: 'Videos'
@@ -28,6 +29,7 @@
     loading: false,
     hasLoaded: false,
     players: [],
+    globalPlayers: [],
     reports: [],
     media: [],
     editingPlayerId: null,
@@ -80,7 +82,7 @@
       '<div class="nav-section-label">SCOUT WORKSPACE</div>' +
       sections.map((key) =>
         '<button type="button" class="nav-item scout-private-nav" data-scout-section="' + key + '">' +
-          '<span class="nav-icon">' + ({ overview: '⌂', database: '▦', reports: '▤', photos: '▧', videos: '▷' })[key] + '</span>' +
+          '<span class="nav-icon">' + ({ overview: '⌂', 'global-search': '⌕', database: '▦', reports: '▤', photos: '▧', videos: '▷' })[key] + '</span>' +
           '<span class="nav-label">' + labels[key] + '</span>' +
         '</button>'
       ).join('');
@@ -119,6 +121,20 @@
           '<button type="button" data-scout-action="new-report"><b>▤</b><span>Bericht erstellen</span><small>Beobachtung dokumentieren</small></button>',
           '<button type="button" data-scout-section="photos"><b>▧</b><span>Medien verwalten</span><small>Fotos und Videos sichern</small></button>',
         '</div></section>',
+      '</div>',
+
+      '<div class="scout-workspace-view" id="scout-section-global-search">',
+        '<div class="scout-page-head"><div><span class="scout-kicker">GLOBALE TALENTDATENBANK</span><h2>Globale Spielersuche</h2><p>Durchsuche freigegebene PFMS-Spielerprofile. Die globale Datenbank ist schreibgeschützt; übernimm interessante Talente in deinen privaten Arbeitsbereich.</p></div><span class="scout-preview-tag">LESEZUGRIFF</span></div>',
+        '<section class="scout-panel"><div class="scout-form-grid">',
+          '<label class="field">Nachname / Spieler<input id="scoutGlobalFilterName" type="search" placeholder="Spieler suchen …"></label>',
+          '<label class="field">Verein<input id="scoutGlobalFilterClub" type="search" placeholder="Verein suchen …"></label>',
+          '<label class="field">Position<select id="scoutGlobalFilterPosition"><option value="">Alle Positionen</option><option>Torwart</option><option>Abwehr</option><option>Mittelfeld</option><option>Sturm</option></select></label>',
+          '<label class="field">Jahrgang von<input id="scoutGlobalFilterFrom" type="number" min="1900" max="2200" placeholder="z. B. 2006"></label>',
+          '<label class="field">Jahrgang bis<input id="scoutGlobalFilterTo" type="number" min="1900" max="2200" placeholder="z. B. 2008"></label>',
+          '<label class="field">Spielfuß<select id="scoutGlobalFilterFoot"><option value="">Alle</option><option>Links</option><option>Rechts</option><option>Beidfüßig</option></select></label>',
+        '</div></section>',
+        '<div class="scout-results-line"><span id="scoutGlobalPlayerCount">0 Spieler</span><span>GLOBALE PFMS-SPIELERDATENBANK</span></div>',
+        '<div id="scoutGlobalPlayerGrid" class="scout-data-grid"></div>',
       '</div>',
 
       '<div class="scout-workspace-view" id="scout-section-database">',
