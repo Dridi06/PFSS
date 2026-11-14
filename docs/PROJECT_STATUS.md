@@ -268,3 +268,10 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 
 
 Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächliche Ausführen der Migrationen in Staging noch den Funktionstest des R2-Endpunkts mit einem Administrator- und einem Nicht-Administrator-Konto.
+
+## 4. Repository-Konsistenzprüfung – 14.11.2026
+
+- Die Staging-Anleitung enthielt einen Verweis auf `20261207_pfms_legacy_org_permissions.sql`, der im Repository nicht existiert. Die unbelegte Anweisung wurde entfernt; es wird keine nicht vorhandene Migration mehr zur Anwendung empfohlen.
+- Der Migration-Smoke-Test prüft jetzt zusätzlich alle expliziten `supabase/migrations/<datei>.sql`-Verweise in den Markdown-Dateien unter `docs/` gegen den tatsächlichen Migrationsbestand. Damit werden veraltete oder falsch benannte Migrationsanweisungen künftig im CI erkannt.
+- GitHub-Actions-Lauf [43634176285](https://github.com/Dridi06/PFSS/actions/runs/43634176285) auf dem Feature-Branch war erfolgreich: Syntax-/Build-/Smoke-/Accessibility-/SQL-/Grant-/Backup-Prüfungen und Deno-Typprüfung beider Jobs bestanden.
+- Die Render-Blueprint-Datei, Staging-Build-Konfiguration, Veröffentlichungsliste, CSP/Security-Header und Backup-/Restore-Abläufe wurden statisch geprüft. Das ist keine Bestätigung der Render-Dashboard-Konfiguration, einer realen Supabase-Verbindung oder eines erfolgreichen Restore-Laufs.
