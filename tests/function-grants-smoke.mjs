@@ -195,6 +195,7 @@ const stagingAcceptance = (
 ).replace(/\s+/g, " ").toLowerCase();
 assert.match(stagingAcceptance, /'legacy_org_manager_guard'/);
 assert.match(stagingAcceptance, /'legacy_invitation_manager_authorization'/);
+assert.match(stagingAcceptance, /'profile_authority_columns_protected'/);
 assert.match(stagingAcceptance, /'platform_owner_admin_protection'/);
 assert.match(stagingAcceptance, /'legacy_owner_updates_serialized'/);
 assert.match(stagingAcceptance, /pg_catalog\.aclexplode\(/);
