@@ -1491,3 +1491,22 @@ button,input,select,textarea{max-width:100%}
   .pfms-event-logistics{grid-template-columns:1fr}
   .pfms-event-logistics p{grid-column:auto}
 }
+
+
+/* PFMS live Trainer & Betreuer directory */
+.pfms-staff-directory-card{display:flex;flex-direction:column;gap:13px;min-width:0;padding:17px;border:1px solid rgba(198,161,91,.22);border-radius:13px;background:linear-gradient(145deg,#202122,#141617)}
+.pfms-staff-directory-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-staff-directory-head h3{margin:0;color:#f1e9d8;font-size:18px}
+.pfms-staff-directory-head p{margin:6px 0 0;color:#a9a397;font-size:11px}
+.pfms-staff-directory-members{display:grid;gap:8px}
+.pfms-staff-directory-member{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.025)}
+.pfms-staff-avatar{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(198,161,91,.28);border-radius:50%;background:rgba(198,161,91,.1);color:#e1c27d;font-size:10px;font-weight:800}
+.pfms-staff-directory-person{display:grid;gap:3px;min-width:0}
+.pfms-staff-directory-person b{overflow-wrap:anywhere;color:#eee5d6;font-size:11px}
+.pfms-staff-directory-person small{overflow-wrap:anywhere;color:#8e8a81;font-size:9px}
+.pfms-staff-permissions-guide{margin-top:16px}
+@media(max-width:600px){
+  .pfms-staff-directory-card{padding:13px}
+  .pfms-staff-directory-member{grid-template-columns:32px minmax(0,1fr);gap:8px}
+  .pfms-staff-directory-member>.module-status{grid-column:2;justify-self:start}
+}
