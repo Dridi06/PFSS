@@ -148,7 +148,7 @@ assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes(
 assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
 assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
-assert.ok(adminMembersMigration.includes("public.pfms_is_admin()") && !adminMembersMigration.includes("public.is_admin()"), "Admin member directory must use the existing PFMS admin helper");
+assert.ok(adminMembersMigration.includes("public.pfms_is_admin()") && !adminMembersMigration.includes("public.pfms_is_admin()"), "Admin member directory must use the existing PFMS admin helper");
 assert.ok(legacyOrgAdminMigration.includes("pfms_admin_update_legacy_membership"), "Legacy membership update RPC used by the admin interface is missing");
 assert.ok(legacyAdminCompatMigration.includes("create or replace function public.is_admin()") && legacyAdminCompatMigration.includes("select public.pfms_is_admin()"), "Legacy admin RPC compatibility bridge is missing");
 
@@ -159,7 +159,7 @@ assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migrat
 assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
 assert.ok(app.includes("function loadPfmsAdminMembers()") && app.includes("pfms_admin_list_legacy_members"), "Admin member directory is not connected to its database RPC");
 assert.ok(app.includes("pfms_admin_update_legacy_membership"), "Admin member role/status updates are not connected");
-assert.ok(adminMembersMigration.includes("security definer") && adminMembersMigration.includes("public.is_admin()"), "Global membership directory must enforce server-side administrator authorization");
+assert.ok(adminMembersMigration.includes("security definer") && adminMembersMigration.includes("public.pfms_is_admin()"), "Global membership directory must enforce server-side administrator authorization");
 assert.ok(adminMembersMigration.includes("revoke all on function public.pfms_admin_list_legacy_members") && adminMembersMigration.includes("grant execute on function public.pfms_admin_list_legacy_members"), "Global membership directory RPC grants are incomplete");
 
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
@@ -287,7 +287,7 @@ assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes(
 assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
 assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
-assert.ok(adminMembersMigration.includes("public.pfms_is_admin()") && !adminMembersMigration.includes("public.is_admin()"), "Admin member directory must use the existing PFMS admin helper");
+assert.ok(adminMembersMigration.includes("public.pfms_is_admin()") && !adminMembersMigration.includes("public.pfms_is_admin()"), "Admin member directory must use the existing PFMS admin helper");
 assert.ok(legacyOrgAdminMigration.includes("pfms_admin_update_legacy_membership"), "Legacy membership update RPC used by the admin interface is missing");
 assert.ok(legacyAdminCompatMigration.includes("create or replace function public.is_admin()") && legacyAdminCompatMigration.includes("select public.pfms_is_admin()"), "Legacy admin RPC compatibility bridge is missing");
 
@@ -298,7 +298,7 @@ assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migrat
 assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
 assert.ok(app.includes("function loadPfmsAdminMembers()") && app.includes("pfms_admin_list_legacy_members"), "Admin member directory is not connected to its database RPC");
 assert.ok(app.includes("pfms_admin_update_legacy_membership"), "Admin member role/status updates are not connected");
-assert.ok(adminMembersMigration.includes("security definer") && adminMembersMigration.includes("public.is_admin()"), "Global membership directory must enforce server-side administrator authorization");
+assert.ok(adminMembersMigration.includes("security definer") && adminMembersMigration.includes("public.pfms_is_admin()"), "Global membership directory must enforce server-side administrator authorization");
 assert.ok(adminMembersMigration.includes("revoke all on function public.pfms_admin_list_legacy_members") && adminMembersMigration.includes("grant execute on function public.pfms_admin_list_legacy_members"), "Global membership directory RPC grants are incomplete");
 
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
