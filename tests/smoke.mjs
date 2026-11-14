@@ -10,6 +10,7 @@ const usernameLogin = await read("supabase/functions/username-login/index.ts");
 const r2Check = await read("supabase/functions/r2-connection-check/index.ts");
 const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
 const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
+const ownerGuardMigration = await read("supabase/migrations/20261116_pfms_owner_bootstrap_registration_guard.sql");
 const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
 const ownerGuide = await read("docs/OWNER_BOOTSTRAP.md");
 
@@ -76,6 +77,11 @@ assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstra
 assert.ok(ownerBootstrap.includes("pfms_claim_initial_owner"), "Owner bootstrap must use the privileged one-time database claim");
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("service_role"), "Owner migration must enforce one service-role-only owner claim");
 assert.ok(ownerMigration.includes("An approved administrator already exists"), "Owner bootstrap must refuse to create a second root identity");
+assert.ok(ownerGuardMigration.includes("pfms_owner_bootstrap_requests"), "Owner registration eligibility table is missing");
+assert.ok(ownerGuardMigration.includes("after insert on auth.users"), "Owner eligibility must be recorded at initial account creation");
+assert.ok(ownerGuardMigration.includes("claimed_at is null") && ownerGuardMigration.includes("for update"), "Owner registration request must be locked and claimable only once");
+assert.ok(ownerGuardMigration.includes("revoke all on table public.pfms_owner_bootstrap_requests from public, anon, authenticated"), "Owner registration evidence must not be user-readable or writable");
+assert.ok(stagingAudit.includes("'pfms_owner_bootstrap_requests'"), "Read-only audit must inspect immutable owner registration requests");
 assert.ok(stagingAudit.includes("'pfms_platform_owner'"), "Read-only staging audit must inspect the owner singleton table");
 assert.ok(ownerGuide.includes("Staging") && ownerGuide.includes("PFMS_OWNER_BOOTSTRAP_TOKEN"), "Owner bootstrap staging guide is incomplete");
 assert.ok(ownerMigration.includes("An approved administrator already exists") && ownerMigration.includes("pfms_owner_setup_available"), "Owner migration must gate setup when an administrator already exists");
