@@ -28,6 +28,7 @@ const [
   legacyInvitationWorkspaceMigration,
   legacyOrgMembershipManagementMigration,
   legacyTeamManagementMigration,
+  legacyTeamRosterMigration,
   teamPermissionsMigration
 ] = await Promise.all([
   read("index.html"),
@@ -54,6 +55,7 @@ const [
   read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql"),
   read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql"),
   read("supabase/migrations/20261121_pfms_legacy_team_management.sql"),
+  read("supabase/migrations/20261122_pfms_legacy_team_roster.sql"),
   read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql")
 ]);
 
@@ -82,6 +84,7 @@ const requiredFiles = [
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
   "supabase/migrations/20261121_pfms_legacy_org_membership_management.sql",
   "supabase/migrations/20261121_pfms_legacy_team_management.sql",
+  "supabase/migrations/20261122_pfms_legacy_team_roster.sql",
   "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
@@ -201,6 +204,14 @@ assert.ok(legacyTeamManagementMigration.includes("pfms_create_legacy_team") && l
 assert.ok(app.includes("async function loadPfmsLegacyTeams") && app.includes("setupPfmsLegacyTeamWorkspace") && app.includes("pfms_list_legacy_team_staff_candidates"), "Legacy team workspace frontend is not connected to its RPCs");
 assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
 assert.ok(stagingAudit.includes("'pfms_legacy_teams'") && stagingAudit.includes("'pfms_legacy_team_staff'"), "Staging audit must inspect team and staff data");
+assert.ok(legacyTeamRosterMigration.includes("public.pfms_legacy_team_players") && legacyTeamRosterMigration.includes("references public.pfms_global_players(id) on delete restrict"), "Team roster must link to global players without deleting their shared profile");
+assert.ok(legacyTeamRosterMigration.includes("alter table public.pfms_legacy_team_players force row level security"), "Team roster must enforce row-level security");
+assert.ok(legacyTeamRosterMigration.includes("pfms_list_legacy_team_players") && legacyTeamRosterMigration.includes("pfms_search_global_players_for_team"), "Team roster listing and global player search RPCs are missing");
+assert.ok(legacyTeamRosterMigration.includes("pfms_add_legacy_team_player") && legacyTeamRosterMigration.includes("pfms_update_legacy_team_player") && legacyTeamRosterMigration.includes("pfms_remove_legacy_team_player"), "Team roster CRUD RPCs are incomplete");
+assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
+assert.ok(html.includes('id="pfmsTeamRosterPanel"') && html.includes('id="pfmsTeamRosterForm"') && html.includes('id="pfmsTeamRosterList"'), "Team roster UI is incomplete");
+assert.ok(stagingAudit.includes("'pfms_legacy_team_players'"), "Staging audit must inspect team roster assignments");
+
 assert.ok(html.includes('id="pfmsTeamPermissionsForm"') && html.includes('id="pfmsTeamPermissionsList"'), "Per-team permission editor UI is missing");
 assert.ok(app.includes("pfms_list_legacy_team_permissions") && app.includes("pfms_save_legacy_team_permissions"), "Team permission editor is not connected to Supabase");
 assert.ok(app.includes("data-pfms-team-permissions") && app.includes("PFMS_TEAM_PERMISSION_MODULES"), "Team staff cards must expose the per-module permission editor");
