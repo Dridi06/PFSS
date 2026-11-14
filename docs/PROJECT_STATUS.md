@@ -61,7 +61,7 @@ Vorhandene Migrationen betreffen:
 | Plattforminhaber | Einmaliger Owner-Claim und Aktivierungsoberfläche im Entwicklungszweig vorbereitet | Staging-Migration/Secret/Edge-Function deployen; bestätigte E-Mail, korrekter Owner, Zweitclaim-Sperre und Negativtests abnehmen |
 | Administration | Benutzerverwaltung, Organisationssuche, globale Mitgliederliste, minimierte Frontend-Fehlererfassung und Admin-Fehlerprotokoll im Entwicklungszweig vorhanden | Migrationen in Staging anwenden; Organisations-/Mitgliederworkflows, Audit, Sperren und Supportprozesse Ende-zu-Ende testen |
 | Zahlungen | Vorschau, kein Anbieter angebunden | Anbieterentscheidung, Webhooks, Abrechnungslogik und Rechtsprüfung |
-| Kalender, Aufgaben, Nachrichten | geplant bzw. Platzhalter | Datenmodell, Rollen, Workflows und Benachrichtigungen |
+| Kalender, Aufgaben, Nachrichten | Mannschaftskalender vorhanden; persönlicher Aufgabenbereich mit privater Supabase-Persistenz, Status, Fälligkeit und Priorität ergänzt | Organisationsweiter Kalender, gemeinsame Aufgaben/Zuordnung, Nachrichten und Benachrichtigungen |
 | Fehlerüberwachung | Frontend-Fehler werden nach Redaktion sensibler Werte kontobezogen protokolliert; Adminansicht kann filtern und Status setzen | Migration in Staging anwenden, Fehler-Ingest, RLS, Statusänderungen und Aufbewahrung testen |
 | Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
 | Backup | Workflow im Repository | Secrets prüfen, Backup ausführen und Restore-Probe dokumentieren |
