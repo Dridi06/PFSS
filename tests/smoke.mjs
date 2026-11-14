@@ -11,6 +11,7 @@ const r2Check = await read("supabase/functions/r2-connection-check/index.ts");
 const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
 const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
 const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
+const ownerGuide = await read("docs/OWNER_BOOTSTRAP.md");
 
 const supabaseConfig = await read("supabase/config.toml");
 
@@ -76,6 +77,9 @@ assert.ok(ownerBootstrap.includes("pfms_claim_initial_owner"), "Owner bootstrap 
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("service_role"), "Owner migration must enforce one service-role-only owner claim");
 assert.ok(ownerMigration.includes("An approved administrator already exists"), "Owner bootstrap must refuse to create a second root identity");
 assert.ok(stagingAudit.includes("'pfms_platform_owner'"), "Read-only staging audit must inspect the owner singleton table");
+assert.ok(ownerGuide.includes("Staging") && ownerGuide.includes("PFMS_OWNER_BOOTSTRAP_TOKEN"), "Owner bootstrap staging guide is incomplete");
+assert.ok(ownerMigration.includes("An approved administrator already exists") && ownerMigration.includes("pfms_owner_setup_available"), "Owner migration must gate setup when an administrator already exists");
+assert.ok(ownerBootstrap.includes("Verified owner registration required"), "Owner endpoint must reject unverified or non-owner registration accounts");
 assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner registration choice is missing");
 assert.ok(html.includes('id="ownerBootstrapForm"') && html.includes('id="ownerBootstrapToken"'), "Owner activation form is missing");
 assert.ok(app.includes("pfms_owner_setup_available") && app.includes("pfms-owner-bootstrap"), "Owner availability or activation wiring is missing");
