@@ -26,6 +26,7 @@
     active: 'overview',
     initialized: false,
     loading: false,
+    hasLoaded: false,
     players: [],
     reports: [],
     media: [],
@@ -74,6 +75,7 @@
     const group = document.createElement('div');
     group.id = 'scoutWorkspaceNav';
     group.className = 'scout-workspace-nav';
+    group.hidden = true;
     group.innerHTML =
       '<div class="nav-section-label">SCOUT WORKSPACE</div>' +
       sections.map((key) =>
