@@ -474,3 +474,21 @@ for (const rpc of [
 ]) {
   assert.ok(applicationSource.includes(rpc), "Application is missing secured training RPC integration: " + rpc);
 }
+
+
+// Private scout workspaces must enforce RLS and keep media attached to the
+// authenticated scout's own player records and storage folder.
+const scoutWorkspaceHardening = (
+  await readFile(
+    resolve(directory, "20261209_pfss_scout_workspace_isolation_hardening.sql"),
+    "utf8"
+  )
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(scoutWorkspaceHardening, /alter table public\.pfss_scout_players force row level security/);
+assert.match(scoutWorkspaceHardening, /alter table public\.pfss_scout_reports force row level security/);
+assert.match(scoutWorkspaceHardening, /alter table public\.pfss_scout_media force row level security/);
+assert.match(scoutWorkspaceHardening, /owner_id = auth\.uid\(\)/);
+assert.match(scoutWorkspaceHardening, /storage_path ~ \('\^' \|\| auth\.uid\(\)::text \|\| '\/\[\^\/\]\+\$'\)/);
+assert.match(scoutWorkspaceHardening, /p\.id = player_id and p\.owner_id = auth\.uid\(\)/);
+assert.match(scoutWorkspaceHardening, /pfss_scout_media_mime_type_allowlist/);
+assert.match(scoutWorkspaceHardening, /'image\/jpeg'.*'video\/webm'/);
