@@ -230,7 +230,7 @@
     const yearTo = Number(el('scoutFilterTo')?.value || 0);
     const filtered = state.players.filter((player) => {
       const year = Number(String(player.birth || '').slice(0, 4)) || 0;
-      return (!query || normalized(player.surname || fullName(player)).includes(query)) &&
+      return (!query || normalized(player.surname).includes(query) || normalized(fullName(player)).includes(query)) &&
         (!position || player.position === position) &&
         (!foot || player.foot === foot) &&
         (!yearFrom || (year > 0 && year >= yearFrom)) &&
