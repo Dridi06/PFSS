@@ -729,13 +729,16 @@
       </section>
 
       <section class="view" id="view-club-scouting">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Eigene Scouting-Struktur des Vereins und angebundene Scout-Profile.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scouting-Abteilung">＋ Scout zuordnen</button></div>
-        <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scouting-Team</h3><p>Scouts des Vereins, Zuständigkeiten, Beobachtungsgebiete und interne Organisation.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">⌕</span><h3>Spielersuche</h3><p>Später mit privater und globaler PFMS-Spielerdatenbank sowie zulässigen externen Datenquellen.</p></article>
-          <article class="module-card"><span class="module-symbol">▤</span><h3>Scouting-Berichte</h3><p>Eigene Beobachtungen, Bewertungen und freigegebene Berichte getrennt verwalten.</p></article>
-          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Freigaben für Spieler und Berichte werden bewusst und nachvollziehbar gesteuert.</p></article>
-        </div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Aktive Scouts deiner verwalteten Organisationen und deren Mitgliedschaftsstatus.</p></div><button class="btn btn-primary" type="button" id="pfmsClubInviteScoutButton">＋ Scout einladen</button></div>
+        <section class="panel" id="pfmsClubScoutingPanel">
+          <div class="panel-heading"><div><div class="eyebrow">SCOUTING-TEAM</div><h3>Scouts der Organisation</h3></div><span class="module-status">Live-Mitgliedschaften</span></div>
+          <div class="pfss-search-fields">
+            <label class="field">Verein / Organisation<select id="pfmsClubScoutingOrganization"><option value="">Organisationen werden geladen …</option></select></label>
+            <label class="field">Suche<input id="pfmsClubScoutingQuery" type="search" placeholder="Name, Benutzername oder E-Mail"></label>
+          </div>
+          <p class="admin-message" id="pfmsClubScoutingMessage" role="status" aria-live="polite">Scouts werden geladen …</p>
+          <div id="pfmsClubScoutingResults" class="admin-user-list"></div>
+        </section>
       </section>
 
       <section class="view" id="view-teams">
