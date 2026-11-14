@@ -839,7 +839,20 @@
       </section>
       <section class="view" id="view-admin-members">
         <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Mitglieder</h1><p>Mitgliederkonten, Einladungen und Organisationszuordnungen verwalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Mitgliederverwaltung</h3><p>Hier werden Mitglieder, Einladungsstatus und die zugehörige Organisation zusammengeführt.</p></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSÜBERGREIFENDE VERWALTUNG</div><h3>Mitgliedschaften und Zuständigkeiten</h3></div></div>
+          <form id="pfmsAdminMembersFilterForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Suche<input id="pfmsAdminMembersQuery" type="search" placeholder="Name, E-Mail, User-ID oder Organisation"></label>
+              <label class="field">Organisationstyp<select id="pfmsAdminMembersOrgType"><option value="">Alle Organisationen</option><option value="club">Verein</option><option value="agency">Agentur</option><option value="scout_workspace">Scout-Arbeitsbereich</option></select></label>
+              <label class="field">Mitgliedsrolle<select id="pfmsAdminMembersRole"><option value="">Alle Rollen</option><option value="owner">Besitzer</option><option value="club_admin">Vereinsleitung</option><option value="agency_admin">Agenturleitung</option><option value="scout">Scout</option><option value="trainer">Trainer</option><option value="co_trainer">Co-Trainer</option><option value="betreuer">Betreuer</option><option value="member">Mitglied</option></select></label>
+              <label class="field">Mitgliedsstatus<select id="pfmsAdminMembersStatus"><option value="">Alle Status</option><option value="pending">Ausstehend</option><option value="active">Aktiv</option><option value="suspended">Gesperrt</option></select></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          </form>
+          <p id="pfmsAdminMembersMessage" class="admin-message" role="status" aria-live="polite">Mitglieder werden geladen …</p>
+          <div id="pfmsAdminMembersResults" class="admin-user-list"></div>
+        </div>
       </section>
       <section class="view" id="view-admin-errors">
         <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Technische Fehler und gemeldete Probleme zentral prüfen.</p></div></div>
