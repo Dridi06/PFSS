@@ -307,6 +307,46 @@ begin
 end;
 $$;
 
+create or replace function public.pfms_list_legacy_team_match_candidates(p_match_id uuid)
+returns table (
+  assignment_id uuid,
+  player_id uuid,
+  player_name text,
+  player_surname text,
+  jersey_number smallint,
+  preferred_position text,
+  squad_status text
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $
+declare
+  v_team_id uuid;
+begin
+  select team_id into v_team_id
+  from public.pfms_legacy_team_matches
+  where id = p_match_id;
+  if not found then
+    raise exception 'Match not found' using errcode = 'P0002';
+  end if;
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'matches', 'view') then
+    raise exception 'Not authorized to view matchday candidates' using errcode = '42501';
+  end if;
+
+  return query
+  select tp.id, p.id, p.name, p.surname, tp.jersey_number,
+         coalesce(tp.position_override, p.position), tp.squad_status
+  from public.pfms_legacy_team_players tp
+  join public.pfms_global_players p on p.id = tp.player_id
+  where tp.team_id = v_team_id
+    and tp.squad_status in ('active','injured','loaned')
+  order by tp.jersey_number nulls last,
+           pg_catalog.lower(p.surname), pg_catalog.lower(p.name);
+end;
+$;
+
 create or replace function public.pfms_save_legacy_team_match_lineup(
   p_match_id uuid,
   p_lineup jsonb
@@ -416,12 +456,14 @@ revoke all on function public.pfms_list_legacy_team_matches(uuid) from public, a
 revoke all on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text) from public, anon;
 revoke all on function public.pfms_update_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) from public, anon;
 revoke all on function public.pfms_list_legacy_team_match_lineup(uuid) from public, anon;
+revoke all on function public.pfms_list_legacy_team_match_candidates(uuid) from public, anon;
 revoke all on function public.pfms_save_legacy_team_match_lineup(uuid,jsonb) from public, anon;
 
 grant execute on function public.pfms_list_legacy_team_matches(uuid) to authenticated;
 grant execute on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text) to authenticated;
 grant execute on function public.pfms_update_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) to authenticated;
 grant execute on function public.pfms_list_legacy_team_match_lineup(uuid) to authenticated;
+grant execute on function public.pfms_list_legacy_team_match_candidates(uuid) to authenticated;
 grant execute on function public.pfms_save_legacy_team_match_lineup(uuid,jsonb) to authenticated;
 
 comment on table public.pfms_legacy_team_matches is
