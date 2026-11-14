@@ -185,6 +185,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
 - Der Vereinsbereich lädt verwaltbare Organisationen live, führt zu Mitgliederverwaltung und Mannschaften und zeigt aktive Scouts je Organisation. Beim Kontowechsel werden Organisations- und Scoutdaten zurückgesetzt.
 - Die Seite `view-staff` ist jetzt mit den vorhandenen Team-RPCs verbunden: Sie lädt die eigenen Mannschaftszuordnungen und die tatsächlichen Trainer-/Co-Trainer-/Betreuerprofile; Verantwortliche können direkt den bestehenden Trainerteam- und Bereichsrechte-Dialog öffnen. Der bisherige statische Zuordnungs-Platzhalter wurde entfernt. Der GitHub-Actions-Lauf auf Commit `e926bb47bf38873abe23b5b74df4ae07b01745ca` war in beiden Jobs erfolgreich.
+- Die Trainer-/Betreuerübersicht kennzeichnet jetzt aktive und inaktive Teamzuordnungen getrennt; die aktive Personenzahl wird separat von der Gesamtzahl angezeigt.
 - Der generische Platzhalter-Clickhandler `data-skeleton-action` wurde ebenfalls entfernt. Ein Smoke-Test verhindert, dass solche nicht funktionsfähigen Modulaktionen erneut in HTML oder App-Code auftauchen.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
 
