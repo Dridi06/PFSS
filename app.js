@@ -7998,9 +7998,9 @@ document.querySelectorAll('[data-pricing]').forEach(group => {
 
 const registrationChoiceDetails = {
   user: 'Mitglieder können sich ausschließlich über einen gültigen Einladungslink registrieren. Der Link ordnet das Konto direkt dem einladenden Verein oder der Agentur zu.',
-  club: 'Der Vereinszugang bietet eine eigene Organisationsverwaltung. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
-  agency: 'Der Agenturzugang bietet eine eigene Agenturverwaltung und Scoutorganisation. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
-  scout: 'Der Einzelscout kann globale Spielerdaten suchen und lesen. Er darf ausschließlich eigene Spielerprofile und eigene Scouting-Berichte erstellen oder bearbeiten.',
+  club: 'Der Vereinszugang ist derzeit nur ein unverbindlicher Tarifentwurf. Weder Testphase noch kostenpflichtige Kontoanlage sind aktiviert; es wird kein Vertrag abgeschlossen.',
+  agency: 'Der Agenturzugang ist derzeit nur ein unverbindlicher Tarifentwurf. Weder Testphase noch kostenpflichtige Kontoanlage sind aktiviert; es wird kein Vertrag abgeschlossen.',
+  scout: 'Der Einzelscout-Tarif ist derzeit nur ein unverbindlicher Entwurf. Eine kostenpflichtige Kontoanlage oder Testphase ist noch nicht aktiviert.',
   owner_bootstrap: 'Die erstmalige Plattforminhaberschaft wird nur einmal vergeben. Nach der E-Mail-Bestätigung ist ein separater, geheimer Einmalcode erforderlich.'
 };
 
@@ -8030,8 +8030,8 @@ function chooseRegistrationType(type) {
       document.getElementById('orderPlanName').textContent = planNames[type];
       document.getElementById('orderPrice').textContent = planPrices[type][cycle];
       document.getElementById('orderPeriod').textContent = cycle === 'yearly' ? 'pro Jahr' : 'pro Monat';
-      document.getElementById('orderPlanDetail').textContent = planNames[type] + ' · ' + (cycle === 'yearly' ? 'jährliche Zahlung' : 'monatliche Zahlung');
-      document.getElementById('signupButton').textContent = 'Weiter zur Zahlungsübersicht';
+      document.getElementById('orderPlanDetail').textContent = planNames[type] + ' · ' + (cycle === 'yearly' ? 'jährlicher Tarifentwurf' : 'monatlicher Tarifentwurf');
+      document.getElementById('signupButton').textContent = 'Tarifvorschau anzeigen';
     } else {
       document.getElementById('signupButton').textContent =
         type === 'owner_bootstrap' ? 'Erstzugang registrieren' : 'Kostenlos registrieren';
@@ -8245,7 +8245,7 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   }
 
   if (['club','agency','scout'].includes(type)) {
-    message.textContent = 'Bestellübersicht geprüft. Die Zahlungsansicht ist eine visuelle Vorschau; eine echte Zahlung und Kontoanlage sind noch nicht aktiviert.';
+    message.textContent = 'Dies ist nur eine unverbindliche Tarifvorschau. Es wird kein Konto für diesen kostenpflichtigen Tarif angelegt, keine Testphase gestartet und kein Vertrag abgeschlossen. Es ist kein Checkout verfügbar.';
     document.getElementById('orderSummary').scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
@@ -8258,8 +8258,6 @@ document.getElementById('signupButton').addEventListener('click', async () => {
       registration_type: type,
       requested_role: type === 'user' ? requestedRole : null,
       scout_type: type === 'scout' ? 'solo_scout' : null,
-      billing_cycle: ['club','agency','scout'].includes(type) ? selectedBillingCycle : null,
-      trial_days: ['club','agency','scout'].includes(type) ? 30 : 0,
       agency_type: type === 'agency' ? document.getElementById('agencyType').value : null,
       organization_name: type === 'club' || type === 'agency' ? organizationName : null,
       invitation_code: invitationCode || null
