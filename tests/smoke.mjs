@@ -426,7 +426,7 @@ assert.ok(
     && teamAnalysisMigration.includes("force row level security")
     && teamAnalysisMigration.includes("foreign key (match_id, team_id)")
     && teamAnalysisMigration.includes("video_url ~ '^https://[[:alnum:]]")
-    && (teamAnalysisMigration.match(/p_video_url !~ '\\^https:\\/\\/\\[\[:alnum:\]\]/g) || []).length === 2,
+    && (teamAnalysisMigration.split("p_video_url !~ '^https://[[:alnum:]]").length - 1) === 2,
   "Team analysis must be private, team-bound and reject empty-host or credential-bearing video references in both write RPCs"
 );
 assert.ok(
