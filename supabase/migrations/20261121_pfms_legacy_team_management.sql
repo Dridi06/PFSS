@@ -80,7 +80,8 @@ as $$
   select
     auth.uid() is not null
     and (
-      exists (
+      public.is_admin()
+      or exists (
         select 1
         from public.pfms_legacy_teams t
         where t.id = p_team_id
