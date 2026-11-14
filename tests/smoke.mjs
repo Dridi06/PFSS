@@ -439,8 +439,12 @@ assert.ok(
   "Training plan must enforce composite team links and bounded duration/entry counts"
 );
 assert.ok(
-  legacyTeamTrainingExercisesMigration.includes("(v_item ->> 'sort_order') !~ '^[0-9]+
 assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("'^[0-9]+$'") &&
+  legacyTeamTrainingExercisesMigration.includes("planned_duration_minutes"),
+  "Training plan must validate integer order and duration fields"
+);
+
   legacyTeamTrainingExercisesMigration.includes("force row level security") &&
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_training_session_exercises"),
