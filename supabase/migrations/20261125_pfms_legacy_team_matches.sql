@@ -387,9 +387,12 @@ begin
     raise exception 'Not authorized to edit match lineup' using errcode = '42501';
   end if;
 
-  if pg_catalog.jsonb_typeof(p_lineup) is distinct from 'array'
-     or pg_catalog.jsonb_array_length(p_lineup) > 30 then
-    raise exception 'Lineup must be an array with at most 30 players' using errcode = '22023';
+  if pg_catalog.jsonb_typeof(p_lineup) is distinct from 'array' then
+    raise exception 'Lineup must be a JSON array' using errcode = '22023';
+  end if;
+
+  if pg_catalog.jsonb_array_length(p_lineup) > 30 then
+    raise exception 'Lineup can contain at most 30 players' using errcode = '22023';
   end if;
 
   select pg_catalog.count(*),
