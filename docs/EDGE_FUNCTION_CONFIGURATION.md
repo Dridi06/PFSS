@@ -20,7 +20,7 @@ Staging und Produktion sind getrennt zu konfigurieren. Das Secret enthält keine
 
 ## 2. Username-Login: gemeinsames Rate-Limit
 
-Die Function `username-login` verwendet Upstash Redis als gemeinsamen, atomaren Zähler. Pro normalisiertem Benutzernamen sind **5 fehlgeschlagene Anmeldeversuche innerhalb eines gleitenden 15-Minuten-Fensters** erlaubt. Erfolgreiche Anmeldungen verbrauchen kein Kontingent. Vor einer Anmeldung wird der verbleibende Zählerstand geprüft; nur fehlgeschlagene Zugangsdaten erhöhen den Zähler. Ab dem nächsten Versuch antwortet die Function mit HTTP 429 und `Retry-After`.
+Die Function `username-login` verwendet Upstash Redis als gemeinsamen, atomaren Zähler. Pro normalisiertem Benutzernamen sind **5 fehlgeschlagene Anmeldeversuche innerhalb eines gleitenden 15-Minuten-Fensters** erlaubt. Erfolgreiche Anmeldungen und interne Supabase-/Datenbankfehler verbrauchen kein Kontingent. Vor einer Anmeldung wird der verbleibende Zählerstand geprüft; nur fehlgeschlagene Zugangsdaten erhöhen den Zähler. Ab dem nächsten Versuch antwortet die Function mit HTTP 429 und `Retry-After`.
 
 Für die Redis-Schlüssel wird der normalisierte Benutzername mit HMAC-SHA-256 und einem separaten geheimen Schlüssel gehasht. Der Klartext-Benutzername wird nicht als Redis-Identifier gespeichert. Die Function verwendet bewusst keine ungeprüften `X-Forwarded-For`-, `X-Real-IP`- oder `CF-Connecting-IP`-Werte als Identität.
 
