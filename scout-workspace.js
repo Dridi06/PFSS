@@ -30,6 +30,7 @@
     hasLoaded: false,
     players: [],
     globalPlayers: [],
+    globalPlayersAvailable: false,
     reports: [],
     media: [],
     editingPlayerId: null,
@@ -239,6 +240,81 @@
       : '<div class="empty-state"><b>Keine Spieler gefunden</b><p>Lege ein Profil an oder passe deine Filter an.</p></div>';
   }
 
+  function renderGlobalPlayers() {
+    const host = el('scoutGlobalPlayerGrid');
+    if (!host) return;
+    if (!state.globalPlayersAvailable) {
+      host.innerHTML = '<div class="empty-state"><b>Globale Spielersuche noch nicht verfügbar</b><p>Die globale PFMS-Katalogmigration muss in der Testdatenbank angewendet werden. Deine privaten Spieler und Berichte bleiben davon getrennt nutzbar.</p></div>';
+      if (el('scoutGlobalPlayerCount')) el('scoutGlobalPlayerCount').textContent = 'Nicht verfügbar';
+      return;
+    }
+
+    const query = normalized(el('scoutGlobalFilterName')?.value);
+    const club = normalized(el('scoutGlobalFilterClub')?.value);
+    const position = el('scoutGlobalFilterPosition')?.value || '';
+    const foot = el('scoutGlobalFilterFoot')?.value || '';
+    const yearFrom = Number(el('scoutGlobalFilterFrom')?.value || 0);
+    const yearTo = Number(el('scoutGlobalFilterTo')?.value || 0);
+    const filtered = state.globalPlayers.filter((player) => {
+      const year = Number(String(player.birth || '').slice(0, 4)) || 0;
+      return (!query || normalized(player.surname || fullName(player)).includes(query)) &&
+        (!club || normalized(player.club).includes(club)) &&
+        (!position || player.position === position) &&
+        (!foot || player.foot === foot) &&
+        (!yearFrom || (year > 0 && year >= yearFrom)) &&
+        (!yearTo || (year > 0 && year <= yearTo));
+    });
+
+    if (el('scoutGlobalPlayerCount')) {
+      el('scoutGlobalPlayerCount').textContent = filtered.length + ' Spieler gefunden';
+    }
+    host.innerHTML = filtered.length ? filtered.map((player) => {
+      const copied = state.players.some((own) => own.source_global_player_id === player.id);
+      const name = fullName(player);
+      return '<article class="scout-player-card scout-global-player-card">' +
+        '<div class="scout-player-avatar">' + escapeHtml(name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()) + '</div>' +
+        '<div class="scout-player-main"><div class="scout-player-top"><h3>' + escapeHtml(name) + '</h3><span class="scout-rating">PFMS</span></div>' +
+        '<p>' + escapeHtml(player.club || 'Verein nicht angegeben') + ' · ' + escapeHtml(player.position || 'Position offen') + '</p>' +
+        '<div class="scout-player-tags"><span>' + escapeHtml(player.birth ? String(player.birth).slice(0, 4) : 'Jahrgang –') + '</span>' +
+        '<span>' + escapeHtml(player.foot || 'Fuß offen') + '</span>' +
+        '<span>' + escapeHtml(player.nationality || 'Nationalität –') + '</span></div>' +
+        '<div class="scout-card-actions"><button type="button" data-scout-copy-global="' + escapeHtml(player.id) + '"' +
+        (copied ? ' disabled' : '') + '>' + (copied ? 'Bereits übernommen' : 'In meinen Bereich übernehmen') + '</button></div></div></article>';
+    }).join('') : '<div class="empty-state"><b>Keine Spieler gefunden</b><p>Ändere deine Filter oder prüfe deine Suchbegriffe.</p></div>';
+  }
+
+  async function importGlobalPlayer(globalPlayerId) {
+    const player = state.globalPlayers.find((item) => item.id === globalPlayerId);
+    if (!player) return;
+    if (state.players.some((item) => item.source_global_player_id === globalPlayerId)) {
+      showMessage('Dieser Spieler befindet sich bereits in deiner privaten Spielerdatenbank.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase().from(TABLES.players).insert({
+        source_global_player_id: player.id,
+        name: player.name,
+        surname: player.surname || null,
+        birth: player.birth || null,
+        join_date: player.join_date || null,
+        nationality: player.nationality || null,
+        position: player.position || 'Mittelfeld',
+        club: player.club || null,
+        height: player.height ?? null,
+        foot: player.foot || null,
+        notes: null
+      });
+      if (error) throw error;
+      await loadData();
+      switchTo('database');
+      notify('Spieler wurde in deinen privaten Scout-Bereich übernommen.');
+    } catch (error) {
+      console.error('PFMS global player copy failed:', error);
+      showMessage('Spieler konnte nicht übernommen werden. Bitte die globale Katalogmigration und die private Scout-Verknüpfung prüfen.', true);
+    }
+  }
+
   function renderReports() {
     const host = el('scoutReportList');
     if (!host) return;
@@ -339,11 +415,19 @@
       state.players = playersResult.data || [];
       state.reports = reportsResult.data || [];
       state.media = mediaResult.data || [];
+      const globalResult = await client.from('pfms_global_players')
+        .select('id,name,surname,birth,nationality,position,club,foot,height')
+        .order('surname', { ascending: true, nullsFirst: false });
+      state.globalPlayersAvailable = !globalResult.error;
+      state.globalPlayers = globalResult.data || [];
       renderOverview();
       renderPlayers();
+      renderGlobalPlayers();
       renderReports();
       await renderMedia();
-      showMessage('Daten erfolgreich geladen und privat mit deinem Konto verknüpft.');
+      showMessage(globalResult.error
+        ? 'Private Daten geladen. Die globale Spielersuche benötigt noch die PFMS-Katalogmigration.'
+        : 'Private Daten und globale Spielersuche erfolgreich geladen.');
     } catch (error) {
       state.hasLoaded = false;
       console.error('PFMS Scout Workspace load failed:', error);
@@ -361,7 +445,7 @@
     if (!sections.includes(key)) return;
     state.active = key;
     const heading = el('scoutHeading');
-    if (heading) heading.textContent = key === 'overview' ? 'Dein Scouting. Dein Überblick.' : 'Meine ' + labels[key];
+    if (heading) heading.textContent = key === 'overview' ? 'Dein Scouting. Dein Überblick.' : key === 'global-search' ? 'Globale Spielersuche' : 'Meine ' + labels[key];
     sections.forEach((section) => {
       const panel = el('scout-section-' + section);
       if (panel) panel.classList.toggle('active', section === key);
@@ -371,6 +455,7 @@
     });
     const title = el('pageTitle');
     if (title) title.textContent = 'Scout · ' + labels[key];
+    if (key === 'global-search') renderGlobalPlayers();
     if (key === 'database') renderPlayers();
     if (key === 'reports') renderReports();
   }
@@ -617,6 +702,12 @@
         return;
       }
 
+      const copyGlobalButton = event.target.closest('[data-scout-copy-global]');
+      if (copyGlobalButton) {
+        importGlobalPlayer(copyGlobalButton.dataset.scoutCopyGlobal);
+        return;
+      }
+
       const action = event.target.closest('[data-scout-action]');
       if (action) {
         if (action.dataset.scoutAction === 'new-player') openPlayerDialog(null);
@@ -641,9 +732,11 @@
 
     document.addEventListener('input', (event) => {
       if (['scoutFilterName', 'scoutFilterFrom', 'scoutFilterTo'].includes(event.target.id)) renderPlayers();
+      if (['scoutGlobalFilterName','scoutGlobalFilterClub','scoutGlobalFilterFrom','scoutGlobalFilterTo'].includes(event.target.id)) renderGlobalPlayers();
     });
     document.addEventListener('change', (event) => {
       if (['scoutFilterPosition', 'scoutFilterFoot'].includes(event.target.id)) renderPlayers();
+      if (['scoutGlobalFilterPosition','scoutGlobalFilterFoot'].includes(event.target.id)) renderGlobalPlayers();
       if (event.target.id === 'scoutMediaInput') uploadFiles(event.target.files);
     });
     el('scoutPlayerForm')?.addEventListener('submit', savePlayer);
