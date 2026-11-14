@@ -3191,15 +3191,21 @@ async function savePfmsLegacyTeamTraining(event) {
       p_focus: data.focus || null,
       p_notes: data.notes || null
     });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     if (error) throw error;
     form.reset();
     await loadPfmsLegacyTeamTraining(team.team_id);
-    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
       toast('Trainingstermin wurde gespeichert.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     console.error('PFMS training session save failed:', error);
     message.textContent = 'Trainingstermin konnte nicht gespeichert werden. Prüfe Datum, Uhrzeit und Trainingsrechte.';
   } finally {
@@ -3231,14 +3237,20 @@ async function updatePfmsLegacyTrainingStatus(button) {
       p_notes: session.session_notes,
       p_status: status
     });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     if (error) throw error;
     await loadPfmsLegacyTeamTraining(team.team_id);
-    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
       toast(status === 'completed' ? 'Trainingseinheit abgeschlossen.' : 'Trainingseinheit wurde abgesagt.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     console.error('PFMS training session status update failed:', error);
     document.getElementById('pfmsTeamTrainingMessage').textContent = 'Status konnte nicht gespeichert werden. Prüfe deine Trainingsrechte.';
   } finally {
