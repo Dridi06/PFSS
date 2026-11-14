@@ -38,6 +38,9 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - Dies ist ein Code-/CI-Nachweis. Die Function ist dadurch nicht automatisch im Supabase-Projekt deployed; der Login muss in Staging Ende-zu-Ende geprüft werden.
 
 ### Zusätzliche Sicherheitsregressionen – 14.11.2026
+- Erweiterte Team-Berechtigungstests prüfen nun die acht granularen Module, Edit-nur-mit-View, vollständige Permission-Payloads, aktive Organisationsmitgliedschaft mit passender Rolle sowie die Teamgrenzen bei Anwesenheit und Spielaufstellung.
+- GitHub Actions auf Commit `5cf45b8aefebe69d5d5845565e7a1b0b5d62ba18` erfolgreich: Node-Projektprüfungen und Deno-Typprüfung. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43639654925.
+
 - Zusätzlich zählen interne Profil-/Auth-Dienstfehler nicht als falsche Passwörter; sie liefern HTTP 503 und verbrauchen kein Fehlversuchskontingent. Die entsprechende Regression ist im CI enthalten.
 - Aktueller vollständiger GitHub-Actions-Nachweis nach diesen Login-Korrekturen: beide Jobs erfolgreich auf Commit `081d9486972a04ae95238d163822d9e814032e69`. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43639401973.
 
