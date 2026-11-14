@@ -48,10 +48,10 @@ Vorhandene Migrationen betreffen:
 
 | Bereich | Aktueller Stand | Noch erforderlicher Nachweis / Arbeit |
 |---|---|---|
-| Haupt-Spielerdatenbank | Daten liegen derzeit in `localStorage` (`pfss_players_v1`) | Persistente Supabase-Daten, Eigentümer-/Organisationsbezug, CRUD- und Mandantentests |
-| Haupt-Scoutingberichte | Daten liegen derzeit in `localStorage` (`pfss_reports_v1`) | Supabase-Persistenz, Beziehungen und CRUD-Tests |
+| Haupt-Spielerdatenbank | Code verwendet `pfms_global_players`; Lesen für freigegebene PFMS-Konten, Schreibrechte nur für Plattformadministratoren | Staging-Migration anwenden, CRUD- und Mandantentests; Alt-Daten nur nach bewusster Importbestätigung übernehmen |
+| Haupt-Scoutingberichte | Code verwendet `pfms_main_scouting_reports`; Berichte sind dem Verfasser zugeordnet, Admin kann alle einsehen | Staging-Migration anwenden, RLS- und CRUD-Tests |
 | Haupt-Medienbereich | lokale Objekt-URLs, nicht dauerhaft | Private Uploads, Metadaten, signierte Abrufe und Löschvorgänge |
-| Privater Scout-Bereich | Code mit privaten Supabase-Tabellen und Storage verbunden; zusätzliche Integritätsmigration für Zeitstempel, Feldgrenzen und Datei-Pfade vorhanden | Migrationen in Staging anwenden; Scoutkonto für CRUD-, RLS- und Storage-Tests verwenden |
+| Privater Scout-Bereich | Private Supabase-CRUDs und Storage; globale Spielersuche mit Übernahme in private Scout-Datenbank vorbereitet | Migrationen in Staging anwenden; Suche, Übernahme, CRUD-, RLS- und Storage-Tests verwenden |
 | Vereine und Agenturen | Teile der Oberfläche und Admin-RPCs vorhanden | Besitzer-/Leitungsworkflows, Datenpflege, Einladungen und Mitgliedschaften vervollständigen |
 | Mannschaften und Staff | Oberflächen, überwiegend Platzhalter | Datenmodell, Zuweisungen, zeitliche Zuordnung und Rollenrechte |
 | Trainer-/Team-Workspace | Modulübersicht und Platzhalter | Kader, Training, Anwesenheit, Spiele, Aufstellungen und Rechte |
@@ -91,6 +91,8 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 
 - Der Owner-Aktivierungsbereich wird nur für Konten angezeigt, die beim ursprünglichen Signup den dedizierten Typ `owner_bootstrap` gewählt haben. Die Datenbankmigration sichert diese Auswahl serverseitig ab und erlaubt keine nachträgliche Selbstfreischaltung über änderbare User-Metadaten.
 
+- `supabase/migrations/20261115_pfms_global_player_catalogue.sql` ergänzt den persistenten globalen Spielerkatalog und verfassereigene Haupt-Scoutingberichte. Plattformadministratoren können globale Spieler anlegen/bearbeiten; RLS erlaubt freigegebenen Konten den Lesezugriff. Backups und lokale Alt-Daten werden über eine begrenzte transaktionale Admin-RPC mit neu zugewiesenen IDs importiert.
+- Der Scout-Bereich hat eine globale schreibgeschützte Spielersuche mit Filtern erhalten. Ein globales Profil kann einmalig als private Scout-Kopie übernommen werden; die Quelle wird in `source_global_player_id` verknüpft.
 - `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql`, `supabase/migrations/20261116_pfms_owner_bootstrap_registration_guard.sql` und `supabase/functions/pfms-owner-bootstrap/index.ts` ergänzen den einmaligen Owner-Claim mit unveränderbarer Registrierungsberechtigung, verifizierter Supabase-Sitzung, separatem Function-Secret, ausschließlich service-role-RPC und Singleton-Datensatz. UI zeigt die Aktivierung nur Konten mit dem speziellen Registrierungsweg; beide Migrationen und die Function sind noch nicht in Staging angewendet/deployed.
 - `supabase/functions/_shared/cors.ts` implementiert eine gemeinsame CORS-Origin-Allowlist; `username-login` und `r2-connection-check` verwenden sie. Die Staging-Origin muss vor dem Deploy über `PFMS_ALLOWED_ORIGINS` freigegeben werden.
 - `supabase/migrations/20261114_scout_workspace_integrity.sql` ergänzt Datenbankgrenzen für Scout-Daten, automatische `updated_at`-Zeitstempel und die Prüfung, dass Medien-Metadaten nur in den eigenen Benutzerordner zeigen. Die Migration wurde im Repository korrigiert, aber noch nicht in Supabase ausgeführt.
