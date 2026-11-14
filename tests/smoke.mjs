@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFile(path, "utf8");
 const mainStyles = await read("styles.css");
+const workspaceStyles = await read("scout-workspace.css");
 
 const [
   html,
@@ -460,9 +461,9 @@ assert.ok(
   "Tactical/video analysis panel, form, list and workspace navigation must exist"
 );
 assert.ok(
-  mainStyles.includes(".pfms-team-analysis-card")
-    && mainStyles.includes(".pfms-analysis-form-grid")
-    && mainStyles.includes("@media(max-width:640px)"),
+  workspaceStyles.includes(".pfms-team-analysis-card")
+    && workspaceStyles.includes(".pfms-analysis-form-grid")
+    && workspaceStyles.includes("@media(max-width:640px)"),
   "Tactical/video analysis forms and cards must have responsive styles"
 );
 
