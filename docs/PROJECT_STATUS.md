@@ -201,3 +201,14 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Jede Änderung bleibt klein, nachvollziehbar und überprüfbar.
 - Jede abgeschlossene Funktion erhält positive und negative Tests.
 - Produktionsdeployment erst nach dokumentierter Abnahme und ausdrücklicher Freigabe.
+
+
+## 9. Qualitätssicherung – Ergänzungen vom 14.11.2026
+
+- Der Support-Ticket-Rate-Limit-Trigger hatte einen fehlerhaften PostgreSQL-Dollar-Quote-Begrenzer. Dieser Syntaxfehler wurde in `20261129_pfms_support_tickets.sql` korrigiert.
+- Neuer Test `tests/migration-syntax-smoke.mjs` prüft alle versionierten SQL-Migrationen auf paarige Dollar-Quote-Begrenzer und verbotene einzelne Dollar-Begrenzer direkt nach `AS`. Er läuft in `npm test`.
+- Die Edge Function `r2-connection-check` verlangt nun zusätzlich ein verifiziertes Benutzer-JWT und die serverseitige PFMS-Administratorprüfung über `pfms_is_admin`. `verify_jwt = true` ist explizit in `supabase/config.toml` gesetzt. Antworten werden nicht gecacht.
+- Regressionstests prüfen die Admin-Authentifizierung des R2-Endpunkts und dessen JWT-Konfiguration.
+- GitHub-Actions-Lauf **#430 / `43603352161`** auf Commit `b78af6b` ist vollständig erfolgreich: Syntax-/Projekt-/Build-/Accessibility-/SQL-Migrationsprüfungen sowie Deno-Typprüfung aller Edge Functions.
+
+Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächliche Ausführen der Migrationen in Staging noch den Funktionstest des R2-Endpunkts mit einem Administrator- und einem Nicht-Administrator-Konto.
