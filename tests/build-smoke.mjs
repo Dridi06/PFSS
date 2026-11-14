@@ -21,7 +21,7 @@ for (const page of ["index.html", "rechtliches.html"]) {
   const pagePath = resolve(outputDirectory, page);
   const source = await readFile(pagePath, "utf8");
 
-  for (const match of source.matchAll(/\\b(?:src|href)=["']([^"']+)["']/g)) {
+  for (const match of source.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
     const value = match[1];
     if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
 
@@ -31,7 +31,7 @@ for (const page of ["index.html", "rechtliches.html"]) {
     const targetPath = resolve(dirname(pagePath), localPath);
     assert.ok(
       targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
-      `${page} references a path outside dist/: ${value}`
+      page + " references a path outside dist/: " + value
     );
     await access(targetPath);
   }
@@ -40,7 +40,7 @@ for (const page of ["index.html", "rechtliches.html"]) {
 for (const forbidden of ["supabase", "tests", "docs", "package.json", "render.yaml"]) {
   await assert.rejects(
     access(resolve(outputDirectory, forbidden)),
-    `Internal project path must not be published: ${forbidden}`
+    "Internal project path must not be published: " + forbidden
   );
 }
 
