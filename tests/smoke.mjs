@@ -88,7 +88,7 @@ for (const view of navViews) {
 // Every local script/style/document reference must resolve to a repository file.
 for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
   const value = match[1];
-  if (/^(https?:|data:|mailto:|tel:|#|javascript:)/i.test(value)) continue;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
   const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]).replace(/^\.\//, "");
   if (localPath) await fs.access(localPath);
 }
