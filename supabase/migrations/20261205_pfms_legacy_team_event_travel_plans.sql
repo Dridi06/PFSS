@@ -440,7 +440,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_team_id uuid;
   v_event_id uuid;
@@ -487,7 +487,7 @@ begin
   delete from public.pfms_legacy_team_event_participants
   where id = p_participant_id;
 end;
-$;
+$$;
 
 revoke all on function public.pfms_remove_legacy_team_event_participant(uuid)
   from public, anon;
