@@ -383,8 +383,11 @@ begin
     raise exception 'Not authorized to edit this training plan' using errcode = '42501';
   end if;
 
-  if pg_catalog.jsonb_typeof(p_items) is distinct from 'array'
-     or pg_catalog.jsonb_array_length(p_items) > 30 then
+  if pg_catalog.jsonb_typeof(p_items) is distinct from 'array' then
+    raise exception 'Training plan items must be a JSON array' using errcode = '22023';
+  end if;
+
+  if pg_catalog.jsonb_array_length(p_items) > 30 then
     raise exception 'Training plan must contain at most 30 exercises' using errcode = '22023';
   end if;
 
