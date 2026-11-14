@@ -524,7 +524,7 @@ $$;
 revoke all on function public.pfms_list_legacy_team_tasks(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_tasks(uuid) to authenticated;
 revoke all on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text, text) from public, anon;
-grant execute on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text) to authenticated;
+grant execute on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text, text) to authenticated;
 revoke all on function public.pfms_update_legacy_team_task(uuid, text, text, uuid, date, text, text) from public, anon;
 grant execute on function public.pfms_update_legacy_team_task(uuid, text, text, uuid, date, text, text) to authenticated;
 revoke all on function public.pfms_delete_legacy_team_task(uuid) from public, anon;
