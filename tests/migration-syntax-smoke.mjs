@@ -70,7 +70,7 @@ const markdownFiles = docsEntries
   .map((entry) => entry.name);
 for (const filename of markdownFiles) {
   const document = await readFile(resolve(docsDirectory, filename), "utf8");
-  for (const match of document.matchAll(/supabase\\/migrations\\/([A-Za-z0-9_-]+\\.sql)/g)) {
+  for (const match of document.matchAll(/supabase\/migrations\/([A-Za-z0-9_-]+\.sql)/g)) {
     assert.ok(
       migrationFiles.includes(match[1]),
       filename + " references a migration that does not exist: " + match[1]
