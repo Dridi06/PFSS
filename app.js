@@ -2986,6 +2986,10 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   if (!team || !requestUserId) return;
   pfmsSelectedLegacyTeam = team;
   pfmsSelectedTeamPermissions = new Map();
+  pfmsLegacyTrainingSessions = [];
+  pfmsSelectedTrainingSession = null;
+  pfmsLegacyTrainingAttendance = [];
+  document.getElementById('pfmsTeamAttendancePanel').hidden = true;
   const panel = document.getElementById('pfmsSelectedTeamPanel');
   const title = document.getElementById('pfmsSelectedTeamTitle');
   const meta = document.getElementById('pfmsSelectedTeamMeta');
@@ -3045,6 +3049,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   }
 
   await loadPfmsLegacyTeamRoster(teamId);
+  await loadPfmsLegacyTeamTraining(teamId);
 }
 
 const PFMS_ATTENDANCE_STATUSES = {
@@ -3354,6 +3359,25 @@ function setupPfmsLegacyTeamWorkspace() {
     event.preventDefault();
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
   });
+  document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
+  document.getElementById('pfmsCloseAttendance')?.addEventListener('click', () => {
+    document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+    pfmsSelectedTrainingSession = null;
+    pfmsLegacyTrainingAttendance = [];
+  });
+  document.getElementById('pfmsTeamTrainingList')?.addEventListener('click', event => {
+    const attendanceButton = event.target.closest('[data-pfms-open-attendance]');
+    if (attendanceButton) {
+      openPfmsLegacyTrainingAttendance(attendanceButton.dataset.pfmsOpenAttendance);
+      return;
+    }
+    const statusButton = event.target.closest('[data-pfms-training-status]');
+    if (statusButton) updatePfmsLegacyTrainingStatus(statusButton);
+  });
+  document.getElementById('pfmsTeamAttendanceList')?.addEventListener('click', event => {
+    const saveButton = event.target.closest('[data-pfms-save-attendance]');
+    if (saveButton) savePfmsLegacyTrainingAttendance(saveButton);
+  });
   document.getElementById('pfmsTeamPermissionsForm')?.addEventListener('submit', savePfmsLegacyTeamPermissions);
   document.getElementById('pfmsTeamPermissionsList')?.addEventListener('change', event => {
     const row = event.target.closest('[data-pfms-permission-module]');
@@ -3371,9 +3395,14 @@ function setupPfmsLegacyTeamWorkspace() {
   document.getElementById('pfmsCloseSelectedTeam')?.addEventListener('click', () => {
     document.getElementById('pfmsSelectedTeamPanel').hidden = true;
     document.getElementById('pfmsTeamModules').hidden = true;
+    document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+    document.getElementById('pfmsTeamTrainingPanel').hidden = true;
     pfmsSelectedLegacyTeam = null;
     pfmsSelectedTeamPermissions = new Map();
     pfmsLegacyTeamRoster = [];
+    pfmsLegacyTrainingSessions = [];
+    pfmsSelectedTrainingSession = null;
+    pfmsLegacyTrainingAttendance = [];
   });
 
   document.addEventListener('click', event => {
@@ -3414,6 +3443,20 @@ function setupPfmsLegacyTeamWorkspace() {
     const showRosterButton = event.target.closest('[data-pfms-show-roster]');
     if (showRosterButton) {
       document.getElementById('pfmsTeamRosterPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const showTrainingButton = event.target.closest('[data-pfms-show-training]');
+    if (showTrainingButton) {
+      const trainingPanel = document.getElementById('pfmsTeamTrainingPanel');
+      trainingPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamTraining(pfmsSelectedLegacyTeam.team_id);
+      return;
+    }
+    const showAttendanceButton = event.target.closest('[data-pfms-show-attendance]');
+    if (showAttendanceButton) {
+      const trainingPanel = document.getElementById('pfmsTeamTrainingPanel');
+      trainingPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamTraining(pfmsSelectedLegacyTeam.team_id);
+      return;
     }
   });
 
