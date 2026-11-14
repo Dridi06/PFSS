@@ -120,6 +120,34 @@ with checks as (
 
   union all
   select
+    'support_ticket_notification_trigger',
+    exists (
+      select 1
+      from pg_catalog.pg_trigger t
+      where t.tgrelid = pg_catalog.to_regclass('public.pfms_support_tickets')
+        and t.tgname = 'pfms_support_tickets_notify_changes'
+        and not t.tgisinternal
+        and t.tgenabled <> 'D'
+    ),
+    'Aktiver AFTER-UPDATE-Trigger für Supportantworten und Ticketabschluss erwartet'
+
+  union all
+  select
+    'support_notification_trigger_function',
+    coalesce((
+      exists (
+        select 1
+        from pg_catalog.pg_proc p
+        where p.oid = pg_catalog.to_regprocedure('public.pfms_notify_support_ticket_changes()')
+          and p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=""%'
+      )
+        and not coalesce(pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_notify_support_ticket_changes()'), 'EXECUTE'), false)
+    ), false),
+    'SECURITY DEFINER mit leerem search_path; kein direkter EXECUTE-Zugriff für authenticated'
+
+  union all
+  select
     'notification_own_row_policies',
     exists (
       select 1 from pg_catalog.pg_policies p
