@@ -21,39 +21,39 @@ for (const path of requiredFiles) {
 }
 
 const viewIds = new Set(
-  [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map((match) => match[1])
+  [...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1])
 );
 const navViews = new Set(
   [...html.matchAll(/data-view=["']([^"']+)["']/g)].map((match) => match[1])
 );
 
 for (const view of navViews) {
-  assert.ok(viewIds.has(`view-${view}`), `Navigation target has no view section: ${view}`);
+  assert.ok(viewIds.has(\`view-\${view}\`), \`Navigation target has no view section: \${view}\`);
 }
 
-for (const tag of html.matchAll(/<(script|link)\\b([^>]*)>/gi)) {
+for (const tag of html.matchAll(/<(script|link)\b([^>]*)>/gi)) {
   const attribute = tag[1].toLowerCase() === "script" ? "src" : "href";
-  const value = tag[2].match(new RegExp(`\\\\b${attribute}=["']([^"']+)["']`, "i"))?.[1];
+  const value = tag[2].match(new RegExp(\`\\b\${attribute}=["']([^"']+)["']\`, "i"))?.[1];
   if (!value || /^(https?:|data:|#)/i.test(value)) continue;
-  const localPath = decodeURIComponent(value.split("?")[0]).replace(/^\\.\\//, "");
+  const localPath = decodeURIComponent(value.split("?")[0]);
   await fs.access(localPath);
 }
 
-assert.ok(!html.includes("\\\\n  "), "index.html contains literal escaped line breaks");
+assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
-assert.match(app, /persistSession:\\s*true/, "Supabase session persistence must stay enabled");
-assert.match(app, /shouldShowWelcome\\s*=\\s*showIntro\\s*\\|\\|\\s*showReturningGreeting/, "Welcome animation must be conditional");
-assert.match(app, /finishAuthentication\\(\\);/, "Authentication must complete after the reload path");
+assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
+assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
+assert.match(app, /finishAuthentication\(\);/, "Authentication must complete after the reload path");
 assert.ok(
   app.includes("pfss_admin_list_profiles") && app.includes("pfss_admin_update_profile"),
   "Expected admin profile RPC integration is missing"
 );
 assert.ok(
-  await fs.readFile("supabase/migrations/20261111_organizations_memberships_permissions.sql", "utf8"),
+  (await read("supabase/migrations/20261111_organizations_memberships_permissions.sql")).length > 0,
   "Organization foundation migration is missing"
 );
 assert.ok(
-  await fs.readFile("supabase/migrations/20261112_private_scout_workspaces.sql", "utf8"),
+  (await read("supabase/migrations/20261112_private_scout_workspaces.sql")).length > 0,
   "Private scout workspace migration is missing"
 );
 
@@ -67,11 +67,11 @@ for (const [label, pattern] of [
   ["Zahlungsworkflow", /kein Zahlungsanbieter|noch keine Zahlung/i],
   ["Fehlerüberwachung", /automatische Protokollierung ist noch nicht angebunden/i]
 ]) {
-  if (pattern.test(html)) knownGaps.push(`${label} ist noch nicht vollständig integriert.`);
+  if (pattern.test(html)) knownGaps.push(\`\${label} ist noch nicht vollständig integriert.\`);
 }
 
-console.log(`PFMS smoke tests passed. ${navViews.size} navigation targets verified.`);
+console.log(\`PFMS smoke tests passed. \${navViews.size} navigation targets verified.\`);
 if (knownGaps.length) {
   console.log("\\nKnown unfinished areas (tracked, not hidden):");
-  for (const gap of knownGaps) console.log(`- ${gap}`);
+  for (const gap of knownGaps) console.log(\`- \${gap}\`);
 }
