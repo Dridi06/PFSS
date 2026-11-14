@@ -33,7 +33,8 @@ const [
   legacyTeamTrainingMigration,
   legacyTeamCalendarMigration,
   legacyTeamMatchesMigration,
-  legacyTeamTrainingExercisesMigration
+  legacyTeamTrainingExercisesMigration,
+  legacyTeamFinanceMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -64,7 +65,8 @@ const [
   read("supabase/migrations/20261123_pfms_legacy_team_training.sql"),
   read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql"),
   read("supabase/migrations/20261125_pfms_legacy_team_matches.sql"),
-  read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql")
+  read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
+  read("supabase/migrations/20261127_pfms_legacy_team_finance.sql")
 ]);
 
 const requiredFiles = [
@@ -443,6 +445,55 @@ assert.ok(
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_training_session_exercises"),
   "Training exercise tables must deny direct client writes and enforce RLS"
+);
+assert.ok(
+  legacyTeamFinanceMigration.includes("public.pfms_legacy_team_finance_entries"),
+  "Team finance ledger table is missing"
+);
+assert.ok(
+  legacyTeamFinanceMigration.includes("pfms_list_legacy_team_finance") &&
+  legacyTeamFinanceMigration.includes("pfms_get_legacy_team_finance_summary") &&
+  legacyTeamFinanceMigration.includes("pfms_create_legacy_team_finance_entry") &&
+  legacyTeamFinanceMigration.includes("pfms_void_legacy_team_finance_entry"),
+  "Team cashbox read, summary, create and void RPCs are incomplete"
+);
+assert.ok(
+  legacyTeamFinanceMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'finance', 'view')") &&
+  legacyTeamFinanceMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'finance', 'edit')"),
+  "Team cashbox RPCs must enforce finance.view and finance.edit"
+);
+assert.ok(
+  legacyTeamFinanceMigration.includes("force row level security") &&
+  legacyTeamFinanceMigration.includes("revoke all on table public.pfms_legacy_team_finance_entries") &&
+  !legacyTeamFinanceMigration.includes("grant insert on table public.pfms_legacy_team_finance_entries") &&
+  legacyTeamFinanceMigration.includes("status = 'voided'") &&
+  legacyTeamFinanceMigration.includes("void_reason"),
+  "Team cashbox must enforce RLS and preserve voided ledger history"
+);
+assert.ok(
+  html.includes('id="pfmsTeamFinancePanel"') &&
+  html.includes('id="pfmsTeamFinanceForm"') &&
+  html.includes('id="pfmsTeamFinanceList"') &&
+  html.includes('data-pfms-show-finance'),
+  "Team cashbox UI is incomplete"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamFinance") &&
+  app.includes("async function savePfmsLegacyTeamFinanceEntry") &&
+  app.includes("async function voidPfmsLegacyTeamFinanceEntry") &&
+  app.includes("data-pfms-finance-void"),
+  "Team cashbox frontend handlers are incomplete"
+);
+assert.ok(
+  app.includes("pfms_get_legacy_team_finance_summary") &&
+  app.includes("pfms_create_legacy_team_finance_entry") &&
+  app.includes("pfms_void_legacy_team_finance_entry") &&
+  app.includes("pfmsLegacyTeamFinanceEntries = []"),
+  "Team cashbox must load summary, write/void entries and clear account/team state"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_team_finance_entries'"),
+  "Read-only staging audit must inspect team finance ledger"
 );
 assert.ok(
   html.includes('id="pfmsTeamExerciseLibraryPanel"') &&
