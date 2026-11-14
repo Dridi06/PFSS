@@ -638,6 +638,20 @@ assert.ok(
   "The calendar editor must independently enforce calendar.edit before opening"
 );
 
+assert.ok(
+  /function openPfmsLegacyTeamMatchLineup\(matchId\) \{[\s\S]*?catch \(error\) \{\s*if \(requestGeneration !== pfmsAuthGeneration \|\|\s*requestUserId !== window\.pfssCurrentUserId \|\|\s*pfmsSelectedLegacyTeam\?\.team_id !== team\.team_id \|\|\s*pfmsSelectedTeamMatch\?\.match_id !== matchId\) return;/.test(app),
+  "Match lineup load errors must not overwrite another team's or match's workspace"
+);
+assert.ok(
+  /function openPfmsLegacyTrainingPlan\(sessionId\) \{[\s\S]*?catch \(error\) \{\s*if \(requestGeneration !== pfmsAuthGeneration \|\|\s*requestUserId !== window\.pfssCurrentUserId \|\|\s*pfmsSelectedLegacyTeam\?\.team_id !== teamId \|\|\s*pfmsSelectedTrainingPlanSession\?\.session_id !== sessionId\) return;/.test(app),
+  "Training plan load errors must be scoped to the active team and session"
+);
+assert.ok(
+  /function openPfmsLegacyTrainingAttendance\(sessionId\) \{[\s\S]*?catch \(error\) \{\s*if \(requestGeneration !== pfmsAuthGeneration \|\|\s*requestUserId !== window\.pfssCurrentUserId \|\|\s*pfmsSelectedLegacyTeam\?\.team_id !== team\.team_id \|\|\s*pfmsSelectedTrainingSession\?\.session_id !== sessionId\) return;/.test(app),
+  "Attendance load errors must be scoped to the active team and training session"
+);
+
+
 
 
 assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
