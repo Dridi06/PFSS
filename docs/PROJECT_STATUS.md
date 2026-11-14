@@ -23,6 +23,7 @@ Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichniss
 - GitHub-CI baut mit einem Platzhalterprojekt und greift nicht auf eine echte Supabase-Instanz zu.
 - Der Staging-Build bricht nachweislich bei fehlenden Verbindungsdaten, abweichender Projekt-ID/URL und Secret-Schlüsseln ab; diese Fälle sind automatisiert regressionsgetestet.
 - Die Edge-Function-CORS-Fallbackliste erlaubt nur lokale Entwicklungs-Origins; Staging und Produktion müssen ihre Origins explizit konfigurieren.
+- Die Signup-Trigger für Benutzernamen-Synchronisierung und das ergänzende Organisationsmodell verwenden jetzt einen leeren festen `search_path`; direkte Ausführung durch Browserrollen ist entzogen. Das Verhalten der Trigger bleibt unverändert, bis das doppelte Organisationsmodell nach dem Staging-Audit entschieden wird.
 - Der aktuelle Entwicklungsstand `a64dc07535ccaf44be77452d57e2b2708393e454` besteht beide GitHub-Actions-Jobs (Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen und Deno-Typprüfung der Edge Functions; Runs 488 und 489).
 - Render benötigt die vier Staging-Variablen im Environment des getrennten Static-Site-Dienstes. Bis diese gesetzt sind und der Build im Render-Konto erfolgreich ist, ist Staging nicht deployfähig.
 
