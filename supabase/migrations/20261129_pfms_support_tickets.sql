@@ -28,6 +28,44 @@ create index if not exists pfms_support_tickets_owner_created_idx
 create index if not exists pfms_support_tickets_status_created_idx
   on public.pfms_support_tickets(status, created_at desc);
 
+-- Limit abuse while serializing concurrent inserts per account.
+create or replace function public.pfms_enforce_support_ticket_rate_limit()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $
+declare
+  v_recent_count integer;
+begin
+  if auth.uid() is null or new.owner_id <> auth.uid() then
+    raise exception 'Authenticated ticket owner required' using errcode = '42501';
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(auth.uid()::text, 0)
+  );
+
+  select pg_catalog.count(*)::integer
+    into v_recent_count
+  from public.pfms_support_tickets
+  where owner_id = auth.uid()
+    and created_at > pg_catalog.now() - interval '24 hours';
+
+  if v_recent_count >= 10 then
+    raise exception 'Support request limit reached; try again later' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$;
+
+revoke all on function public.pfms_enforce_support_ticket_rate_limit() from public, anon, authenticated;
+drop trigger if exists pfms_support_tickets_rate_limit on public.pfms_support_tickets;
+create trigger pfms_support_tickets_rate_limit
+before insert on public.pfms_support_tickets
+for each row execute function public.pfms_enforce_support_ticket_rate_limit();
+
+
 create or replace function public.pfms_touch_support_ticket()
 returns trigger
 language plpgsql
