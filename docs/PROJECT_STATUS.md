@@ -500,3 +500,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Einlösung von Organisations-Einladungen prüft Einmaligkeit, Widerruf, Ablauf und den Status der Zielorganisation. Zeilensperren serialisieren die Einlösung gegen parallele Einlösungen und Organisationssperren.
 - Das Read-only-Staging-Abnahmeskript prüft nun zusätzlich FORCE RLS der drei Scout-Tabellen, Owner-/Spielerbindung, private Storage-Policies und den Einladungsstatus-Guard. Die Smoke-Tests sichern diese vier Prüfungen gegen versehentliche Entfernung ab.
 - Diese Änderungen sind ausschließlich im Feature-Branch vorbereitet. Noch keine Migration in Supabase ausgeführt und keine Laufzeit-/Storage-Negativtests gegen eine reale Staging-Instanz vorgenommen.
+
+
+### Aufgaben-Zuweisungen an aktuelle Organisationsmitgliedschaft gebunden – 15.11.2026
+
+- Bei der Prüfung der Vereinsmodule fiel auf: Aufgaben konnten bisher an einen aktiven Team-Personaldatensatz vergeben werden, obwohl die Organisationsmitgliedschaft des betreffenden Nutzers inzwischen entzogen, gesperrt oder in eine andere Rolle geändert worden sein konnte.
+- Neue additive Migration `20261212_pfms_legacy_team_task_assignee_membership.sql` härtet Erstellung und Änderung von Teamaufgaben. Ein Empfänger muss jetzt gleichzeitig eine aktive Teamzuordnung, eine aktive Mitgliedschaft derselben Organisation mit übereinstimmender Rolle und eine Organisation im Status `approved` oder `active` haben. Die relevanten Zeilen werden während der Prüfung gesperrt.
+- Der Read-only-Staging-Audit prüft beide RPC-Funktionsdefinitionen und ihre Rechte. Regressionstests verhindern, dass eine der beiden Prüfungen später entfernt wird.
+- Diese Änderung ist noch nicht auf eine Supabase-Datenbank angewendet. Staging muss zusätzlich mit einem zuvor aktiven und anschließend entzogenen Teammitglied testen, dass eine neue Zuweisung abgewiesen wird.
