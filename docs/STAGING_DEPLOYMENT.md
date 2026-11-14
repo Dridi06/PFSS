@@ -200,6 +200,17 @@ GitHub CI verwendet ausschließlich `PFMS_BUILD_TARGET=ci` mit einer ungültigen
 - Build/Publish-Konfiguration und Umgebungsvariablen prüfen; anschließend Login, Reload, mobile Navigation, Medien und Support im Browser testen.
 - Health-/Deploy-Logs sichern. Produktionsservice und Produktions-Branch bleiben unverändert.
 
+
+### Mandantentrennung für Teams und Organisationsmitglieder
+
+- Migration `20261211_pfms_legacy_team_membership_scope.sql` nach Backup und Prüfung der tatsächlichen Migrationshistorie anwenden.
+- `legacy_team_access_requires_active_org_membership` muss im Read-only-Abnahmeskript `passed = true` melden.
+- Positivtest: aktive Vereinsleitung und aktiver Trainer sehen ausschließlich Teams der eigenen freigegebenen/aktiven Organisation; der Trainer benötigt eine aktive Organisationsmitgliedschaft mit der Rolle `trainer`, passend zur Teamzuordnung.
+- Negativtest: Teamzugriff muss scheitern, sobald die Organisationsmitgliedschaft gesperrt/entzogen oder die Organisation nicht mehr `approved`/`active` ist. Ein weiterhin vorhandener aktiver Team-Personaldatensatz darf den Zugriff nicht aufrechterhalten.
+- Negativtest: Rollenwechsel der Organisationsmitgliedschaft ohne passende Änderung der Teamzuordnung darf keinen Trainerzugriff gewähren.
+- Negativtest: Nutzer einer zweiten Organisation dürfen weder Teams noch Kader, Trainings-, Finanz-, Veranstaltungs-, Aufgaben- oder Analyseinformationen der ersten Organisation lesen oder ändern.
+- Plattformadministratoren behalten nur den ausdrücklich implementierten globalen Verwaltungszugriff. Ergebnisse mit Testkonto, Rolle, Organisations-ID, Team-ID, Zeit und Request-/SQL-Fehler dokumentieren.
+
 ### Zusätzliche Inhaber- und Profilrechte-Abnahme
 
 Vor einer Staging-Freigabe auch die neuen Inhaber-Schutzprüfungen ausführen:
