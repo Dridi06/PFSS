@@ -1611,11 +1611,14 @@ document.getElementById('backupFileInput')
 // PFMS AUTHENTICATION – SUPABASE
 // ============================================
 
-const PFSS_SUPABASE_URL =
-  'https://nkkajhjdvfjzrvxkbokg.supabase.co';
+const PFMS_RUNTIME_CONFIG = window.PFMS_CONFIG;
 
-const PFSS_SUPABASE_KEY =
-  'sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi';
+if (!PFMS_RUNTIME_CONFIG?.supabaseUrl || !PFMS_RUNTIME_CONFIG?.supabaseKey) {
+  throw new Error('PFMS-Konfiguration fehlt. Bitte die Build-Umgebungsvariablen für das gewählte Supabase-Projekt prüfen.');
+}
+
+const PFSS_SUPABASE_URL = PFMS_RUNTIME_CONFIG.supabaseUrl;
+const PFSS_SUPABASE_KEY = PFMS_RUNTIME_CONFIG.supabaseKey;
 
 const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_URL,
