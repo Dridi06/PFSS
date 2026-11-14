@@ -1464,3 +1464,20 @@ button,input,select,textarea{max-width:100%}
   .pfms-event-form-actions .btn,.pfms-team-event-actions .btn{width:100%}
   .pfms-team-event-card{padding:13px}
 }
+
+
+/* PFMS team event RSVP and attendance list */
+.pfms-event-participants{display:grid;gap:9px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.pfms-event-participants>b{font-size:12px;color:#dec38a}
+.pfms-event-participant-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,190px) auto;align-items:center;gap:9px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.025)}
+.pfms-event-participant-name{font-size:12px;color:#eee;overflow-wrap:anywhere}
+.pfms-event-participant-row select{min-width:0;margin:0}
+.pfms-event-participant-add{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;padding-top:5px}
+.pfms-event-participant-add .field{min-width:0;margin:0}
+.pfms-event-participant-add .btn{white-space:nowrap}
+@media(max-width:640px){
+  .pfms-event-participant-row{grid-template-columns:minmax(0,1fr);gap:7px}
+  .pfms-event-participant-row .pfms-inline-action{text-align:left;justify-self:start}
+  .pfms-event-participant-add{grid-template-columns:1fr}
+  .pfms-event-participant-add .btn{width:100%}
+}
