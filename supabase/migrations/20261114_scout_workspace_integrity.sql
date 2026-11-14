@@ -89,10 +89,5 @@ with check (
   and storage_path ~ ('^' || auth.uid()::text || '/[^/]+$')
 );
 
--- Existing rows are deliberately not rewritten. The read-only staging audit and
--- a backup must be reviewed before applying this migration to any database.
-)
-);
-
--- Existing rows are deliberately not rewritten. The read-only staging audit and
--- a backup must be reviewed before applying this migration to any database.
+-- Existing rows are deliberately not rewritten.
+-- Review the read-only staging audit and take a backup before applying this migration.
