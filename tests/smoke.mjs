@@ -370,6 +370,14 @@ assert.match(app, /window\.PFMS_CONFIG/, "Frontend must read generated environme
 assert.ok(!app.includes("nkkajhjdvfjzrvxkbokg") && !app.includes("sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi"), "Frontend must not hard-code a Supabase project URL or key");
 assert.ok(html.indexOf('src="pfms-config.js"') < html.indexOf('src="app.js'), "Generated Supabase config must load before the application");
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
+assert.ok(app.includes("function resetPfmsAuthenticatedState()") && app.includes("window.pfmsResetScoutWorkspace?.()"), "Account changes must clear private workspace state");
+assert.ok(app.includes("pfmsMainMediaRequestId") && app.includes("pfmsMainMediaOwnerId"), "Main media cache must be isolated across accounts");
+assert.ok(
+  (app.match(/const isCurrentRequest = \(\) => requestGeneration === pfmsAuthGeneration/g) || []).length >= 4,
+  "Player and scouting mutations must ignore stale responses after account changes"
+);
+assert.ok(scout.includes("state.generation") && scout.includes("window.pfmsResetScoutWorkspace"), "Scout workspace must invalidate stale requests on account changes");
+
 assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
 assert.match(app, /finishAuthentication\(\);/, "Authentication must complete after the reload path");
 assert.match(app, /async function showAuthenticatedApp\(user, profile\)/, "Authenticated app initialization must wait for cloud data");
