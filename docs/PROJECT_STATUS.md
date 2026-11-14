@@ -67,6 +67,14 @@ Vorhandene Migrationen betreffen:
 | Render | Service-Konfiguration nicht verifiziert | Service-Typ prüfen, Test-Build, Health-Check und Browser-Test |
 | Qualitätssicherung | `npm test`, GitHub Actions, Deno-Typprüfung aller drei Edge Functions sowie statische Checks für Owner, Mitglieder, Scout und Fehlertelemetrie | Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
 
+## 3a. Umgesetzter Team-Betrieb
+
+- **Kader:** Globale Spieler können einer Legacy-Mannschaft zugeordnet werden; Rückennummer, Positionsabweichung und Kaderstatus werden getrennt pro Team gespeichert.
+- **Training:** Termine mit Titel, Datum, Beginn/Ende, Ort, Schwerpunkt und Notizen können durch Benutzer mit `training.edit` angelegt werden. Berechtigte Trainer können geplante Einheiten abschließen oder absagen.
+- **Anwesenheit:** Für jede Einheit wird eine Liste der Kaderspieler angezeigt. Mit `attendance.edit` lassen sich Status (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) und Notiz pro Spieler speichern. Die Datenbank blockiert Zuordnungen zu einer anderen Mannschaft.
+- **Zugriff:** `training.view/edit` und `attendance.view/edit` sind getrennte Module. Tabellen sind nicht direkt für Browser-Schreibzugriffe freigegeben; Änderungen laufen über berechtigungsgeprüfte RPCs.
+- **Noch nicht umgesetzt:** Mannschaftskalender, Spiele, Spieltagskader, Aufstellungen und Taktik-/Spielanalyse.
+
 ## 4. Kritische Architekturentscheidung: Organisationsmodell
 
 Die vorhandenen Migrationen belegen zwei parallele Datenmodelle:
