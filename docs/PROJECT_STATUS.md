@@ -54,7 +54,7 @@ Vorhandene Migrationen betreffen:
 | Privater Scout-Bereich | Private Supabase-CRUDs und Storage; globale Spielersuche mit Übernahme in private Scout-Datenbank vorbereitet | Migrationen in Staging anwenden; Suche, Übernahme, CRUD-, RLS- und Storage-Tests verwenden |
 | Vereine und Agenturen | Teile der Oberfläche und Admin-RPCs vorhanden | Besitzer-/Leitungsworkflows, Datenpflege, Einladungen und Mitgliedschaften vervollständigen |
 | Mannschaften und Staff | Legacy-Teamtabellen mit RLS; Teams und Trainerteam; global verknüpfter Kader; acht getrennte Modulrechte; Trainingstermine und spielerbezogene Anwesenheit mit serverseitigen Rechteprüfungen | Team-, Rechte-, Kader-, Trainings- und Anwesenheitsmigrationen in Staging anwenden; positive/negative Zugriffstests je Rolle abnehmen |
-| Trainer-/Team-Workspace | Teamübersicht, Trainerteam, granularer Rechte-Editor, global verknüpfter Kader, Trainingstermine und Anwesenheit pro Einheit implementiert; Übungssammlung/Trainingszyklen, Kalender, Spiele/Aufstellungen, Mannschaftskasse und Events bleiben offen | Staging-Migrationen anwenden; Team/Kader/Training/Anwesenheit je Rolle Ende-zu-Ende abnehmen; danach Übungen und Spielbetrieb ergänzen |
+| Trainer-/Team-Workspace | Teamübersicht, Trainerteam, granularer Rechte-Editor, global verknüpfter Kader, Training/Anwesenheit und Mannschaftskalender mit eigener `calendar.view/edit`-Berechtigung implementiert | Staging-Migrationen anwenden; Team/Kader/Training/Anwesenheit/Kalender je Rolle Ende-zu-Ende abnehmen; danach Übungen/Trainingszyklen, Spiele/Aufstellungen, Mannschaftskasse und Events ergänzen |
 | Vereinsmitgliedschaften | Einmalige Einladungslinks für verwaltbare Legacy-Organisationen; Rollen Scout/Trainer/Co-Trainer/Betreuer/Mitglied und Laufzeit 1–30 Tage; Codes werden nur gehasht gespeichert | Staging-Migrationen anwenden; Einladung erzeugen, Link öffnen, Registrierung mit E-Mail-Bestätigung und einmalige Einlösung/Nichtwiederverwendung Ende-zu-Ende testen; Beitrags- und Austrittsabläufe sind offen |
 | Vereins-Scouting | Oberfläche/Übersicht | Scout-Zuordnung, Beobachtungsgebiete, Berichtsfreigaben |
 | Plattforminhaber | Einmaliger Owner-Claim und Aktivierungsoberfläche im Entwicklungszweig vorbereitet | Staging-Migration/Secret/Edge-Function deployen; bestätigte E-Mail, korrekter Owner, Zweitclaim-Sperre und Negativtests abnehmen |
@@ -74,6 +74,10 @@ Vorhandene Migrationen betreffen:
 - **Anwesenheit:** Für jede Einheit wird eine Liste der Kaderspieler angezeigt. Mit `attendance.edit` lassen sich Status (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) und Notiz pro Spieler speichern. Die Datenbank blockiert Zuordnungen zu einer anderen Mannschaft.
 - **Zugriff:** `training.view/edit` und `attendance.view/edit` sind getrennte Module. Tabellen sind nicht direkt für Browser-Schreibzugriffe freigegeben; Änderungen laufen über berechtigungsgeprüfte RPCs.
 - **Noch nicht umgesetzt:** Mannschaftskalender, Spiele, Spieltagskader, Aufstellungen und Taktik-/Spielanalyse.
+
+### Teamkalender
+
+Der Mannschaftskalender verwendet `pfms_legacy_team_calendar_events` mit getrennten Terminarten (Spiel, Besprechung, Turnier, Veranstaltung, Sonstiges), Datum, Uhrzeit, Ort, Notizen und Status. Lesen und Ändern sind ausschließlich über `calendar.view` bzw. `calendar.edit` freigegeben; Browser-Schreibzugriffe auf die Tabelle bleiben gesperrt. Die Migration `20261124_pfms_legacy_team_calendar.sql` muss noch in Staging angewendet und mit verschiedenen Rollen getestet werden.
 
 ## 4. Kritische Architekturentscheidung: Organisationsmodell
 
