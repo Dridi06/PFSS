@@ -30,13 +30,21 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Invalid credentials" }, 413);
     }
 
-    const payload = JSON.parse(rawBody);
+    let payload: unknown;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      return json({ error: "Invalid credentials" }, 400);
+    }
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
       return json({ error: "Invalid credentials" }, 400);
     }
     const { username, password } = payload as Record<string, unknown>;
-    const normalizedUsername = String(username ?? "").trim();
-    const suppliedPassword = String(password ?? "");
+    if (typeof username !== "string" || typeof password !== "string") {
+      return json({ error: "Invalid credentials" }, 400);
+    }
+    const normalizedUsername = username.trim();
+    const suppliedPassword = password;
 
     if (!/^[A-Za-z0-9_.-]{3,20}$/.test(normalizedUsername) ||
         suppliedPassword.length < 1 || suppliedPassword.length > 1024) {
