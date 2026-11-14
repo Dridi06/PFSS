@@ -165,6 +165,79 @@ with checks as (
           and p.with_check ilike '%recipient_id = auth.uid()%'
       ),
     'SELECT und UPDATE nur für den eigenen recipient_id erwartet'
+
+  union all
+  select
+    'global_player_catalogue_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_global_players')
+    ), false),
+    coalesce((
+      select 'RLS=' || c.relrowsecurity || ', FORCE=' || c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_global_players')
+    ), 'Globaler Spielerkatalog fehlt')
+
+  union all
+  select
+    'main_scouting_reports_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_main_scouting_reports')
+    ), false),
+    coalesce((
+      select 'RLS=' || c.relrowsecurity || ', FORCE=' || c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_main_scouting_reports')
+    ), 'Haupt-Scoutingberichte fehlen')
+
+  union all
+  select
+    'main_media_owner_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_main_media')
+    ), false)
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_main_media'
+          and p.policyname = 'pfms_main_media_select_own'
+          and p.qual ilike '%owner_id = auth.uid()%'
+      ),
+    'Private Hauptmedien benötigen FORCE RLS und eine Owner-only SELECT-Policy'
+
+  union all
+  select
+    'scout_global_player_copy_link',
+    exists (
+      select 1 from pg_catalog.pg_attribute a
+      where a.attrelid = pg_catalog.to_regclass('public.pfss_scout_players')
+        and a.attname = 'source_global_player_id'
+        and not a.attisdropped
+    )
+      and exists (
+        select 1 from pg_catalog.pg_indexes i
+        where i.schemaname = 'public'
+          and i.tablename = 'pfss_scout_players'
+          and i.indexname = 'pfss_scout_players_owner_global_source_uidx'
+      ),
+    'Private Scout-Kopien müssen ihre globale Quelle verknüpfen und Duplikate pro Scout verhindern'
+
+  union all
+  select
+    'legacy_catalogue_import_rpc',
+    coalesce(
+      pg_catalog.to_regprocedure('public.pfms_import_legacy_catalogue(jsonb,jsonb)') is not null
+        and pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_import_legacy_catalogue(jsonb,jsonb)'), 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', pg_catalog.to_regprocedure('public.pfms_import_legacy_catalogue(jsonb,jsonb)'), 'EXECUTE'),
+      false
+    ),
+    'Legacy-Import-RPC muss authenticated aufrufen können; Adminprüfung erfolgt innerhalb der transaktionalen Funktion'
 )
 select check_name, passed, details
 from checks
