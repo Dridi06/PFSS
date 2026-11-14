@@ -758,22 +758,15 @@
       </section>
 
       <section class="view" id="view-teams">
-        <div class="page-heading"><div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Von Herren bis Minis: Der Verein legt seine Mannschaften und deren Anzahl selbst fest.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mannschaftskonfiguration">＋ Mannschaft anlegen</button></div>
-        <div class="notice"><span>ⓘ</span><p><b>Vereinskonfiguration:</b> Die Anzahl und Bezeichnungen der Mannschaften werden vom Vorstand festgelegt und nach der Registrierung eingerichtet. Jede Mannschaft erhält dieselbe Grundstruktur.</p></div>
-        <div class="team-category-grid">
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>1. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>2. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>3. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Seniorinnen</h3><p>Frauen · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">A1</span><h3>A1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">A2</span><h3>A2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">B1</span><h3>B1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">B2</span><h3>B2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">♙</span><h3>Minis</h3><p>Nachwuchs · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card module-wide"><div class="eyebrow">EINHEITLICHER MANNSCHAFTSBEREICH</div><h3>Jede Mannschaft erhält dieselbe Grundstruktur</h3><p>Beim Öffnen einer Mannschaft erscheint ein eigenes Dashboard mit Trainer, Co-Trainer, Betreuer, Spielerkader und weiteren Modulen.</p><div class="permission-preview"><span>Trainerteam <b>Zuordnen</b></span><span>Spielerkader <b>Verwalten</b></span><span>Training & Spiele <b>Organisieren</b></span><span>Weitere Funktionen <b>Konfigurierbar</b></span></div></article>
-        </div>
-      </section>
-
+  <div class="page-heading">
+    <div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Konfiguriere die Mannschaften deines Vereins und ordne Trainerteams zu.</p></div>
+    <button class="btn btn-primary" id="pfmsAddTeamButton" type="button" hidden>＋ Mannschaft anlegen</button>
+  </div>
+  <div class="notice"><span>ⓘ</span><p><b>Vereinsstruktur:</b> Mannschaften gehören immer zu einem konkreten Verein und einer Saison. Trainer, Co-Trainer und Betreuer können nur aus aktiven Mitgliedern dieser Organisation zugewiesen werden.</p></div>
+  <p id="pfmsTeamsMessage" class="admin-message" role="status" aria-live="polite">Mannschaften werden geladen …</p>
+  <div id="pfmsTeamGrid" class="team-category-grid"></div>
+</section>
+      
       <section class="view" id="view-staff">
         <div class="page-heading"><div><div class="eyebrow">TEAMORGANISATION</div><h1>Trainer & Betreuer</h1><p>Trainer, Co-Trainer und Betreuer mit getrennten Bereichsrechten.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitarbeiter">＋ Person zuordnen</button></div>
         <div class="module-grid">
@@ -806,29 +799,26 @@
       </section>
 
       <section class="view" id="view-team-workspace">
-        <div class="page-heading">
-          <div>
-            <div class="eyebrow">MANNSCHAFTSBEREICH · TRAINER / CO-TRAINER / BETREUER</div>
-            <h1>Meine Mannschaft</h1>
-            <p>Alle organisatorischen und sportlichen Aufgaben rund um das eigene Team – als geplante Modulübersicht.</p>
-          </div>
-        </div>
-        <div class="team-workspace-note">
-          <b>Persönlicher Mannschaftsbereich</b>
-          <span>Später sieht jede berechtigte Person hier ausschließlich die ihr zugewiesene Mannschaft.</span>
-        </div>
-        <div class="module-grid team-module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Spielerprofile, Positionen, Jahrgänge, Kontaktdaten und Mannschaftszugehörigkeit.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung, Schwerpunkte und Trainingsinhalte.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit, Fehlzeiten und Trainingsbeteiligung.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">€</span><div class="eyebrow">FINANZEN</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben, Beiträge, Zahlungsübersicht und nachvollziehbare Kassenbewegungen.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">⌂</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Trainingslager</h3><p>Teilnehmer, Unterkünfte, Kosten, Anreise, Einverständnisse und Ablaufplanung.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere, Veranstaltungen und Erinnerungen.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung, Auswechslungen und Ergebnisse.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card module-feature"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse, Videoauswertung und individuelle Entwicklung.</p><span class="module-status">Geplant</span></article>
-        </div>
-      </section>
-
+  <div class="page-heading">
+    <div><div class="eyebrow">MANNSCHAFTSBEREICH · TRAINER / CO-TRAINER / BETREUER</div><h1>Meine Mannschaften</h1><p>Die Mannschaften, denen du aktuell zugeordnet bist.</p></div>
+  </div>
+  <div class="team-workspace-note"><b>Persönlicher Mannschaftsbereich</b><span>Du siehst ausschließlich Mannschaften, für die du eine aktive Teamzuordnung oder entsprechende Vereinsrechte besitzt.</span></div>
+  <p id="pfmsMyTeamsMessage" class="admin-message" role="status" aria-live="polite">Deine Mannschaften werden geladen …</p>
+  <div id="pfmsMyTeamsGrid" class="team-category-grid"></div>
+  <section class="panel" id="pfmsSelectedTeamPanel" hidden>
+    <div class="panel-heading"><div><div class="eyebrow">MANNSCHAFT</div><h2 id="pfmsSelectedTeamTitle"></h2><p id="pfmsSelectedTeamMeta"></p></div><button class="btn btn-secondary" type="button" id="pfmsCloseSelectedTeam">Schließen</button></div>
+    <div id="pfmsSelectedTeamStaff" class="admin-user-list"></div>
+  </section>
+  <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
+    <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Spielerprofile, Positionen, Jahrgänge, Kontaktdaten und Mannschaftszugehörigkeit.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung und Trainingsinhalte.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere und Veranstaltungen.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+  </div>
+</section>
+      
       <section class="view" id="view-reports">
         <div class="page-heading">
           <div>
@@ -998,7 +988,35 @@
         </div>
       </section>
 
-      <footer class="footer"><span>© 2026 PFMS · Professionell Football Management System</span><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav></footer>
+      <dialog id="pfmsTeamDialog" class="modal">
+  <form id="pfmsTeamForm" method="dialog">
+    <div class="modal-head"><div><div class="eyebrow">MANNSCHAFTSKONFIGURATION</div><h2 id="pfmsTeamDialogTitle">Mannschaft anlegen</h2></div><button type="button" class="close-button" data-close="pfmsTeamDialog">×</button></div>
+    <div class="form-grid">
+      <label class="field full">Verein<select name="organization_id" id="pfmsTeamOrganization" required></select></label>
+      <label class="field full">Mannschaftsname<input name="team_name" maxlength="100" placeholder="z. B. 1. Herren" required></label>
+      <label class="field">Altersbereich<select name="age_group" required><option>Herren</option><option>Frauen</option><option>Senioren</option><option>U19</option><option>U18</option><option>U17</option><option>U16</option><option>U15</option><option>U14</option><option>U13</option><option>U12</option><option>U11</option><option>U10</option><option>U9</option><option>U8</option><option>U7</option><option>Minis</option><option>Sonstige</option></select></label>
+      <label class="field">Geschlecht<select name="gender" required><option>Herren</option><option>Frauen</option><option>Gemischt</option></select></label>
+      <label class="field">Saison<input name="season" maxlength="20" placeholder="2026/2027" required></label>
+      <label class="field">Liga / Staffel<input name="division" maxlength="100" placeholder="Optional"></label>
+      <label class="field" id="pfmsTeamStatusField" hidden>Status<select name="status"><option value="active">Aktiv</option><option value="archived">Archiviert</option></select></label>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="pfmsTeamDialog">Abbrechen</button><button class="btn btn-primary" type="submit" id="pfmsTeamSaveButton">Mannschaft speichern</button></div>
+    <p id="pfmsTeamFormMessage" class="admin-message" role="status" aria-live="polite"></p>
+  </form>
+</dialog>
+<dialog id="pfmsTeamStaffDialog" class="modal">
+  <form id="pfmsTeamStaffForm" method="dialog">
+    <div class="modal-head"><div><div class="eyebrow">TRAINERTEAM</div><h2 id="pfmsTeamStaffTitle">Trainer zuordnen</h2></div><button type="button" class="close-button" data-close="pfmsTeamStaffDialog">×</button></div>
+    <p class="admin-message" id="pfmsTeamStaffMessage" role="status" aria-live="polite"></p>
+    <div class="form-grid">
+      <label class="field full">Aktives Vereinsmitglied<select id="pfmsTeamStaffCandidate" name="user_id" required></select></label>
+      <p class="field full">Die Rolle wird aus der aktiven Mitgliedschaft im Verein übernommen. Es können nur Trainer, Co-Trainer und Betreuer zugewiesen werden.</p>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="pfmsTeamStaffDialog">Schließen</button><button class="btn btn-primary" type="submit" id="pfmsTeamStaffSaveButton">Person zuordnen</button></div>
+    <h3>Aktuelle Zuordnungen</h3><div id="pfmsTeamStaffList" class="admin-user-list"></div>
+  </form>
+</dialog>
+<footer class="footer"><span>© 2026 PFMS · Professionell Football Management System</span><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav></footer>
     </main>
   </div>
 
