@@ -110,6 +110,7 @@ const requiredFiles = [
   "tests/build-config-smoke.mjs",
   "tests/accessibility-smoke.mjs",
   "tests/migration-syntax-smoke.mjs",
+  "tests/function-grants-smoke.mjs",
   "supabase/STAGING_READ_ONLY_AUDIT.sql",
   "supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql",
   "supabase/migrations/20261116_pfms_owner_bootstrap_registration_guard.sql",
