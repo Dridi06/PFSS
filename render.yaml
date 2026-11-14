@@ -3,9 +3,18 @@ services:
     name: pfms-staging-static
     runtime: static
     branch: feature/pfss-complete-platform-build
-    buildCommand: npm test
+    buildCommand: npm run check:syntax && npm run build && npm run test:dist
     staticPublishPath: ./dist
     autoDeployTrigger: checksPass
+    envVars:
+      - key: PFMS_BUILD_TARGET
+        value: staging
+      - key: PFMS_STAGING_PROJECT_REF
+        sync: false
+      - key: PFSS_SUPABASE_URL
+        sync: false
+      - key: PFSS_SUPABASE_KEY
+        sync: false
     headers:
       - path: /*
         name: Content-Security-Policy
