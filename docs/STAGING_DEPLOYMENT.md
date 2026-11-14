@@ -65,32 +65,51 @@ Ergebnisse sichern und insbesondere prüfen:
 - Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
 
 ## 5. Funktionale Abnahme
-**Fahrtplan-Abnahme (Migration `20261205_pfms_legacy_team_event_travel_plans.sql`):** Mit `events.view` muss ein Teamkonto die Fahrtpläne seiner eigenen Mannschaft lesen können; ohne dieses Recht muss der RPC scheitern. Mit `events.edit` einen Plan für eine Veranstaltung speichern, ändern und löschen. Ohne `events.edit` müssen Save/Delete scheitern. Ein Verweis auf eine andere Mannschaft oder einen Kalendereintrag vom Typ Spiel/Besprechung muss scheitern. Zeitvalidierung mit Treffzeit nach Abfahrt, Ankunft vor Abfahrt und Rückfahrt vor Ankunft negativ testen. Sitzplatzlimit ist 1–80; Gesamtkosten dürfen 0–100.000 € betragen. Die Felder Treffpunkt und Transportart kommen weiterhin aus der gemeinsamen Event-Logistik und dürfen nicht als zweiter Datensatz dupliziert werden.
 
-**Detaillierter Fahrtplan (Migration `20261205_pfms_legacy_team_event_travel_plans.sql`):** Ein `events.view`-Konto darf Fahrtpläne nur für seine eigenen Mannschaftsveranstaltungen lesen. Mit `events.edit` lassen sich Abfahrtsort, Ziel, Treffzeit, Abfahrt, Ankunft, Rückfahrt, Transportanbieter, Fahrzeug, Sitzplatzkapazität, geschätzte Gesamtkosten und Hinweise speichern oder löschen. `events.edit`-Zugriffe auf Spiele/Besprechungen, Events anderer Mannschaften und direkte Tabellen-Schreibversuche müssen scheitern. Zeitfolge prüfen: Treffzeit darf nicht nach Abfahrt, Ankunft nicht vor Abfahrt und Rückfahrt nicht vor Ankunft liegen. Der allgemeine Treffpunkt und die Transportart bleiben in der gemeinsamen Event-Logistik gespeichert; der Fahrtplan dupliziert diese Felder nicht.
+Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
 
-**Teilnahmelisten (Migration `20261204_pfms_legacy_team_event_participants.sql`):** Ein `events.view`-Konto darf Teilnehmer und den dafür nötigen reduzierten Kader-Datensatz nur für die eigene Mannschaft lesen. Mit `events.edit` dürfen Spieler des eigenen Kaders einer Veranstaltung zugeordnet und die Stati Eingeladen/Zugesagt/Abgesagt/Anwesend/Nicht erschienen gepflegt oder entfernt werden. Ein teamfremder Kader-Spieler, eine teamfremde Veranstaltung und direkte INSERT/UPDATE/DELETE-Aufrufe auf der Teilnehmer-Tabelle müssen scheitern. Ein Nutzer ohne `events.view` darf weder Teilnehmer noch Kaderoptionen abrufen.
+### Training und Trainingszyklen
+- Mit `training.view` Trainingszyklen, Wochen, Übungen und Einheitenpläne der eigenen Mannschaft lesen; ohne dieses Recht muss der Lese-RPC scheitern.
+- Mit `training.edit` einen Zyklus über maximal 364 Tage anlegen. Die Wochen müssen ohne Lücken erzeugt und im Zykluszeitraum gehalten werden. Wochenziele, Schwerpunkt, Trainerhinweise und Belastungsstufe 1–5 speichern und wieder laden.
+- Eine Einheit nur einer Woche derselben Mannschaft und nur dann zuordnen, wenn ihr Datum innerhalb der Woche liegt. Fremde Team-IDs, falsche Wochenzeiträume und fehlende Bearbeitungsrechte müssen serverseitig abgewiesen werden.
+- Mit `attendance.view/edit` Anwesenheit getrennt von `training.view/edit` prüfen. Teamfremde Kaderzuordnungen müssen scheitern.
 
-**Eventrechte (Migration `20261203_pfms_legacy_team_events.sql`):** Mit einem `events.view`-Konto muss die Eventliste Turniere/Veranstaltungen zeigen, aber Spiele und Besprechungen verbergen. Ein Konto ohne `events.view` darf die Liste nicht laden. Ohne `events.edit` müssen Anlegen, Bearbeiten und Löschen serverseitig abgewiesen werden. Versuche außerdem, per RPC einen teamfremden Eintrag zu ändern oder einen Kalendereintrag vom Typ `match`/`meeting` über die Event-RPCs zu verändern/löschen; beides muss scheitern. Ein `calendar.view`-Konto darf weiterhin den vollständigen Kalender sehen.
- mit getrennten Testkonten
+### Taktik- und Videoanalyse
+- Mit `analysis.view` nur Analysen der eigenen Mannschaft lesen; ohne Leserecht muss der RPC scheitern.
+- Mit `analysis.edit` taktische Auswertungen und Videoanalysen anlegen, bearbeiten und löschen. Spielbezug darf nur auf ein Spiel derselben Mannschaft zeigen.
+- Videoanalyse erfordert eine HTTPS-Quelle mit gültigem Host. HTTP, leere Hosts und URLs mit eingebetteten Zugangsdaten müssen abgewiesen werden. Zeitmarken müssen zwischen 0 und 86.400 Sekunden liegen.
+- Ohne `analysis.edit` müssen Speichern, Bearbeiten und Löschen serverseitig scheitern. Wechsel zu einer anderen Mannschaft oder einem anderen Konto darf keine zuvor angezeigten Analyseinhalte im UI zurücklassen.
 
-Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer/Co-Trainer/Betreuer und normales Mitglied. Keine Produktivkonten verwenden.
+### Spiele, Kalender und Veranstaltungen
+- `matches.view/edit` und `calendar.view/edit` getrennt testen. Spiele, Ergebnisse, Aufstellungen und Mannschaftskalender dürfen nur im jeweiligen Berechtigungsbereich gelesen oder geändert werden.
+- Mit `events.view` nur Turniere und allgemeine Veranstaltungen der eigenen Mannschaft sehen; Spiele und Besprechungen müssen verborgen bleiben. `calendar.view` muss weiterhin den vollständigen Mannschaftskalender abdecken.
+- Mit `events.edit` Veranstaltungen anlegen, bearbeiten und löschen. Ohne dieses Recht müssen alle Änderungen serverseitig scheitern.
+- Teilnehmerlisten dürfen nur Kaderspieler derselben Mannschaft enthalten. RSVP-Status `invited/confirmed/declined/attended/absent` testen. Teamfremde Spieler, teamfremde Veranstaltungen und direkte Tabellen-Schreibversuche müssen abgewiesen werden.
+- Anmeldeschluss, Treffpunkt, Transportart, Kosten und Kapazität prüfen. Das Kapazitätslimit darf weder beim Hinzufügen noch beim RSVP-Statuswechsel überschritten werden.
 
+### Veranstaltungsfahrtplan
+- Mit `events.view` nur Fahrtpläne der eigenen Mannschaft lesen; ohne Leserecht muss der RPC scheitern.
+- Mit `events.edit` Abfahrtsort, Ziel, Treffzeit, Abfahrt, Ankunft, Rückfahrt, Anbieter, Fahrzeug, Sitzplätze, Gesamtkosten und Hinweise speichern und löschen.
+- Treffzeit darf nicht nach Abfahrt, Ankunft nicht vor Abfahrt und Rückfahrt nicht vor Ankunft liegen. Sitzplatzlimit 1–80 und Gesamtkosten 0–100.000 € prüfen.
+- Die Fahrzeugkapazität darf nicht unter die bereits aktiven Einladungen/Zusagen/Teilnahmen fallen. Diese Grenze muss auch bei RSVP-Statuswechseln unter Event-Zeilensperre gelten.
+- Ein Verweis auf ein anderes Team oder einen Kalendereintrag vom Typ Spiel/Besprechung muss scheitern. Treffpunkt und Transportart bleiben in der gemeinsamen Event-Logistik und dürfen nicht dupliziert werden.
+
+### Gesamt-Abnahme
 | Bereich | Positivtest | Negativtest |
 |---|---|---|
-| Authentifizierung | Reload erhält die Sitzung; Passwort-Wiederherstellung | nicht freigegebenes Konto erreicht keinen Workspace |
-| Owner-Bootstrap | genau ein vorgesehener Owner kann den Claim abschließen | zweiter Claim und falsches Geheimnis werden abgewiesen |
-| Organisationen | berechtigte Leitung sieht nur verwaltbare Organisationen | fremde Organisation kann nicht gelesen oder geändert werden |
-| Mitglieder/Einladungen | aktiver Verein: gültiger Einmal-Link wird einmal eingelöst | Verein nach Ausstellung sperren: Einlösung muss scheitern; abgelaufener oder wiederverwendeter Link wird ebenfalls abgewiesen |
-| Globaler Spielerkatalog | freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
+| Authentifizierung | Reload erhält Sitzung; Passwort-Wiederherstellung funktioniert | Nicht freigegebenes Konto erreicht keinen Workspace |
+| Owner-Bootstrap | Genau ein vorgesehener Owner kann den Claim abschließen | Zweiter Claim und falsches Geheimnis werden abgewiesen |
+| Organisationen | Leitung sieht und verwaltet nur eigene Organisationen | Fremde Organisation kann nicht gelesen oder geändert werden |
+| Mitglieder/Einladungen | Gültiger Einmal-Link wird einmal eingelöst | Gesperrte Organisation, abgelaufener oder wiederverwendeter Link wird abgewiesen |
+| Globaler Spielerkatalog | Freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
 | Scout-Arbeitsbereich | Scout verwaltet eigene Spieler, Berichte und Medien | Scout A kann keine privaten Daten von Scout B lesen |
-| Hauptmedien | Upload, signierter Abruf und Löschen | fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
-| Mannschaften | Rollenrechte für Kader, Training, Anwesenheit, Kalender, Spiele, Finanzen, Analyse und Events; Trainingszyklen mit automatisch erzeugten Wochen und Belastungsstufen; Taktik-/Videoanalyse mit Spielbezug und Zeitmarke; getrennte Eventansicht auf gemeinsamer Kalenderdatenbasis | Ohne `training.edit` keine Zyklus-/Wochenänderungen; ohne `analysis.edit` keine Analyseänderungen; ohne `events.view` keine Eventliste; `events.view` zeigt nur Turniere/Events, nicht Spiel- oder Besprechungstermine; ohne `events.edit` schlagen Anlegen/Bearbeiten/Löschen und Teilnehmerverwaltung fehl; Kader-Spieler dürfen nur der Veranstaltung desselben Teams zugeordnet werden; RSVP-Status `invited/confirmed/declined/attended/absent` muss speicherbar sein; Treffpunkt, Anmeldeschluss, Transportart, Kosten und Kapazität müssen lesbar/speicherbar sein; Kapazitätslimit darf weder beim Hinzufügen noch beim Statuswechsel überschritten werden; `calendar.view` und `events.view` müssen unabhängig geprüft werden; teamfremde Spiele/Events werden serverseitig abgewiesen; Videoanalyse ohne HTTPS-Quelle scheitert |; Fahrtplan muss Abfahrtsort, Ziel, Treffzeit, Abfahrt, Ankunft, Rückfahrt, Anbieter, Fahrzeug, Sitzplätze und Gesamtkosten speichern; Sitzplatzlimit darf nicht unter die bereits aktiven Anmeldungen fallen und muss auch beim Hinzufügen oder Statuswechsel serverseitig geprüft werden; Fahrtplan ist für andere Teams und ohne `events.edit` nicht änderbar
-| Persönliche Aufgaben | Anlegen, Statuswechsel, Löschen | fremdes Konto sieht keine Aufgaben |
+| Hauptmedien | Upload, signierter Abruf und Löschen | Fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
+| Mannschaftskasse | Buchung, Kassenstand und begründete Stornierung | Ohne `finance.edit` keine Änderungen; Originalbuchungen bleiben erhalten |
+| Persönliche Aufgaben | Anlegen, Statuswechsel und Löschen | Fremdes Konto sieht keine Aufgaben |
 | Support | Nutzer erstellt Ticket und sieht eigene Antwort | Nutzer sieht keine fremden Tickets; nur Admin antwortet |
 | Backup | R2-Backup und isolierter Restore | Restore überschreibt niemals Produktionsdaten |
 
-Jeden Test mit Konto, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler dokumentieren.
+Jeden Test mit Testkonto/Rolle, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler dokumentieren. Vor der Abnahme keine Migration als angewendet markieren, solange die tatsächliche Staging-Historie und der Dry-Run nicht geprüft wurden.
 
 ## 6. Frontend und Render-Staging
 
