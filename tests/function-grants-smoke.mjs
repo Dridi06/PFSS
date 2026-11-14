@@ -608,7 +608,7 @@ const scoutIsolation = (
 ).replace(/\s+/g, " ").toLowerCase();
 assert.match(scoutIsolation, /alter table public\.pfss_scout_media force row level security/);
 assert.match(scoutIsolation, /owner_id = auth\.uid\(\)/);
-assert.match(scoutIsolation, /split_part\(storage_path, '/', 1\) = auth\.uid\(\)::text/);
+assert.match(scoutIsolation, /split_part\(storage_path, '\/', 1\) = auth\.uid\(\)::text/);
 assert.match(scoutIsolation, /p\.owner_id = auth\.uid\(\)/);
 
 // Privileged R2 connectivity checks require both a verified JWT and server-side admin status.
