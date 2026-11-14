@@ -302,6 +302,7 @@
 
     try {
       const { error } = await supabase().from(TABLES.players).insert({
+        owner_id: requestUserId,
         source_global_player_id: player.id,
         name: player.name,
         surname: player.surname || null,
@@ -425,9 +426,9 @@
     try {
       const client = supabase();
       const [playersResult, reportsResult, mediaResult] = await Promise.all([
-        client.from(TABLES.players).select('*').order('updated_at', { ascending: false }),
-        client.from(TABLES.reports).select('*').order('observation_date', { ascending: false }),
-        client.from(TABLES.media).select('*').order('created_at', { ascending: false })
+        client.from(TABLES.players).select('*').eq('owner_id', requestUserId).order('updated_at', { ascending: false }),
+        client.from(TABLES.reports).select('*').eq('owner_id', requestUserId).order('observation_date', { ascending: false }),
+        client.from(TABLES.media).select('*').eq('owner_id', requestUserId).order('created_at', { ascending: false })
       ]);
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       const firstError = playersResult.error || reportsResult.error || mediaResult.error;
@@ -556,8 +557,8 @@
     try {
       const client = supabase();
       const result = state.editingPlayerId
-        ? await client.from(TABLES.players).update(data).eq('id', state.editingPlayerId).select().single()
-        : await client.from(TABLES.players).insert(data).select().single();
+        ? await client.from(TABLES.players).update(data).eq('id', state.editingPlayerId).eq('owner_id', requestUserId).select().single()
+        : await client.from(TABLES.players).insert({ ...data, owner_id: requestUserId }).select().single();
       if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (result.error) throw result.error;
       el('scoutPlayerDialog').close();
@@ -601,8 +602,8 @@
     try {
       const client = supabase();
       const result = state.editingReportId
-        ? await client.from(TABLES.reports).update(data).eq('id', state.editingReportId).select().single()
-        : await client.from(TABLES.reports).insert(data).select().single();
+        ? await client.from(TABLES.reports).update(data).eq('id', state.editingReportId).eq('owner_id', requestUserId).select().single()
+        : await client.from(TABLES.reports).insert({ ...data, owner_id: requestUserId }).select().single();
       if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (result.error) throw result.error;
       el('scoutReportDialog').close();
@@ -626,7 +627,7 @@
     if (!requestUserId) return;
 
     try {
-      const { error } = await supabase().from(TABLES.players).delete().eq('id', id);
+      const { error } = await supabase().from(TABLES.players).delete().eq('id', id).eq('owner_id', requestUserId);
       if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (error) throw error;
       await loadData();
@@ -645,7 +646,7 @@
     if (!requestUserId) return;
 
     try {
-      const { error } = await supabase().from(TABLES.reports).delete().eq('id', id);
+      const { error } = await supabase().from(TABLES.reports).delete().eq('id', id).eq('owner_id', requestUserId);
       if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (error) throw error;
       await loadData();
