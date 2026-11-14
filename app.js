@@ -1950,6 +1950,7 @@ let pfmsLegacyTeams = [];
 let pfmsManageableLegacyOrganizations = [];
 let pfmsSelectedLegacyTeam = null;
 let pfmsSelectedTeamStaff = [];
+let pfmsSelectedTeamPermissionAssignment = null;
 let pfmsEditingLegacyTeamId = null;
 
 let pfmsLegacyInvitationBound = false;
@@ -2503,6 +2504,104 @@ async function openPfmsLegacyTeamStaffDialog(teamId) {
   }
 }
 
+const PFMS_TEAM_PERMISSION_MODULES = {
+  squad: 'Spielerkader',
+  training: 'Training & Übungen',
+  attendance: 'Anwesenheit',
+  finance: 'Mannschaftskasse',
+  events: 'Fahrten & Veranstaltungen',
+  calendar: 'Mannschaftskalender',
+  matches: 'Spiele & Aufstellungen',
+  analysis: 'Taktik & Analyse'
+};
+
+async function openPfmsLegacyTeamPermissions(assignmentId) {
+  const team = pfmsSelectedLegacyTeam;
+  const assignment = pfmsSelectedTeamStaff.find(item => item.assignment_id === assignmentId);
+  if (!team?.can_manage || !assignment) return;
+  pfmsSelectedTeamPermissionAssignment = assignment;
+  const dialog = document.getElementById('pfmsTeamPermissionsDialog');
+  const list = document.getElementById('pfmsTeamPermissionsList');
+  const message = document.getElementById('pfmsTeamPermissionsMessage');
+  const saveButton = document.getElementById('pfmsTeamPermissionsSave');
+  document.getElementById('pfmsTeamPermissionsTitle').textContent =
+    'Bereichsrechte · ' + (assignment.full_name || assignment.username || assignment.email || 'Mitglied');
+  list.innerHTML = '';
+  message.textContent = 'Berechtigungen werden geladen …';
+  saveButton.disabled = true;
+  if (!dialog.open) dialog.showModal();
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_permissions', {
+      p_assignment_id: assignmentId
+    });
+    if (error) throw error;
+    const permissions = new Map((data || []).map(item => [item.module_key, item]));
+    list.innerHTML = Object.entries(PFMS_TEAM_PERMISSION_MODULES).map(([key, label]) => {
+      const permission = permissions.get(key) || {};
+      const canView = permission.can_view === true;
+      const canEdit = permission.can_edit === true;
+      return '<div class="pfms-team-permission-row" data-pfms-permission-module="' + key + '">' +
+        '<b>' + escapeHtml(label) + '</b>' +
+        '<label><input type="checkbox" data-pfms-permission-view' + (canView ? ' checked' : '') + '> Lesen</label>' +
+        '<label><input type="checkbox" data-pfms-permission-edit' + (canEdit ? ' checked' : '') + (canView ? '' : ' disabled') + '> Bearbeiten</label>' +
+      '</div>';
+    }).join('');
+    message.textContent = 'Lese- und Bearbeitungsrechte werden getrennt für jeden Bereich gespeichert.';
+  } catch (error) {
+    console.error('PFMS team permissions load failed:', error);
+    message.textContent = 'Bereichsrechte konnten nicht geladen werden. Bitte die Rechte-Migration anwenden.';
+    list.innerHTML = '';
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function savePfmsLegacyTeamPermissions(event) {
+  event.preventDefault();
+  const assignment = pfmsSelectedTeamPermissionAssignment;
+  const list = document.getElementById('pfmsTeamPermissionsList');
+  const message = document.getElementById('pfmsTeamPermissionsMessage');
+  const button = document.getElementById('pfmsTeamPermissionsSave');
+  if (!assignment || !list?.children.length) {
+    message.textContent = 'Es sind keine Berechtigungen zum Speichern vorhanden.';
+    return;
+  }
+
+  const permissions = [...list.querySelectorAll('[data-pfms-permission-module]')].map(row => {
+    const canView = row.querySelector('[data-pfms-permission-view]').checked;
+    const canEdit = row.querySelector('[data-pfms-permission-edit]').checked;
+    return {
+      module_key: row.dataset.pfmsPermissionModule,
+      can_view: canView || canEdit,
+      can_edit: canEdit
+    };
+  });
+
+  button.disabled = true;
+  message.textContent = 'Bereichsrechte werden gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_save_legacy_team_permissions', {
+      p_assignment_id: assignment.assignment_id,
+      p_permissions: permissions
+    });
+    if (error) throw error;
+    message.textContent = 'Bereichsrechte wurden gespeichert.';
+    toast('Team-Bereichsrechte wurden aktualisiert.');
+    dialogClose('pfmsTeamPermissionsDialog');
+  } catch (error) {
+    console.error('PFMS team permissions save failed:', error);
+    message.textContent = 'Berechtigungen konnten nicht gespeichert werden. Prüfe Trainerrechte und die Datenbankmigration.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function dialogClose(id) {
+  const dialog = document.getElementById(id);
+  if (dialog?.open) dialog.close();
+}
+
 async function assignPfmsLegacyTeamStaff(event) {
   event.preventDefault();
   const team = pfmsSelectedLegacyTeam;
@@ -2599,6 +2698,20 @@ function setupPfmsLegacyTeamWorkspace() {
     openPfmsLegacyTeamDialog());
   teamForm.addEventListener('submit', savePfmsLegacyTeam);
   staffForm.addEventListener('submit', assignPfmsLegacyTeamStaff);
+  document.getElementById('pfmsTeamPermissionsForm')?.addEventListener('submit', savePfmsLegacyTeamPermissions);
+  document.getElementById('pfmsTeamPermissionsList')?.addEventListener('change', event => {
+    const row = event.target.closest('[data-pfms-permission-module]');
+    if (!row) return;
+    const view = row.querySelector('[data-pfms-permission-view]');
+    const edit = row.querySelector('[data-pfms-permission-edit]');
+    if (event.target === view) {
+      if (!view.checked) edit.checked = false;
+      edit.disabled = !view.checked;
+    } else if (event.target === edit && edit.checked) {
+      view.checked = true;
+      edit.disabled = false;
+    }
+  });
   document.getElementById('pfmsCloseSelectedTeam')?.addEventListener('click', () => {
     document.getElementById('pfmsSelectedTeamPanel').hidden = true;
     document.getElementById('pfmsTeamModules').hidden = true;
@@ -2621,6 +2734,11 @@ function setupPfmsLegacyTeamWorkspace() {
     const staffButton = event.target.closest('[data-pfms-team-staff]');
     if (staffButton) {
       openPfmsLegacyTeamStaffDialog(staffButton.dataset.pfmsTeamStaff);
+      return;
+    }
+    const permissionButton = event.target.closest('[data-pfms-team-permissions]');
+    if (permissionButton) {
+      openPfmsLegacyTeamPermissions(permissionButton.dataset.pfmsTeamPermissions);
       return;
     }
     const removeButton = event.target.closest('[data-pfms-remove-team-staff]');
