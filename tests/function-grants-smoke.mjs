@@ -212,3 +212,36 @@ console.log(
   securityDefinerSignatures.size +
   " SECURITY DEFINER signatures."
 );
+
+
+// Protect the legacy team boundary and role-based operational permissions.
+const legacyTeamManagement = (
+  await readFile(
+    resolve(directory, "20261121_pfms_legacy_team_management.sql"),
+    "utf8"
+  )
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamManagement, /create or replace function public\\.pfms_can_access_legacy_team\\(p_team_id uuid\\)/);
+assert.match(legacyTeamManagement, /auth\\.uid\\(\\) is not null/);
+assert.match(legacyTeamManagement, /s\\.user_id = auth\\.uid\\(\\)/);
+assert.match(legacyTeamManagement, /s\\.status = 'active'/);
+assert.match(legacyTeamManagement, /s\\.role = 'trainer'/);
+assert.match(legacyTeamManagement, /public\\.can_manage_org\\(t\\.organization_id\\)/);
+assert.match(legacyTeamManagement, /v_org_type <> 'club'/);
+assert.match(legacyTeamManagement, /v_org_status not in \\('approved','active'\\)/);
+assert.match(legacyTeamManagement, /m\\.status = 'active' and m\\.role = p_role/);
+assert.match(legacyTeamManagement, /revoke all on function public\\.pfms_can_manage_legacy_team\\(uuid\\) from public, anon/);
+assert.match(legacyTeamManagement, /grant execute on function public\\.pfms_can_manage_legacy_team\\(uuid\\) to authenticated/);
+
+const legacyTeamPermissions = (
+  await readFile(
+    resolve(directory, "20261122_pfms_legacy_team_permissions.sql"),
+    "utf8"
+  )
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamPermissions, /create or replace function public\\.pfms_save_legacy_team_permissions\\(p_assignment_id uuid, p_permissions jsonb\\)/);
+assert.match(legacyTeamPermissions, /if not public\\.pfms_can_manage_legacy_team\\(v_team_id\\) then/);
+assert.match(legacyTeamPermissions, /jsonb_array_length\\(p_permissions\\) <> 8/);
+assert.match(legacyTeamPermissions, /v_can_edit and not v_can_view/);
+assert.match(legacyTeamPermissions, /p\\.can_edit/);
+assert.match(legacyTeamPermissions, /p_action in \\('view','edit'\\)/);
