@@ -79,6 +79,8 @@ const [
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
 const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql");
 const trainingCyclesMigration = await read("supabase/migrations/20261201_pfms_legacy_training_cycles.sql");
+const teamAnalysisMigration = await read("supabase/migrations/20261202_pfms_legacy_team_analysis.sql");
+
 
 const requiredFiles = [
   "index.html",
@@ -116,6 +118,7 @@ const requiredFiles = [
   "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
   "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
+  "supabase/migrations/20261202_pfms_legacy_team_analysis.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -409,6 +412,24 @@ assert.ok(
     && stagingAudit.includes("'pfms_legacy_training_cycle_weeks'"),
   "Staging audit must inventory both training cycle tables"
 );
+assert.ok(
+  teamAnalysisMigration.includes("pfms_legacy_team_analysis")
+    && teamAnalysisMigration.includes("force row level security")
+    && teamAnalysisMigration.includes("foreign key (match_id, team_id)")
+    && teamAnalysisMigration.includes("video_url ~ '^https://"),
+  "Team analysis must be private, team-bound and accept only HTTPS video references"
+);
+assert.ok(
+  teamAnalysisMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'analysis', 'edit')")
+    && teamAnalysisMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'analysis', 'edit')")
+    && teamAnalysisMigration.includes("pfms_list_legacy_team_analysis_matches"),
+  "Tactical/video analysis RPCs must enforce analysis module permissions"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_team_analysis'"),
+  "Staging audit must inventory tactical and video analysis"
+);
+
 assert.ok(
   legacyTeamTrainingMigration.includes("force row level security") &&
   legacyTeamTrainingMigration.includes("revoke all on table public.pfms_legacy_training_sessions") &&
