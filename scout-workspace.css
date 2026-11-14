@@ -1,4 +1,4 @@
-/* PFSS Scout Workspace – premium visual preview */
+/* PFMS private Scout Workspace – responsive component styles */
 .scout-shell{padding-bottom:48px}
 .scout-topline{display:flex;align-items:center;gap:9px;color:#c6a15b;font-size:10px;letter-spacing:2px;font-weight:800;margin:4px 0 18px}
 .scout-live-dot{width:7px;height:7px;border-radius:50%;background:#c6a15b;box-shadow:0 0 12px #c6a15b}
