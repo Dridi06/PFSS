@@ -49,6 +49,8 @@ Die Staging-Function-Secrets im Supabase-Dashboard prüfen. Benötigte projektsp
 
 Supabase stellt die projektbezogenen `SUPABASE_URL`- und Schlüsselvariablen für Edge Functions bereit. Niemals Service-Role-Schlüssel im Browser verwenden.
 
+**Zusätzliche Absicherung des R2-Verbindungstests:** Die Edge Function `r2-connection-check` verlangt ein gültiges Benutzer-JWT und prüft zusätzlich `public.pfms_is_admin()`. In `supabase/config.toml` ist `verify_jwt = true` explizit gesetzt. Im Staging muss mit einem Admin-Konto ein erfolgreicher Aufruf und mit einem Scout-/Mitgliedskonto ein erwarteter HTTP-403-Test erfolgen. Die Funktion führt nur einen begrenzten List-Bucket-Aufruf aus und gibt keine Provider-Antwortkörper oder Zugangsdaten zurück.
+
 ## 4. Read-only Schema-Audit
 
 Die Datei `supabase/STAGING_READ_ONLY_AUDIT.sql` im SQL-Editor des **Staging-Projekts** ausführen. Die Abfrage liest Tabellen-/Spalteninformationen, Policies, Grants und Tabellenstatistiken; sie ist kein Ersatz für einen Funktionstest.
