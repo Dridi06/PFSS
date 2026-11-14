@@ -52,24 +52,8 @@ test -s "$WORK_DIR/$BACKUP_FILE"
 test -s "$WORK_DIR/$BACKUP_FILE.hmac"
 
 # Authenticate ciphertext before decryption. Do not skip this step.
-python3 - "$WORK_DIR/$BACKUP_FILE" "$WORK_DIR/$BACKUP_FILE.hmac" <<'PY'
-import hashlib
-import hmac
-import os
-import sys
-
-passphrase = os.environ["PFSS_BACKUP_ENCRYPTION_PASSPHRASE"].encode()
-key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)
-digest = hmac.new(key, digestmod=hashlib.sha256)
-with open(sys.argv[1], "rb") as source:
-    for chunk in iter(lambda: source.read(1024 * 1024), b""):
-        digest.update(chunk)
-with open(sys.argv[2], "r", encoding="ascii") as manifest:
-    expected = manifest.read().strip()
-if not hmac.compare_digest(digest.hexdigest(), expected):
-    raise SystemExit("Backup HMAC verification failed; refusing to decrypt.")
-print("Backup integrity verified.")
-PY
+python3 scripts/backup-hmac.py verify \
+  "$WORK_DIR/$BACKUP_FILE" "$WORK_DIR/$BACKUP_FILE.hmac"
 
 openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
   -in "$WORK_DIR/$BACKUP_FILE" \
