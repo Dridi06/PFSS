@@ -394,7 +394,7 @@ grant execute on function public.pfms_list_legacy_team_analysis_matches(uuid) to
 revoke all on function public.pfms_list_legacy_team_analysis(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_analysis(uuid) to authenticated;
 revoke all on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) from public, anon;
-grant execute on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, uuid, text, integer, text, text, text) to authenticated;
+grant execute on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) to authenticated;
 revoke all on function public.pfms_update_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) from public, anon;
 grant execute on function public.pfms_update_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) to authenticated;
 revoke all on function public.pfms_delete_legacy_team_analysis(uuid) from public, anon;
