@@ -56,6 +56,44 @@ jobs:
             -in "backup/$FILE" -out "backup/$FILE.enc" \
             -pass env:BACKUP_ENCRYPTION_PASSPHRASE
 
+          # Authenticate the ciphertext before any decryption. The HMAC key is
+          # domain-separated from the PBKDF2 key used by OpenSSL encryption.
+          python3 - "backup/$FILE.enc" <<'PY'
+          import hashlib
+          import hmac
+          import os
+          import sys
+
+          passphrase = os.environ["BACKUP_ENCRYPTION_PASSPHRASE"].encode()
+          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1\\x00" + passphrase).digest()
+          digest = hmac.new(key, digestmod=hashlib.sha256)
+          with open(sys.argv[1], "rb") as source:
+              for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                  digest.update(chunk)
+          with open(sys.argv[1] + ".hmac", "w", encoding="ascii") as manifest:
+              manifest.write(digest.hexdigest() + "\\n")
+          PY
+
+          # Verify the HMAC before decrypting and parsing the archive.
+          python3 - "backup/$FILE.enc" "backup/$FILE.enc.hmac" <<'PY'
+          import hashlib
+          import hmac
+          import os
+          import sys
+
+          passphrase = os.environ["BACKUP_ENCRYPTION_PASSPHRASE"].encode()
+          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1\\x00" + passphrase).digest()
+          digest = hmac.new(key, digestmod=hashlib.sha256)
+          with open(sys.argv[1], "rb") as source:
+              for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                  digest.update(chunk)
+          with open(sys.argv[2], "r", encoding="ascii") as manifest:
+              expected = manifest.read().strip()
+          if not hmac.compare_digest(digest.hexdigest(), expected):
+              raise SystemExit("Backup HMAC verification failed; refusing to decrypt.")
+          print("Backup HMAC verification passed.")
+          PY
+
           VERIFY_FILE="backup/restore-check-$FILE"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
             -in "backup/$FILE.enc" -out "$VERIFY_FILE" \
@@ -63,7 +101,7 @@ jobs:
           pg_restore --list "$VERIFY_FILE" >/dev/null
           rm "$VERIFY_FILE" "backup/$FILE"
           echo "BACKUP_FILE=$FILE.enc" >> "$GITHUB_ENV"
-          echo "Backup archive and encrypted restore verification passed."
+          echo "Backup archive, HMAC and encrypted restore verification passed."
 
       - name: Upload encrypted backup to Cloudflare R2
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
@@ -82,6 +120,9 @@ jobs:
           aws s3 cp "backup/$BACKUP_FILE" \
             "s3://$R2_BUCKET_NAME/database/daily/$BACKUP_FILE" \
             --endpoint-url "$R2_ENDPOINT" --region auto --only-show-errors
+          aws s3 cp "backup/$BACKUP_FILE.hmac" \
+            "s3://$R2_BUCKET_NAME/database/daily/$BACKUP_FILE.hmac" \
+            --endpoint-url "$R2_ENDPOINT" --region auto --only-show-errors
 
       - name: Verify uploaded backup exists
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
@@ -97,4 +138,8 @@ jobs:
             --bucket "$R2_BUCKET_NAME" \
             --key "database/daily/$BACKUP_FILE" \
             --endpoint-url "$R2_ENDPOINT" --region auto >/dev/null
-          echo "Encrypted database backup uploaded and verified."
+          aws s3api head-object \
+            --bucket "$R2_BUCKET_NAME" \
+            --key "database/daily/$BACKUP_FILE.hmac" \
+            --endpoint-url "$R2_ENDPOINT" --region auto >/dev/null
+          echo "Encrypted database backup and HMAC manifest uploaded and verified."
