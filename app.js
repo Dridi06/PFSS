@@ -2380,6 +2380,28 @@ let pfmsSupportTicketsBound = false;
 let pfmsAdminSupportBound = false;
 let pfmsPersonalTasksBound = false;
 
+function resetPfmsLegacyTrainingCycleState() {
+  pfmsLegacyTrainingCycles = [];
+  const host = document.getElementById('pfmsTeamTrainingCyclesList');
+  if (host) host.replaceChildren();
+
+  const form = document.getElementById('pfmsTeamTrainingCycleForm');
+  form?.reset();
+
+  const message = document.getElementById('pfmsTeamTrainingCyclesMessage');
+  if (message) message.textContent = '';
+
+  const weekSelect = document.getElementById('pfmsTeamTrainingCycleWeek');
+  if (weekSelect) {
+    weekSelect.innerHTML = '<option value="">Ohne Zykluszuordnung</option>';
+    weekSelect.value = '';
+    weekSelect.disabled = false;
+  }
+
+  const panel = document.getElementById('pfmsTeamTrainingCyclesPanel');
+  if (panel) panel.hidden = true;
+}
+
 function renderPfmsClubWorkspace() {
   const host = document.getElementById('pfmsClubOrganizationsGrid');
   const status = document.getElementById('pfmsClubWorkspaceStatus');
@@ -3570,7 +3592,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyMatchCandidates = [];
   pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
-  pfmsLegacyTrainingCycles = [];
+  resetPfmsLegacyTrainingCycleState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
@@ -4692,10 +4714,8 @@ async function loadPfmsLegacyTrainingCycles(teamId = pfmsSelectedLegacyTeam?.tea
 
   const permission = pfmsSelectedTeamPermissions.get('training') || {};
   if (permission.can_view !== true) {
-    panel.hidden = true;
     form.hidden = true;
-    pfmsLegacyTrainingCycles = [];
-    if (weekSelect) weekSelect.innerHTML = '<option value="">Ohne Zykluszuordnung</option>';
+    resetPfmsLegacyTrainingCycleState();
     return;
   }
 
@@ -6174,7 +6194,7 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTeamRoster = [];
   pfmsLegacyTeamRosterCandidates = [];
   pfmsLegacyTrainingSessions = [];
-  pfmsLegacyTrainingCycles = [];
+  resetPfmsLegacyTrainingCycleState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingPlanSession = null;
