@@ -2995,12 +2995,23 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsSelectedTeamPermissions = new Map();
   pfmsLegacyCalendarEvents = [];
   pfmsEditingCalendarEventId = null;
+  pfmsLegacyMatches = [];
+  pfmsEditingMatchId = null;
+  pfmsSelectedTeamMatch = null;
+  pfmsLegacyMatchCandidates = [];
+  pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
   document.getElementById('pfmsTeamCalendarPanel').hidden = true;
+  document.getElementById('pfmsTeamMatchesPanel').hidden = true;
+  document.getElementById('pfmsTeamMatchLineupPanel').hidden = true;
   document.getElementById('pfmsTeamTrainingPanel').hidden = true;
   document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+  const matchList = document.getElementById('pfmsTeamMatchesList');
+  if (matchList) matchList.innerHTML = '';
+  const matchLineupList = document.getElementById('pfmsTeamMatchLineupList');
+  if (matchLineupList) matchLineupList.innerHTML = '';
   const calendarList = document.getElementById('pfmsTeamCalendarList');
   if (calendarList) calendarList.innerHTML = '';
   const trainingList = document.getElementById('pfmsTeamTrainingList');
@@ -3068,6 +3079,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   await loadPfmsLegacyTeamRoster(teamId);
   await loadPfmsLegacyTeamTraining(teamId);
   await loadPfmsLegacyTeamCalendar(teamId);
+  await loadPfmsLegacyTeamMatches(teamId);
 }
 
 const PFMS_TEAM_MATCH_STATUSES = {
@@ -3412,10 +3424,7 @@ async function savePfmsLegacyTeamMatchLineup() {
     });
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
-        pfmsSelectedTrainingSession?.session_id) {
-      // Team identity is checked below as well; this branch also prevents stale view updates.
-      if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
-    }
+        pfmsSelectedTeamMatch?.match_id !== match.match_id) return;
     if (error) throw error;
     await openPfmsLegacyTeamMatchLineup(match.match_id);
     if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
@@ -3991,6 +4000,36 @@ function setupPfmsLegacyTeamWorkspace() {
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
   });
   document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
+  document.getElementById('pfmsTeamMatchForm')?.addEventListener('submit', savePfmsLegacyTeamMatch);
+  document.getElementById('pfmsTeamMatchCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamMatchForm);
+  document.getElementById('pfmsTeamMatchesList')?.addEventListener('click', event => {
+    const editButton = event.target.closest('[data-pfms-match-edit]');
+    if (editButton) {
+      const match = pfmsLegacyMatches.find(item => item.match_id === editButton.dataset.pfmsMatchEdit);
+      if (match) openPfmsLegacyTeamMatch(match);
+      return;
+    }
+    const lineupButton = event.target.closest('[data-pfms-match-lineup]');
+    if (lineupButton) openPfmsLegacyTeamMatchLineup(lineupButton.dataset.pfmsMatchLineup);
+  });
+  document.getElementById('pfmsTeamMatchLineupSave')?.addEventListener('click', savePfmsLegacyTeamMatchLineup);
+  document.getElementById('pfmsCloseMatchLineup')?.addEventListener('click', () => {
+    document.getElementById('pfmsTeamMatchLineupPanel').hidden = true;
+    pfmsSelectedTeamMatch = null;
+    pfmsLegacyMatchCandidates = [];
+    pfmsLegacyMatchLineup = [];
+    document.getElementById('pfmsTeamMatchLineupList').innerHTML = '';
+  });
+  document.getElementById('pfmsTeamMatchLineupList')?.addEventListener('change', event => {
+    if (event.target.matches('[data-match-selected]')) {
+      const row = event.target.closest('[data-pfms-match-lineup-row]');
+      const selected = event.target.checked;
+      row.querySelectorAll('[data-match-role],[data-match-position],[data-match-order],[data-match-captain]')
+        .forEach(control => {
+          control.disabled = !selected || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true;
+        });
+    }
+  });
   document.getElementById('pfmsTeamCalendarForm')?.addEventListener('submit', savePfmsLegacyCalendarEvent);
   document.getElementById('pfmsTeamCalendarCancelEdit')?.addEventListener('click', resetPfmsLegacyCalendarForm);
   document.getElementById('pfmsTeamCalendarList')?.addEventListener('click', event => {
@@ -4044,6 +4083,16 @@ function setupPfmsLegacyTeamWorkspace() {
     pfmsSelectedTeamPermissions = new Map();
     pfmsLegacyCalendarEvents = [];
     pfmsEditingCalendarEventId = null;
+    pfmsLegacyMatches = [];
+    pfmsEditingMatchId = null;
+    pfmsSelectedTeamMatch = null;
+    pfmsLegacyMatchCandidates = [];
+    pfmsLegacyMatchLineup = [];
+    document.getElementById('pfmsTeamMatchesPanel').hidden = true;
+    document.getElementById('pfmsTeamMatchLineupPanel').hidden = true;
+    document.getElementById('pfmsTeamMatchesList').innerHTML = '';
+    document.getElementById('pfmsTeamMatchLineupList').innerHTML = '';
+    resetPfmsLegacyTeamMatchForm();
     document.getElementById('pfmsTeamCalendarPanel').hidden = true;
     document.getElementById('pfmsTeamCalendarList').innerHTML = '';
     resetPfmsLegacyCalendarForm();
@@ -4091,6 +4140,13 @@ function setupPfmsLegacyTeamWorkspace() {
     const showRosterButton = event.target.closest('[data-pfms-show-roster]');
     if (showRosterButton) {
       document.getElementById('pfmsTeamRosterPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const showMatchesButton = event.target.closest('[data-pfms-show-matches]');
+    if (showMatchesButton) {
+      const matchesPanel = document.getElementById('pfmsTeamMatchesPanel');
+      matchesPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamMatches(pfmsSelectedLegacyTeam.team_id);
+      return;
     }
     const showCalendarButton = event.target.closest('[data-pfms-show-calendar]');
     if (showCalendarButton) {
@@ -4422,6 +4478,15 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTrainingAttendance = [];
   pfmsLegacyCalendarEvents = [];
   pfmsEditingCalendarEventId = null;
+  pfmsLegacyMatches = [];
+  pfmsEditingMatchId = null;
+  pfmsSelectedTeamMatch = null;
+  pfmsLegacyMatchCandidates = [];
+  pfmsLegacyMatchLineup = [];
+  document.getElementById('pfmsTeamMatchesPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamMatchLineupPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamMatchesList')?.replaceChildren();
+  document.getElementById('pfmsTeamMatchLineupList')?.replaceChildren();
   document.getElementById('pfmsTeamCalendarPanel')?.setAttribute('hidden', '');
   document.getElementById('pfmsTeamCalendarList')?.replaceChildren();
   document.getElementById('pfmsTeamTrainingPanel')?.setAttribute('hidden', '');
