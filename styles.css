@@ -1345,3 +1345,14 @@ button,input,select,textarea{max-width:100%}
 #pfmsClubScoutingPanel .admin-user-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 #pfmsClubScoutingPanel .admin-user-main{display:flex;flex-direction:column;gap:4px}
 #pfmsClubScoutingPanel .admin-user-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.pfms-personal-task-list{display:grid;gap:10px;margin-top:12px}
+.pfms-personal-task-card{border:1px solid rgba(198,161,91,.18);background:rgba(255,255,255,.025);border-radius:12px;padding:14px;display:grid;gap:10px}
+.pfms-personal-task-card.is-done{opacity:.72}
+.pfms-personal-task-head,.pfms-personal-task-meta,.pfms-personal-task-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-personal-task-head strong{color:#f2ead9}
+.pfms-personal-task-meta{font-size:12px;color:var(--muted,#aaa)}
+.pfms-personal-task-actions select{min-width:150px}
+.task-overdue{color:#e58a7b!important;font-weight:700}
+.priority-high{color:#e5a18e!important}.priority-low{color:#a7b49a!important}
+@media(max-width:620px){.pfms-personal-task-actions{display:grid;grid-template-columns:1fr}.pfms-personal-task-actions select,.pfms-personal-task-actions button{width:100%}}
