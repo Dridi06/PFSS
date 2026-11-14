@@ -317,7 +317,7 @@ function populatePlayerSelect() {
   select.innerHTML =
     '<option value="">Spieler auswählen</option>' +
     players.map(p =>
-      `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+      `<option value="${p.id}">${escapeHtml(pfssPlayerFullName(p))}</option>`
     ).join('');
 }
 
