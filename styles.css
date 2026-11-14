@@ -1412,3 +1412,33 @@ button,input,select,textarea{max-width:100%}
   .pfms-cycle-status-actions{display:grid;grid-template-columns:1fr}
   .pfms-cycle-status-actions .field{min-width:0;max-width:none}
 }
+
+
+/* PFMS team tactical and video analysis */
+.pfms-team-analysis-panel{display:grid;gap:16px}
+.pfms-analysis-form{padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(255,255,255,.025);margin-bottom:14px}
+.pfms-analysis-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-analysis-form-grid .field{min-width:0;margin:0}
+.pfms-analysis-form-grid .field.full{grid-column:1/-1}
+.pfms-analysis-form .field-hint{display:block;margin-top:5px;color:var(--muted,#aaa);font-size:11px;line-height:1.45}
+.pfms-analysis-form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pfms-team-analysis-list{display:grid;gap:12px}
+.pfms-team-analysis-card{display:grid;gap:12px;padding:16px;border:1px solid rgba(198,161,91,.2);border-radius:14px;background:linear-gradient(145deg,rgba(198,161,91,.055),rgba(255,255,255,.02))}
+.pfms-team-analysis-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pfms-team-analysis-card-head h4{margin:5px 0 0;color:#f1e8d6;font-size:16px}
+.pfms-analysis-meta{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;color:var(--muted,#aaa);font-size:12px}
+.pfms-analysis-summary{margin:0;color:#eee;line-height:1.6;white-space:pre-wrap}
+.pfms-analysis-detail{padding:10px 12px;border-left:2px solid rgba(198,161,91,.75);background:rgba(198,161,91,.055);border-radius:0 8px 8px 0}
+.pfms-analysis-detail b{color:#dfc58e;font-size:12px}
+.pfms-analysis-detail p{margin:5px 0 0;color:#d5d0c5;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.pfms-analysis-video{display:flex;align-items:center;gap:8px}
+.pfms-analysis-video-link{color:#e1c27f;font-weight:650;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.pfms-analysis-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
+@media(max-width:640px){
+  .pfms-analysis-form{padding:12px}
+  .pfms-analysis-form-grid{grid-template-columns:1fr}
+  .pfms-analysis-form-grid .field.full{grid-column:auto}
+  .pfms-analysis-form-actions,.pfms-analysis-actions{display:grid;grid-template-columns:1fr}
+  .pfms-analysis-form-actions .btn,.pfms-analysis-actions .btn{width:100%}
+  .pfms-team-analysis-card{padding:13px}
+}
