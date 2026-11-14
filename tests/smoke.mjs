@@ -96,6 +96,7 @@ const requiredFiles = [
   "render.yaml",
   "scripts/build-static.mjs",
   "scripts/build-ci.mjs",
+  "pfms-config.js",
   "tests/build-smoke.mjs",
   "tests/build-config-smoke.mjs",
   "tests/accessibility-smoke.mjs",
@@ -150,6 +151,8 @@ assert.equal((html.match(/data-registration-choice="(?:user|club|agency|scout)"/
 
 assert.ok(html.includes('aria-pressed="true"') && html.includes('aria-pressed="false"') && app.includes("setAttribute('aria-pressed'"), "Billing cycle controls must expose their selected state accessibly");
 
+const localBuildConfig = await read("pfms-config.js");
+assert.ok(localBuildConfig.includes('buildTarget: "unconfigured"') && localBuildConfig.includes('supabaseUrl: ""') && localBuildConfig.includes('supabaseKey: ""'), "Unbuilt local frontend must fail closed without a Supabase target");
 assert.match(app, /window\.PFMS_CONFIG/, "Frontend must read generated environment configuration");
 assert.ok(!app.includes("nkkajhjdvfjzrvxkbokg") && !app.includes("sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi"), "Frontend must not hard-code a Supabase project URL or key");
 assert.ok(html.indexOf('src="pfms-config.js"') < html.indexOf('src="app.js'), "Generated Supabase config must load before the application");
@@ -681,6 +684,7 @@ assert.ok(systemEventsHardeningMigration.includes("revoke update on table public
 assert.ok(systemEventsHardeningMigration.includes("System event evidence is immutable") && systemEventsHardeningMigration.includes("Sensitive values are not allowed"), "System event data must be immutable and reject secrets");
 assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
 assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect system event records");
+assert.ok(stagingAudit.includes("FUNCTION_GRANTS") && stagingAudit.includes("aclexplode"), "Staging audit must inventory effective function EXECUTE grants, including Security Definer routines");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
