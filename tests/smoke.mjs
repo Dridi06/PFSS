@@ -17,6 +17,7 @@ const adminMembersMigration = await read("supabase/migrations/20261115_admin_glo
 
 const supabaseConfig = await read("supabase/config.toml");
 const globalCatalogueMigration = await read("supabase/migrations/20261115_pfms_global_player_catalogue.sql");
+const systemEventsMigration = await read("supabase/migrations/20261116_pfms_system_event_monitoring.sql");
 
 const requiredFiles = [
   "index.html",
@@ -100,6 +101,17 @@ assert.ok(app.includes("pfms_global_players") && app.includes("pfms_main_scoutin
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy local data must have an explicit safe cloud import path");
 assert.ok(globalCatalogueMigration.includes("public.pfms_global_players") && globalCatalogueMigration.includes("public.pfms_main_scouting_reports"), "Persistent global catalogue migration is incomplete");
 assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalCatalogueMigration.includes("pfms_current_user_is_approved"), "Global catalogue RLS must enforce approved users and administrator writes");
+assert.ok(globalCatalogueMigration.includes("enable row level security") && globalCatalogueMigration.includes("pfms_main_scouting_reports"), "Main cloud catalogue must have RLS and persistent reports");
+assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy local backups must use a bounded transactional cloud import");
+assert.ok(audit.includes("'pfms_global_players'") && audit.includes("'pfms_main_scouting_reports'"), "Read-only audit must inspect main catalogue tables");
+assert.ok(systemEventsMigration.includes("force row level security") && systemEventsMigration.includes("public.is_admin()"), "System events must be protected by forced RLS and admin review policies");
+assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && systemEventsMigration.includes("pfms_system_events_admin_select"), "System events must separate user inserts from administrator reads");
+assert.ok(!systemEventsMigration.includes("grant select, insert, update, delete on table public.pfms_system_events"), "System events must not grant delete access");
+assert.ok(html.includes('id="pfmsAdminErrorsFilterForm"') && html.includes('id="pfmsAdminErrorsResults"'), "Admin error log interface is missing");
+assert.ok(app.includes("function pfmsSanitizeLogValue") && app.includes("setupPfmsClientErrorLogging()"), "Client error logging with redaction is missing");
+assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes("addEventListener('error'"), "Frontend error handlers are missing");
+assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
+assert.ok(audit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
 assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migration must use valid PostgreSQL date syntax");
 
