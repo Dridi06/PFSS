@@ -246,7 +246,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
-  if (view === 'club-members' && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
+  if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'admin') loadAdminUsers();
 }
