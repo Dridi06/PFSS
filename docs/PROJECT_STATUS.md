@@ -329,3 +329,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Änderung betrifft Tests und Projektdokumentation. Es wurden keine Datenbankmigrationen, Zugangsdaten, Render-Dienste oder Produktivsysteme geändert.
 - Zusätzlich korrigiert: Beim Abwählen eines Modul-Leserechts wird das zugehörige Bearbeitungsrecht jetzt automatisch deaktiviert und zurückgesetzt. Der Dialog bindet den Änderungslistener nur einmal; ein Regressionstest schützt dieses Verhalten.
 - GitHub-Actions-Lauf [43644061815](https://github.com/Dridi06/PFSS/actions/runs/43644061815) auf Commit `587b5cff6cb212425dd964227fe46fb37dd3616b` war erfolgreich: Syntax-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-/Backup-Prüfungen und Deno-Typprüfung bestanden. Die neuen UI-Berechtigungs-Regressionstests sind damit im CI grün. Dies bleibt ein statischer Repository-/CI-Nachweis und ersetzt keine reale Staging-Abnahme.
+
+
+## Erweiterte Staging-Prüfung der neun Team-Rechtebereiche – 14.11.2026
+
+- Die bisherige Read-only-Staging-Prüfung kontrollierte beim neunten Berechtigungsbereich im Wesentlichen nur das Vorhandensein von `tasks` und die Anzahl neun.
+- Die Prüfung wurde präzisiert: Sie kontrolliert jetzt alle neun Schlüssel (`squad`, `training`, `attendance`, `finance`, `events`, `calendar`, `matches`, `analysis`, `tasks`) in der effektiven Berechtigungsfunktion.
+- Zusätzlich werden die eindeutige Neuner-Konfiguration, die Validierung der Bearbeitungs-/Lesekombination sowie die zulässigen Aktionen `view/edit` geprüft.
+- Ein automatisierter Regressionstest schützt diese konkreten Staging-Prüfungen. Das Skript bleibt vollständig lesend und führt keine Schema- oder Datenänderungen aus.
+- Die Prüfung wurde im Repository erweitert; sie wurde noch nicht gegen eine reale Staging-Datenbank ausgeführt.
