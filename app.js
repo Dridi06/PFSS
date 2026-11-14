@@ -168,6 +168,152 @@ function toast(message) {
   );
 }
 
+function updatePfmsNotificationBadges() {
+  const unreadCount = pfmsNotifications.filter(item => item.is_read !== true).length;
+  document.querySelectorAll('[data-pfms-notification-count]').forEach(badge => {
+    badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+    badge.hidden = unreadCount === 0;
+    badge.setAttribute('aria-label', unreadCount + ' ungelesene Mitteilungen');
+  });
+}
+
+function renderPfmsNotifications() {
+  const host = document.getElementById('pfmsNotificationsList');
+  const message = document.getElementById('pfmsNotificationsMessage');
+  updatePfmsNotificationBadges();
+  if (!host) return;
+
+  if (!pfmsNotifications.length) {
+    host.innerHTML = '<div class="empty-state"><b>Keine Mitteilungen vorhanden</b><p>Wenn dir Teamaufgaben zugewiesen oder abgeschlossen werden, erscheinen die Hinweise hier.</p></div>';
+    if (message && window.pfssCurrentUserId) message.textContent = 'Deine Mitteilungen werden automatisch aktualisiert, sobald du diesen Bereich öffnest.';
+    return;
+  }
+
+  const typeLabels = {
+    team_task_assigned: 'Teamaufgabe',
+    team_task_completed: 'Teamaufgabe abgeschlossen'
+  };
+  host.innerHTML = pfmsNotifications.map(item => {
+    const date = item.created_at ? new Date(item.created_at).toLocaleString('de-DE') : '';
+    return '<article class="pfms-notification-card ' + (item.is_read ? 'is-read' : 'is-unread') + '" data-pfms-notification="' + escapeHtml(item.id) + '">' +
+      '<div class="pfms-notification-card-head"><div><span class="eyebrow">' +
+        escapeHtml(typeLabels[item.notification_type] || 'Systemmitteilung') +
+        '</span><h3>' + escapeHtml(item.title) + '</h3></div>' +
+        (!item.is_read ? '<span class="pfms-notification-unread" aria-label="Ungelesen"></span>' : '') +
+      '</div>' +
+      '<p>' + escapeHtml(item.body) + '</p>' +
+      '<div class="pfms-notification-meta"><span>' + escapeHtml(date) + '</span>' +
+        (!item.is_read ? '<button type="button" class="pfms-inline-action" data-pfms-notification-read="' + escapeHtml(item.id) + '">Als gelesen markieren</button>' : '<span>Gelesen</span>') +
+      '</div></article>';
+  }).join('');
+  if (message) {
+    const unread = pfmsNotifications.filter(item => item.is_read !== true).length;
+    message.textContent = pfmsNotifications.length + ' Mitteilung(en) geladen · ' + unread + ' ungelesen.';
+  }
+}
+
+async function loadPfmsNotifications() {
+  const host = document.getElementById('pfmsNotificationsList');
+  const message = document.getElementById('pfmsNotificationsMessage');
+  if (!host || !message) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) {
+    pfmsNotifications = [];
+    renderPfmsNotifications();
+    message.textContent = 'Bitte anmelden.';
+    return;
+  }
+
+  message.textContent = 'Mitteilungen werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase
+      .from('pfms_notifications')
+      .select('id,notification_type,title,body,team_id,task_id,is_read,created_at')
+      .eq('recipient_id', requestUserId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsNotifications = data || [];
+    renderPfmsNotifications();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS notification load failed:', error);
+    pfmsNotifications = [];
+    renderPfmsNotifications();
+    message.textContent = 'Mitteilungen konnten nicht geladen werden. Prüfe die Benachrichtigungs-Migration und deine Sitzung.';
+  }
+}
+
+async function markPfmsNotificationRead(notificationId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId || !notificationId) return;
+
+  try {
+    const { error } = await pfssSupabase
+      .from('pfms_notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('recipient_id', requestUserId)
+      .eq('is_read', false);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsNotifications = pfmsNotifications.map(item =>
+      item.id === notificationId ? { ...item, is_read: true } : item
+    );
+    renderPfmsNotifications();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS notification mark-read failed:', error);
+    const message = document.getElementById('pfmsNotificationsMessage');
+    if (message) message.textContent = 'Mitteilung konnte nicht als gelesen markiert werden.';
+  }
+}
+
+async function markAllPfmsNotificationsRead() {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId || !pfmsNotifications.some(item => !item.is_read)) return;
+
+  const button = document.getElementById('pfmsNotificationsMarkAllRead');
+  if (button) button.disabled = true;
+  try {
+    const { error } = await pfssSupabase
+      .from('pfms_notifications')
+      .update({ is_read: true })
+      .eq('recipient_id', requestUserId)
+      .eq('is_read', false);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsNotifications = pfmsNotifications.map(item => ({ ...item, is_read: true }));
+    renderPfmsNotifications();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS mark-all-read failed:', error);
+    const message = document.getElementById('pfmsNotificationsMessage');
+    if (message) message.textContent = 'Mitteilungen konnten nicht als gelesen markiert werden.';
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function setupPfmsNotifications() {
+  if (pfmsNotificationsBound) return;
+  const host = document.getElementById('pfmsNotificationsList');
+  const markAll = document.getElementById('pfmsNotificationsMarkAllRead');
+  if (!host || !markAll) return;
+
+  markAll.addEventListener('click', markAllPfmsNotificationsRead);
+  host.addEventListener('click', event => {
+    const button = event.target.closest('[data-pfms-notification-read]');
+    if (button) void markPfmsNotificationRead(button.dataset.pfmsNotificationRead);
+  });
+  pfmsNotificationsBound = true;
+}
+
 function renderPfmsPersonalTasks() {
   const host = document.getElementById('pfmsPersonalTaskList');
   if (!host) return;
@@ -205,6 +351,8 @@ async function loadPfmsPersonalTasks() {
   const requestGeneration = pfmsAuthGeneration;
   if (!requestUserId) {
     pfmsPersonalTasks = [];
+  pfmsNotifications = [];
+  renderPfmsNotifications();
   pfmsSupportTickets = [];
   pfmsAdminSupportTickets = [];
   document.getElementById('pfmsPersonalTaskForm')?.reset();
@@ -580,6 +728,7 @@ function showView(view, navElement = null, fromPopState = false) {
     'admin-members': 'Mitgliederverwaltung',
     'admin-errors': 'Fehlerprotokoll',
     tasks: 'Meine Aufgaben',
+    notifications: 'Mitteilungen',
     support: 'Hilfe & Support',
     'admin-inbox': 'Support-Postfach',
     backup: 'Datensicherung',
@@ -603,6 +752,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
+  if (view === 'notifications' && window.pfssCurrentUserId) void loadPfmsNotifications();
   if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
@@ -1973,6 +2123,7 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsLegacyInvitationWorkspace();
   setupPfmsClubScouting();
   setupPfmsPersonalTasks();
+  setupPfmsNotifications();
   setupPfmsSupportTickets();
   setupPfmsAdminSupport();
   const userIdDisplay = document.getElementById('userIdDisplay');
@@ -2384,6 +2535,8 @@ let pfmsAdminSupportTickets = [];
 let pfmsSupportTicketsBound = false;
 let pfmsAdminSupportBound = false;
 let pfmsPersonalTasksBound = false;
+let pfmsNotifications = [];
+let pfmsNotificationsBound = false;
 
 function resetPfmsLegacyTrainingCycleState() {
   pfmsLegacyTrainingCycles = [];
