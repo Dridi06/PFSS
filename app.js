@@ -1945,6 +1945,12 @@ const PFMS_MEMBERSHIP_STATUSES = {
   suspended: 'Gesperrt'
 };
 
+let pfmsLegacyTeamsBound = false;
+let pfmsLegacyTeams = [];
+let pfmsManageableLegacyOrganizations = [];
+let pfmsSelectedLegacyTeam = null;
+let pfmsEditingLegacyTeamId = null;
+
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
 let pfmsLegacyInvitationOrganizations = [];
@@ -2266,6 +2272,359 @@ function setupPfmsLegacyInvitationWorkspace() {
     pfmsLegacyMemberDirectoryBound = true;
   }
 }
+function pfmsTeamRoleLabel(role) {
+  return ({ trainer: 'Trainer', co_trainer: 'Co-Trainer', betreuer: 'Betreuer' })[role] || role;
+}
+
+function renderPfmsLegacyTeamCards() {
+  const views = [
+    ['pfmsTeamGrid', true],
+    ['pfmsMyTeamsGrid', false]
+  ];
+  views.forEach(([id, managementView]) => {
+    const host = document.getElementById(id);
+    if (!host) return;
+    if (!pfmsLegacyTeams.length) {
+      host.innerHTML = '<div class="empty-state"><b>Noch keine Mannschaften vorhanden</b><p>Eine berechtigte Vereinsleitung kann hier die erste Mannschaft für ihren Verein anlegen.</p></div>';
+      return;
+    }
+    host.innerHTML = pfmsLegacyTeams.map((team) => {
+      const actions = [];
+      actions.push('<button type="button" class="btn btn-secondary" data-pfms-open-team="' + escapeHtml(team.team_id) + '">Mannschaft öffnen</button>');
+      if (team.can_manage) {
+        actions.push('<button type="button" class="btn btn-secondary" data-pfms-edit-team="' + escapeHtml(team.team_id) + '">Bearbeiten</button>');
+        actions.push('<button type="button" class="btn btn-secondary" data-pfms-team-staff="' + escapeHtml(team.team_id) + '">Trainerteam</button>');
+      }
+      return '<article class="module-card pfms-team-card" data-pfms-team-card="' + escapeHtml(team.team_id) + '">' +
+        '<div class="eyebrow">' + escapeHtml(team.organization_name || 'Verein') + '</div>' +
+        '<h3>' + escapeHtml(team.team_name) + '</h3>' +
+        '<p>' + escapeHtml(team.age_group) + ' · ' + escapeHtml(team.gender) + '</p>' +
+        '<div class="pfms-team-meta"><span>' + escapeHtml(team.season) + '</span>' +
+        '<span>' + escapeHtml(team.division || 'Keine Liga hinterlegt') + '</span>' +
+        '<span>' + Number(team.staff_count || 0) + ' Personen im Trainerteam</span></div>' +
+        '<span class="module-status">' + (team.team_status === 'archived' ? 'Archiviert' : 'Aktiv') + '</span>' +
+        '<div class="pfms-team-actions">' + actions.join('') + '</div></article>';
+    }).join('');
+  });
+
+  const addButton = document.getElementById('pfmsAddTeamButton');
+  if (addButton) addButton.hidden = !pfmsManageableLegacyOrganizations.length;
+}
+
+async function loadPfmsLegacyTeams() {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) return;
+  const messages = ['pfmsTeamsMessage', 'pfmsMyTeamsMessage']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  messages.forEach(message => message.textContent = 'Mannschaften werden geladen …');
+
+  try {
+    const [teamsResult, orgsResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_my_legacy_teams'),
+      pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations')
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (teamsResult.error) throw teamsResult.error;
+
+    pfmsLegacyTeams = teamsResult.data || [];
+    pfmsManageableLegacyOrganizations = orgsResult.error ? [] : (orgsResult.data || [])
+      .filter(org => org.organization_type === 'club' &&
+        ['approved','active'].includes(String(org.organization_status || '').toLowerCase()));
+
+    messages.forEach(message => {
+      message.textContent = pfmsLegacyTeams.length
+        ? pfmsLegacyTeams.length + ' Mannschaft(en) geladen.'
+        : 'Für dieses Konto sind noch keine Mannschaften zugeordnet.';
+    });
+    renderPfmsLegacyTeamCards();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team workspace load failed:', error);
+    pfmsLegacyTeams = [];
+    pfmsManageableLegacyOrganizations = [];
+    renderPfmsLegacyTeamCards();
+    messages.forEach(message => message.textContent =
+      'Mannschaftsverwaltung noch nicht verfügbar. Bitte die Team-Migration in der Testdatenbank anwenden und deine Vereinszuordnung prüfen.');
+  }
+}
+
+function openPfmsLegacyTeamDialog(team = null) {
+  if (!team && !pfmsManageableLegacyOrganizations.length) {
+    toast('Du benötigst aktive Leitungsrechte in einem freigegebenen Verein, um Mannschaften anzulegen.');
+    return;
+  }
+  const form = document.getElementById('pfmsTeamForm');
+  const dialog = document.getElementById('pfmsTeamDialog');
+  if (!form || !dialog) return;
+  pfmsEditingLegacyTeamId = team?.team_id || null;
+  form.reset();
+
+  const organizationSelect = document.getElementById('pfmsTeamOrganization');
+  organizationSelect.innerHTML = pfmsManageableLegacyOrganizations.map(org =>
+    '<option value="' + escapeHtml(org.organization_id) + '">' +
+      escapeHtml(org.organization_name) + '</option>'
+  ).join('');
+  if (team) {
+    organizationSelect.innerHTML = '<option value="' + escapeHtml(team.organization_id) + '">' +
+      escapeHtml(team.organization_name) + '</option>';
+    organizationSelect.disabled = true;
+    form.elements.team_name.value = team.team_name || '';
+    form.elements.age_group.value = team.age_group || 'Senioren';
+    form.elements.gender.value = team.gender || 'Gemischt';
+    form.elements.season.value = team.season || '';
+    form.elements.division.value = team.division || '';
+    form.elements.status.value = team.team_status || 'active';
+    document.getElementById('pfmsTeamStatusField').hidden = false;
+  } else {
+    organizationSelect.disabled = false;
+    form.elements.season.value = new Date().getFullYear() + '/' + (new Date().getFullYear() + 1);
+    form.elements.status.value = 'active';
+    document.getElementById('pfmsTeamStatusField').hidden = true;
+  }
+  document.getElementById('pfmsTeamDialogTitle').textContent =
+    team ? 'Mannschaft bearbeiten' : 'Mannschaft anlegen';
+  document.getElementById('pfmsTeamSaveButton').textContent =
+    team ? 'Änderungen speichern' : 'Mannschaft anlegen';
+  document.getElementById('pfmsTeamFormMessage').textContent = '';
+  dialog.showModal();
+}
+
+async function savePfmsLegacyTeam(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const button = document.getElementById('pfmsTeamSaveButton');
+  const message = document.getElementById('pfmsTeamFormMessage');
+  if (!data.team_name?.trim() || !data.season?.trim()) {
+    message.textContent = 'Bitte Mannschaftsname und Saison ausfüllen.';
+    return;
+  }
+  button.disabled = true;
+  message.textContent = 'Mannschaft wird gespeichert …';
+  try {
+    let result;
+    if (pfmsEditingLegacyTeamId) {
+      result = await pfssSupabase.rpc('pfms_update_legacy_team', {
+        p_team_id: pfmsEditingLegacyTeamId,
+        p_team_name: data.team_name,
+        p_age_group: data.age_group,
+        p_gender: data.gender,
+        p_season: data.season,
+        p_division: data.division || null,
+        p_status: data.status || 'active'
+      });
+    } else {
+      result = await pfssSupabase.rpc('pfms_create_legacy_team', {
+        p_organization_id: data.organization_id,
+        p_team_name: data.team_name,
+        p_age_group: data.age_group,
+        p_gender: data.gender,
+        p_season: data.season,
+        p_division: data.division || null
+      });
+    }
+    if (result.error) throw result.error;
+    document.getElementById('pfmsTeamDialog').close();
+    pfmsEditingLegacyTeamId = null;
+    await loadPfmsLegacyTeams();
+    toast('Mannschaft wurde gespeichert.');
+  } catch (error) {
+    console.error('PFMS team save failed:', error);
+    message.textContent = 'Mannschaft konnte nicht gespeichert werden. Prüfe Organisationsrechte und Eingaben.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderPfmsTeamStaffList(teamId, staff, canManage) {
+  const host = document.getElementById('pfmsTeamStaffList');
+  if (!host) return;
+  if (!staff.length) {
+    host.innerHTML = '<div class="empty-state">Noch keine Trainer oder Betreuer zugeordnet.</div>';
+    return;
+  }
+  host.innerHTML = staff.map(member =>
+    '<article class="admin-user-card" data-team-staff-row="' + escapeHtml(member.assignment_id) + '">' +
+      '<div class="admin-user-info"><b>' +
+        escapeHtml(member.full_name || member.username || member.email || 'Mitglied') + '</b>' +
+        '<small>' + escapeHtml(member.email || member.user_id) + '</small>' +
+        '<span class="tag">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + ' · ' +
+          escapeHtml(member.assignment_status) + '</span></div>' +
+      (canManage ? '<button type="button" class="btn btn-secondary" data-pfms-remove-team-staff="' +
+        escapeHtml(member.assignment_id) + '">Zuordnung entfernen</button>' : '') +
+    '</article>'
+  ).join('');
+}
+
+async function openPfmsLegacyTeamStaffDialog(teamId) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  if (!team || !team.can_manage) return;
+  pfmsSelectedLegacyTeam = team;
+  const dialog = document.getElementById('pfmsTeamStaffDialog');
+  const candidate = document.getElementById('pfmsTeamStaffCandidate');
+  const message = document.getElementById('pfmsTeamStaffMessage');
+  document.getElementById('pfmsTeamStaffTitle').textContent = 'Trainerteam · ' + team.team_name;
+  candidate.innerHTML = '<option value="">Mitglieder werden geladen …</option>';
+  message.textContent = 'Aktive Vereinsmitglieder werden geprüft …';
+  dialog.showModal();
+
+  try {
+    const [candidatesResult, staffResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_staff_candidates', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_staff', { p_team_id: teamId })
+    ]);
+    if (candidatesResult.error) throw candidatesResult.error;
+    if (staffResult.error) throw staffResult.error;
+
+    const assigned = new Set((staffResult.data || []).map(item => item.user_id));
+    const candidates = (candidatesResult.data || []).filter(item => !assigned.has(item.user_id));
+    candidate.innerHTML = candidates.length
+      ? '<option value="">Person auswählen …</option>' + candidates.map(item =>
+          '<option value="' + escapeHtml(item.user_id) + '" data-role="' +
+            escapeHtml(item.organization_role) + '">' +
+            escapeHtml(item.full_name || item.username || item.email || 'Mitglied') +
+            ' · ' + escapeHtml(pfmsTeamRoleLabel(item.organization_role)) + '</option>'
+        ).join('')
+      : '<option value="">Keine weiteren aktiven Trainer oder Betreuer verfügbar</option>';
+    message.textContent = candidates.length
+      ? candidates.length + ' aktive Person(en) können zugeordnet werden.'
+      : 'Bitte lade Trainer, Co-Trainer oder Betreuer zuerst als Vereinsmitglieder ein.';
+    renderPfmsTeamStaffList(teamId, staffResult.data || [], true);
+  } catch (error) {
+    console.error('PFMS team staff load failed:', error);
+    message.textContent = 'Trainerteam konnte nicht geladen werden. Prüfe Mitgliedschaften und Datenbankmigration.';
+    candidate.innerHTML = '<option value="">Nicht verfügbar</option>';
+  }
+}
+
+async function assignPfmsLegacyTeamStaff(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const select = document.getElementById('pfmsTeamStaffCandidate');
+  const option = select.selectedOptions[0];
+  const userId = select.value;
+  const role = option?.dataset.role || '';
+  const button = document.getElementById('pfmsTeamStaffSaveButton');
+  const message = document.getElementById('pfmsTeamStaffMessage');
+  if (!team || !userId || !['trainer','co_trainer','betreuer'].includes(role)) {
+    message.textContent = 'Bitte wähle ein aktives Vereinsmitglied aus.';
+    return;
+  }
+  button.disabled = true;
+  message.textContent = 'Zuordnung wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_assign_legacy_team_staff', {
+      p_team_id: team.team_id,
+      p_user_id: userId,
+      p_role: role
+    });
+    if (error) throw error;
+    message.textContent = 'Trainerteam wurde aktualisiert.';
+    await loadPfmsLegacyTeams();
+    await openPfmsLegacyTeamStaffDialog(team.team_id);
+  } catch (error) {
+    console.error('PFMS staff assignment failed:', error);
+    message.textContent = 'Zuordnung fehlgeschlagen. Die Person muss aktives Vereinsmitglied mit derselben Rolle sein.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function removePfmsLegacyTeamStaff(assignmentId) {
+  const team = pfmsSelectedLegacyTeam;
+  if (!team || !window.confirm('Diese Teamzuordnung wirklich entfernen?')) return;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_remove_legacy_team_staff', {
+      p_assignment_id: assignmentId
+    });
+    if (error) throw error;
+    await loadPfmsLegacyTeams();
+    await openPfmsLegacyTeamStaffDialog(team.team_id);
+    toast('Teamzuordnung wurde entfernt.');
+  } catch (error) {
+    console.error('PFMS team staff removal failed:', error);
+    toast('Teamzuordnung konnte nicht entfernt werden. Prüfe deine Berechtigung.');
+  }
+}
+
+async function openPfmsLegacyTeamWorkspace(teamId) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  if (!team) return;
+  pfmsSelectedLegacyTeam = team;
+  const panel = document.getElementById('pfmsSelectedTeamPanel');
+  const title = document.getElementById('pfmsSelectedTeamTitle');
+  const meta = document.getElementById('pfmsSelectedTeamMeta');
+  const staffHost = document.getElementById('pfmsSelectedTeamStaff');
+  const modules = document.getElementById('pfmsTeamModules');
+  panel.hidden = false;
+  modules.hidden = false;
+  title.textContent = team.team_name;
+  meta.textContent = team.organization_name + ' · ' + team.age_group + ' · ' + team.season;
+  staffHost.innerHTML = '<p class="admin-message">Trainerteam wird geladen …</p>';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_staff', {
+      p_team_id: teamId
+    });
+    if (error) throw error;
+    staffHost.innerHTML = '<h3>Trainer & Betreuer</h3>' +
+      (data?.length ? data.map(member =>
+        '<article class="admin-user-card"><div class="admin-user-info"><b>' +
+        escapeHtml(member.full_name || member.username || member.email || 'Mitglied') +
+        '</b><small>' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</small></div></article>'
+      ).join('') : '<p class="admin-message">Noch kein Trainerteam zugeordnet.</p>');
+    if (team.can_manage) {
+      staffHost.innerHTML += '<button type="button" class="btn btn-primary" data-pfms-team-staff="' +
+        escapeHtml(team.team_id) + '">Trainerteam verwalten</button>';
+    }
+  } catch (error) {
+    console.error('PFMS selected team staff load failed:', error);
+    staffHost.textContent = 'Trainerteam konnte nicht geladen werden.';
+  }
+}
+
+function setupPfmsLegacyTeamWorkspace() {
+  if (pfmsLegacyTeamsBound) return;
+  const teamForm = document.getElementById('pfmsTeamForm');
+  const staffForm = document.getElementById('pfmsTeamStaffForm');
+  if (!teamForm || !staffForm) return;
+
+  document.getElementById('pfmsAddTeamButton')?.addEventListener('click', () =>
+    openPfmsLegacyTeamDialog());
+  teamForm.addEventListener('submit', savePfmsLegacyTeam);
+  staffForm.addEventListener('submit', assignPfmsLegacyTeamStaff);
+  document.getElementById('pfmsCloseSelectedTeam')?.addEventListener('click', () => {
+    document.getElementById('pfmsSelectedTeamPanel').hidden = true;
+    document.getElementById('pfmsTeamModules').hidden = true;
+    pfmsSelectedLegacyTeam = null;
+  });
+
+  document.addEventListener('click', event => {
+    const openButton = event.target.closest('[data-pfms-open-team]');
+    if (openButton) {
+      openPfmsLegacyTeamWorkspace(openButton.dataset.pfmsOpenTeam);
+      return;
+    }
+    const editButton = event.target.closest('[data-pfms-edit-team]');
+    if (editButton) {
+      const team = pfmsLegacyTeams.find(item => item.team_id === editButton.dataset.pfmsEditTeam);
+      if (team) openPfmsLegacyTeamDialog(team);
+      return;
+    }
+    const staffButton = event.target.closest('[data-pfms-team-staff]');
+    if (staffButton) {
+      openPfmsLegacyTeamStaffDialog(staffButton.dataset.pfmsTeamStaff);
+      return;
+    }
+    const removeButton = event.target.closest('[data-pfms-remove-team-staff]');
+    if (removeButton) removePfmsLegacyTeamStaff(removeButton.dataset.pfmsRemoveTeamStaff);
+  });
+
+  pfmsLegacyTeamsBound = true;
+  void loadPfmsLegacyTeams();
+}
+
 async function loadPfmsAdminMembers() {
   const message = document.getElementById('pfmsAdminMembersMessage');
   const results = document.getElementById('pfmsAdminMembersResults');
