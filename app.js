@@ -865,6 +865,7 @@ function showAuthenticatedApp(user, profile) {
   }
   applyAdminPreviewMode('admin');
   setupPfmsAdminManagement();
+  setupPfmsAdminMembers();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -1208,6 +1209,144 @@ function showPfmsScoutDetails(root,scout) {
     <small>Profilstatus: ${escapeHtml(scout.profile_status||'–')}</small>
     <small>Aktive Organisationen: ${Number(scout.organization_count||0)}</small>
   </div>`;
+}
+
+const PFMS_ADMIN_MEMBER_ROLES = {
+  owner: 'Besitzer',
+  club_admin: 'Vereinsleitung',
+  agency_admin: 'Agenturleitung',
+  scout: 'Scout',
+  trainer: 'Trainer',
+  co_trainer: 'Co-Trainer',
+  betreuer: 'Betreuer',
+  member: 'Mitglied'
+};
+
+const PFMS_MEMBERSHIP_STATUSES = {
+  pending: 'Ausstehend',
+  active: 'Aktiv',
+  suspended: 'Gesperrt'
+};
+
+async function loadPfmsAdminMembers() {
+  const message = document.getElementById('pfmsAdminMembersMessage');
+  const results = document.getElementById('pfmsAdminMembersResults');
+  if (!message || !results) return;
+  if (!window.pfssIsRealAdmin) {
+    message.textContent = 'Kein Administratorzugang.';
+    results.innerHTML = '';
+    return;
+  }
+
+  const query = document.getElementById('pfmsAdminMembersQuery')?.value.trim() || '';
+  const organizationType = document.getElementById('pfmsAdminMembersOrgType')?.value || null;
+  const role = document.getElementById('pfmsAdminMembersRole')?.value || null;
+  const status = document.getElementById('pfmsAdminMembersStatus')?.value || null;
+
+  message.textContent = 'Mitgliedschaften werden geladen …';
+  results.innerHTML = '';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_admin_list_legacy_members', {
+      p_query: query,
+      p_status: status,
+      p_role: role,
+      p_organization_type: organizationType
+    });
+    if (error) throw error;
+
+    const members = data || [];
+    message.textContent = members.length
+      ? members.length + ' Mitgliedschaft(en) gefunden.'
+      : 'Keine passenden Mitgliedschaften gefunden.';
+
+    if (!members.length) {
+      results.innerHTML = '<div class="empty-state"><b>Keine Einträge gefunden</b><p>Ändere die Suchkriterien oder setze die Filter zurück.</p></div>';
+      return;
+    }
+
+    results.innerHTML = members.map((member) => {
+      const roleOptions = Object.entries(PFMS_ADMIN_MEMBER_ROLES).map(([value, label]) =>
+        '<option value="' + escapeHtml(value) + '"' +
+        (member.member_role === value ? ' selected' : '') + '>' +
+        escapeHtml(label) + '</option>'
+      ).join('');
+      const statusOptions = Object.entries(PFMS_MEMBERSHIP_STATUSES).map(([value, label]) =>
+        '<option value="' + escapeHtml(value) + '"' +
+        (member.membership_status === value ? ' selected' : '') + '>' +
+        escapeHtml(label) + '</option>'
+      ).join('');
+      const memberName = member.full_name || member.username || member.email || 'Mitglied';
+      const orgType = member.organization_type === 'agency' ? 'Agentur' :
+        member.organization_type === 'scout_workspace' ? 'Scout-Arbeitsbereich' : 'Verein';
+
+      return '<article class="admin-user-card pfms-global-member-card" data-membership-id="' +
+        escapeHtml(member.membership_id) + '">' +
+        '<div class="admin-user-info">' +
+          '<b>' + escapeHtml(memberName) + '</b>' +
+          '<small>' + escapeHtml(member.email || member.user_id) + '</small>' +
+          '<small>' + escapeHtml(orgType + ': ' + (member.organization_name || 'Unbekannt')) + '</small>' +
+          '<small>User-ID: ' + escapeHtml(member.user_id) + '</small>' +
+        '</div>' +
+        '<div class="admin-user-controls">' +
+          '<label>Rolle<select data-member-role>' + roleOptions + '</select></label>' +
+          '<label>Status<select data-member-status>' + statusOptions + '</select></label>' +
+        '</div>' +
+        '<button type="button" class="btn btn-secondary" data-save-global-membership>Änderungen speichern</button>' +
+        '<p class="admin-message" data-global-member-message role="status" aria-live="polite"></p>' +
+      '</article>';
+    }).join('');
+  } catch (error) {
+    console.error('PFMS admin member directory:', error);
+    message.textContent = 'Mitglieder konnten nicht geladen werden. Bitte Datenbankmigration und Administratorrechte prüfen.';
+    results.innerHTML = '';
+  }
+}
+
+function setupPfmsAdminMembers() {
+  if (!window.pfssIsRealAdmin) return;
+  const form = document.getElementById('pfmsAdminMembersFilterForm');
+  const results = document.getElementById('pfmsAdminMembersResults');
+  if (!form || !results) return;
+
+  if (!form.dataset.pfmsBound) {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      loadPfmsAdminMembers();
+    });
+    form.addEventListener('reset', () => window.setTimeout(loadPfmsAdminMembers, 0));
+    form.dataset.pfmsBound = 'true';
+  }
+
+  if (!results.dataset.pfmsBound) {
+    results.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-save-global-membership]');
+      if (!button) return;
+      const card = button.closest('[data-membership-id]');
+      if (!card) return;
+
+      const message = card.querySelector('[data-global-member-message]');
+      button.disabled = true;
+      message.textContent = 'Änderungen werden gespeichert …';
+      try {
+        const { error } = await pfssSupabase.rpc('pfms_admin_update_legacy_membership', {
+          p_membership_id: card.dataset.membershipId,
+          p_role: card.querySelector('[data-member-role]').value,
+          p_status: card.querySelector('[data-member-status]').value
+        });
+        if (error) throw error;
+        message.textContent = 'Änderungen gespeichert.';
+        await loadPfmsAdminMembers();
+      } catch (error) {
+        console.error('PFMS global membership update:', error);
+        message.textContent = 'Speichern fehlgeschlagen: ' + (error?.message || 'Berechtigung oder Eingaben prüfen.');
+        button.disabled = false;
+      }
+    });
+    results.dataset.pfmsBound = 'true';
+  }
+
+  loadPfmsAdminMembers();
 }
 
 async function checkPfssAccess(user) {
