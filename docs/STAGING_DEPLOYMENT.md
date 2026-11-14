@@ -94,15 +94,9 @@ Das Frontend enthält keine fest eingetragene Projekt-URL und keinen fest einget
 - `PFSS_SUPABASE_URL`: exakt `https://<PFMS_STAGING_PROJECT_REF>.supabase.co`
 - `PFSS_SUPABASE_KEY`: ausschließlich der öffentliche Publishable-/anon-Key dieses Staging-Projekts
 
-Der Build bricht ab, wenn Werte fehlen, URL und Projekt-Referenz nicht exakt übereinstimmen oder ein Secret-/Service-Role-Key verwendet wird. Der Schlüssel ist im Browser sichtbar und muss deshalb ein öffentlicher Publishable-/anon-Key sein. Niemals einen Service-Role-/Secret-Key verwenden. Render fragt die drei Werte mit `sync: false` beim Anlegen/Aktualisieren des Staging-Dienstes ab. Sie werden nicht in Git gespeichert.
+Der Build bricht ab, wenn Werte fehlen, URL und Projekt-Referenz nicht exakt übereinstimmen oder ein Secret-/Service-Role-Key verwendet wird. Der Schlüssel ist im Browser sichtbar und muss deshalb ein öffentlicher Publishable-/anon-Key sein. Niemals einen Service-Role-/Secret-Key verwenden. Render fragt Werte mit `sync: false` nur beim erstmaligen Erstellen des Blueprints ab. Bei einem bereits bestehenden Render-Dienst müssen die drei Werte manuell im Dashboard ergänzt werden. Sie werden nicht in Git gespeichert.
 
 GitHub CI verwendet ausschließlich `PFMS_BUILD_TARGET=ci` mit einer ungültigen Platzhalter-URL und einem Platzhalter-Key. Dadurch wird der vollständige Paket-Build getestet, ohne echte Supabase-Projektinformationen einzubetten. Ein lokaler Staging-Build benötigt dieselben vier Staging-Werte wie Render.
-
-
-**Staging-Projektbindung (Deployment-Blocker):** Das Frontend liest die Supabase-Verbindungsdaten jetzt aus einer beim Build erzeugten Datei `pfms-config.js`. Der Staging-Build wird nur fortgesetzt, wenn `PFMS_BUILD_TARGET=staging`, `PFMS_STAGING_PROJECT_REF`, `PFSS_SUPABASE_URL` und `PFSS_SUPABASE_KEY` gesetzt sind und die Projekt-Referenz exakt zur URL passt. Als Browser-Schlüssel sind ausschließlich Publishable-/Anon-Keys erlaubt; Secret- und Service-Role-Schlüssel werden abgewiesen. Die Werte werden in Render unter **Environment** des Staging-Static-Site-Dienstes gesetzt, nicht in GitHub, Quellcode oder Chat. Bei einem bereits angelegten Render-Dienst müssen diese Variablen manuell im Dashboard ergänzt werden: Render fragt `sync: false`-Werte nur beim erstmaligen Anlegen eines Blueprints ab; spätere Ergänzungen werden nicht automatisch abgefragt. Die Projekt-Referenz muss aus dem dedizierten Staging-Supabase-Projekt stammen. Der Build bricht bei fehlenden oder widersprüchlichen Werten ab. CI verwendet ausschließlich einen isolierten Platzhalter und greift auf kein reales Supabase-Projekt zu.
-
-**Verbindliche Supabase-Zielprüfung vor dem Deployment:** Das Frontend verwendet derzeit eine fest eingetragene Supabase-Projekt-URL samt Publishable Key in `app.js`; `supabase/config.toml` führt dieselbe Projekt-Referenz. Branch- und Render-Trennung allein isolieren die Datenbank daher nicht. Im Supabase-Dashboard muss vor dem ersten Staging-Deploy bestätigt werden, dass diese Referenz das dedizierte Staging-Projekt ist. Zeigt sie auf Produktion, muss zuerst eine getrennte Build-Konfiguration für die Staging-URL und den Staging-Publishable-Key umgesetzt werden. Niemals einen Service-Role-/Secret-Key in das Frontend übernehmen.
-
 
 
 ### Reproduzierbarer Static-Site-Build
