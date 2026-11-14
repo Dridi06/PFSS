@@ -23,7 +23,8 @@ const [
   scoutIntegrityMigration,
   systemEventsMigration,
   systemEventsHardeningMigration,
-  mainMediaMigration
+  mainMediaMigration,
+  legacyOrgManagerMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -44,7 +45,8 @@ const [
   read("supabase/migrations/20261114_scout_workspace_integrity.sql"),
   read("supabase/migrations/20261116_pfms_system_event_monitoring.sql"),
   read("supabase/migrations/20261117_pfms_system_event_hardening.sql"),
-  read("supabase/migrations/20261117_pfms_main_media_library.sql")
+  read("supabase/migrations/20261117_pfms_main_media_library.sql"),
+  read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql")
 ]);
 
 const requiredFiles = [
@@ -67,6 +69,7 @@ const requiredFiles = [
   "supabase/migrations/20261116_pfms_system_event_monitoring.sql",
   "supabase/migrations/20261117_pfms_system_event_hardening.sql",
   "supabase/migrations/20261117_pfms_main_media_library.sql",
+  "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
@@ -155,6 +158,17 @@ assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player delet
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy import must be bounded and transactional");
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy browser data must have an explicit safe cloud import path");
 assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.includes("'pfms_main_scouting_reports'"), "Read-only audit must include the main catalogue tables");
+
+// Legacy organization invitation authorization must be available in the tracked migrations.
+assert.ok(legacyOrgManagerMigration.includes("create or replace function public.can_manage_org(p_organization_id uuid)"), "Legacy organization manager helper is missing");
+assert.ok(legacyOrgManagerMigration.includes("security definer") && legacyOrgManagerMigration.includes("set search_path = ''"), "Legacy manager helper must be protected by a fixed search path");
+assert.ok(legacyOrgManagerMigration.includes("m.user_id = auth.uid()") && legacyOrgManagerMigration.includes("m.status = 'active'"), "Legacy manager helper must enforce the active caller membership");
+assert.ok(legacyOrgManagerMigration.includes("'owner', 'club_admin', 'agency_admin'"), "Legacy manager helper role allowlist is incomplete");
+assert.ok(legacyOrgManagerMigration.includes("revoke all on function public.can_manage_org(uuid) from public, anon"), "Legacy manager helper must not be executable by anonymous users");
+assert.ok(
+  (await read("supabase/migrations/20261111_fix_invitation_admin_access.sql")).includes("public.can_manage_org(p_organization_id)"),
+  "Legacy invitation RPC is no longer wired to the organization manager authorization helper"
+);
 
 // Private main media library: private bucket, owner-only metadata and signed URL handling.
 assert.ok(html.includes('id="mainMediaStatus"') && html.includes('id="mediaGrid"'), "Main media library UI is missing");
