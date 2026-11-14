@@ -29,7 +29,8 @@ const [
   legacyOrgMembershipManagementMigration,
   legacyTeamManagementMigration,
   legacyTeamRosterMigration,
-  teamPermissionsMigration
+  teamPermissionsMigration,
+  legacyTeamTrainingMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -56,7 +57,8 @@ const [
   read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql"),
   read("supabase/migrations/20261121_pfms_legacy_team_management.sql"),
   read("supabase/migrations/20261122_pfms_legacy_team_roster.sql"),
-  read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql")
+  read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql"),
+  read("supabase/migrations/20261123_pfms_legacy_team_training.sql")
 ]);
 
 const requiredFiles = [
@@ -233,6 +235,65 @@ assert.ok(teamPermissionsMigration.includes("public.pfms_legacy_team_permissions
 assert.ok(teamPermissionsMigration.includes("pfms_has_legacy_team_permission") && teamPermissionsMigration.includes("pfms_get_my_legacy_team_permissions"), "Team module permissions must expose server-side effective authorization");
 assert.ok(teamPermissionsMigration.includes("pfms_save_legacy_team_permissions") && teamPermissionsMigration.includes("can_edit and not v_can_view"), "Team permission saving must validate edit/view consistency");
 assert.ok(teamPermissionsMigration.includes("Exactly eight module permission entries are required"), "All team modules must be explicitly configured");
+assert.ok(
+  legacyTeamTrainingMigration.includes("public.pfms_legacy_training_sessions") &&
+  legacyTeamTrainingMigration.includes("public.pfms_legacy_training_attendance"),
+  "Training and attendance tables are missing"
+);
+assert.ok(
+  legacyTeamTrainingMigration.includes("pfms_list_legacy_team_training") &&
+  legacyTeamTrainingMigration.includes("pfms_create_legacy_team_training") &&
+  legacyTeamTrainingMigration.includes("pfms_update_legacy_team_training") &&
+  legacyTeamTrainingMigration.includes("pfms_list_legacy_training_attendance") &&
+  legacyTeamTrainingMigration.includes("pfms_mark_legacy_training_attendance"),
+  "Training and attendance RPCs are incomplete"
+);
+assert.ok(
+  legacyTeamTrainingMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'training', 'view')") &&
+  legacyTeamTrainingMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'training', 'edit')") &&
+  legacyTeamTrainingMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'attendance', 'view')") &&
+  legacyTeamTrainingMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'attendance', 'edit')"),
+  "Training and attendance RPCs must enforce separate module permissions"
+);
+assert.ok(
+  legacyTeamTrainingMigration.includes("v_assignment_team_id <> v_team_id") &&
+  legacyTeamTrainingMigration.includes("Player is not assigned to this team"),
+  "Attendance writes must not cross team boundaries"
+);
+assert.ok(
+  legacyTeamTrainingMigration.includes("force row level security") &&
+  legacyTeamTrainingMigration.includes("revoke all on table public.pfms_legacy_training_sessions") &&
+  legacyTeamTrainingMigration.includes("revoke all on table public.pfms_legacy_training_attendance"),
+  "Training and attendance tables must remain RPC-only behind forced RLS"
+);
+assert.ok(
+  app.includes("async function savePfmsLegacyTeamTraining") &&
+  app.includes("async function updatePfmsLegacyTrainingStatus") &&
+  app.includes("async function openPfmsLegacyTrainingAttendance") &&
+  app.includes("async function savePfmsLegacyTrainingAttendance") &&
+  app.includes("setupPfmsLegacyTeamWorkspace"),
+  "Training and attendance frontend handlers are incomplete"
+);
+assert.ok(
+  app.includes("savePfmsLegacyTeamTraining") &&
+  app.includes("[data-pfms-open-attendance]") &&
+  app.includes("[data-pfms-save-attendance]"),
+  "Training and attendance controls are not wired to their handlers"
+);
+assert.ok(
+  html.includes('id="pfmsTeamTrainingForm"') &&
+  html.includes('id="pfmsTeamTrainingList"') &&
+  html.includes('id="pfmsTeamAttendancePanel"') &&
+  html.includes('id="pfmsTeamAttendanceList"'),
+  "Team training and attendance UI is incomplete"
+);
+assert.ok(
+  app.includes("pfmsLegacyTrainingSessions = []") &&
+  app.includes("pfmsSelectedTrainingSession = null") &&
+  app.includes("requestGeneration !== pfmsAuthGeneration"),
+  "Training state must be cleared and asynchronous responses guarded on account changes"
+);
+
 
 
 // Legacy organization invitation authorization must be available in the tracked migrations.
