@@ -457,6 +457,13 @@
           </div>
           <button class="btn btn-secondary" type="button" id="registerPasskeyButton">Passkey auf diesem Gerät einrichten</button>
           <p class="admin-message" id="passkeySetupMessage" role="status" aria-live="polite">Richte mindestens einen Passkey ein. Bewahre zusätzlich einen zweiten Zugang für den Geräteverlust auf.</p>
+          <div class="pfms-passkey-management">
+            <div class="pfms-passkey-management-head">
+              <strong>Registrierte Passkeys</strong>
+              <button class="btn btn-secondary" type="button" id="pfmsPasskeyRefreshButton">Aktualisieren</button>
+            </div>
+            <div id="pfmsPasskeyList" aria-live="polite">Noch nicht geladen. Tippe auf „Aktualisieren“.</div>
+          </div>
         </section>
 
         <div class="hero-panel">
