@@ -117,6 +117,13 @@ assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && sys
 assert.ok(!systemEventsMigration.includes("grant select, insert, update, delete on table public.pfms_system_events"), "System events must not grant delete access");
 assert.ok(html.includes('id="pfmsAdminErrorsFilterForm"') && html.includes('id="pfmsAdminErrorsResults"'), "Admin error log interface is missing");
 assert.ok(app.includes("function pfmsSanitizeLogValue") && app.includes("setupPfmsClientErrorLogging()"), "Client error logging with redaction is missing");
+const errorLoggerStart = app.indexOf("async function pfmsLogClientError");
+const errorLoggerEnd = app.indexOf("\\nfunction setupPfmsClientErrorLogging", errorLoggerStart);
+const errorLoggerCode = app.slice(errorLoggerStart, errorLoggerEnd);
+assert.ok(errorLoggerStart >= 0 && !errorLoggerCode.includes("stack:"), "Client error telemetry must not persist stack traces");
+assert.ok(app.includes("[redacted-token]") && app.includes("[email]"), "Client error telemetry must redact tokens and email addresses");
+assert.ok(app.includes("function pfmsSanitizeLogPath") && app.includes("'[id]'"), "Client error routes must redact ID-like path segments");
+assert.ok(app.includes("pfmsClientErrorCount >= 5"), "Client error telemetry must be rate-limited");
 assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes("addEventListener('error'"), "Frontend error handlers are missing");
 assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
 assert.ok(audit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
