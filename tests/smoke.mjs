@@ -384,7 +384,7 @@ assert.ok(
   "Match operations must enforce matches-specific permissions"
 );
 assert.ok(
-  legacyTeamMatchesMigration.includes("Player is not assigned to this team") &&
+  legacyTeamMatchesMigration.includes("Every lineup player must belong to the selected team") &&
   legacyTeamMatchesMigration.includes("v_starters > 11") &&
   legacyTeamMatchesMigration.includes("v_captains > 1"),
   "Match lineup must reject players outside the team, more than 11 starters or multiple captains"
