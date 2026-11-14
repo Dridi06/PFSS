@@ -84,6 +84,9 @@ Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturle
 Jeden Test mit Konto, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler dokumentieren.
 
 ## 6. Frontend und Render-Staging
+
+**Staging-Projektbindung (Deployment-Blocker):** Das Frontend liest die Supabase-Verbindungsdaten jetzt aus einer beim Build erzeugten Datei `pfms-config.js`. Der Staging-Build wird nur fortgesetzt, wenn `PFMS_BUILD_TARGET=staging`, `PFMS_STAGING_PROJECT_REF`, `PFSS_SUPABASE_URL` und `PFSS_SUPABASE_KEY` gesetzt sind und die Projekt-Referenz exakt zur URL passt. Als Browser-Schlüssel sind ausschließlich Publishable-/Anon-Keys erlaubt; Secret- und Service-Role-Schlüssel werden abgewiesen. Die Werte werden in Render unter **Environment** des Staging-Static-Site-Dienstes gesetzt, nicht in GitHub, Quellcode oder Chat. Die Projekt-Referenz muss aus dem dedizierten Staging-Supabase-Projekt stammen. Der Build bricht bei fehlenden oder widersprüchlichen Werten ab. CI verwendet ausschließlich einen isolierten Platzhalter und greift auf kein reales Supabase-Projekt zu.
+
 **Verbindliche Supabase-Zielprüfung vor dem Deployment:** Das Frontend verwendet derzeit eine fest eingetragene Supabase-Projekt-URL samt Publishable Key in `app.js`; `supabase/config.toml` führt dieselbe Projekt-Referenz. Branch- und Render-Trennung allein isolieren die Datenbank daher nicht. Im Supabase-Dashboard muss vor dem ersten Staging-Deploy bestätigt werden, dass diese Referenz das dedizierte Staging-Projekt ist. Zeigt sie auf Produktion, muss zuerst eine getrennte Build-Konfiguration für die Staging-URL und den Staging-Publishable-Key umgesetzt werden. Niemals einen Service-Role-/Secret-Key in das Frontend übernehmen.
 
 
@@ -91,8 +94,8 @@ Jeden Test mit Konto, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler doku
 ### Reproduzierbarer Static-Site-Build
 
 - `render.yaml` definiert den getrennten Dienst `pfms-staging-static` auf `feature/pfss-complete-platform-build`.
-- Der Render-Build-Befehl lautet `npm test`. Das Testskript prüft JavaScript-Syntax, bestehende Projekt-Smoke-Tests, erstellt anschließend `dist/` und prüft den vollständigen statischen Ausgabebaum.
-- `scripts/build-static.mjs` kopiert ausschließlich `index.html`, `rechtliches.html`, beide CSS-Dateien, beide JavaScript-Dateien, das PFMS-Logo und das Willkommens-Hintergrundbild nach `dist/`. SQL-Migrationen, Tests, interne Dokumentation und Repository-Konfigurationen werden nicht veröffentlicht.
+- Der Render-Build-Befehl führt Syntaxprüfung, einen echten Staging-Build und anschließend die Smoke-, Accessibility- und SQL-Tests aus. Der normale `npm test`-Lauf nutzt dagegen ausschließlich eine CI-Platzhalterkonfiguration.
+- `scripts/build-static.mjs` kopiert ausschließlich `index.html`, `rechtliches.html`, beide CSS-Dateien, beide JavaScript-Dateien, das PFMS-Logo und das Willkommens-Hintergrundbild nach `dist/` und erzeugt zusätzlich die projektgebundene `pfms-config.js`. SQL-Migrationen, Tests, interne Dokumentation und Repository-Konfigurationen werden nicht veröffentlicht.
 - Render veröffentlicht ausschließlich `./dist`. Automatische Deployments sind auf erfolgreiche Checks begrenzt (`autoDeployTrigger: checksPass`).
 - Die Staging-Response-Header enthalten eine Content-Security-Policy: Scripts sind auf lokale Dateien und `cdn.jsdelivr.net` begrenzt; Stylesheets dürfen zusätzlich die in `styles.css` verwendete Quelle `fonts.googleapis.com` laden; Font-Dateien sind über `font-src https:` erlaubt; Verbindungen sind auf lokale Origins und Supabase-Subdomains begrenzt; Frames und Plugin-Inhalte sind gesperrt. Die Richtlinie muss nach dem Deployment im Browser auf Auth, Storage und Medien geprüft werden. Bei einem legitimen blockierten Dienst wird nur die erforderliche konkrete Quelle ergänzt, nicht pauschal `*` freigegeben.
 - Die Blueprint-Datei provisioniert oder ändert keinen Dienst allein durch einen Git-Commit. Vor dem Anwenden in Render müssen Repository, Branch, Dienstname und Zielumgebung kontrolliert werden.
