@@ -22,7 +22,8 @@ target_tables AS (
         'pfms_platform_owner',
         'pfms_owner_bootstrap_requests',
         'pfms_global_players', 'pfms_main_scouting_reports', 'pfms_main_media', 'pfms_system_events',
-        'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media'
+        'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media',
+        'pfms_legacy_teams', 'pfms_legacy_team_staff'
       )
     )
 ),
