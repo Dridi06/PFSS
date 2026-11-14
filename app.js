@@ -6169,7 +6169,9 @@ async function savePfmsLegacyTeamExercise(event) {
     console.error('PFMS team exercise save failed:', error);
     message.textContent = 'Übung konnte nicht gespeichert werden. Prüfe deine Eingaben und Trainingsrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -6599,7 +6601,9 @@ async function savePfmsLegacyTrainingCycle(event) {
     console.error('PFMS training cycle save failed:', error);
     message.textContent = 'Trainingszyklus konnte nicht gespeichert werden. Prüfe Start-/Enddatum und Trainingsrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -6642,7 +6646,9 @@ async function savePfmsLegacyTrainingCycleWeek(form) {
     console.error('PFMS training cycle week save failed:', error);
     message.textContent = 'Wochenplanung konnte nicht gespeichert werden. Prüfe die Teamrechte und Eingaben.';
   } finally {
-    if (button) button.disabled = false;
+    if (button && requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -6677,7 +6683,9 @@ async function updatePfmsLegacyTrainingCycleStatus(button) {
     console.error('PFMS training cycle status update failed:', error);
     message.textContent = 'Zyklusstatus konnte nicht gespeichert werden.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -6928,7 +6936,9 @@ async function updatePfmsLegacyTrainingStatus(button) {
     console.error('PFMS training session status update failed:', error);
     document.getElementById('pfmsTeamTrainingMessage').textContent = 'Status konnte nicht gespeichert werden. Prüfe deine Trainingsrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -7223,7 +7233,9 @@ async function savePfmsLegacyTeamFinanceEntry(event) {
     console.error('PFMS team finance entry save failed:', error);
     message.textContent = 'Buchung konnte nicht gespeichert werden. Prüfe Datum, Betrag und finance-Bearbeitungsrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
