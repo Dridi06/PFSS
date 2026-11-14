@@ -258,7 +258,6 @@ if (knownGaps.length) {
   console.log("\nKnown unfinished areas (tracked, not hidden):");
   for (const gap of knownGaps) console.log("- " + gap);
 }
-)"), "Main media path must stay inside the authenticated user's private folder");
 assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect the main media metadata table");
 assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pfms_is_admin()"), "Report RLS must restrict read/update/delete to the author or an administrator");
 assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve reports rather than cascade-delete history");
@@ -501,7 +500,6 @@ if (knownGaps.length) {
   console.log("\nKnown unfinished areas (tracked, not hidden):");
   for (const gap of knownGaps) console.log("- " + gap);
 }
-)"), "Main media path must stay inside the authenticated user's private folder");
 assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect the main media metadata table");
 assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pfms_is_admin()"), "Report RLS must restrict read/update/delete to the author or an administrator");
 assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve reports rather than cascade-delete history");
