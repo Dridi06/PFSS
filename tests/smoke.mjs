@@ -1918,3 +1918,35 @@ assert.ok(
   travelPlanSaver.includes("submit.disabled = false"),
   "Event travel plan submit control must only be re-enabled while the original team remains selected"
 );
+
+
+// Passkey integration: keep the experimental Supabase Auth flow guarded and manageable.
+assert.ok(
+  html.includes('id="passkeyLoginButton"') &&
+  html.includes('id="registerPasskeyButton"') &&
+  html.includes('id="pfmsPasskeyList"') &&
+  html.includes('id="pfmsPasskeyRefreshButton"'),
+  "Passkey login and account-management controls must be present"
+);
+assert.ok(
+  app.includes("experimental: { passkey: true }") &&
+  app.includes("auth.registerPasskey()") &&
+  app.includes("auth.signInWithPasskey()"),
+  "Supabase Auth passkey opt-in, registration and sign-in must remain wired"
+);
+assert.ok(
+  app.includes("auth.passkey.list()") &&
+  app.includes("auth.passkey.update({") &&
+  app.includes("auth.passkey.delete({ passkeyId })"),
+  "Current-user passkey list, rename and delete operations must remain wired"
+);
+assert.ok(
+  app.includes("passkeyItems.length <= 1") &&
+  app.includes("window.confirm('Diesen Passkey wirklich entfernen?"),
+  "The UI must guard against accidental deletion of the last listed passkey"
+);
+assert.ok(
+  app.includes("!window.isSecureContext") &&
+  app.includes("!window.PublicKeyCredential"),
+  "Passkey actions must fail safely when WebAuthn is unavailable"
+);
