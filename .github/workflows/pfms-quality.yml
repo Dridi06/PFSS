@@ -32,3 +32,19 @@ jobs:
       - name: Run project checks
         run: |
           npm test
+
+  edge-functions:
+    name: Type-check Supabase Edge Functions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Edge Functions
+        run: |
+          deno check supabase/functions/username-login/index.ts
+          deno check supabase/functions/r2-connection-check/index.ts
