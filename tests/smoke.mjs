@@ -99,6 +99,14 @@ assert.ok(html.includes("PFMS – Professionell Football Management System"), "P
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
 assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
 assert.match(app, /finishAuthentication\(\);/, "Authentication must complete after the reload path");
+assert.match(app, /async function showAuthenticatedApp\(user, profile\)/, "Authenticated app initialization must wait for cloud data");
+assert.ok(app.includes("await loadPfmsMainData()"), "Main cloud data must be loaded after authentication");
+assert.ok(app.includes("function resetPfmsAuthenticatedState()") && app.includes("window.pfmsResetScoutWorkspace?.()"), "Logout must clear user-bound application data");
+assert.ok(app.includes("pfmsAuthGeneration") && app.includes("requestGeneration !== pfmsAuthGeneration"), "Stale main data requests must not overwrite a new user's session");
+assert.ok(app.includes("pfmsMainMediaOwnerId !== requestUserId") && app.includes("pfmsMainMediaRequestId"), "Private media cache must be isolated between accounts");
+assert.ok(scout.includes("window.pfmsResetScoutWorkspace = function") && scout.includes("state.generation += 1"), "Scout private data must reset across account changes");
+assert.ok(scout.includes("requestUserId !== window.pfssCurrentUserId") && scout.includes("requestGeneration !== state.generation"), "Stale Scout requests must not repopulate another user's workspace");
+
 
 // Runtime and Edge Function configuration.
 const denoConfig = JSON.parse(await read("deno.json"));
