@@ -20,6 +20,7 @@ target_tables AS (
         'organization_invitations',
         'pfms_organizations', 'pfms_memberships', 'pfms_scout_profiles',
         'pfms_platform_owner',
+        'pfms_owner_bootstrap_requests',
         'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media'
       )
     )
