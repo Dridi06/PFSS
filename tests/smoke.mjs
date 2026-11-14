@@ -568,6 +568,14 @@ assert.ok(
   "Roster view/edit controls must respect separate team permissions"
 );
 assert.ok(app.includes("pfmsSelectedTeamPermissions = new Map()") && app.includes("pfmsTeamPermissionsDialog") && app.includes("requestGeneration !== pfmsAuthGeneration"), "Team permission UI must clear state and reject stale account responses");
+assert.ok(
+  app.includes("list.addEventListener('change'") &&
+  app.includes("list.dataset.permissionChangeBound = 'true'") &&
+  app.includes("if (!viewInput.checked) editInput.checked = false;") &&
+  app.includes("editInput.disabled = !viewInput.checked;"),
+  "Turning off a module's view permission must also clear and disable its edit permission"
+);
+
 
 const expectedTeamPermissionModules = [
   "squad", "training", "attendance", "finance", "events",
