@@ -91,6 +91,7 @@ const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy
 const teamEventParticipantsMigration = await read("supabase/migrations/20261204_pfms_legacy_team_event_participants.sql");
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
+const teamTasksMigration = await read("supabase/migrations/20261206_pfms_legacy_team_tasks.sql");
 
 
 const requiredFiles = [
@@ -137,6 +138,7 @@ const requiredFiles = [
   "supabase/migrations/20261204_pfms_legacy_team_event_participants.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql",
+  "supabase/migrations/20261206_pfms_legacy_team_tasks.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -484,6 +486,66 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_analysis'"),
   "Staging audit must inventory tactical and video analysis"
 );
+assert.ok(
+  teamTasksMigration.includes("module_key in (")
+    && teamTasksMigration.includes("'analysis','tasks'")
+    && teamTasksMigration.includes("jsonb_array_length(p_permissions) <> 9")
+    && teamTasksMigration.includes("Exactly nine module permission entries"),
+  "Team permission editor and RPC must support nine modules including tasks"
+);
+assert.ok(
+  teamTasksMigration.includes("pfms_legacy_team_tasks")
+    && teamTasksMigration.includes("force row level security")
+    && teamTasksMigration.includes("pfms_has_legacy_team_permission(team_id, 'tasks', 'view')")
+    && teamTasksMigration.includes("revoke all on table public.pfms_legacy_team_tasks"),
+  "Shared team task table must enforce RLS, tasks.view and RPC-only writes"
+);
+assert.ok(
+  teamTasksMigration.includes("foreign key (team_id, assigned_to)")
+    && teamTasksMigration.includes("references public.pfms_legacy_team_staff(team_id, user_id)")
+    && teamTasksMigration.includes("on delete set null (assigned_to)")
+    && teamTasksMigration.includes("Task assignee must be active staff of this team"),
+  "Team task assignees must belong to the same team; deleted staff must unassign rather than delete tasks"
+);
+assert.ok(
+  teamTasksMigration.includes("pfms_list_legacy_team_tasks")
+    && teamTasksMigration.includes("pfms_create_legacy_team_task")
+    && teamTasksMigration.includes("pfms_update_legacy_team_task")
+    && teamTasksMigration.includes("pfms_delete_legacy_team_task")
+    && teamTasksMigration.includes("p_status,")
+    && teamTasksMigration.includes("p_status text default 'open'"),
+  "Team task CRUD RPCs must support listing, create, update, delete and initial status"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_team_tasks'"),
+  "Staging audit must inventory shared team tasks"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamTasks")
+    && app.includes("async function savePfmsLegacyTeamTask")
+    && app.includes("async function deletePfmsLegacyTeamTask")
+    && app.includes("resetPfmsLegacyTeamTasksState()")
+    && app.includes("data-pfms-show-tasks"),
+  "Shared team tasks must be wired to the team workspace with scoped reset handlers"
+);
+assert.ok(
+  html.includes('id="pfmsTeamTasksPanel"')
+    && html.includes('id="pfmsTeamTaskForm"')
+    && html.includes('id="pfmsTeamTasksList"')
+    && html.includes('id="pfmsTeamTaskAssignee"'),
+  "Shared team task UI must expose form, assignee selection and list"
+);
+assert.ok(
+  workspaceStyles.includes(".pfms-team-task-card")
+    && workspaceStyles.includes(".pfms-team-task-form-grid")
+    && workspaceStyles.includes("@media(max-width:640px)"),
+  "Shared team task cards and forms need responsive styling"
+);
+assert.ok(
+  teamTasksMigration.includes("pfms_personal_tasks") === false,
+  "Shared team tasks must remain distinct from private personal tasks"
+);
+
 assert.ok(
   teamEventsMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'view')")
     && teamEventsMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'edit')")
