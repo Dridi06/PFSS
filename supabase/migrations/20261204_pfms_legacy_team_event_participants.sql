@@ -238,7 +238,7 @@ begin
     raise exception 'Event participant does not belong to an active event entry'
       using errcode = '42501';
   end if;
-  if p_status not in ('invited','confirmed','declined','attended','absent')
+  if p_status is null or p_status not in ('invited','confirmed','declined','attended','absent')
      or (p_note is not null and length(p_note) > 1000) then
     raise exception 'Invalid event participant data' using errcode = '22023';
   end if;
