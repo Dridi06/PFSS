@@ -21,12 +21,12 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const contentLength = Number(req.headers.get("content-length") ?? 0);
-    if (contentLength > 8192) {
+    const rawBody = await req.text();
+    if (rawBody.length > 8192) {
       return json({ error: "Invalid credentials" }, 413);
     }
 
-    const payload = await req.json();
+    const payload = JSON.parse(rawBody);
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
       return json({ error: "Invalid credentials" }, 400);
     }
