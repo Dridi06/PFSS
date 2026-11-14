@@ -524,3 +524,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Neue additive Migration `20261214_pfms_match_lineup_team_integrity.sql` ergänzt eine nicht-nullbare Team-ID an jeder Aufstellungszeile. Zusammengesetzte Fremdschlüssel erzwingen, dass sowohl das Spiel als auch die Kaderzuordnung exakt zu diesem Team gehören.
 - Ein Trigger setzt die Team-ID beim Schreiben aus dem Spieldatensatz. Vorhandene widersprüchliche Zeilen lassen die Migration bewusst abbrechen, statt sie stillschweigend zu verändern.
 - Regressionstest und Read-only-Staging-Audit prüfen beide Fremdschlüssel, die Triggeraktivierung und die RLS-Konfiguration. Noch nicht in Supabase angewendet oder mit realen Staging-Daten getestet.
+
+
+### Zentrale Mitgliedschaftsprüfung für alle Team-Modulrechte – 15.11.2026
+
+- Bei der übergreifenden Rechteprüfung wurde ein echter Bypass gefunden: `pfms_has_legacy_team_permission` prüfte bei normalen Teammitarbeitern nur die aktive Teamzuweisung und das konfigurierte Modulrecht. Damit konnte eine veraltete Teamzuweisung die zuvor gehärtete zentrale Organisationsmitgliedschaftsprüfung umgehen.
+- Die Berechtigungslisten-Funktion erlaubte einem Nutzer mit noch aktiver Teamzuweisung außerdem, die Modulrechte der eigenen Zuweisung ohne erneute zentrale Teamzugriffsprüfung abzurufen.
+- Neue additive Migration `20261215_pfms_team_permission_membership_gate.sql` verlangt vor jeder Modulberechtigung `pfms_can_access_legacy_team`. Das gilt für alle neun Module einschließlich Aufgaben. Auch das Abrufen der Berechtigungsliste verlangt jetzt zentrale Teamzugriffsberechtigung.
+- Regressionstest und Read-only-Staging-Audit ergänzt. Noch nicht auf Supabase angewendet oder mit echten Rollen und Mitgliedschaften zur Laufzeit getestet.
