@@ -1510,3 +1510,7 @@ button,input,select,textarea{max-width:100%}
   .pfms-staff-directory-member{grid-template-columns:32px minmax(0,1fr);gap:8px}
   .pfms-staff-directory-member>.module-status{grid-column:2;justify-self:start}
 }
+
+.pfms-staff-role-status{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
+.pfms-staff-status.is-active{border-color:rgba(95,166,125,.35);color:#9fd3ad}
+.pfms-staff-status.is-inactive{border-color:rgba(207,133,91,.35);color:#e2b18c;background:rgba(207,133,91,.08)}
