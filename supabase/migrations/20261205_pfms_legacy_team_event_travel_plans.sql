@@ -5,11 +5,8 @@ create table if not exists public.pfms_legacy_team_event_travel_plans (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null,
   team_id uuid not null,
-  travel_mode text not null default 'other'
-    check (travel_mode in ('bus','minibus','carpool','public_transport','walk','other')),
   origin text not null,
   destination text not null,
-  meeting_point text,
   meetup_at timestamptz,
   departure_at timestamptz not null,
   arrival_at timestamptz,
@@ -99,10 +96,8 @@ create or replace function public.pfms_list_legacy_team_event_travel_plans(
 returns table (
   event_id uuid,
   travel_plan_id uuid,
-  travel_mode text,
   origin text,
   destination text,
-  meeting_point text,
   meetup_at timestamptz,
   departure_at timestamptz,
   arrival_at timestamptz,
@@ -128,13 +123,15 @@ begin
 
   return query
   select
-    tp.event_id, tp.id, tp.travel_mode, tp.origin, tp.destination,
-    tp.meeting_point, tp.meetup_at, tp.departure_at, tp.arrival_at,
-    tp.return_departure_at, tp.transport_provider, tp.vehicle_label,
-    tp.seat_capacity, tp.estimated_cost, tp.notes, tp.updated_at
+    tp.event_id, tp.id, tp.origin, tp.destination,
+    l.meeting_point, l.transport_mode, tp.meetup_at, tp.departure_at,
+    tp.arrival_at, tp.return_departure_at, tp.transport_provider,
+    tp.vehicle_label, tp.seat_capacity, tp.estimated_cost, tp.notes, tp.updated_at
   from public.pfms_legacy_team_event_travel_plans tp
   join public.pfms_legacy_team_calendar_events e
     on e.id = tp.event_id and e.team_id = tp.team_id
+  left join public.pfms_legacy_team_event_logistics l
+    on l.event_id = tp.event_id and l.team_id = tp.team_id
   where tp.team_id = p_team_id
     and e.event_type in ('tournament','event')
   order by tp.departure_at;
@@ -143,10 +140,8 @@ $$;
 
 create or replace function public.pfms_save_legacy_team_event_travel_plan(
   p_event_id uuid,
-  p_travel_mode text,
   p_origin text,
   p_destination text,
-  p_meeting_point text default null,
   p_meetup_at timestamptz default null,
   p_departure_at timestamptz default null,
   p_arrival_at timestamptz default null,
@@ -185,13 +180,10 @@ begin
       using errcode = '42501';
   end if;
 
-  if p_travel_mode is null
-     or p_travel_mode not in ('bus','minibus','carpool','public_transport','walk','other')
-     or p_origin is null
+  if p_origin is null
      or pg_catalog.length(pg_catalog.btrim(p_origin)) not between 2 and 180
      or p_destination is null
      or pg_catalog.length(pg_catalog.btrim(p_destination)) not between 2 and 180
-     or (p_meeting_point is not null and pg_catalog.length(p_meeting_point) > 180)
      or p_departure_at is null
      or (p_meetup_at is not null and p_meetup_at > p_departure_at)
      or (p_arrival_at is not null and p_arrival_at < p_departure_at)
@@ -205,14 +197,13 @@ begin
   end if;
 
   insert into public.pfms_legacy_team_event_travel_plans (
-    event_id, team_id, travel_mode, origin, destination, meeting_point,
+    event_id, team_id, origin, destination,
     meetup_at, departure_at, arrival_at, return_departure_at,
     transport_provider, vehicle_label, seat_capacity, estimated_cost,
     notes, created_by, updated_by
   ) values (
-    p_event_id, v_team_id, p_travel_mode, pg_catalog.btrim(p_origin),
+    p_event_id, v_team_id, pg_catalog.btrim(p_origin),
     pg_catalog.btrim(p_destination),
-    nullif(pg_catalog.btrim(coalesce(p_meeting_point, '')), ''),
     p_meetup_at, p_departure_at, p_arrival_at, p_return_departure_at,
     nullif(pg_catalog.btrim(coalesce(p_transport_provider, '')), ''),
     nullif(pg_catalog.btrim(coalesce(p_vehicle_label, '')), ''),
@@ -222,10 +213,8 @@ begin
   )
   on conflict (event_id)
   do update set
-    travel_mode = excluded.travel_mode,
     origin = excluded.origin,
     destination = excluded.destination,
-    meeting_point = excluded.meeting_point,
     meetup_at = excluded.meetup_at,
     departure_at = excluded.departure_at,
     arrival_at = excluded.arrival_at,
@@ -280,9 +269,9 @@ revoke all on function public.pfms_list_legacy_team_event_travel_plans(uuid)
 grant execute on function public.pfms_list_legacy_team_event_travel_plans(uuid)
   to authenticated;
 
-revoke all on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
+revoke all on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
   from public, anon;
-grant execute on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
+grant execute on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
   to authenticated;
 
 revoke all on function public.pfms_delete_legacy_team_event_travel_plan(uuid)
