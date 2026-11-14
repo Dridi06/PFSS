@@ -24,7 +24,8 @@ const [
   systemEventsMigration,
   systemEventsHardeningMigration,
   mainMediaMigration,
-  legacyOrgManagerMigration
+  legacyOrgManagerMigration,
+  legacyInvitationWorkspaceMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -46,7 +47,8 @@ const [
   read("supabase/migrations/20261116_pfms_system_event_monitoring.sql"),
   read("supabase/migrations/20261117_pfms_system_event_hardening.sql"),
   read("supabase/migrations/20261117_pfms_main_media_library.sql"),
-  read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql")
+  read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql"),
+  read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql")
 ]);
 
 const requiredFiles = [
@@ -70,6 +72,8 @@ const requiredFiles = [
   "supabase/migrations/20261117_pfms_system_event_hardening.sql",
   "supabase/migrations/20261117_pfms_main_media_library.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
+  "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
+  "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
   "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
@@ -158,6 +162,17 @@ assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player delet
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy import must be bounded and transactional");
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy browser data must have an explicit safe cloud import path");
 assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.includes("'pfms_main_scouting_reports'"), "Read-only audit must include the main catalogue tables");
+
+
+assert.ok(legacyInvitationWorkspaceMigration.includes("pfms_list_my_manageable_legacy_organizations()"), "Managed organization list RPC is missing");
+assert.ok(legacyInvitationWorkspaceMigration.includes("public.can_manage_org(o.id)") && legacyInvitationWorkspaceMigration.includes("m.status = 'active'"), "Managed organization list must be owner-scoped");
+assert.ok(legacyInvitationWorkspaceMigration.includes("public.is_admin()"), "Platform administrators must be able to manage invitations");
+assert.ok(legacyInvitationWorkspaceMigration.includes("v_org_status not in ('approved','active')"), "Invitation creation must accept only approved/active organizations");
+assert.ok(legacyInvitationWorkspaceMigration.includes("p_expires_in_days > 30") && legacyInvitationWorkspaceMigration.includes("code_hash"), "Invitation expiry or hashed-code storage guard is missing");
+assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="pfmsLegacyInvitationOrganization"'), "Organization invitation UI is missing");
+assert.ok(app.includes("pfms_list_my_manageable_legacy_organizations") && app.includes("pfms_create_legacy_invitation"), "Organization invitation UI is not connected to secure RPCs");
+assert.ok(app.includes("new URL(window.location.origin + window.location.pathname)") && app.includes("searchParams.set('invite', code)"), "Invitation result must generate a registration URL");
+assert.ok(app.includes("pfmsLegacyInvitationBound") && app.includes("pfmsAuthGeneration"), "Invitation handlers must be bound once and guarded against account changes");
 
 // Legacy organization invitation authorization must be available in the tracked migrations.
 assert.ok(legacyOrgManagerMigration.includes("create or replace function public.can_manage_org(p_organization_id uuid)"), "Legacy organization manager helper is missing");
