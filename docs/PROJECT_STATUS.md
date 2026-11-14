@@ -210,6 +210,7 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Die Edge Function `r2-connection-check` verlangt nun zusätzlich ein verifiziertes Benutzer-JWT und die serverseitige PFMS-Administratorprüfung über `pfms_is_admin`. `verify_jwt = true` ist explizit in `supabase/config.toml` gesetzt. Antworten werden nicht gecacht.
 - Regressionstests prüfen die Admin-Authentifizierung des R2-Endpunkts und dessen JWT-Konfiguration.
 - Die Render-CSP erlaubt zusätzlich ausschließlich die konkret benötigte Google-Fonts-Stylesheet-Origin `https://fonts.googleapis.com`; der Build-Smoke-Test prüft diese Abhängigkeit. Font-Dateien bleiben durch `font-src https:` abgedeckt.
+- **Staging-Blocker:** `app.js` enthält aktuell eine fest eingetragene Supabase-Projekt-URL und einen Publishable Key. Vor dem ersten Render-Staging-Deployment muss im Supabase-Dashboard bestätigt werden, dass diese Projekt-Referenz ausschließlich zur Testumgebung gehört. Falls nicht, ist zuerst eine getrennte Build-Konfiguration für die Staging-Supabase-Verbindung erforderlich.
 - GitHub-Actions-Lauf **#437 / `43603487267`** auf Commit `5b55b14` ist vollständig erfolgreich: Syntax-/Projekt-/Build-/Accessibility-/SQL-Migrationsprüfungen sowie Deno-Typprüfung aller Edge Functions.
 
 Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächliche Ausführen der Migrationen in Staging noch den Funktionstest des R2-Endpunkts mit einem Administrator- und einem Nicht-Administrator-Konto.
