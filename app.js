@@ -2916,6 +2916,10 @@ function pfmsTeamRoleLabel(role) {
   return ({ trainer: 'Trainer', co_trainer: 'Co-Trainer', betreuer: 'Betreuer' })[role] || role;
 }
 
+function pfmsTeamStaffStatusLabel(status) {
+  return ({ active: 'Aktiv', inactive: 'Inaktiv' })[status] || status || 'Unbekannt';
+}
+
 function renderPfmsLegacyTeamCards() {
   const views = [
     ['pfmsTeamGrid', true],
@@ -3109,7 +3113,12 @@ function renderPfmsStaffDirectory(entries, messageText = '') {
               '<span class="pfms-staff-directory-person"><b>' +
                 escapeHtml(member.full_name || member.username || member.email || 'Mitglied') +
               '</b><small>' + escapeHtml(member.email || '') + '</small></span>' +
-              '<span class="module-status">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</span>' +
+              '<span class="pfms-staff-role-status">' +
+                '<span class="tag">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</span>' +
+                '<span class="module-status pfms-staff-status ' +
+                  (member.assignment_status === 'inactive' ? 'is-inactive' : 'is-active') + '">' +
+                  escapeHtml(pfmsTeamStaffStatusLabel(member.assignment_status)) + '</span>' +
+              '</span>' +
             '</div>'
           ).join('') + '</div>'
         : '<div class="empty-state">Für diese Mannschaft sind noch keine Trainer oder Betreuer eingetragen.</div>';
@@ -3123,7 +3132,9 @@ function renderPfmsStaffDirectory(entries, messageText = '') {
         (isArchived ? ' · Archiviert' : '') + '</div>' +
       '<div class="pfms-staff-directory-head"><div><h3>' + escapeHtml(team.team_name) +
       '</h3><p>' + escapeHtml([team.age_group, team.gender, team.season].filter(Boolean).join(' · ')) +
-      '</p></div><span class="module-status">' + staff.length + ' Personen</span></div>' +
+      '</p></div><span class="module-status">' +
+        staff.filter(member => member.assignment_status === 'active').length + ' aktiv / ' +
+        staff.length + ' gesamt</span></div>' +
       staffMarkup +
       '<div class="pfms-team-actions">' + actions + '</div>' +
     '</article>';
@@ -3199,8 +3210,10 @@ function renderPfmsTeamStaffList(teamId, staff, canManage) {
       '<div class="admin-user-info"><b>' +
         escapeHtml(member.full_name || member.username || member.email || 'Mitglied') + '</b>' +
         '<small>' + escapeHtml(member.email || member.user_id) + '</small>' +
-        '<span class="tag">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + ' · ' +
-          escapeHtml(member.assignment_status) + '</span></div>' +
+        '<span class="tag">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</span>' +
+        '<span class="module-status pfms-staff-status ' +
+          (member.assignment_status === 'inactive' ? 'is-inactive' : 'is-active') + '">' +
+          escapeHtml(pfmsTeamStaffStatusLabel(member.assignment_status)) + '</span></div>' +
       (canManage ? '<div class="pfms-team-staff-actions">' +
         '<button type="button" class="btn btn-secondary" data-pfms-team-permissions="' +
           escapeHtml(member.assignment_id) + '">Bereichsrechte</button>' +
