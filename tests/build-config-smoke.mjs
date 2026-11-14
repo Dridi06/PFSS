@@ -14,7 +14,7 @@ assert.match(missing.stderr, /PFSS_SUPABASE_URL and PFSS_SUPABASE_KEY are requir
 const mismatchEnv = {
   ...baseEnv,
   PFMS_STAGING_PROJECT_REF: "abcdefghijklmnopqrst",
-  PFSS_SUPABASE_URL: "https://zyxwvutsrqponmlkjihgf.supabase.co",
+  PFSS_SUPABASE_URL: "https://zyxwvutsrqponmlkjihg.supabase.co",
   PFSS_SUPABASE_KEY: "sb_publishable_test"
 };
 const mismatch = spawnSync(process.execPath, [script], { encoding: "utf8", env: mismatchEnv });
