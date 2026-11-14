@@ -627,7 +627,55 @@
       </section>
 
       <section class="view" id="view-club-members">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitgliederverwaltung">＋ Mitglied aufnehmen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-action="show-legacy-invitation">＋ Mitglied einladen</button></div>
+        <section class="panel pfms-invitation-panel" id="pfmsLegacyInvitationPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">SICHERE EINLADUNG</div>
+              <h3>Mitglied in den Verein einladen</h3>
+              <p>Erzeuge einen einmaligen Link für eine Organisation, die du verwalten darfst.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" data-action="hide-legacy-invitation">Schließen</button>
+          </div>
+          <form id="pfmsLegacyInvitationForm" class="pfms-invitation-form">
+            <label class="field">
+              Verein / Organisation
+              <select id="pfmsLegacyInvitationOrganization" name="organization_id" required>
+                <option value="">Organisation wird geladen …</option>
+              </select>
+            </label>
+            <label class="field">
+              Einzuladende Rolle
+              <select name="role" required>
+                <option value="scout">Scout</option>
+                <option value="trainer">Trainer</option>
+                <option value="co_trainer">Co-Trainer</option>
+                <option value="betreuer">Betreuer</option>
+                <option value="member">Mitglied</option>
+              </select>
+            </label>
+            <label class="field">
+              Gültigkeit
+              <select name="expires_in_days" required>
+                <option value="1">1 Tag</option>
+                <option value="3">3 Tage</option>
+                <option value="7" selected>7 Tage</option>
+                <option value="14">14 Tage</option>
+                <option value="30">30 Tage</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit" id="pfmsLegacyInvitationSubmit">Einladungslink erstellen</button>
+          </form>
+          <p class="admin-message" id="pfmsLegacyInvitationMessage" role="status" aria-live="polite"></p>
+          <div class="pfms-invitation-result" id="pfmsLegacyInvitationResult" hidden>
+            <div class="eyebrow">EINMALIGER LINK</div>
+            <p>Der Einladungslink wurde erstellt. Teile ihn nur mit der vorgesehenen Person. Der Rohcode wird nicht erneut von der Datenbank ausgegeben.</p>
+            <div class="pfms-invitation-copy-row">
+              <input id="pfmsLegacyInvitationUrl" type="text" readonly aria-label="Einladungslink">
+              <button class="btn btn-secondary" type="button" id="pfmsLegacyInvitationCopy">Link kopieren</button>
+            </div>
+          </div>
+        </section>
         <div class="stats-grid">
           <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder mit aktiver Mitgliedschaft</small></article>
           <article class="stat-card"><div class="stat-top">PASSIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder ohne aktive Sportteilnahme</small></article>
