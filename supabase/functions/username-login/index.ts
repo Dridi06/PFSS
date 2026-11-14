@@ -1,15 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Ratelimit } from "npm:@upstash/ratelimit@^2";
+import { Redis } from "npm:@upstash/redis@^1";
 import { corsForRequest } from "../_shared/cors.ts";
 
 Deno.serve(async (req: Request) => {
   const cors = corsForRequest(req, "POST, OPTIONS");
-  const json = (body: Record<string, unknown>, status = 200) =>
+  const json = (
+    body: Record<string, unknown>,
+    status = 200,
+    extraHeaders: Record<string, string> = {},
+  ) =>
     new Response(JSON.stringify(body), {
       status,
       headers: {
         ...cors.headers,
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
+        ...extraHeaders,
       },
     });
 
@@ -43,12 +50,63 @@ Deno.serve(async (req: Request) => {
     if (typeof username !== "string" || typeof password !== "string") {
       return json({ error: "Invalid credentials" }, 400);
     }
-    const normalizedUsername = username.trim();
+    const normalizedUsername = username.trim().toLowerCase();
     const suppliedPassword = password;
 
     if (!/^[A-Za-z0-9_.-]{3,20}$/.test(normalizedUsername) ||
         suppliedPassword.length < 1 || suppliedPassword.length > 1024) {
       return json({ error: "Invalid credentials" }, 400);
+    }
+
+    // Rate-limit by a keyed digest so raw usernames never become Redis keys.
+    // Do not trust caller-controlled forwarding headers as an IP identity.
+    const redisUrl = Deno.env.get("UPSTASH_REDIS_REST_URL");
+    const redisToken = Deno.env.get("UPSTASH_REDIS_REST_TOKEN");
+    const rateLimitHmacKey = Deno.env.get("PFMS_RATE_LIMIT_HMAC_KEY");
+    if (!redisUrl || !redisToken || !rateLimitHmacKey ||
+        rateLimitHmacKey.length < 32) {
+      console.error("Username login rate-limit service is not configured.");
+      return json({ error: "Login service temporarily unavailable" }, 503);
+    }
+
+    const hmacKey = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(rateLimitHmacKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const usernameDigest = await crypto.subtle.sign(
+      "HMAC",
+      hmacKey,
+      new TextEncoder().encode(normalizedUsername),
+    );
+    const rateLimitIdentifier = Array.from(new Uint8Array(usernameDigest))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+
+    try {
+      const limiter = new Ratelimit({
+        redis: new Redis({ url: redisUrl, token: redisToken }),
+        limiter: Ratelimit.slidingWindow(5, "15 m"),
+        analytics: false,
+        prefix: "pfms:username-login",
+      });
+      const limit = await limiter.limit(rateLimitIdentifier);
+      if (!limit.success) {
+        const retryAfter = Math.max(
+          1,
+          Math.ceil((limit.reset - Date.now()) / 1000),
+        );
+        return json(
+          { error: "Too many login attempts. Please try again later." },
+          429,
+          { "Retry-After": String(retryAfter) },
+        );
+      }
+    } catch (rateLimitError) {
+      console.error("Username login rate-limit check failed:", rateLimitError);
+      return json({ error: "Login service temporarily unavailable" }, 503);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
