@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const read = (path) => fs.readFile(path, "utf8");
 const mainStyles = await read("styles.css");
 const workspaceStyles = await read("scout-workspace.css");
+const scoutForceRlsMigration = await read("supabase/migrations/20261118_pfms_scout_force_rls.sql");
 
 const [
   html,
@@ -1368,6 +1369,12 @@ assert.ok(
 assert.ok(scout.includes('normalized(player.surname).includes(query)') && scout.includes('normalized(fullName(player)).includes(query)'), 'Global Scout search must match both surname and full name');
 assert.ok(globalCatalogueMigration.includes("source_global_player_id") && globalCatalogueMigration.includes("pfss_scout_players_owner_global_source_uidx"), "Private Scout copies must retain their global source link");
 assert.ok(scoutIntegrityMigration.includes("pfss_scout_players_touch_updated_at") && scoutIntegrityMigration.includes("pfss_scout_reports_rating_range"), "Scout integrity migration is incomplete");
+assert.ok(
+  scoutForceRlsMigration.includes("alter table public.pfss_scout_players force row level security") &&
+  scoutForceRlsMigration.includes("alter table public.pfss_scout_reports force row level security") &&
+  scoutForceRlsMigration.includes("alter table public.pfss_scout_media force row level security"),
+  "Scout tables must enforce RLS in addition to owner-scoped policies"
+);
 const scoutDeleteStart = scout.indexOf("async function deleteMedia(id)");
 const scoutDeleteBody = scout.slice(scoutDeleteStart, scout.indexOf("\n  function bindEvents", scoutDeleteStart));
 assert.ok(scoutDeleteStart >= 0 && scoutDeleteBody.indexOf(".from(TABLES.media).delete") > scoutDeleteBody.indexOf(".storage.from(BUCKET).remove"), "Scout media must remove the private object before the metadata row");
