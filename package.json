@@ -9,6 +9,7 @@
     "build": "node scripts/build-static.mjs",
     "test": "npm run check:syntax && npm run build:ci && npm run test:dist",
     "build:ci": "node scripts/build-ci.mjs",
-    "test:dist": "node tests/smoke.mjs && node tests/build-config-smoke.mjs && node tests/build-smoke.mjs && node tests/accessibility-smoke.mjs && node tests/migration-syntax-smoke.mjs && node tests/function-grants-smoke.mjs"
+    "test:dist": "node tests/smoke.mjs && node tests/build-config-smoke.mjs && node tests/build-smoke.mjs && node tests/accessibility-smoke.mjs && node tests/migration-syntax-smoke.mjs && node tests/function-grants-smoke.mjs && npm run test:backup",
+    "test:backup": "python3 tests/backup-hmac-smoke.py"
   }
 }
