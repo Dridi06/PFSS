@@ -37,6 +37,15 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - GitHub Actions auf Commit `25a04e87599d931199501a501d01720568fe891a` waren erfolgreich: Node-Syntax-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-/Backup-Prüfungen und Deno-Typprüfung bestanden. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43638575504
 - Dies ist ein Code-/CI-Nachweis. Die Function ist dadurch nicht automatisch im Supabase-Projekt deployed; der Login muss in Staging Ende-zu-Ende geprüft werden.
 
+### Zusätzliche Sicherheitsregressionen – 14.11.2026
+
+- Die automatisierten Prüfungen decken jetzt zusätzlich die private Benachrichtigungs-Tabelle ab: FORCE RLS, Empfänger-Isolation und ausschließliches Update des Lesestatus.
+- Support-Tickets: transaktionale Begrenzung auf 10 Einträge je Konto in 24 Stunden, Eigentümer-/Admin-Isolation und eingeschränkte Admin-Updatefelder.
+- Private Scout-Medien: FORCE RLS, UID-basierter Storage-Pfad und Zuordnung nur zu eigenen Spielern.
+- R2-Verbindungstest: JWT-Verifikation und zusätzliche serverseitige Administratorprüfung.
+- GitHub Actions auf Commit `dc69a3a5ea4002fee4a70b183b35aef8777cd807` erfolgreich: Node-Projektprüfungen und Deno-Typprüfung. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43639327757.
+- Diese Tests prüfen Quelltext-/Migrationsinvarianten. Sie ersetzen keine realen RLS-/Rollen-Negativtests gegen die getrennte Staging-Datenbank.
+
 ## 2. Vorhandene Bausteine
 
 ### Build- und Umgebungsisolation (neu)
