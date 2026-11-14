@@ -387,5 +387,8 @@ grant execute on function public.pfms_save_legacy_team_event(uuid, uuid, text, t
 revoke all on function public.pfms_add_legacy_team_event_participant(uuid, uuid) from public, anon;
 grant execute on function public.pfms_add_legacy_team_event_participant(uuid, uuid) to authenticated;
 
+revoke all on function public.pfms_update_legacy_team_event_participant(uuid, text, text) from public, anon;
+grant execute on function public.pfms_update_legacy_team_event_participant(uuid, uuid, text) to authenticated;
+
 comment on table public.pfms_legacy_team_event_logistics is
   'Team-scoped event logistics: registration deadline, meeting point, transport, per-person fee and capacity.';
