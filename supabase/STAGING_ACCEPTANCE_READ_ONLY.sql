@@ -405,6 +405,49 @@ with checks as (
       ),
     'Storage-Policies müssen den ersten Ordner auf auth.uid() begrenzen; <uid>/main/ bleibt privat'
 
+
+  union all
+  select
+    'legacy_org_manager_guard',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) a
+          where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+        )
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.can_manage_org(uuid)')
+    ), false),
+    'can_manage_org(uuid): SECURITY DEFINER, leerer search_path, EXECUTE nur für authenticated'
+
+  union all
+  select
+    'legacy_invitation_manager_authorization',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) a
+          where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+        )
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.is_admin()%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.can_manage_org(p_organization_id)%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_create_legacy_invitation(uuid,text,integer)')
+    ), false),
+    'Einladungs-RPC: SECURITY DEFINER, leerer search_path, authentifiziert, Admin ODER Organisationsleitung; kein PUBLIC/anon EXECUTE'
+
   union all
   select
     'main_media_metadata_rls',
