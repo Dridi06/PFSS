@@ -242,7 +242,7 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 
 ## 9. Qualitätssicherung – Stand 14.11.2026
 
-- **Aktueller CI-Nachweis:** Commit `c85335e03c4c4db9fca0b285277e2072e043af51` auf `feature/pfss-complete-platform-build` besteht beide GitHub-Actions-Jobs (`Syntax and project smoke tests` sowie `Type-check Supabase Edge Functions`). Das ist ein statischer Repository-Nachweis; es ersetzt keine Staging-Laufzeitabnahme.
+- **Aktueller CI-Nachweis:** Commit `d3c6aa98d0f000b79ca635dd371cc9aa8b76fc3a` auf `feature/pfss-complete-platform-build` besteht beide GitHub-Actions-Jobs (`Syntax and project smoke tests` sowie `Type-check Supabase Edge Functions`). Enthalten sind u. a. der Test der Scout-Migrationsreihenfolge und die erzwungene RLS-Härtung. Das ist ein statischer Repository-Nachweis; es ersetzt keine Staging-Laufzeitabnahme.
 
 
 - Der zuletzt abgeschlossene GitHub-Actions-Lauf auf Commit `38948cc109ab684eeabb37c465008944a3f3d4bc` war in beiden Jobs erfolgreich: Node-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-Prüfungen sowie Deno-Typprüfung aller drei Edge Functions.
