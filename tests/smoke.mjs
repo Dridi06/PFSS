@@ -365,6 +365,34 @@ assert.ok(
   "Training cycle writes must be permission-checked and tables must use forced RLS"
 );
 assert.ok(
+  trainingCyclesMigration.includes("week_number between 1 and 52")
+    && trainingCyclesMigration.includes("p_end_date > p_start_date + 363")
+    && trainingCyclesMigration.includes("v_session_date < v_week_start or v_session_date > v_week_end"),
+  "Training cycles must enforce bounded 52-week durations and session-to-week date boundaries"
+);
+assert.ok(
+  app.includes("function resetPfmsLegacyTrainingCycleState()")
+    && app.includes("pfmsTeamTrainingCyclesList")
+    && app.includes("pfmsTeamTrainingCycleForm")
+    && (app.match(/resetPfmsLegacyTrainingCycleState\\(\\);/g) || []).length >= 3,
+  "Training cycle records, rendered details, creation form and week selection must clear on team, permission and account resets"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTrainingCycles")
+    && app.includes("async function savePfmsLegacyTrainingCycle")
+    && app.includes("async function savePfmsLegacyTrainingCycleWeek")
+    && app.includes("async function updatePfmsLegacyTrainingCycleStatus")
+    && app.includes("async function assignPfmsLegacyTrainingSessionToWeek"),
+  "Training cycle frontend workflows must be wired for creation, weekly planning, status and session assignment"
+);
+assert.ok(
+  html.includes('id="pfmsTeamTrainingCyclesPanel"')
+    && html.includes('id="pfmsTeamTrainingCycleForm"')
+    && html.includes('id="pfmsTeamTrainingCyclesList"')
+    && html.includes('id="pfmsTeamTrainingCycleWeek"'),
+  "Training cycle creation, planning and session assignment controls must exist in the team workspace"
+);
+assert.ok(
   html.includes('id="pfmsTeamTrainingCyclesPanel"')
     && html.includes('id="pfmsTeamTrainingCycleForm"')
     && html.includes('id="pfmsTeamTrainingCycleWeek"'),
