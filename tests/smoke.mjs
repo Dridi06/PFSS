@@ -58,6 +58,13 @@ assert.ok(
   (await read("supabase/migrations/20261112_private_scout_workspaces.sql")).length > 0,
   "Private scout workspace migration is missing"
 );
+const scoutIntegrityMigration = await read("supabase/migrations/20261114_scout_workspace_integrity.sql");
+assert.match(scoutIntegrityMigration, /pfss_scout_players_touch_updated_at/);
+assert.match(scoutIntegrityMigration, /pfss_scout_reports_touch_updated_at/);
+assert.match(scoutIntegrityMigration, /pfss_scout_reports_rating_range/);
+assert.match(scoutIntegrityMigration, /pfss_scout_media_insert/);
+assert.match(scoutIntegrityMigration, /storage_path ~/);
+
 assert.ok(
   scout.includes("pfss_scout_players") &&
   scout.includes("pfss_scout_reports") &&
