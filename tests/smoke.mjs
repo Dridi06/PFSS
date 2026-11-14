@@ -535,9 +535,11 @@ assert.ok(
     && teamEventTravelMigration.includes("revoke all on table public.pfms_legacy_team_event_travel_plans")
     && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'view')")
     && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'events', 'edit')"),
+  "Detailed event travel plans must be same-team scoped, RLS protected and permission checked"
+);
 assert.ok(
   !teamEventTravelMigration.includes("pfms_legacy_team_event_travel_meeting_point_check")
-    && teamEventTravelMigration.includes("v_participant_count > p_seat_capacity"),
+    && teamEventTravelMigration.includes("p_seat_capacity < v_participant_count"),
   "Travel migration must not reference absent columns and must reject vehicle capacities below existing active RSVPs"
 );
 assert.ok(
@@ -551,8 +553,6 @@ assert.ok(
   teamEventTravelMigration.includes("for update of e")
     && teamEventTravelMigration.includes("for update;"),
   "Event participant and travel updates must serialize against the event row"
-);
-  "Detailed event travel plans must be same-team scoped, RLS protected and permission checked"
 );
 assert.ok(
   app.includes("async function savePfmsLegacyTeamEventTravelPlan")
