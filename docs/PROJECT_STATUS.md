@@ -20,6 +20,14 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 
 **Noch nicht verifiziert:** Es muss im Supabase-Dashboard ein eigenständiges Staging-Projekt eindeutig bestätigt und dessen öffentliche Build-Konfiguration in Render eingetragen werden. Existenz und Datenisolation dieses externen Projekts lassen sich nicht aus dem Git-Repository ableiten.
 
+### Username-Login: Antwortdaten minimiert – 14.11.2026
+
+- Die Edge Function `username-login` gibt nach erfolgreicher Anmeldung ausschließlich die Sitzungstokens und Sitzungsmetadaten zurück. Das vollständige Supabase-Userobjekt wird nicht mehr in der Function-Antwort ausgegeben; damit wird insbesondere die darin enthaltene E-Mail-Adresse nicht zusätzlich offengelegt.
+- Der Browser setzt die Sitzung weiterhin ausschließlich mit `access_token` und `refresh_token`; der Login-Ablauf bleibt damit kompatibel.
+- Ein Regressionstest prüft die notwendige Token-Antwort und verbietet die Rückgabe von `sessionData.user`.
+- GitHub Actions auf Commit `25a04e87599d931199501a501d01720568fe891a` waren erfolgreich: Node-Syntax-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-/Backup-Prüfungen und Deno-Typprüfung bestanden. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43638575504
+- Dies ist ein Code-/CI-Nachweis. Die Function ist dadurch nicht automatisch im Supabase-Projekt deployed; der Login muss in Staging Ende-zu-Ende geprüft werden.
+
 ## 2. Vorhandene Bausteine
 
 ### Build- und Umgebungsisolation (neu)
