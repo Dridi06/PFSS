@@ -127,6 +127,7 @@ const requiredFiles = [
   "supabase/migrations/20261203_pfms_legacy_team_events.sql",
   "supabase/migrations/20261204_pfms_legacy_team_event_participants.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql",
+  "supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -534,6 +535,23 @@ assert.ok(
     && teamEventTravelMigration.includes("revoke all on table public.pfms_legacy_team_event_travel_plans")
     && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'view')")
     && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'events', 'edit')"),
+assert.ok(
+  !teamEventTravelMigration.includes("pfms_legacy_team_event_travel_meeting_point_check")
+    && teamEventTravelMigration.includes("p_seat_capacity < v_participant_count"),
+  "Travel migration must not reference absent columns and must reject vehicle capacities below existing active RSVPs"
+);
+assert.ok(
+  teamEventTravelMigration.includes("v_seat_capacity is not null and v_participant_count >= v_seat_capacity")
+    && teamEventTravelMigration.includes("Transport vehicle is at seat capacity")
+    && teamEventTravelMigration.includes("pfms_add_legacy_team_event_participant")
+    && teamEventTravelMigration.includes("pfms_update_legacy_team_event_participant"),
+  "Vehicle seat limits must be enforced on participant additions and RSVP status changes"
+);
+assert.ok(
+  teamEventTravelMigration.includes("for update of e")
+    && teamEventTravelMigration.includes("for update;"),
+  "Event participant and travel updates must serialize against the event row"
+);
   "Detailed event travel plans must be same-team scoped, RLS protected and permission checked"
 );
 assert.ok(
