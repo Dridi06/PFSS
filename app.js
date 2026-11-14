@@ -5013,7 +5013,7 @@ async function assignPfmsLegacyTrainingSessionToWeek(button, weekId, sessionId =
     if (error) throw error;
     await loadPfmsLegacyTrainingCycles(teamId);
     message.textContent = sessionId
-      ? 'Trainingstermin wurde der Kalenderwoche zugeordnet.'
+      ? 'Trainingstermin wurde der Trainingswoche zugeordnet.'
       : 'Zykluszuordnung wurde gelöst.';
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration ||
