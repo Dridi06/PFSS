@@ -77,6 +77,7 @@ const [
 
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
 const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql");
+const trainingCyclesMigration = await read("supabase/migrations/20261201_pfms_legacy_training_cycles.sql");
 
 const requiredFiles = [
   "index.html",
@@ -113,6 +114,7 @@ const requiredFiles = [
   "supabase/migrations/20261129_pfms_support_tickets.sql",
   "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
   "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
+  "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -340,6 +342,31 @@ assert.ok(
   legacyTeamTrainingMigration.includes("v_assignment_team_id <> v_team_id") &&
   legacyTeamTrainingMigration.includes("Player is not assigned to this team"),
   "Attendance writes must not cross team boundaries"
+);
+assert.ok(
+  trainingCyclesMigration.includes("pfms_legacy_training_cycles")
+    && trainingCyclesMigration.includes("pfms_legacy_training_cycle_weeks")
+    && trainingCyclesMigration.includes("unique (id, team_id)")
+    && trainingCyclesMigration.includes("cycle_week_id, team_id"),
+  "Training cycles must be team-scoped and prevent cross-team week assignments"
+);
+assert.ok(
+  trainingCyclesMigration.includes("pfms_create_legacy_training_cycle")
+    && trainingCyclesMigration.includes("pfms_update_legacy_training_cycle_week")
+    && trainingCyclesMigration.includes("pfms_update_legacy_training_cycle_status")
+    && trainingCyclesMigration.includes("pfms_assign_legacy_training_session_cycle_week"),
+  "Training cycle and weekly planning RPCs are incomplete"
+);
+assert.ok(
+  trainingCyclesMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'training', 'edit')")
+    && trainingCyclesMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'training', 'edit')")
+    && trainingCyclesMigration.includes("force row level security"),
+  "Training cycle writes must be permission-checked and tables must use forced RLS"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_training_cycles'")
+    && stagingAudit.includes("'pfms_legacy_training_cycle_weeks'"),
+  "Staging audit must inventory both training cycle tables"
 );
 assert.ok(
   legacyTeamTrainingMigration.includes("force row level security") &&
