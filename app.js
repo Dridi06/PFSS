@@ -3602,6 +3602,18 @@ async function openPfmsLegacyTeamPermissions(assignmentId) {
   const list = document.getElementById('pfmsTeamPermissionsList');
   const message = document.getElementById('pfmsTeamPermissionsMessage');
   const saveButton = document.getElementById('pfmsTeamPermissionsSave');
+  if (list && list.dataset.permissionChangeBound !== 'true') {
+    list.addEventListener('change', event => {
+      const viewInput = event.target.closest('[data-pfms-permission-view]');
+      if (!viewInput) return;
+      const row = viewInput.closest('[data-pfms-permission-module]');
+      const editInput = row?.querySelector('[data-pfms-permission-edit]');
+      if (!editInput) return;
+      if (!viewInput.checked) editInput.checked = false;
+      editInput.disabled = !viewInput.checked;
+    });
+    list.dataset.permissionChangeBound = 'true';
+  }
   document.getElementById('pfmsTeamPermissionsTitle').textContent =
     'Bereichsrechte · ' + (assignment.full_name || assignment.username || assignment.email || 'Mitglied');
   list.innerHTML = '';
