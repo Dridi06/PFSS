@@ -11,6 +11,7 @@ let players = [];
 let reports = [];
 let mediaItems = [];
 let playerSearchHasRun = false;
+let visibleMainPlayerRows = [];
 let pfmsMainDataReady = false;
 let pfmsMainDataLoading = false;
 let pfmsMainDataError = '';
@@ -965,6 +966,7 @@ function renderPlayers() {
     else { left=pfssNormalizeSearch(pfssPlayerSurname(a)); right=pfssNormalizeSearch(pfssPlayerSurname(b)); }
     return left.localeCompare(right,'de',{numeric:true,sensitivity:'base'}) * direction;
   });
+  visibleMainPlayerRows = filtered.slice();
   host.classList.add('player-results-list');
   const count=document.getElementById('playerSearchCount');
   if(count) count.textContent=playerSearchHasRun ? filtered.length+' Treffer gefunden' : players.length+' Spieler insgesamt';
@@ -1196,6 +1198,81 @@ async function deleteMainReport(reportId) {
     console.error('PFMS scouting report deletion failed:', error);
     toast('Bericht konnte nicht gelöscht werden. Prüfe deine Berechtigung und die Datenbankverbindung.');
   }
+}
+
+function pfmsCsvCell(value) {
+  let text = String(value ?? '');
+  if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function downloadPfmsCsv(filename, headers, rows) {
+  const csv = '\uFEFF' + [headers, ...rows]
+    .map(row => row.map(pfmsCsvCell).join(';'))
+    .join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.hidden = true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportMainPlayersCsv() {
+  if (!pfmsMainDataReady) {
+    toast('Die Spielerdaten sind noch nicht geladen.');
+    return;
+  }
+  if (!visibleMainPlayerRows.length) {
+    toast('Es gibt keine sichtbaren Spieler zum Exportieren.');
+    return;
+  }
+  const rows = visibleMainPlayerRows.map(player => [
+    pfssPlayerFullName(player),
+    player.birth ? String(player.birth).slice(0, 4) : '',
+    player.position,
+    player.club,
+    player.nationality,
+    player.height,
+    player.foot,
+    player.joinDate
+  ]);
+  downloadPfmsCsv(
+    'PFMS-Spieler-' + new Date().toISOString().slice(0, 10) + '.csv',
+    ['Spieler', 'Jahrgang', 'Position', 'Verein', 'Nationalität', 'Größe_cm', 'Spielfuß', 'Beitrittsdatum'],
+    rows
+  );
+  toast(visibleMainPlayerRows.length + ' gefilterte Spieler als CSV exportiert.');
+}
+
+function exportMainReportsCsv() {
+  if (!pfmsMainDataReady) {
+    toast('Die Scoutingberichte sind noch nicht geladen.');
+    return;
+  }
+  if (!reports.length) {
+    toast('Es gibt keine Scoutingberichte zum Exportieren.');
+    return;
+  }
+  const rows = reports.map(report => {
+    const player = players.find(item => item.id === report.playerId);
+    return [
+      pfssPlayerFullName(player),
+      report.date,
+      report.rating,
+      report.notes
+    ];
+  });
+  downloadPfmsCsv(
+    'PFMS-Scoutingberichte-' + new Date().toISOString().slice(0, 10) + '.csv',
+    ['Spieler', 'Beobachtungsdatum', 'Bewertung_1_bis_10', 'Beobachtung'],
+    rows
+  );
+  toast(reports.length + ' sichtbare Scoutingberichte als CSV exportiert.');
 }
 
 function exportPfssBackup() {
@@ -1699,6 +1776,11 @@ document.getElementById('reportForm')
     e.preventDefault();
     await saveReport(e.currentTarget);
   });
+
+document.getElementById('exportPlayersCsvButton')
+  ?.addEventListener('click', exportMainPlayersCsv);
+document.getElementById('exportReportsCsvButton')
+  ?.addEventListener('click', exportMainReportsCsv);
 
 document.getElementById('playerSearchForm').addEventListener('submit', event => {
   event.preventDefault(); playerSearchHasRun=true; renderPlayers();
