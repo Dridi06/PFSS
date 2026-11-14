@@ -205,6 +205,10 @@ async function loadPfmsPersonalTasks() {
   const requestGeneration = pfmsAuthGeneration;
   if (!requestUserId) {
     pfmsPersonalTasks = [];
+  pfmsSupportTickets = [];
+  pfmsAdminSupportTickets = [];
+  document.getElementById('pfmsSupportTicketList')?.replaceChildren();
+  document.getElementById('pfmsAdminSupportList')?.replaceChildren();
     renderPfmsPersonalTasks();
     message.textContent = 'Bitte anmelden.';
     return;
@@ -337,6 +341,177 @@ function setupPfmsPersonalTasks() {
   pfmsPersonalTasksBound = true;
 }
 
+function renderPfmsSupportTickets() {
+  const host = document.getElementById('pfmsSupportTicketList');
+  if (!host) return;
+  const labels = { open: 'Offen', in_progress: 'In Bearbeitung', resolved: 'Erledigt' };
+  const categories = { account: 'Konto', organization: 'Organisation', scouting: 'Scouting', technical: 'Technik', billing: 'Abrechnung', other: 'Sonstiges' };
+  host.innerHTML = pfmsSupportTickets.length ? pfmsSupportTickets.map(ticket =>
+    '<article class="pfms-support-ticket-card">' +
+      '<div class="pfms-support-ticket-head"><strong>' + escapeHtml(ticket.subject) + '</strong><span class="module-status">' + escapeHtml(labels[ticket.status] || ticket.status) + '</span></div>' +
+      '<div class="pfms-support-ticket-meta"><span>' + escapeHtml(categories[ticket.category] || ticket.category) + '</span><span>' + escapeHtml(new Date(ticket.created_at).toLocaleString('de-DE')) + '</span></div>' +
+      '<p>' + escapeHtml(ticket.message) + '</p>' +
+      (ticket.admin_response ? '<div class="pfms-support-response"><b>Antwort von PFMS</b><p>' + escapeHtml(ticket.admin_response) + '</p></div>' : '') +
+    '</article>'
+  ).join('') : '<div class="empty-state"><b>Du hast noch keine Supportanfragen</b><p>Wenn du Hilfe benötigst, kannst du links eine neue Anfrage senden.</p></div>';
+}
+
+async function loadPfmsSupportTickets() {
+  const host = document.getElementById('pfmsSupportTicketList');
+  const message = document.getElementById('pfmsSupportTicketListMessage');
+  if (!host || !message) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) { pfmsSupportTickets = []; renderPfmsSupportTickets(); message.textContent = 'Bitte anmelden.'; return; }
+  message.textContent = 'Deine Supportanfragen werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase.from('pfms_support_tickets')
+      .select('id,owner_id,subject,category,message,status,admin_response,created_at,updated_at,resolved_at')
+      .eq('owner_id', requestUserId)
+      .order('created_at', { ascending: false });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsSupportTickets = data || [];
+    renderPfmsSupportTickets();
+    message.textContent = pfmsSupportTickets.length + ' Anfrage(n) geladen.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS support tickets load failed:', error);
+    message.textContent = 'Supportanfragen konnten nicht geladen werden. Bitte prüfe die Supportmigration.';
+  }
+}
+
+async function createPfmsSupportTicket(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsSupportTicketFormMessage');
+  const button = document.getElementById('pfmsSupportTicketSubmit');
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) { message.textContent = 'Bitte melde dich erneut an.'; return; }
+  const data = Object.fromEntries(new FormData(form).entries());
+  const subject = String(data.subject || '').trim();
+  const body = String(data.message || '').trim();
+  if (subject.length < 4 || body.length < 10) { message.textContent = 'Bitte Betreff und Nachricht vollständig ausfüllen.'; return; }
+  button.disabled = true;
+  message.textContent = 'Anfrage wird sicher übermittelt …';
+  try {
+    const { error } = await pfssSupabase.from('pfms_support_tickets').insert({
+      owner_id: requestUserId,
+      subject,
+      category: ['account','organization','scouting','technical','billing','other'].includes(data.category) ? data.category : 'other',
+      message: body,
+      status: 'open'
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    form.reset();
+    message.textContent = 'Deine Supportanfrage wurde übermittelt.';
+    await loadPfmsSupportTickets();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS support ticket submit failed:', error);
+    message.textContent = 'Anfrage konnte nicht übermittelt werden. Bitte versuche es erneut.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderPfmsAdminSupportTickets() {
+  const host = document.getElementById('pfmsAdminSupportList');
+  if (!host) return;
+  const filter = document.getElementById('pfmsAdminSupportStatus')?.value || '';
+  const labels = { open: 'Offen', in_progress: 'In Bearbeitung', resolved: 'Erledigt' };
+  const items = pfmsAdminSupportTickets.filter(ticket => !filter || ticket.status === filter);
+  host.innerHTML = items.length ? items.map(ticket =>
+    '<article class="pfms-support-ticket-card" data-pfms-admin-ticket="' + escapeHtml(ticket.id) + '">' +
+      '<div class="pfms-support-ticket-head"><strong>' + escapeHtml(ticket.subject) + '</strong><span>' + escapeHtml(labels[ticket.status] || ticket.status) + '</span></div>' +
+      '<div class="pfms-support-ticket-meta"><span>' + escapeHtml(ticket.owner_id) + '</span><span>' + escapeHtml(ticket.category) + '</span><span>' + escapeHtml(new Date(ticket.created_at).toLocaleString('de-DE')) + '</span></div>' +
+      '<p>' + escapeHtml(ticket.message) + '</p>' +
+      '<label class="field">Antwort<textarea rows="3" maxlength="5000" data-pfms-ticket-response>' + escapeHtml(ticket.admin_response || '') + '</textarea></label>' +
+      '<div class="pfms-support-ticket-actions"><select data-pfms-ticket-status><option value="open"' + (ticket.status === 'open' ? ' selected' : '') + '>Offen</option><option value="in_progress"' + (ticket.status === 'in_progress' ? ' selected' : '') + '>In Bearbeitung</option><option value="resolved"' + (ticket.status === 'resolved' ? ' selected' : '') + '>Erledigt</option></select><button type="button" class="btn btn-primary" data-pfms-ticket-save>Änderungen speichern</button><span class="admin-message" data-pfms-ticket-feedback></span></div>' +
+    '</article>'
+  ).join('') : '<div class="empty-state"><b>Keine passenden Supportanfragen</b><p>Für den gewählten Status liegen keine Tickets vor.</p></div>';
+}
+
+async function loadPfmsAdminSupportTickets() {
+  const host = document.getElementById('pfmsAdminSupportList');
+  const message = document.getElementById('pfmsAdminSupportMessage');
+  if (!host || !message || !window.pfssIsRealAdmin) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  message.textContent = 'Supportanfragen werden geladen …';
+  try {
+    const { data, error } = await pfssSupabase.from('pfms_support_tickets')
+      .select('id,owner_id,subject,category,message,status,admin_response,created_at,updated_at,resolved_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    pfmsAdminSupportTickets = data || [];
+    renderPfmsAdminSupportTickets();
+    message.textContent = pfmsAdminSupportTickets.length + ' Supportanfrage(n) geladen.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS admin support inbox failed:', error);
+    message.textContent = 'Support-Postfach konnte nicht geladen werden. Prüfe Administratorrechte und Migration.';
+  }
+}
+
+async function savePfmsAdminSupportTicket(card) {
+  const ticketId = card?.dataset.pfmsAdminTicket;
+  const ticket = pfmsAdminSupportTickets.find(item => item.id === ticketId);
+  if (!ticket || !window.pfssIsRealAdmin) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const status = card.querySelector('[data-pfms-ticket-status]')?.value;
+  const adminResponse = card.querySelector('[data-pfms-ticket-response]')?.value.trim() || null;
+  const feedback = card.querySelector('[data-pfms-ticket-feedback]');
+  const button = card.querySelector('[data-pfms-ticket-save]');
+  if (!['open','in_progress','resolved'].includes(status)) return;
+  button.disabled = true;
+  feedback.textContent = 'Speichern …';
+  try {
+    const { error } = await pfssSupabase.from('pfms_support_tickets')
+      .update({ status, admin_response: adminResponse })
+      .eq('id', ticketId);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    feedback.textContent = 'Gespeichert.';
+    await loadPfmsAdminSupportTickets();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS support ticket update failed:', error);
+    feedback.textContent = 'Speichern fehlgeschlagen.';
+    button.disabled = false;
+  }
+}
+
+function setupPfmsSupportTickets() {
+  if (pfmsSupportTicketsBound) return;
+  const form = document.getElementById('pfmsSupportTicketForm');
+  const refresh = document.getElementById('pfmsSupportTicketRefresh');
+  if (!form || !refresh) return;
+  form.addEventListener('submit', createPfmsSupportTicket);
+  refresh.addEventListener('click', loadPfmsSupportTickets);
+  pfmsSupportTicketsBound = true;
+}
+
+function setupPfmsAdminSupport() {
+  if (pfmsAdminSupportBound) return;
+  const refresh = document.getElementById('pfmsAdminSupportRefresh');
+  const status = document.getElementById('pfmsAdminSupportStatus');
+  const host = document.getElementById('pfmsAdminSupportList');
+  if (!refresh || !status || !host) return;
+  refresh.addEventListener('click', loadPfmsAdminSupportTickets);
+  status.addEventListener('change', renderPfmsAdminSupportTickets);
+  host.addEventListener('click', event => {
+    const button = event.target.closest('[data-pfms-ticket-save]');
+    if (button) savePfmsAdminSupportTicket(button.closest('[data-pfms-admin-ticket]'));
+  });
+  pfmsAdminSupportBound = true;
+}
+
 function showView(view, navElement = null, fromPopState = false) {
   const selectedLabel = navElement?.textContent?.trim() || (
     view === 'team-workspace' ? 'Mannschaftsübersicht' : ''
@@ -397,6 +572,8 @@ function showView(view, navElement = null, fromPopState = false) {
     'admin-members': 'Mitgliederverwaltung',
     'admin-errors': 'Fehlerprotokoll',
     tasks: 'Meine Aufgaben',
+    support: 'Hilfe & Support',
+    'admin-inbox': 'Support-Postfach',
     backup: 'Datensicherung',
     'team-workspace': 'Meine Mannschaft'
   };
@@ -422,6 +599,8 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'tasks' && window.pfssCurrentUserId) void loadPfmsPersonalTasks();
+  if (view === 'support' && window.pfssCurrentUserId) void loadPfmsSupportTickets();
+  if (view === 'admin-inbox' && window.pfssIsRealAdmin) void loadPfmsAdminSupportTickets();
   if (view === 'admin') loadAdminUsers();
   if (view === 'admin-members') loadPfmsAdminMembers();
   if (view === 'admin-errors') loadPfmsAdminErrors();
@@ -1788,6 +1967,8 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsLegacyInvitationWorkspace();
   setupPfmsClubScouting();
   setupPfmsPersonalTasks();
+  setupPfmsSupportTickets();
+  setupPfmsAdminSupport();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -2181,6 +2362,10 @@ let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
 let pfmsLegacyInvitationOrganizations = [];
 let pfmsPersonalTasks = [];
+let pfmsSupportTickets = [];
+let pfmsAdminSupportTickets = [];
+let pfmsSupportTicketsBound = false;
+let pfmsAdminSupportBound = false;
 let pfmsPersonalTasksBound = false;
 
 function renderPfmsClubWorkspace() {
