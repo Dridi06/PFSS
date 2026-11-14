@@ -1313,6 +1313,10 @@ assert.ok(
 // Private main media library: private bucket, owner-only metadata and signed URL handling.
 assert.ok(html.includes('id="mainMediaStatus"') && html.includes('id="mediaGrid"'), "Main media library UI is missing");
 assert.ok(html.includes('id="importLegacyDataButton"') && app.includes("importLegacyDataButton"), "Legacy local player/report data import must be reachable from the main player catalogue");
+assert.ok(html.includes('id="exportPlayersCsvButton"') && app.includes("function exportMainPlayersCsv()") && app.includes("visibleMainPlayerRows = filtered.slice()"), "Filtered player CSV export is missing");
+assert.ok(html.includes('id="exportReportsCsvButton"') && app.includes("function exportMainReportsCsv()"), "Scouting report CSV export is missing");
+assert.ok(app.includes("function pfmsCsvCell(value)") && app.includes("text = \"'\" + text"), "CSV export must neutralize spreadsheet formula injection");
+
 
 assert.ok(!html.includes("Cloud-Upload wird in einem späteren Schritt angebunden"), "Main media UI must not advertise local-only storage");
 assert.ok(app.includes("function loadPfmsMainMedia") && app.includes("function renderPfmsMainMedia"), "Main media cloud load/render functions are missing");
