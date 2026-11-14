@@ -779,3 +779,37 @@ assert.match(stagingAcceptance, /pfss_scout_media_insert/);
 assert.match(stagingAcceptance, /storage\.foldername\(name\)/);
 assert.match(stagingAcceptance, /i\.revoked_at is null/);
 assert.match(stagingAcceptance, /v_org_status not in \(''approved'',''active''\)/);
+
+
+// A task assignee must still be an active organization member with the same
+// role as their team-staff assignment; stale staff rows are not sufficient.
+const taskAssigneeScope = (
+  await readFile(
+    resolve(directory, "20261212_pfms_legacy_team_task_assignee_membership.sql"),
+    "utf8"
+  )
+).replace(/\\s+/g, " ").toLowerCase();
+assert.equal(
+  (taskAssigneeScope.match(/join public\\.organization_memberships m/g) || []).length,
+  2,
+  "Both task creation and update must verify current organization membership"
+);
+assert.equal(
+  (taskAssigneeScope.match(/m\\.status = 'active'/g) || []).length,
+  2,
+  "Both task creation and update must require active organization membership"
+);
+assert.equal(
+  (taskAssigneeScope.match(/m\\.role = s\\.role/g) || []).length,
+  2,
+  "Both task creation and update must require the membership/team role to match"
+);
+assert.equal(
+  (taskAssigneeScope.match(/o\\.status in \\('approved', 'active'\\)/g) || []).length,
+  2,
+  "Both task creation and update must require an approved/active organization"
+);
+assert.match(taskAssigneeScope, /for share of s, o, m/);
+assert.match(taskAssigneeScope, /revoke all on function public\\.pfms_create_legacy_team_task/);
+assert.match(taskAssigneeScope, /revoke all on function public\\.pfms_update_legacy_team_task/);
+assert.match(stagingAcceptance, /'legacy_team_access_requires_active_org_membership'/);
