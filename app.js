@@ -4276,6 +4276,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   await loadPfmsLegacyTeamCalendar(teamId);
   await loadPfmsLegacyTeamMatches(teamId);
   await loadPfmsLegacyTeamAnalysis(teamId);
+  await loadPfmsLegacyTeamEvents(teamId);
 }
 
 const PFMS_TEAM_MATCH_STATUSES = {
@@ -6271,6 +6272,18 @@ function setupPfmsLegacyTeamWorkspace() {
     if (event.target.matches('[data-pfms-plan-duration]')) updatePfmsLegacyTrainingPlanTotal();
   });
 
+  document.getElementById('pfmsTeamEventForm')?.addEventListener('submit', savePfmsLegacyTeamEvent);
+  document.getElementById('pfmsTeamEventCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamEventForm);
+  document.getElementById('pfmsTeamEventsList')?.addEventListener('click', event => {
+    const editButton = event.target.closest('[data-pfms-event-edit]');
+    if (editButton) {
+      const record = pfmsLegacyTeamEvents.find(item => item.event_id === editButton.dataset.pfmsEventEdit);
+      if (record) openPfmsLegacyTeamEvent(record);
+      return;
+    }
+    const deleteButton = event.target.closest('[data-pfms-event-delete]');
+    if (deleteButton) deletePfmsLegacyTeamEvent(deleteButton.dataset.pfmsEventDelete);
+  });
   document.getElementById('pfmsTeamAnalysisForm')?.addEventListener('submit', savePfmsLegacyTeamAnalysis);
   document.getElementById('pfmsTeamAnalysisCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamAnalysisForm);
   document.getElementById('pfmsTeamAnalysisList')?.addEventListener('click', event => {
@@ -6461,6 +6474,13 @@ function setupPfmsLegacyTeamWorkspace() {
       const analysisPanel = document.getElementById('pfmsTeamAnalysisPanel');
       analysisPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamAnalysis(pfmsSelectedLegacyTeam.team_id);
+      return;
+    }
+    const showEventsButton = event.target.closest('[data-pfms-show-events]');
+    if (showEventsButton) {
+      const eventsPanel = document.getElementById('pfmsTeamEventsPanel');
+      eventsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamEvents(pfmsSelectedLegacyTeam.team_id);
       return;
     }
     const showCalendarButton = event.target.closest('[data-pfms-show-calendar]');
