@@ -303,6 +303,36 @@ assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
 assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 5, "Five PFMS registration choices must remain available");
 assert.equal((html.match(/data-registration-choice="(?:user|club|agency|scout)"/g) || []).length, 4, "Four public PFMS access packages must remain available separately from owner bootstrap");
+assert.ok(
+  html.includes("Tarifvorschau") && html.includes("noch nicht buchbar")
+    && html.includes("Kein Checkout verfügbar")
+    && html.includes("Es wird kein Vertrag abgeschlossen")
+    && html.includes("Keine Abbuchung"),
+  "Paid plans must be presented only as non-binding, unavailable tariff previews"
+);
+assert.ok(
+  !html.includes("30 Tage kostenlos testen")
+    && !html.includes("30 TAGE KOSTENLOS TESTEN")
+    && !html.includes("30 Tage kostenlos starten")
+    && !html.includes("Während der 30-tägigen Testphase"),
+  "A non-existent payment provider must not be presented as an active free trial"
+);
+const paidPlanGuard = app.indexOf("if (['club','agency','scout'].includes(type))");
+const authSignupCall = app.indexOf("pfssSupabase.auth.signUp(");
+assert.ok(
+  paidPlanGuard >= 0 && authSignupCall > paidPlanGuard
+    && app.includes("keine Testphase gestartet")
+    && !app.includes("trial_days")
+    && !app.includes("billing_cycle:"),
+  "Paid plans must stop before account creation and must not write phantom trial or billing metadata"
+);
+assert.ok(
+  html.includes('id="view-admin-payments"')
+    && html.includes("Keine Abbuchungen aktiv")
+    && html.includes("Es ist noch kein Zahlungsanbieter verbunden"),
+  "Admin billing page must disclose the inactive provider and payment status"
+);
+
 
 assert.ok(html.includes('aria-pressed="true"') && html.includes('aria-pressed="false"') && app.includes("setAttribute('aria-pressed'"), "Billing cycle controls must expose their selected state accessibly");
 
