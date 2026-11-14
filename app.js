@@ -1952,6 +1952,8 @@ let pfmsSelectedLegacyTeam = null;
 let pfmsSelectedTeamStaff = [];
 let pfmsSelectedTeamPermissionAssignment = null;
 let pfmsEditingLegacyTeamId = null;
+let pfmsLegacyTeamRoster = [];
+let pfmsLegacyTeamRosterCandidates = [];
 
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
@@ -2652,6 +2654,263 @@ async function removePfmsLegacyTeamStaff(assignmentId) {
   }
 }
 
+async function loadPfmsGlobalTeamPlayerCandidates(query = '') {
+  const team = pfmsSelectedLegacyTeam;
+  const select = document.getElementById('pfmsTeamRosterCandidate');
+  const message = document.getElementById('pfmsTeamRosterMessage');
+  if (!team || !team.can_manage || !select) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  select.innerHTML = '<option value="">Spieler werden gesucht …</option>';
+  if (message) message.textContent = 'Globale PFMS-Spielerdatenbank wird durchsucht …';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_search_global_players_for_team', {
+      p_team_id: team.team_id,
+      p_query: String(query || '').trim()
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+
+    pfmsLegacyTeamRosterCandidates = data || [];
+    select.innerHTML = pfmsLegacyTeamRosterCandidates.length
+      ? '<option value="">Spieler auswählen …</option>' + pfmsLegacyTeamRosterCandidates.map(player => {
+          const fullName = [player.player_name, player.player_surname].filter(Boolean).join(' ');
+          const year = player.birth ? String(player.birth).slice(0, 4) : 'Jahrgang –';
+          return '<option value="' + escapeHtml(player.player_id) + '">' +
+            escapeHtml(fullName) + ' · ' + escapeHtml(player.position || '–') +
+            ' · ' + escapeHtml(year) + ' · ' + escapeHtml(player.club || 'Verein –') +
+          '</option>';
+        }).join('')
+      : '<option value="">Keine passenden freien Spieler gefunden</option>';
+    if (message) {
+      message.textContent = pfmsLegacyTeamRosterCandidates.length
+        ? pfmsLegacyTeamRosterCandidates.length + ' Spieler zur Übernahme in den Mannschaftskader gefunden.'
+        : 'Keine passenden Spieler gefunden. Prüfe Suchbegriff oder globalen Spielerkatalog.';
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team roster global player search failed:', error);
+    select.innerHTML = '<option value="">Suche nicht verfügbar</option>';
+    if (message) message.textContent = 'Spielersuche nicht verfügbar. Prüfe Katalogmigration und Mannschaftsrechte.';
+  }
+}
+
+function renderPfmsLegacyTeamRoster() {
+  const host = document.getElementById('pfmsTeamRosterList');
+  const count = document.getElementById('pfmsTeamRosterCount');
+  const team = pfmsSelectedLegacyTeam;
+  if (!host || !team) return;
+
+  const players = pfmsLegacyTeamRoster;
+  if (count) count.textContent = players.length + (players.length === 1 ? ' Spieler' : ' Spieler');
+  const statuses = {
+    active: 'Aktiv',
+    injured: 'Verletzt',
+    loaned: 'Verliehen',
+    inactive: 'Inaktiv'
+  };
+  const positions = ['Torwart','Abwehr','Mittelfeld','Sturm'];
+
+  if (!players.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch kein Spielerkader vorhanden</b><p>Füge zentrale PFMS-Spielerprofile hinzu. Die globalen Spieler-Stammdaten bleiben dabei unverändert.</p></div>';
+    return;
+  }
+
+  host.innerHTML = players.map(player => {
+    const fullName = [player.player_name, player.player_surname].filter(Boolean).join(' ') || 'Unbekannter Spieler';
+    const year = player.birth ? String(player.birth).slice(0, 4) : 'Jahrgang –';
+    const currentPosition = player.squad_position || player.preferred_position || '';
+    const controls = team.can_manage
+      ? '<div class="pfms-roster-edit-controls">' +
+          '<label>Nr.<input type="number" min="1" max="99" data-roster-jersey value="' + escapeHtml(player.jersey_number ?? '') + '" placeholder="–"></label>' +
+          '<label>Position<select data-roster-position><option value="">Stammposition</option>' +
+            positions.map(position => '<option value="' + position + '"' + (player.squad_position === position ? ' selected' : '') + '>' + position + '</option>').join('') +
+          '</select></label>' +
+          '<label>Status<select data-roster-status>' +
+            Object.entries(statuses).map(([value,label]) => '<option value="' + value + '"' + (player.squad_status === value ? ' selected' : '') + '>' + label + '</option>').join('') +
+          '</select></label>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-save-roster-player>Speichern</button>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-remove-roster-player>Aus Kader entfernen</button>' +
+        '</div>'
+      : '<div class="pfms-roster-tags"><span>' + escapeHtml(statuses[player.squad_status] || player.squad_status) + '</span></div>';
+
+    return '<article class="pfms-roster-card" data-pfms-roster-assignment="' + escapeHtml(player.assignment_id) + '">' +
+      '<div class="pfms-roster-number">' + escapeHtml(player.jersey_number ?? '–') + '</div>' +
+      '<div class="pfms-roster-player-info"><b>' + escapeHtml(fullName) + '</b>' +
+        '<small>' + escapeHtml(currentPosition || 'Position –') + ' · ' + escapeHtml(year) +
+        ' · ' + escapeHtml(player.foot || 'Fuß –') + '</small>' +
+        '<small>' + escapeHtml(player.club || 'Verein nicht angegeben') +
+        (player.height ? ' · ' + escapeHtml(player.height) + ' cm' : '') + '</small>' +
+      '</div>' +
+      controls +
+    '</article>';
+  }).join('');
+}
+
+async function loadPfmsLegacyTeamRoster(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const host = document.getElementById('pfmsTeamRosterList');
+  const form = document.getElementById('pfmsTeamRosterForm');
+  const searchForm = document.getElementById('pfmsTeamRosterSearchForm');
+  const message = document.getElementById('pfmsTeamRosterMessage');
+  if (!team || !host || !form || !searchForm || !message) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) return;
+  form.hidden = !team.can_manage;
+  searchForm.hidden = !team.can_manage;
+  message.textContent = 'Spielerkader wird geladen …';
+  host.innerHTML = '';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_players', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+
+    pfmsLegacyTeamRoster = data || [];
+    renderPfmsLegacyTeamRoster();
+    message.textContent = pfmsLegacyTeamRoster.length
+      ? pfmsLegacyTeamRoster.length + ' Spieler im Mannschaftskader.'
+      : 'Noch keine Spieler dieser Mannschaft zugeordnet.';
+
+    if (team.can_manage) {
+      await loadPfmsGlobalTeamPlayerCandidates();
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team roster load failed:', error);
+    pfmsLegacyTeamRoster = [];
+    renderPfmsLegacyTeamRoster();
+    message.textContent = 'Spielerkader konnte nicht geladen werden. Bitte Team-Kadermigration und Berechtigungen prüfen.';
+  }
+}
+
+async function addPfmsLegacyTeamPlayer(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamRosterMessage');
+  if (!team?.can_manage) {
+    message.textContent = 'Für diese Mannschaft fehlen dir die Verwaltungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const playerId = String(data.player_id || '');
+  const jerseyNumber = data.jersey_number === '' ? null : Number(data.jersey_number);
+  const position = data.position_override || null;
+  if (!playerId || (jerseyNumber !== null &&
+      (!Number.isInteger(jerseyNumber) || jerseyNumber < 1 || jerseyNumber > 99))) {
+    message.textContent = 'Bitte wähle einen Spieler und eine gültige Trikotnummer von 1 bis 99.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const button = document.getElementById('pfmsTeamRosterAddButton');
+  button.disabled = true;
+  message.textContent = 'Spieler wird dem Kader zugeordnet …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_add_legacy_team_player', {
+      p_team_id: team.team_id,
+      p_player_id: playerId,
+      p_jersey_number: jerseyNumber,
+      p_position_override: position,
+      p_squad_status: 'active',
+      p_notes: null
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+
+    form.reset();
+    await loadPfmsLegacyTeamRoster(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast('Spieler wurde dem Mannschaftskader zugeordnet.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team roster add failed:', error);
+    message.textContent = 'Spieler konnte nicht hinzugefügt werden. Prüfe, ob er bereits im Kader steht oder die Trikotnummer vergeben ist.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function updatePfmsLegacyTeamPlayer(button) {
+  const card = button.closest('[data-pfms-roster-assignment]');
+  const team = pfmsSelectedLegacyTeam;
+  const message = document.getElementById('pfmsTeamRosterMessage');
+  if (!card || !team?.can_manage) return;
+
+  const jerseyValue = card.querySelector('[data-roster-jersey]')?.value ?? '';
+  const jerseyNumber = jerseyValue === '' ? null : Number(jerseyValue);
+  if (jerseyNumber !== null && (!Number.isInteger(jerseyNumber) || jerseyNumber < 1 || jerseyNumber > 99)) {
+    message.textContent = 'Die Trikotnummer muss zwischen 1 und 99 liegen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_team_player', {
+      p_assignment_id: card.dataset.pfmsRosterAssignment,
+      p_jersey_number: jerseyNumber,
+      p_position_override: card.querySelector('[data-roster-position]')?.value || null,
+      p_squad_status: card.querySelector('[data-roster-status]')?.value || 'active',
+      p_notes: null
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    message.textContent = 'Kaderzuordnung wurde aktualisiert.';
+    await loadPfmsLegacyTeamRoster(team.team_id);
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team roster update failed:', error);
+    message.textContent = 'Änderung konnte nicht gespeichert werden. Prüfe Trikotnummer und Kaderrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function removePfmsLegacyTeamPlayer(button) {
+  const card = button.closest('[data-pfms-roster-assignment]');
+  const team = pfmsSelectedLegacyTeam;
+  if (!card || !team?.can_manage) return;
+  const label = card.querySelector('.pfms-roster-player-info b')?.textContent || 'diesen Spieler';
+  if (!window.confirm(label + ' aus dem Mannschaftskader entfernen? Das globale PFMS-Spielerprofil bleibt erhalten.')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_remove_legacy_team_player', {
+      p_assignment_id: card.dataset.pfmsRosterAssignment
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamRoster(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast('Spieler wurde aus dem Mannschaftskader entfernt.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team roster remove failed:', error);
+    toast('Spieler konnte nicht aus dem Kader entfernt werden.');
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function openPfmsLegacyTeamWorkspace(teamId) {
   const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
   if (!team) return;
@@ -2686,6 +2945,8 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
     console.error('PFMS selected team staff load failed:', error);
     staffHost.textContent = 'Trainerteam konnte nicht geladen werden.';
   }
+
+  await loadPfmsLegacyTeamRoster(teamId);
 }
 
 function setupPfmsLegacyTeamWorkspace() {
@@ -2698,6 +2959,11 @@ function setupPfmsLegacyTeamWorkspace() {
     openPfmsLegacyTeamDialog());
   teamForm.addEventListener('submit', savePfmsLegacyTeam);
   staffForm.addEventListener('submit', assignPfmsLegacyTeamStaff);
+  document.getElementById('pfmsTeamRosterForm')?.addEventListener('submit', addPfmsLegacyTeamPlayer);
+  document.getElementById('pfmsTeamRosterSearchForm')?.addEventListener('submit', event => {
+    event.preventDefault();
+    loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
+  });
   document.getElementById('pfmsTeamPermissionsForm')?.addEventListener('submit', savePfmsLegacyTeamPermissions);
   document.getElementById('pfmsTeamPermissionsList')?.addEventListener('change', event => {
     const row = event.target.closest('[data-pfms-permission-module]');
@@ -2743,6 +3009,20 @@ function setupPfmsLegacyTeamWorkspace() {
     }
     const removeButton = event.target.closest('[data-pfms-remove-team-staff]');
     if (removeButton) removePfmsLegacyTeamStaff(removeButton.dataset.pfmsRemoveTeamStaff);
+    const saveRosterButton = event.target.closest('[data-pfms-save-roster-player]');
+    if (saveRosterButton) {
+      updatePfmsLegacyTeamPlayer(saveRosterButton);
+      return;
+    }
+    const removeRosterButton = event.target.closest('[data-pfms-remove-roster-player]');
+    if (removeRosterButton) {
+      removePfmsLegacyTeamPlayer(removeRosterButton);
+      return;
+    }
+    const showRosterButton = event.target.closest('[data-pfms-show-roster]');
+    if (showRosterButton) {
+      document.getElementById('pfmsTeamRosterPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 
   pfmsLegacyTeamsBound = true;
