@@ -738,6 +738,19 @@ document.addEventListener('click', event => {
   const adminSave = event.target.closest('[data-admin-save]');
   if (adminSave) { saveAdminUser(adminSave); return; }
 
+  const editGlobalPlayerButton = event.target.closest('[data-global-player-edit]');
+  if (editGlobalPlayerButton) {
+    const player = players.find(item => item.id === editGlobalPlayerButton.dataset.globalPlayerEdit);
+    if (player && window.pfssIsRealAdmin) openGlobalPlayerDialog(player);
+    return;
+  }
+
+  const deleteGlobalPlayerButton = event.target.closest('[data-global-player-delete]');
+  if (deleteGlobalPlayerButton) {
+    deleteGlobalPlayer(deleteGlobalPlayerButton.dataset.globalPlayerDelete);
+    return;
+  }
+
   const action = event.target.closest('[data-action]')?.dataset.action;
 
   if (action === 'new-player') {
