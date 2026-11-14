@@ -104,7 +104,9 @@ before update on public.pfms_main_scouting_reports
 for each row execute function public.pfms_touch_main_data();
 
 alter table public.pfms_global_players enable row level security;
+alter table public.pfms_global_players force row level security;
 alter table public.pfms_main_scouting_reports enable row level security;
+alter table public.pfms_main_scouting_reports force row level security;
 
 drop policy if exists pfms_global_players_select on public.pfms_global_players;
 create policy pfms_global_players_select on public.pfms_global_players
