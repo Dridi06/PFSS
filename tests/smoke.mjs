@@ -26,7 +26,8 @@ const [
   mainMediaMigration,
   legacyOrgManagerMigration,
   legacyInvitationWorkspaceMigration,
-  legacyOrgMembershipManagementMigration
+  legacyOrgMembershipManagementMigration,
+  legacyTeamManagementMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -50,7 +51,8 @@ const [
   read("supabase/migrations/20261117_pfms_main_media_library.sql"),
   read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql"),
   read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql"),
-  read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql")
+  read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql"),
+  read("supabase/migrations/20261121_pfms_legacy_team_management.sql")
 ]);
 
 const requiredFiles = [
@@ -77,6 +79,7 @@ const requiredFiles = [
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
   "supabase/migrations/20261121_pfms_legacy_org_membership_management.sql",
+  "supabase/migrations/20261121_pfms_legacy_team_management.sql",
   "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
@@ -187,6 +190,15 @@ assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="p
 assert.ok(app.includes("pfms_list_my_manageable_legacy_organizations") && app.includes("pfms_create_legacy_invitation"), "Organization invitation UI is not connected to secure RPCs");
 assert.ok(app.includes("new URL(window.location.origin + window.location.pathname)") && app.includes("searchParams.set('invite', code)"), "Invitation result must generate a registration URL");
 assert.ok(app.includes("pfmsLegacyInvitationBound") && app.includes("pfmsAuthGeneration"), "Invitation handlers must be bound once and guarded against account changes");
+
+
+assert.ok(legacyTeamManagementMigration.includes("public.pfms_legacy_teams") && legacyTeamManagementMigration.includes("public.pfms_legacy_team_staff"), "Legacy team and staff tables are missing");
+assert.ok(legacyTeamManagementMigration.includes("public.pfms_can_access_legacy_team") && legacyTeamManagementMigration.includes("public.pfms_can_manage_legacy_team"), "Legacy team access and management authorization helpers are missing");
+assert.ok(legacyTeamManagementMigration.includes("alter table public.pfms_legacy_teams force row level security") && legacyTeamManagementMigration.includes("alter table public.pfms_legacy_team_staff force row level security"), "Legacy team tables must enforce row-level security");
+assert.ok(legacyTeamManagementMigration.includes("pfms_create_legacy_team") && legacyTeamManagementMigration.includes("pfms_update_legacy_team") && legacyTeamManagementMigration.includes("pfms_assign_legacy_team_staff") && legacyTeamManagementMigration.includes("pfms_remove_legacy_team_staff"), "Legacy team CRUD or staff assignment RPCs are missing");
+assert.ok(app.includes("async function loadPfmsLegacyTeams") && app.includes("setupPfmsLegacyTeamWorkspace") && app.includes("pfms_list_legacy_team_staff_candidates"), "Legacy team workspace frontend is not connected to its RPCs");
+assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
+assert.ok(stagingAudit.includes("'pfms_legacy_teams'") && stagingAudit.includes("'pfms_legacy_team_staff'"), "Staging audit must inspect team and staff data");
 
 // Legacy organization invitation authorization must be available in the tracked migrations.
 assert.ok(legacyOrgManagerMigration.includes("create or replace function public.can_manage_org(p_organization_id uuid)"), "Legacy organization manager helper is missing");
