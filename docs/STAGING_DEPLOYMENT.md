@@ -258,3 +258,12 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Positivtest: Ein Spieler aus dem Kader desselben Teams kann in die Aufstellung aufgenommen werden.
 - Negativtests: Eine Aufstellungszeile mit einem Spieler eines anderen Teams muss auf Datenbankebene abgewiesen werden, auch wenn ein direkter Schreibversuch außerhalb der regulären Oberfläche simuliert wird.
 - Vor Anwendung die vorhandenen Aufstellungsdaten auf Teamkonflikte prüfen. Die Migration bricht absichtlich ab, wenn bestehende Zeilen Spiel und Kaderzuordnung aus unterschiedlichen Teams verbinden.
+
+
+### Zentrale Mitgliedschaftsprüfung für Team-Modulrechte
+
+- Read-only-Abnahme: `team_module_permissions_require_central_membership` muss `passed = true` melden.
+- Negativtest: Teamzuweisung bleibt aktiv, aber Organisationsmitgliedschaft wird auf `suspended` gesetzt oder entfernt. Alle neun Modulzugriffe müssen danach verweigert werden.
+- Negativtest: Organisationsstatus wird auf `suspended` gesetzt. Normale Teammitarbeiter dürfen keine Modulrechte oder Berechtigungslisten mehr abrufen.
+- Positivtest: Aktive Organisationsmitgliedschaft, aktiver Teamstaff-Eintrag und passende Modulrechte müssen weiterhin den vorgesehenen Zugriff erlauben.
+- Tests mit getrennten Nutzerkonten für Organisationsmanager, Trainer, Mitarbeiter und Plattformadministrator durchführen. Noch nicht in einer echten Staging-Datenbank ausgeführt.
