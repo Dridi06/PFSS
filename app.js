@@ -894,7 +894,12 @@ function safePfmsMediaFileName(value) {
 async function addMedia(files) {
   const selected = Array.from(files || []);
   if (!selected.length) return;
-  if (!window.pfssCurrentUserId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentMediaSession = () =>
+    requestGeneration === pfmsAuthGeneration &&
+    requestUserId === window.pfssCurrentUserId;
+  if (!requestUserId) {
     toast('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.');
     return;
   }
@@ -914,6 +919,7 @@ async function addMedia(files) {
   let uploadedCount = 0;
   const failures = [];
   for (const file of selected) {
+    if (!isCurrentMediaSession()) break;
     if (!PFMS_MAIN_MEDIA_ALLOWED_TYPES.has(file.type)) {
       failures.push(file.name + ': Dateityp nicht zugelassen.');
       continue;
@@ -923,10 +929,9 @@ async function addMedia(files) {
       continue;
     }
 
-    const storagePath = window.pfssCurrentUserId + '/main/' +
+    const storagePath = requestUserId + '/main/' +
       Date.now() + '-' + Math.random().toString(16).slice(2) + '-' +
       safePfmsMediaFileName(file.name);
-
     try {
       const uploaded = await pfssSupabase.storage
         .from(PFMS_MAIN_MEDIA_BUCKET)
@@ -935,22 +940,30 @@ async function addMedia(files) {
           contentType: file.type,
           upsert: false
         });
+      if (!isCurrentMediaSession()) {
+        if (!uploaded.error) {
+          try { await pfssSupabase.storage.from(PFMS_MAIN_MEDIA_BUCKET).remove([storagePath]); } catch (_cleanupError) {}
+        }
+        break;
+      }
       if (uploaded.error) throw uploaded.error;
 
       const metadata = await pfssSupabase.from('pfms_main_media').insert({
-        owner_id: window.pfssCurrentUserId,
+        owner_id: requestUserId,
         media_type: file.type.startsWith('video/') ? 'video' : 'photo',
         file_name: file.name,
         storage_path: storagePath,
         mime_type: file.type,
         file_size: file.size
       });
+      if (!isCurrentMediaSession()) break;
       if (metadata.error) {
         await pfssSupabase.storage.from(PFMS_MAIN_MEDIA_BUCKET).remove([storagePath]);
         throw metadata.error;
       }
       uploadedCount += 1;
     } catch (error) {
+      if (!isCurrentMediaSession()) break;
       console.error('PFMS main media upload failed:', error);
       failures.push(file.name + ': Upload fehlgeschlagen.');
     }
@@ -960,7 +973,9 @@ async function addMedia(files) {
     input.value = '';
     input.disabled = false;
   }
+  if (!isCurrentMediaSession()) return;
   await loadPfmsMainMedia(true);
+  if (!isCurrentMediaSession()) return;
 
   if (status && failures.length) {
     status.hidden = false;
