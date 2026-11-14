@@ -1949,6 +1949,7 @@ let pfmsLegacyTeamsBound = false;
 let pfmsLegacyTeams = [];
 let pfmsManageableLegacyOrganizations = [];
 let pfmsSelectedLegacyTeam = null;
+let pfmsSelectedTeamStaff = [];
 let pfmsEditingLegacyTeamId = null;
 
 let pfmsLegacyInvitationBound = false;
@@ -2451,8 +2452,11 @@ function renderPfmsTeamStaffList(teamId, staff, canManage) {
         '<small>' + escapeHtml(member.email || member.user_id) + '</small>' +
         '<span class="tag">' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + ' · ' +
           escapeHtml(member.assignment_status) + '</span></div>' +
-      (canManage ? '<button type="button" class="btn btn-secondary" data-pfms-remove-team-staff="' +
-        escapeHtml(member.assignment_id) + '">Zuordnung entfernen</button>' : '') +
+      (canManage ? '<div class="pfms-team-staff-actions">' +
+        '<button type="button" class="btn btn-secondary" data-pfms-team-permissions="' +
+          escapeHtml(member.assignment_id) + '">Bereichsrechte</button>' +
+        '<button type="button" class="btn btn-secondary" data-pfms-remove-team-staff="' +
+          escapeHtml(member.assignment_id) + '">Zuordnung entfernen</button></div>' : '') +
     '</article>'
   ).join('');
 }
@@ -2490,6 +2494,7 @@ async function openPfmsLegacyTeamStaffDialog(teamId) {
     message.textContent = candidates.length
       ? candidates.length + ' aktive Person(en) können zugeordnet werden.'
       : 'Bitte lade Trainer, Co-Trainer oder Betreuer zuerst als Vereinsmitglieder ein.';
+    pfmsSelectedTeamStaff = staffResult.data || [];
     renderPfmsTeamStaffList(teamId, staffResult.data || [], true);
   } catch (error) {
     console.error('PFMS team staff load failed:', error);
