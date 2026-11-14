@@ -911,6 +911,26 @@
           <p>Plane Einheiten und öffne für jeden Termin die zugehörige Anwesenheitsliste.</p>
         </div>
       </div>
+      <section class="pfms-training-cycle-section" id="pfmsTeamTrainingCyclesPanel" hidden>
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow">PERIODISIERUNG · WOCHENPLANUNG</div>
+            <h3>Trainingszyklen</h3>
+            <p>Plane einen Trainingsblock mit automatisch angelegten Wochen, individuellen Zielen und Belastungssteuerung.</p>
+          </div>
+          <span class="module-status">1–52 Wochen</span>
+        </div>
+        <form id="pfmsTeamTrainingCycleForm" class="pfms-training-form pfms-training-cycle-form" hidden>
+          <label class="field">Zyklusname<input name="title" maxlength="140" required placeholder="z. B. Vorbereitungsphase Sommer"></label>
+          <label class="field">Gesamtschwerpunkt<input name="focus" maxlength="160" placeholder="z. B. Ausdauer, Pressing und Spielaufbau"></label>
+          <label class="field">Startdatum<input name="start_date" type="date" required></label>
+          <label class="field">Enddatum<input name="end_date" type="date" required></label>
+          <label class="field full">Rahmenziele / Hinweise<textarea name="notes" rows="2" maxlength="4000" placeholder="Ziele und Leitlinien des gesamten Trainingsblocks"></textarea></label>
+          <button class="btn btn-primary" type="submit" id="pfmsTeamTrainingCycleSave">Trainingszyklus erstellen</button>
+        </form>
+        <p id="pfmsTeamTrainingCyclesMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamTrainingCyclesList" class="pfms-training-cycles-list"></div>
+      </section>
       <form id="pfmsTeamTrainingForm" class="pfms-training-form" hidden>
         <label class="field">Titel<input name="title" maxlength="140" required placeholder="z. B. Athletik und Passspiel"></label>
         <label class="field">Datum<input name="session_date" type="date" required></label>
@@ -919,6 +939,7 @@
         <label class="field">Ort<input name="location" maxlength="160" placeholder="Sportplatz / Halle"></label>
         <label class="field">Schwerpunkt<input name="focus" maxlength="160" placeholder="z. B. Umschaltspiel"></label>
         <label class="field full">Notizen<textarea name="notes" rows="2" maxlength="4000"></textarea></label>
+        <label class="field full">Trainingszyklus / Kalenderwoche<select id="pfmsTeamTrainingCycleWeek" name="cycle_week_id"><option value="">Ohne Zykluszuordnung</option></select></label>
         <button class="btn btn-primary" type="submit" id="pfmsTeamTrainingSave">Trainingstermin speichern</button>
       </form>
       <p id="pfmsTeamTrainingMessage" class="admin-message" role="status" aria-live="polite"></p>
