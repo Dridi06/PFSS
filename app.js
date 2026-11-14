@@ -14,6 +14,7 @@ let playerSearchHasRun = false;
 let pfmsMainDataReady = false;
 let pfmsMainDataLoading = false;
 let pfmsMainDataError = '';
+let editingGlobalPlayerId = null;
 
 function read(key, fallback) {
   try {
@@ -239,11 +240,36 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'admin') loadAdminUsers();
 }
 
+function openGlobalPlayerDialog(player = null) {
+  const form = document.getElementById('playerForm');
+  if (!form) return;
+  editingGlobalPlayerId = player?.id || null;
+  form.reset();
+  if (player) {
+    form.elements.name.value = player.name || '';
+    form.elements.surname.value = player.surname || '';
+    form.elements.birth.value = player.birth || '';
+    form.elements.joinDate.value = player.joinDate || '';
+    form.elements.nationality.value = player.nationality || '';
+    form.elements.position.value = player.position || 'Mittelfeld';
+    form.elements.club.value = player.club || '';
+    form.elements.height.value = player.height ?? '';
+    form.elements.foot.value = player.foot || '';
+    form.elements.notes.value = player.notes || '';
+  }
+  const heading = document.querySelector('#playerDialog .modal-head h2');
+  if (heading) heading.textContent = player ? 'Spielerprofil bearbeiten' : 'Spielerprofil anlegen';
+  document.getElementById('playerDialog').showModal();
+}
+
 function openDialog(id) {
+  if (id === 'playerDialog') {
+    openGlobalPlayerDialog();
+    return;
+  }
   if (id === 'reportDialog') populatePlayerSelect();
   document.getElementById(id).showModal();
 }
-
 function closeDialog(id) {
   document.getElementById(id).close();
 }
