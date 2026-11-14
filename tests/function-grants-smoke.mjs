@@ -156,34 +156,34 @@ const managerGuard = await readFile(
   resolve(directory, "20261118_pfms_legacy_org_manager_guard.sql"),
   "utf8"
 );
-const normalizedManagerGuard = managerGuard.replace(/\\s+/g, " ").toLowerCase();
+const normalizedManagerGuard = managerGuard.replace(/\s+/g, " ").toLowerCase();
 assert.match(
   normalizedManagerGuard,
-  /create or replace function public\\.can_manage_org\\s*\\(p_organization_id uuid\\)/
+  /create or replace function public\.can_manage_org\s*\(p_organization_id uuid\)/
 );
 assert.match(normalizedManagerGuard, /security definer set search_path = ''/);
-assert.match(normalizedManagerGuard, /auth\\.uid\\(\\) is not null/);
-assert.match(normalizedManagerGuard, /m\\.user_id = auth\\.uid\\(\\)/);
-assert.match(normalizedManagerGuard, /m\\.status = 'active'/);
+assert.match(normalizedManagerGuard, /auth\.uid\(\) is not null/);
+assert.match(normalizedManagerGuard, /m\.user_id = auth\.uid\(\)/);
+assert.match(normalizedManagerGuard, /m\.status = 'active'/);
 assert.match(
   normalizedManagerGuard,
-  /m\\.role in \\('owner', 'club_admin', 'agency_admin'\\)/
+  /m\.role in \('owner', 'club_admin', 'agency_admin'\)/
 );
 assert.match(
   normalizedManagerGuard,
-  /revoke all on function public\\.can_manage_org\\(uuid\\) from public, anon/
+  /revoke all on function public\.can_manage_org\(uuid\) from public, anon/
 );
 assert.match(
   normalizedManagerGuard,
-  /grant execute on function public\\.can_manage_org\\(uuid\\) to authenticated/
+  /grant execute on function public\.can_manage_org\(uuid\) to authenticated/
 );
 
 const invitationMigration = (
   await readFile(resolve(directory, "20261111_fix_invitation_admin_access.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
+).replace(/\s+/g, " ").toLowerCase();
 assert.match(
   invitationMigration,
-  /public\\.is_admin\\(\\) or public\\.can_manage_org\\(p_organization_id\\)/
+  /public\.is_admin\(\) or public\.can_manage_org\(p_organization_id\)/
 );
 
 assert.ok(definitions.size > 0, "No public function signatures were inspected.");
