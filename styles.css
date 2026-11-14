@@ -1514,3 +1514,50 @@ button,input,select,textarea{max-width:100%}
 .pfms-staff-role-status{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
 .pfms-staff-status.is-active{border-color:rgba(95,166,125,.35);color:#9fd3ad}
 .pfms-staff-status.is-inactive{border-color:rgba(207,133,91,.35);color:#e2b18c;background:rgba(207,133,91,.08)}
+
+
+/* PFMS passkey account management */
+.pfms-passkey-management {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(212, 175, 55, .2);
+}
+.pfms-passkey-management-head,
+.pfms-passkey-item,
+.pfms-passkey-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pfms-passkey-item {
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid rgba(212, 175, 55, .16);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, .16);
+}
+.pfms-passkey-item > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.pfms-passkey-item small {
+  color: var(--muted, #a9a9a9);
+  font-size: .82rem;
+}
+.pfms-passkey-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .pfms-passkey-management-head,
+  .pfms-passkey-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .pfms-passkey-actions > button {
+    flex: 1 1 auto;
+  }
+}
