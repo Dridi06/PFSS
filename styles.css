@@ -1442,3 +1442,25 @@ button,input,select,textarea{max-width:100%}
   .pfms-analysis-form-actions .btn,.pfms-analysis-actions .btn{width:100%}
   .pfms-team-analysis-card{padding:13px}
 }
+
+
+/* PFMS team events – shared calendar-backed event workspace */
+.pfms-team-events-panel{display:grid;gap:16px}
+.pfms-event-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(255,255,255,.025);margin-bottom:14px}
+.pfms-event-form .field{min-width:0;margin:0}
+.pfms-event-form .field.full,.pfms-event-form .pfms-event-form-actions{grid-column:1/-1}
+.pfms-event-form-actions{display:flex;gap:10px;flex-wrap:wrap}
+.pfms-team-events-list{display:grid;gap:12px}
+.pfms-team-event-card{display:grid;gap:11px;padding:16px;border:1px solid rgba(198,161,91,.2);border-radius:14px;background:linear-gradient(145deg,rgba(198,161,91,.055),rgba(255,255,255,.02))}
+.pfms-team-event-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pfms-team-event-card-head h4{margin:5px 0 0;color:#f1e8d6;font-size:16px}
+.pfms-team-event-meta{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;color:var(--muted,#aaa);font-size:12px}
+.pfms-team-event-notes{margin:0;color:#d5d0c5;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.pfms-team-event-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:3px}
+@media(max-width:640px){
+  .pfms-event-form{grid-template-columns:1fr;padding:12px}
+  .pfms-event-form .field.full,.pfms-event-form .pfms-event-form-actions{grid-column:auto}
+  .pfms-event-form-actions,.pfms-team-event-actions{display:grid;grid-template-columns:1fr}
+  .pfms-event-form-actions .btn,.pfms-team-event-actions .btn{width:100%}
+  .pfms-team-event-card{padding:13px}
+}
