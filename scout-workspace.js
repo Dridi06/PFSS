@@ -430,7 +430,6 @@
         .select('id,name,surname,birth,nationality,position,club,foot,height')
         .order('surname', { ascending: true, nullsFirst: false });
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
-      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.globalPlayersAvailable = !globalResult.error;
       state.globalPlayers = globalResult.data || [];
       renderOverview();
@@ -444,7 +443,6 @@
         ? 'Private Daten geladen. Die globale Spielersuche benötigt noch die PFMS-Katalogmigration.'
         : 'Private Daten und globale Spielersuche erfolgreich geladen.');
     } catch (error) {
-      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.hasLoaded = false;
       console.error('PFMS Scout Workspace load failed:', error);
