@@ -1009,6 +1009,9 @@ function renderReports() {
 }
 
 async function savePlayer(form) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentRequest = () => requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId;
   if (!window.pfssIsRealAdmin) {
     toast('Nur Plattformadministratoren dürfen den globalen Spielerkatalog verändern.');
     return;
@@ -1044,6 +1047,7 @@ async function savePlayer(form) {
     const result = editingGlobalPlayerId
       ? await query.update(row).eq('id', editingGlobalPlayerId).select('*').single()
       : await query.insert(row).select('*').single();
+    if (!isCurrentRequest()) return;
     if (result.error) throw result.error;
 
     const savedPlayer = mapPfmsPlayerRow(result.data);
@@ -1061,6 +1065,7 @@ async function savePlayer(form) {
     renderPlayers();
     toast('Spielerprofil wurde in der globalen PFMS-Datenbank gespeichert.');
   } catch (error) {
+    if (!isCurrentRequest()) return;
     console.error('PFMS global player save failed:', error);
     toast('Spieler konnte nicht gespeichert werden. Bitte Datenbankmigration und Administratorrechte prüfen.');
   } finally {
@@ -1069,6 +1074,9 @@ async function savePlayer(form) {
 }
 
 async function deleteGlobalPlayer(playerId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentRequest = () => requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId;
   if (!window.pfssIsRealAdmin || !pfmsMainDataReady) return;
   const player = players.find(item => item.id === playerId);
   if (!player) return;
@@ -1079,18 +1087,23 @@ async function deleteGlobalPlayer(playerId) {
       .from('pfms_global_players')
       .delete()
       .eq('id', playerId);
+    if (!isCurrentRequest()) return;
     if (error) throw error;
     players = players.filter(item => item.id !== playerId);
     renderDashboard();
     renderPlayers();
     toast('Spielerprofil wurde gelöscht.');
   } catch (error) {
+    if (!isCurrentRequest()) return;
     console.error('PFMS global player deletion failed:', error);
     toast('Spieler wurde nicht gelöscht. Vorhandene Scoutingberichte schützen die Spielerhistorie.');
   }
 }
 
 async function saveReport(form) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentRequest = () => requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId;
   if (!pfmsMainDataReady) {
     toast('Die Cloud-Datenbank ist noch nicht verfügbar.');
     return;
@@ -1125,6 +1138,7 @@ async function saveReport(form) {
     const result = editingMainReportId
       ? await query.update(payload).eq('id', editingMainReportId).select('*').single()
       : await query.insert(payload).select('*').single();
+    if (!isCurrentRequest()) return;
     if (result.error) throw result.error;
 
     const savedReport = mapPfmsReportRow(result.data);
@@ -1143,6 +1157,7 @@ async function saveReport(form) {
     renderReports();
     toast('Scouting-Bericht wurde sicher in der Cloud gespeichert.');
   } catch (error) {
+    if (!isCurrentRequest()) return;
     console.error('PFMS scouting report save failed:', error);
     toast('Bericht konnte nicht gespeichert werden. Prüfe deine Berechtigung und die Datenbankverbindung.');
   } finally {
@@ -1151,6 +1166,9 @@ async function saveReport(form) {
 }
 
 async function deleteMainReport(reportId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentRequest = () => requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId;
   if (!pfmsMainDataReady) return;
   const report = reports.find(item => item.id === reportId);
   if (!report) return;
@@ -1167,12 +1185,14 @@ async function deleteMainReport(reportId) {
       .from('pfms_main_scouting_reports')
       .delete()
       .eq('id', reportId);
+    if (!isCurrentRequest()) return;
     if (error) throw error;
     reports = reports.filter(item => item.id !== reportId);
     renderDashboard();
     renderReports();
     toast('Scouting-Bericht wurde gelöscht.');
   } catch (error) {
+    if (!isCurrentRequest()) return;
     console.error('PFMS scouting report deletion failed:', error);
     toast('Bericht konnte nicht gelöscht werden. Prüfe deine Berechtigung und die Datenbankverbindung.');
   }
