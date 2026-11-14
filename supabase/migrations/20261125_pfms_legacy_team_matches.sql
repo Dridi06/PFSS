@@ -158,7 +158,10 @@ create or replace function public.pfms_create_legacy_team_match(
   p_match_date date,
   p_kickoff time,
   p_venue text default null,
-  p_match_notes text default null
+  p_match_notes text default null,
+  p_status text default 'scheduled',
+  p_team_goals smallint default null,
+  p_opponent_goals smallint default null
 )
 returns uuid
 language plpgsql
@@ -177,6 +180,10 @@ begin
      or pg_catalog.length(pg_catalog.btrim(p_opponent)) not between 1 and 140
      or p_home_away is null or p_home_away not in ('home','away')
      or p_match_date is null or p_kickoff is null
+     or p_status is null or p_status not in ('scheduled','completed','postponed','cancelled')
+     or (p_status = 'completed' and (p_team_goals is null or p_opponent_goals is null))
+     or ((p_team_goals is null) <> (p_opponent_goals is null))
+     or (p_team_goals is not null and (p_team_goals not between 0 and 30 or p_opponent_goals not between 0 and 30))
      or (p_competition is not null and pg_catalog.length(p_competition) > 140)
      or (p_venue is not null and pg_catalog.length(p_venue) > 180)
      or (p_match_notes is not null and pg_catalog.length(p_match_notes) > 6000) then
@@ -185,13 +192,14 @@ begin
 
   insert into public.pfms_legacy_team_matches (
     team_id, opponent, competition, home_away, match_date, kickoff,
-    venue, match_notes, created_by
+    venue, match_notes, status, team_goals, opponent_goals, created_by
   ) values (
     p_team_id, pg_catalog.btrim(p_opponent),
     nullif(pg_catalog.btrim(coalesce(p_competition,'')), ''),
     p_home_away, p_match_date, p_kickoff,
     nullif(pg_catalog.btrim(coalesce(p_venue,'')), ''),
     nullif(pg_catalog.btrim(coalesce(p_match_notes,'')), ''),
+    p_status, p_team_goals, p_opponent_goals,
     auth.uid()
   )
   returning id into v_match_id;
@@ -453,7 +461,7 @@ end;
 $$;
 
 revoke all on function public.pfms_list_legacy_team_matches(uuid) from public, anon;
-revoke all on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text) from public, anon;
+revoke all on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) from public, anon;
 revoke all on function public.pfms_update_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) from public, anon;
 revoke all on function public.pfms_list_legacy_team_match_lineup(uuid) from public, anon;
 revoke all on function public.pfms_list_legacy_team_match_candidates(uuid) from public, anon;
