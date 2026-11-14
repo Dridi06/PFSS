@@ -596,6 +596,101 @@ with checks as (
       ),
     'Medienmetadaten benötigen FORCE RLS und Owner-Bindung für SELECT/INSERT/DELETE'
 
+
+  union all
+  select
+    'private_scout_tables_force_rls',
+    (
+      select count(*) = 3
+      from pg_catalog.pg_class c
+      where c.oid in (
+        pg_catalog.to_regclass('public.pfss_scout_players'),
+        pg_catalog.to_regclass('public.pfss_scout_reports'),
+        pg_catalog.to_regclass('public.pfss_scout_media')
+      )
+        and c.relrowsecurity and c.relforcerowsecurity
+    ),
+    'Alle drei privaten Scout-Tabellen benötigen ENABLE und FORCE ROW LEVEL SECURITY'
+
+  union all
+  select
+    'private_scout_owner_policies',
+    exists (
+      select 1 from pg_catalog.pg_policies p
+      where p.schemaname = 'public' and p.tablename = 'pfss_scout_players'
+        and p.policyname = 'pfss_scout_players_select'
+        and p.qual ilike '%owner_id = auth.uid()%'
+    )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfss_scout_reports'
+          and p.policyname = 'pfss_scout_reports_select'
+          and p.qual ilike '%owner_id = auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfss_scout_media'
+          and p.policyname = 'pfss_scout_media_select'
+          and p.qual ilike '%owner_id = auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfss_scout_reports'
+          and p.policyname = 'pfss_scout_reports_insert'
+          and p.with_check ilike '%p.owner_id = auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfss_scout_media'
+          and p.policyname = 'pfss_scout_media_insert'
+          and p.with_check ilike '%p.owner_id = auth.uid()%'
+          and p.with_check ilike '%storage_path%'
+      ),
+    'Scout-Datensätze sind owner-gebunden; Berichte und Medien dürfen nur eigene Spieler referenzieren'
+
+  union all
+  select
+    'private_scout_storage_isolated',
+    exists (
+      select 1 from storage.buckets b
+      where b.id = 'pfss-scout-private' and b.public = false
+        and b.file_size_limit = 52428800
+    )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'storage' and p.tablename = 'objects'
+          and p.policyname = 'pfss_scout_storage_select'
+          and p.qual ilike '%bucket_id%pfss-scout-private%'
+          and p.qual ilike '%storage.foldername(name)%auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'storage' and p.tablename = 'objects'
+          and p.policyname = 'pfss_scout_storage_insert'
+          and p.with_check ilike '%bucket_id%pfss-scout-private%'
+          and p.with_check ilike '%storage.foldername(name)%auth.uid()%'
+      ),
+    'Scout-Medien müssen in einem privaten Bucket liegen und Upload/Lesen auf den eigenen UID-Ordner beschränken'
+
+  union all
+  select
+    'invitation_redemption_status_guard',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.redeemed_at is null%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.revoked_at is null%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.expires_at > pg_catalog.now()%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for update%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for share%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_org_status not in (''approved'',''active'')%'
+        and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_apply_legacy_invitation()')
+    ), false),
+    'Einlösung prüft Einmaligkeit, Widerruf, Ablauf und aktiven Organisationsstatus; Triggerfunktion ist nicht direkt aufrufbar'
+
 )
 select check_name, passed, details
 from checks
