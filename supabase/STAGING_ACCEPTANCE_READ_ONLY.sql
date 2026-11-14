@@ -475,6 +475,27 @@ with checks as (
 
   union all
   select
+    'profile_authority_columns_protected',
+    not coalesce(
+      pg_catalog.has_column_privilege(
+        'authenticated',
+        pg_catalog.to_regclass('public.profiles'),
+        'role',
+        'UPDATE'
+      ), false
+    )
+      and not coalesce(
+        pg_catalog.has_column_privilege(
+          'authenticated',
+          pg_catalog.to_regclass('public.profiles'),
+          'status',
+          'UPDATE'
+        ), false
+      ),
+    'authenticated darf profiles.role und profiles.status nicht direkt ändern; Änderungen ausschließlich über serverseitig geschützte RPCs'
+
+  union all
+  select
     'platform_owner_admin_protection',
     coalesce((
       select p.prosecdef
