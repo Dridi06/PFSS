@@ -275,6 +275,28 @@ assert.ok(
   "Training and attendance frontend handlers are incomplete"
 );
 assert.ok(
+  html.includes('id="pfmsTeamTrainingPanel"') &&
+  html.includes('id="pfmsTeamTrainingForm"') &&
+  html.includes('id="pfmsTeamAttendancePanel"') &&
+  html.includes('id="pfmsTeamAttendanceList"'),
+  "Training and attendance UI panels/forms are incomplete"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamTraining") &&
+  app.includes("async function savePfmsLegacyTeamTraining") &&
+  app.includes("async function openPfmsLegacyTrainingAttendance") &&
+  app.includes("async function savePfmsLegacyTrainingAttendance") &&
+  app.includes("data-pfms-open-attendance") &&
+  app.includes("data-pfms-training-status"),
+  "Training and attendance views are not connected to all expected UI actions"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_legacy_training_sessions'") &&
+  stagingAudit.includes("'pfms_legacy_training_attendance'"),
+  "Staging audit must inspect training and attendance data"
+);
+
+assert.ok(
   app.includes("savePfmsLegacyTeamTraining") &&
   app.includes("[data-pfms-open-attendance]") &&
   app.includes("[data-pfms-save-attendance]"),
