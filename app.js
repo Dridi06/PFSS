@@ -1956,6 +1956,8 @@ let pfmsEditingLegacyTeamId = null;
 let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
 let pfmsLegacyTrainingSessions = [];
+let pfmsLegacyCalendarEvents = [];
+let pfmsEditingCalendarEventId = null;
 let pfmsSelectedTrainingSession = null;
 let pfmsLegacyTrainingAttendance = [];
 
@@ -2986,11 +2988,18 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   if (!team || !requestUserId) return;
   pfmsSelectedLegacyTeam = team;
   pfmsSelectedTeamPermissions = new Map();
+  pfmsLegacyCalendarEvents = [];
+  pfmsEditingCalendarEventId = null;
+  pfmsLegacyCalendarEvents = [];
+  pfmsEditingCalendarEventId = null;
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
+  document.getElementById('pfmsTeamCalendarPanel').hidden = true;
   document.getElementById('pfmsTeamTrainingPanel').hidden = true;
   document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+  const calendarList = document.getElementById('pfmsTeamCalendarList');
+  if (calendarList) calendarList.innerHTML = '';
   const trainingList = document.getElementById('pfmsTeamTrainingList');
   if (trainingList) trainingList.innerHTML = '';
   const attendanceList = document.getElementById('pfmsTeamAttendanceList');
@@ -3055,6 +3064,241 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
 
   await loadPfmsLegacyTeamRoster(teamId);
   await loadPfmsLegacyTeamTraining(teamId);
+  await loadPfmsLegacyTeamCalendar(teamId);
+}
+
+const PFMS_TEAM_CALENDAR_TYPES = {
+  match: 'Spiel',
+  meeting: 'Besprechung',
+  tournament: 'Turnier',
+  event: 'Veranstaltung',
+  other: 'Sonstiges'
+};
+
+const PFMS_TEAM_CALENDAR_STATUSES = {
+  planned: 'Geplant',
+  completed: 'Abgeschlossen',
+  cancelled: 'Abgesagt'
+};
+
+function renderPfmsLegacyTeamCalendar() {
+  const host = document.getElementById('pfmsTeamCalendarList');
+  const message = document.getElementById('pfmsTeamCalendarMessage');
+  if (!host) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('calendar')?.can_edit === true;
+  if (!pfmsLegacyCalendarEvents.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Kalendereinträge vorhanden</b><p>' +
+      (canEdit ? 'Lege den ersten Mannschaftstermin an.' : 'Für diese Mannschaft sind noch keine Termine eingetragen.') +
+      '</p></div>';
+    if (message) message.textContent = '0 Termine';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyCalendarEvents.map(item => {
+    const status = PFMS_TEAM_CALENDAR_STATUSES[item.event_status] || item.event_status;
+    const statusActions = canEdit && item.event_status === 'planned'
+      ? '<div class="pfms-calendar-actions">' +
+          '<button type="button" class="btn btn-secondary" data-pfms-calendar-status="completed" data-event-id="' + escapeHtml(item.event_id) + '">Abschließen</button>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-calendar-status="cancelled" data-event-id="' + escapeHtml(item.event_id) + '">Absagen</button>' +
+        '</div>' : '';
+    const editAction = canEdit
+      ? '<button type="button" class="btn btn-secondary" data-pfms-calendar-edit="' + escapeHtml(item.event_id) + '">Bearbeiten</button>'
+      : '';
+    return '<article class="pfms-calendar-card" data-pfms-calendar-card="' + escapeHtml(item.event_id) + '">' +
+      '<div class="pfms-calendar-card-head"><div><span class="eyebrow">' +
+        escapeHtml(PFMS_TEAM_CALENDAR_TYPES[item.event_type] || item.event_type) + ' · ' +
+        escapeHtml(pfmsFormatTeamDate(item.event_date)) + '</span><h4>' +
+        escapeHtml(item.event_title) + '</h4></div><span class="module-status">' + escapeHtml(status) + '</span></div>' +
+      '<div class="pfms-calendar-meta"><span>' + escapeHtml(pfmsTeamTime(item.starts_at)) +
+        (item.ends_at ? '–' + escapeHtml(pfmsTeamTime(item.ends_at)) : '') + '</span>' +
+        '<span>' + escapeHtml(item.location || 'Ort offen') + '</span></div>' +
+      (item.event_notes ? '<p>' + escapeHtml(item.event_notes) + '</p>' : '') +
+      '<div class="pfms-calendar-card-actions">' + editAction + statusActions + '</div>' +
+      '</article>';
+  }).join('');
+
+  if (message) message.textContent = pfmsLegacyCalendarEvents.length + ' Termin(e) geladen.';
+}
+
+async function loadPfmsLegacyTeamCalendar(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamCalendarPanel');
+  const form = document.getElementById('pfmsTeamCalendarForm');
+  const message = document.getElementById('pfmsTeamCalendarMessage');
+  const host = document.getElementById('pfmsTeamCalendarList');
+  if (!team || !panel || !form || !message || !host) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('calendar') || {};
+  if (permission.can_view !== true) {
+    panel.hidden = true;
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Mannschaftskalender wird geladen …';
+  host.innerHTML = '';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_calendar', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    pfmsLegacyCalendarEvents = data || [];
+    renderPfmsLegacyTeamCalendar();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team calendar load failed:', error);
+    pfmsLegacyCalendarEvents = [];
+    host.innerHTML = '<div class="empty-state">Mannschaftskalender konnte nicht geladen werden. Prüfe die Kalendermigration und Bereichsrechte.</div>';
+    message.textContent = 'Kalender derzeit nicht verfügbar.';
+  }
+}
+
+function openPfmsLegacyCalendarEvent(eventRecord = null) {
+  const form = document.getElementById('pfmsTeamCalendarForm');
+  if (!form) return;
+  pfmsEditingCalendarEventId = eventRecord?.event_id || null;
+  form.reset();
+  form.elements.event_id.value = pfmsEditingCalendarEventId || '';
+  form.elements.status.value = eventRecord?.event_status || 'planned';
+  if (eventRecord) {
+    form.elements.title.value = eventRecord.event_title || '';
+    form.elements.event_type.value = eventRecord.event_type || 'event';
+    form.elements.event_date.value = eventRecord.event_date || '';
+    form.elements.starts_at.value = String(eventRecord.starts_at || '').slice(0, 5);
+    form.elements.ends_at.value = String(eventRecord.ends_at || '').slice(0, 5);
+    form.elements.location.value = eventRecord.location || '';
+    form.elements.notes.value = eventRecord.event_notes || '';
+  } else {
+    form.elements.event_date.value = new Date().toISOString().slice(0, 10);
+  }
+  const button = document.getElementById('pfmsTeamCalendarSave');
+  const cancel = document.getElementById('pfmsTeamCalendarCancelEdit');
+  if (button) button.textContent = eventRecord ? 'Änderungen speichern' : 'Termin speichern';
+  if (cancel) cancel.hidden = !eventRecord;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.title.focus();
+}
+
+function resetPfmsLegacyCalendarForm() {
+  const form = document.getElementById('pfmsTeamCalendarForm');
+  if (!form) return;
+  pfmsEditingCalendarEventId = null;
+  form.reset();
+  form.elements.event_id.value = '';
+  form.elements.status.value = 'planned';
+  const button = document.getElementById('pfmsTeamCalendarSave');
+  const cancel = document.getElementById('pfmsTeamCalendarCancelEdit');
+  if (button) button.textContent = 'Termin speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+async function savePfmsLegacyCalendarEvent(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamCalendarMessage');
+  const button = document.getElementById('pfmsTeamCalendarSave');
+  if (!team || pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true) {
+    message.textContent = 'Für den Mannschaftskalender fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (!data.title?.trim() || !data.event_date || !data.starts_at ||
+      !Object.prototype.hasOwnProperty.call(PFMS_TEAM_CALENDAR_TYPES, data.event_type) ||
+      (data.ends_at && data.ends_at <= data.starts_at)) {
+    message.textContent = 'Bitte Bezeichnung, Terminart, Datum und Beginn korrekt ausfüllen. Das Ende muss nach dem Beginn liegen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  message.textContent = 'Termin wird gespeichert …';
+  try {
+    let result;
+    if (pfmsEditingCalendarEventId) {
+      result = await pfssSupabase.rpc('pfms_update_legacy_team_calendar_event', {
+        p_event_id: pfmsEditingCalendarEventId,
+        p_title: data.title.trim(),
+        p_event_type: data.event_type,
+        p_event_date: data.event_date,
+        p_starts_at: data.starts_at,
+        p_ends_at: data.ends_at || null,
+        p_location: data.location || null,
+        p_notes: data.notes || null,
+        p_status: data.status || 'planned'
+      });
+    } else {
+      result = await pfssSupabase.rpc('pfms_create_legacy_team_calendar_event', {
+        p_team_id: team.team_id,
+        p_title: data.title.trim(),
+        p_event_type: data.event_type,
+        p_event_date: data.event_date,
+        p_starts_at: data.starts_at,
+        p_ends_at: data.ends_at || null,
+        p_location: data.location || null,
+        p_notes: data.notes || null
+      });
+    }
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (result.error) throw result.error;
+    resetPfmsLegacyCalendarForm();
+    await loadPfmsLegacyTeamCalendar(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast(pfmsEditingCalendarEventId ? 'Termin wurde aktualisiert.' : 'Termin wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team calendar save failed:', error);
+    message.textContent = 'Termin konnte nicht gespeichert werden. Prüfe Datums-/Zeitangaben und Kalenderrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function updatePfmsLegacyCalendarEventStatus(eventId, status) {
+  const team = pfmsSelectedLegacyTeam;
+  const item = pfmsLegacyCalendarEvents.find(eventRecord => eventRecord.event_id === eventId);
+  if (!team || !item || !['completed','cancelled'].includes(status) ||
+      pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true) return;
+  if (!window.confirm('Diesen Termin wirklich ' + (status === 'completed' ? 'als abgeschlossen markieren' : 'absagen') + '?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_team_calendar_event', {
+      p_event_id: item.event_id,
+      p_title: item.event_title,
+      p_event_type: item.event_type,
+      p_event_date: item.event_date,
+      p_starts_at: item.starts_at,
+      p_ends_at: item.ends_at,
+      p_location: item.location,
+      p_notes: item.event_notes,
+      p_status: status
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamCalendar(team.team_id);
+    toast(status === 'completed' ? 'Termin abgeschlossen.' : 'Termin wurde abgesagt.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS calendar status update failed:', error);
+    document.getElementById('pfmsTeamCalendarMessage').textContent = 'Terminstatus konnte nicht gespeichert werden. Prüfe deine Kalenderrechte.';
+  }
 }
 
 const PFMS_ATTENDANCE_STATUSES = {
@@ -3377,6 +3621,18 @@ function setupPfmsLegacyTeamWorkspace() {
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
   });
   document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
+  document.getElementById('pfmsTeamCalendarForm')?.addEventListener('submit', savePfmsLegacyCalendarEvent);
+  document.getElementById('pfmsTeamCalendarCancelEdit')?.addEventListener('click', resetPfmsLegacyCalendarForm);
+  document.getElementById('pfmsTeamCalendarList')?.addEventListener('click', event => {
+    const editButton = event.target.closest('[data-pfms-calendar-edit]');
+    if (editButton) {
+      const item = pfmsLegacyCalendarEvents.find(entry => entry.event_id === editButton.dataset.pfmsCalendarEdit);
+      if (item) openPfmsLegacyCalendarEvent(item);
+      return;
+    }
+    const statusButton = event.target.closest('[data-pfms-calendar-status]');
+    if (statusButton) updatePfmsLegacyCalendarEventStatus(statusButton.dataset.eventId, statusButton.dataset.pfmsCalendarStatus);
+  });
   document.getElementById('pfmsCloseAttendance')?.addEventListener('click', () => {
     document.getElementById('pfmsTeamAttendancePanel').hidden = true;
     pfmsSelectedTrainingSession = null;
@@ -3416,6 +3672,11 @@ function setupPfmsLegacyTeamWorkspace() {
     document.getElementById('pfmsTeamTrainingPanel').hidden = true;
     pfmsSelectedLegacyTeam = null;
     pfmsSelectedTeamPermissions = new Map();
+    pfmsLegacyCalendarEvents = [];
+    pfmsEditingCalendarEventId = null;
+    document.getElementById('pfmsTeamCalendarPanel').hidden = true;
+    document.getElementById('pfmsTeamCalendarList').innerHTML = '';
+    resetPfmsLegacyCalendarForm();
     pfmsLegacyTeamRoster = [];
     pfmsLegacyTrainingSessions = [];
     pfmsSelectedTrainingSession = null;
@@ -3460,6 +3721,13 @@ function setupPfmsLegacyTeamWorkspace() {
     const showRosterButton = event.target.closest('[data-pfms-show-roster]');
     if (showRosterButton) {
       document.getElementById('pfmsTeamRosterPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const showCalendarButton = event.target.closest('[data-pfms-show-calendar]');
+    if (showCalendarButton) {
+      const calendarPanel = document.getElementById('pfmsTeamCalendarPanel');
+      calendarPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamCalendar(pfmsSelectedLegacyTeam.team_id);
+      return;
     }
     const showTrainingButton = event.target.closest('[data-pfms-show-training]');
     if (showTrainingButton) {
@@ -3782,6 +4050,8 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
+  document.getElementById('pfmsTeamCalendarPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamCalendarList')?.replaceChildren();
   document.getElementById('pfmsTeamTrainingPanel')?.setAttribute('hidden', '');
   document.getElementById('pfmsTeamAttendancePanel')?.setAttribute('hidden', '');
   const trainingList = document.getElementById('pfmsTeamTrainingList');
