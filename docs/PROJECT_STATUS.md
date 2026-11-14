@@ -58,7 +58,7 @@ Vorhandene Migrationen betreffen:
 | Vereinsmitgliedschaften | Teilweise Oberflächen und ältere Datenbankfunktionen | Aufnahme, Beiträge, Status, Wechsel/Austritt und Berechtigungen |
 | Vereins-Scouting | Oberfläche/Übersicht | Scout-Zuordnung, Beobachtungsgebiete, Berichtsfreigaben |
 | Plattforminhaber | Einmaliger Owner-Claim und Aktivierungsoberfläche im Entwicklungszweig vorbereitet | Staging-Migration/Secret/Edge-Function deployen; bestätigte E-Mail, korrekter Owner, Zweitclaim-Sperre und Negativtests abnehmen |
-| Administration | Benutzerverwaltung und Organisationssuch-RPCs teilweise vorhanden | Vollständige Organisations-/Mitgliederverwaltung, Audit, Sperren, Fehler- und Supportprozesse |
+| Administration | Benutzerverwaltung und Organisationssuche vorhanden; globale Mitgliederliste mit Suche/Filtern und Rollen-/Statusänderung im Entwicklungszweig ergänzt | Migration in Staging anwenden; Organisations-/Mitgliederworkflows, Audit, Sperren, Fehler- und Supportprozesse Ende-zu-Ende testen |
 | Zahlungen | Vorschau, kein Anbieter angebunden | Anbieterentscheidung, Webhooks, Abrechnungslogik und Rechtsprüfung |
 | Kalender, Aufgaben, Nachrichten | geplant bzw. Platzhalter | Datenmodell, Rollen, Workflows und Benachrichtigungen |
 | Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
@@ -94,7 +94,8 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql`, `supabase/migrations/20261116_pfms_owner_bootstrap_registration_guard.sql` und `supabase/functions/pfms-owner-bootstrap/index.ts` ergänzen den einmaligen Owner-Claim mit unveränderbarer Registrierungsberechtigung, verifizierter Supabase-Sitzung, separatem Function-Secret, ausschließlich service-role-RPC und Singleton-Datensatz. UI zeigt die Aktivierung nur Konten mit dem speziellen Registrierungsweg; beide Migrationen und die Function sind noch nicht in Staging angewendet/deployed.
 - `supabase/functions/_shared/cors.ts` implementiert eine gemeinsame CORS-Origin-Allowlist; `username-login` und `r2-connection-check` verwenden sie. Die Staging-Origin muss vor dem Deploy über `PFMS_ALLOWED_ORIGINS` freigegeben werden.
 - `supabase/migrations/20261114_scout_workspace_integrity.sql` ergänzt Datenbankgrenzen für Scout-Daten, automatische `updated_at`-Zeitstempel und die Prüfung, dass Medien-Metadaten nur in den eigenen Benutzerordner zeigen. Die Migration wurde im Repository korrigiert, aber noch nicht in Supabase ausgeführt.
-- `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql`, die Edge Function `pfms-owner-bootstrap` und `docs/OWNER_BOOTSTRAP.md` enthalten jetzt den sicheren Erstbesitzer-Ablauf. Die Migration ist noch nicht auf Staging angewendet, das Function-Secret noch nicht gesetzt und die Function noch nicht deployed.
+- `supabase/migrations/20261115_admin_global_member_directory.sql` und die Ansicht `view-admin-members` ergänzen eine serverseitig geschützte organisationsübergreifende Mitgliedersuche sowie Rollen-/Statusänderungen. Die Migration ist noch nicht in Staging ausgeführt.
+- Die Qualitätsprüfung prüft nun zusätzlich die Owner-Registrierungs- und Admin-Mitgliederfunktionen; Deno typprüft alle drei Edge Functions (Benutzername-Login, R2-Verbindung, Owner-Bootstrap).
 - `package.json` enthält `npm test` und `npm run check:syntax`.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
