@@ -65,6 +65,21 @@ Supabase stellt die projektbezogenen `SUPABASE_URL`- und Schlüsselvariablen fü
 
 **Zusätzliche Absicherung des R2-Verbindungstests:** Die Edge Function `r2-connection-check` verlangt ein gültiges Benutzer-JWT und prüft zusätzlich `public.pfms_is_admin()`. In `supabase/config.toml` ist `verify_jwt = true` explizit gesetzt. Im Staging muss mit einem Admin-Konto ein erfolgreicher Aufruf und mit einem Scout-/Mitgliedskonto ein erwarteter HTTP-403-Test erfolgen. Die Funktion führt nur einen begrenzten List-Bucket-Aufruf aus und gibt keine Provider-Antwortkörper oder Zugangsdaten zurück.
 
+## 3.2 Passkey/WebAuthn im Staging vorbereiten
+
+Passkeys dürfen erst nach Festlegung der endgültigen Staging-Domain aktiviert werden. Supabase verlangt eine konfigurierte Relying Party (RP): Display Name, RP-ID und erlaubte Origins. Registrierung ist nur für angemeldete, bestätigte, nicht-anonyme Konten möglich.
+
+1. Zuerst den tatsächlichen Hostnamen des Render-Stagingdienstes im Render-Dashboard feststellen. Nicht aus dem Dienstnamen ableiten.
+2. Im Supabase-Dashboard ausschließlich das Projekt `PFSS-Test` öffnen: **Authentication → Passkeys**.
+3. Für Staging einen eigenen RP-Displaynamen festlegen, z. B. `PFMS Test`.
+4. Als RP-ID den vollständigen Staging-Hostnamen ohne Schema, Port oder Pfad verwenden, sofern kein dediziertes PFMS-Staging-Custom-Domain eingerichtet wurde.
+5. Als erlaubte Origin exakt die Staging-Origin mit HTTPS eintragen, z. B. `https://<tatsaechlicher-staging-host>`. Keine Produktions-Origin und keine pauschalen Wildcards hinzufügen.
+6. Passkey-Authentifizierung erst nach Prüfung der RP-Konfiguration aktivieren.
+
+**Wichtige Render-Domain-Regel:** `onrender.com` ist als Public Suffix registriert. Deshalb darf `onrender.com` nicht als gemeinsame RP-ID verwendet werden. Der vollständige konkrete Staging-Hostname kann als eigene RP-ID verwendet werden; ein eigenes PFMS-Custom-Domain ist für eine langfristig stabile RP-ID vorzuziehen. Die WebAuthn-Spezifikation verlangt, dass die RP-ID zur Origin passt. Eine Änderung der RP-ID macht bereits registrierte Passkeys unbrauchbar. Staging- und Produktionsdomain erhalten getrennte Passkey-Zugänge; keine Staging-Credentials als Produktions-Recovery einplanen.
+
+Vor dem ersten Passkey-Test dokumentieren: tatsächlicher Render-Hostname, RP-ID, erlaubte Origin(s), Supabase-Projektname `PFSS-Test` und Datum der Konfiguration. Keine Passkeys für reale Benutzer registrieren, bevor die Staging-Tests abgeschlossen sind.
+
 ## 4. Read-only Schema-Audit
 
 Die Datei `supabase/STAGING_READ_ONLY_AUDIT.sql` im SQL-Editor des **Staging-Projekts** ausführen. Die Abfrage liest Tabellen-/Spalteninformationen, Policies, Grants und Tabellenstatistiken; sie ist kein Ersatz für einen Funktionstest.
