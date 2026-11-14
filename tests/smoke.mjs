@@ -488,7 +488,8 @@ assert.ok(
 );
 assert.ok(
   teamTasksMigration.includes("module_key in (")
-    && teamTasksMigration.includes("'analysis','tasks'")
+    && teamTasksMigration.includes("'analysis'::text")
+    && teamTasksMigration.includes("'tasks'::text")
     && teamTasksMigration.includes("jsonb_array_length(p_permissions) <> 9")
     && teamTasksMigration.includes("Exactly nine module permission entries"),
   "Team permission editor and RPC must support nine modules including tasks"
