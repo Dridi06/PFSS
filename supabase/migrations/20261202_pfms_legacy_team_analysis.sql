@@ -192,6 +192,7 @@ create or replace function public.pfms_create_legacy_team_analysis(
   p_phase text,
   p_observation_date date,
   p_summary text,
+  p_status text default 'draft',
   p_match_id uuid default null,
   p_video_url text default null,
   p_video_timestamp_seconds integer default null,
@@ -235,6 +236,7 @@ begin
      or p_observation_date is null
      or p_summary is null
      or pg_catalog.length(pg_catalog.btrim(p_summary)) not between 1 and 10000
+     or p_status is null or p_status not in ('draft','reviewed','archived')
      or (p_video_url is not null and (
        pg_catalog.length(p_video_url) > 1000
        or p_video_url !~ '^https://[^[:space:]]+$'
@@ -252,7 +254,7 @@ begin
   insert into public.pfms_legacy_team_analysis (
     team_id, match_id, title, analysis_type, phase, observation_date,
     video_url, video_timestamp_seconds, summary, strengths,
-    improvements, action_items, created_by
+    improvements, action_items, status, created_by
   ) values (
     p_team_id, v_match_id, pg_catalog.btrim(p_title), p_analysis_type,
     p_phase, p_observation_date, nullif(pg_catalog.btrim(coalesce(p_video_url, '')), ''),
@@ -260,7 +262,7 @@ begin
     nullif(pg_catalog.btrim(coalesce(p_strengths, '')), ''),
     nullif(pg_catalog.btrim(coalesce(p_improvements, '')), ''),
     nullif(pg_catalog.btrim(coalesce(p_action_items, '')), ''),
-    auth.uid()
+    p_status, auth.uid()
   )
   returning id into v_analysis_id;
 
@@ -391,7 +393,7 @@ revoke all on function public.pfms_list_legacy_team_analysis_matches(uuid) from 
 grant execute on function public.pfms_list_legacy_team_analysis_matches(uuid) to authenticated;
 revoke all on function public.pfms_list_legacy_team_analysis(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_analysis(uuid) to authenticated;
-revoke all on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, uuid, text, integer, text, text, text) from public, anon;
+revoke all on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) from public, anon;
 grant execute on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, uuid, text, integer, text, text, text) to authenticated;
 revoke all on function public.pfms_update_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) from public, anon;
 grant execute on function public.pfms_update_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) to authenticated;
