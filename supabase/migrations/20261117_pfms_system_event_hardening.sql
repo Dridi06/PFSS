@@ -34,19 +34,19 @@ begin
       raise exception 'System event evidence is immutable' using errcode = '42501';
     end if;
 
-    if new.status = 'resolved' then
-      if new.resolved_by is null then
-        new.resolved_by := auth.uid();
-      end if;
-      if new.resolved_by is distinct from auth.uid() then
-        raise exception 'Invalid resolver identity' using errcode = '42501';
-      end if;
-      if new.resolved_at is null then
+    if new.status is distinct from old.status then
+      if new.status = 'resolved' then
         new.resolved_at := pg_catalog.now();
+        new.resolved_by := auth.uid();
+      else
+        new.resolved_at := null;
+        new.resolved_by := null;
       end if;
     else
-      new.resolved_at := null;
-      new.resolved_by := null;
+      if new.resolved_at is distinct from old.resolved_at
+         or new.resolved_by is distinct from old.resolved_by then
+        raise exception 'Resolution metadata is immutable' using errcode = '42501';
+      end if;
     end if;
   end if;
 
@@ -66,6 +66,9 @@ $$;
 
 revoke all on function public.pfms_system_events_guard_changes()
   from public, anon, authenticated;
+
+drop trigger if exists pfms_system_events_touch_updated_at on public.pfms_system_events;
+drop function if exists public.pfms_system_events_touch_updated_at();
 
 drop trigger if exists pfms_system_events_guard_changes on public.pfms_system_events;
 create trigger pfms_system_events_guard_changes
