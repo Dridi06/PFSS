@@ -10,6 +10,9 @@ const usernameLogin = await read("supabase/functions/username-login/index.ts");
 const r2Check = await read("supabase/functions/r2-connection-check/index.ts");
 const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
 const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
+const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
+const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
+const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
 const supabaseConfig = await read("supabase/config.toml");
 
 const requiredFiles = [
@@ -58,6 +61,16 @@ assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Userna
 assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
 assert.ok(usernameLogin.includes('"Cache-Control": "no-store"'), "Username login tokens must not be cached");
 assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForRequest"), "Edge Functions must use shared CORS policy");
+assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner bootstrap registration choice is missing");
+assert.ok(html.includes('id="ownerBootstrapSection"'), "Owner bootstrap activation section is missing");
+assert.ok(app.includes("pfms_owner_setup_available") && app.includes("functions.invoke('pfms-owner-bootstrap'"), "Owner bootstrap UI is not connected to its server endpoint");
+assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("email_confirmed_at"), "Owner bootstrap must validate a confirmed authenticated account");
+assert.ok(ownerBootstrap.includes("registration_type") && ownerBootstrap.includes('"owner_bootstrap"'), "Owner bootstrap must require the dedicated registration type");
+assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstrap.includes("constantTimeEqual"), "Owner bootstrap secret comparison is missing");
+assert.ok(ownerBootstrap.includes("pfms_claim_initial_owner"), "Owner bootstrap must use the privileged one-time database claim");
+assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("service_role"), "Owner migration must enforce one service-role-only owner claim");
+assert.ok(ownerMigration.includes("An approved administrator already exists"), "Owner bootstrap must refuse to create a second root identity");
+assert.ok(stagingAudit.includes("'pfms_platform_owner'"), "Read-only staging audit must inspect the owner singleton table");
 assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner registration choice is missing");
 assert.ok(html.includes('id="ownerBootstrapForm"') && html.includes('id="ownerBootstrapToken"'), "Owner activation form is missing");
 assert.ok(app.includes("pfms_owner_setup_available") && app.includes("pfms-owner-bootstrap"), "Owner availability or activation wiring is missing");
