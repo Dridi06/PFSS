@@ -193,8 +193,8 @@ assert.ok(
   "Backup HMAC must be verified before decryption in both CI and the restore runbook"
 );
 assert.ok(
-  backupWorkflow.includes('key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()')
-    && backupRunbook.includes('key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()'),
+  backupWorkflow.includes('key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)')
+    && backupRunbook.includes('key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)'),
   "Backup creation and restore must derive the same domain-separated HMAC key"
 );
 
