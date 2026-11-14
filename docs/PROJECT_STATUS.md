@@ -40,7 +40,7 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - `app.js`: Navigation, Authentifizierung, Dashboard, Haupt-Spieler-/Berichtsfunktionen und Administrator-RPCs.
 - `styles.css`, `scout-workspace.css`: Designbasis.
 - `scout-workspace.js`: jetzt mit Supabase-CRUD für private Scout-Spieler und -Berichte sowie privatem Medien-Upload, signierten Medienabrufen und Löschfunktionen verbunden.
-- `rechtliches.html`: rechtliche Informationsseite; Impressum und Kontaktdaten sind noch nicht veröffentlichungsfertig.
+- `rechtliches.html`: rechtliche Informationsseite; Impressum und Kontaktdaten sind noch nicht veröffentlichungsfertig. Die Platzhalter für Betreiberidentität, ladungsfähige Anschrift und Kontakt-E-Mail müssen mit echten Angaben des Betreibers ersetzt und fachlich/rechtlich geprüft werden.
 
 ### Authentifizierung und Administration
 - Supabase Auth wird im Browser verwendet.
