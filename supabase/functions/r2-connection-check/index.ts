@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
           ? "Cloudflare rejected the credentials or bucket permissions (HTTP 403)."
           : response.status === 404
           ? "The R2 bucket or endpoint was not found (HTTP 404)."
-          : "Cloudflare R2 returned HTTP " + response.status + ".";
+          : "Cloudflare R2 returned HTTP " + response.status + ".",
       }, 502);
     }
 
