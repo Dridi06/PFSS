@@ -365,3 +365,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Das Speichern einer Spielaufstellung bindet den gesamten Vorgang jetzt bereits vor dem RPC an die ursprüngliche Benutzer-, Team- und Spiel-ID. Erfolgs-, Fehler- und Abschlussbehandlung werden bei einem zwischenzeitlichen Team-/Spielwechsel verworfen; insbesondere wird kein Button einer inzwischen anderen Ansicht durch einen alten Request verändert.
 - Zwei Regressionstests sichern diese Team-/Spielbindung.
 - Keine Migration, Datenbankänderung oder Bereitstellung. Die Änderungen bleiben auf dem Feature-Branch.
+
+
+## Teamgebundene Abschlussbehandlung weiterer Schreibvorgänge – 14.11.2026
+
+- Die Abschlussbehandlung asynchroner Schreibvorgänge wurde für Anwesenheit, Trainingspläne, Spiele und Kalendereinträge vereinheitlicht.
+- Jeder Vorgang hält die ursprüngliche Benutzer-/Team-/Sitzungs- bzw. Bearbeitungs-ID fest. Erfolgs- und Fehlermeldungen sowie das erneute Aktivieren von Schaltflächen erfolgen nur, solange dieselbe Ansicht noch aktiv ist.
+- Dadurch kann ein verspäteter Request nach einem Mannschafts- oder Terminwechsel nicht mehr die Bedienelemente der neuen Ansicht verändern.
+- Vier Regressionstests schützen die Team-/Sitzungsbindung und die Button-Abschlussbehandlung.
+- Keine Datenbankmigration, keine Änderung an Daten oder Secrets und kein Deployment. Die Änderungen bleiben auf dem Feature-Branch.
