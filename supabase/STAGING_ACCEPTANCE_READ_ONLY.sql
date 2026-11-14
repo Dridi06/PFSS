@@ -70,15 +70,24 @@ with checks as (
   union all
   select
     'nine_team_permission_modules',
-    pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%tasks%'
-      and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%<> 9%',
+    coalesce(
+      pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%tasks%',
+      false
+    )
+      and coalesce(
+        pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%<> 9%',
+        false
+      ),
     'tasks-Modul und exakt neun Rechtebereiche erwartet'
 
   union all
   select
     'team_task_create_rpc',
-    pg_catalog.to_regprocedure('public.pfms_create_legacy_team_task(uuid,text,text,uuid,date,text,text)') is not null
-      and coalesce(pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_create_legacy_team_task(uuid,text,text,uuid,date,text,text)'), 'EXECUTE'), false),
+    coalesce(
+      pg_catalog.to_regprocedure('public.pfms_create_legacy_team_task(uuid,text,text,uuid,date,text,text)') is not null
+        and pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_create_legacy_team_task(uuid,text,text,uuid,date,text,text)'), 'EXECUTE'),
+      false
+    ),
     'Sieben Parameter; EXECUTE für authenticated erwartet'
 
   union all
@@ -97,14 +106,16 @@ with checks as (
   union all
   select
     'notification_trigger_function',
-    exists (
-      select 1
-      from pg_catalog.pg_proc p
-      where p.oid = pg_catalog.to_regprocedure('public.pfms_notify_legacy_team_task_changes()')
-        and p.prosecdef
-        and coalesce(p.proconfig::text, '') like '%search_path=""%'
-    )
-      and not coalesce(pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_notify_legacy_team_task_changes()'), 'EXECUTE'), false),
+    coalesce((
+      exists (
+        select 1
+        from pg_catalog.pg_proc p
+        where p.oid = pg_catalog.to_regprocedure('public.pfms_notify_legacy_team_task_changes()')
+          and p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=""%'
+      )
+        and not coalesce(pg_catalog.has_function_privilege('authenticated', pg_catalog.to_regprocedure('public.pfms_notify_legacy_team_task_changes()'), 'EXECUTE'), false)
+    ), false),
     'SECURITY DEFINER mit leerem search_path; kein direkter EXECUTE-Zugriff für authenticated'
 
   union all
