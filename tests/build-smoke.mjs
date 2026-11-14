@@ -5,7 +5,7 @@ import { dirname, resolve, sep } from "node:path";
 const outputDirectory = resolve(process.cwd(), "dist");
 const renderConfig = await readFile(resolve(process.cwd(), "render.yaml"), "utf8");
 const authStyles = await readFile(resolve(outputDirectory, "styles.css"), "utf8");
-assert.match(authStyles, /#authScreen \.pricing-grid\\{grid-template-columns:minmax\\(0,1fr\\)/, "Subscription packages must remain vertically stacked");
+assert.match(authStyles, /#authScreen \.pricing-grid\{grid-template-columns:minmax\(0,1fr\)/, "Subscription packages must remain vertically stacked");
 
 assert.ok(renderConfig.includes("Content-Security-Policy"), "Render staging must publish a Content-Security-Policy header");
 assert.ok(renderConfig.includes("frame-ancestors 'none'") && renderConfig.includes("object-src 'none'"), "Render CSP must block framing and plugin content");
