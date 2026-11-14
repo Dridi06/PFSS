@@ -463,3 +463,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Zugangsdaten in der URL, Ports, zusätzliche Pfade, Query-Parameter, Fragmente, ungültige URLs und fremde Host-Suffixe werden fail-closed abgewiesen.
 - Neue Regressionstests decken diese fehlerhaften URL-Formen sowie ungültige URL-Syntax ab. Die vorhandene Prüfung auf Staging-Projekt-Referenz und öffentliche Schlüssel bleibt bestehen.
 - Die Änderung ist im Feature-Branch; der CI-Lauf für den neuen Stand steht noch aus. Kein Deployment und keine Änderung an Supabase-Projekten.
+
+### Render-Staging-Blueprint und Browser-Build regressionsgeprüft – 15.11.2026
+
+- Die Render-Blueprint-Smoke-Tests prüfen den getrennten Static-Site-Dienst, den ausschließlich auf den Feature-Branch gerichteten Build, den Build-Befehl, den Veröffentlichungsordner `dist/`, den CI-abhängigen Deploy-Trigger und die extern zu setzenden Staging-Variablen.
+- Zusätzlich wird geprüft, dass die Blueprint-Konfiguration keinen Produktionsdienst und keinen Branch `main` definiert. Die Prüfung liest nur die Repository-Datei; sie kontaktiert oder verändert Render nicht.
+- Der Build-Test kontrolliert die Reihenfolge der Frontend-Skripte: `pfms-config.js` vor `app.js`, danach `scout-workspace.js`. So wird verhindert, dass die Anwendung vor ihrer Laufzeitkonfiguration startet.
+- Die erste Testfassung enthielt einen fehlerhaften Zeilenumbruchvergleich. Dieser Testfehler wurde korrigiert; anschließend bestanden beide GitHub-Actions-Läufe für Commit `478727d7d92e0da7c1f8f34ccdbc0fe10f0236e5`: [Push-Lauf 43652524277](https://github.com/Dridi06/PFSS/actions/runs/43652524277) und [Pull-Request-Lauf 43652528440](https://github.com/Dridi06/PFSS/actions/runs/43652528440).
+- Der erfolgreiche CI-Nachweis bestätigt automatisierte Repository-/Build-Prüfungen und den Deno-Typcheck. Er bestätigt weder eine tatsächlich eingerichtete Render-Staging-Instanz noch eine getrennte Supabase-Datenbank oder einen Browser-Ende-zu-Ende-Test.
+- Keine Render-/Supabase-Dashboardänderung, keine Migration, kein Deployment, keine Änderung an `main` oder Produktivdaten. Draft-PR #1 bleibt offen und ungemergt.
