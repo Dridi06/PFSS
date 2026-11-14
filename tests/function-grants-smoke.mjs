@@ -750,7 +750,7 @@ const teamMembershipScope = (
   await readFile(resolve(directory, "20261211_pfms_legacy_team_membership_scope.sql"), "utf8")
 ).replace(/\s+/g, " ").toLowerCase();
 assert.match(teamMembershipScope, /join public\.organizations o on o\.id = t\.organization_id/);
-assert.match(teamMembershipScope, /o\\.status in \\('approved','active'\\)/);
+assert.match(teamMembershipScope, /o\.status in \('approved',\s*'active'\)/);
 assert.match(teamMembershipScope, /join public\.organization_memberships m/);
 assert.match(teamMembershipScope, /m\.status = 'active'/);
 assert.match(teamMembershipScope, /m\.role = s\.role/);
