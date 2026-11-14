@@ -1122,32 +1122,14 @@
       </section>
 
       <section class="view" id="view-agencies">
-        <section class="admin-org-console" id="adminAgencyConsole" hidden></section><div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturkonten, Zuständigkeiten und Freigaben zentral verwalten.</p></div></div>
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturmitgliedschaften, Leitungsrollen und Freigabestatus zentral verwalten.</p></div></div>
         <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Agentur finden</h3></div><span class="module-status">Verwaltung</span></div>
-          <div class="org-search-grid">
-            <label class="field">Agenturname<input type="search" placeholder="Agenturnamen eingeben"></label>
-            <label class="field">Agentur-User-ID<input type="text" placeholder="Agentur-ID eingeben"></label>
-            <button class="btn btn-primary" type="button" disabled>Suchen</button>
-          </div>
-          <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder der ausgewählten Agentur</h3></div><span class="module-status">Vorschau</span></div>
-          <div class="org-empty-state">Nach Auswahl einer Agentur erscheinen hier Agenturleitung, Scouts und weitere zugeordnete Mitglieder.</div>
-          <div class="org-member-detail">
-            <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
-            <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
-              <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Spielerprofile</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Vertragsverwaltung</b><span>○</span><span>○</span><span>○</span><span>○</span>
-            </div>
-            <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
-          </div>
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSÜBERGREIFENDE VERWALTUNG</div><h3>Agenturen und Mitglieder</h3></div><span class="module-status">Live-Daten</span></div>
+          <p>Die zentrale Mitgliederverwaltung kann nach Agenturtyp filtern und zeigt Agenturleitung, Scouts, Rollen und Mitgliedsstatus. Änderungen werden serverseitig geprüft.</p>
+          <button class="btn btn-primary" type="button" data-view="admin-members">Agenturen und Mitgliedschaften verwalten</button>
         </div>
       </section>
+
       <section class="view" id="view-admin-members">
         <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Mitglieder</h1><p>Mitgliederkonten, Einladungen und Organisationszuordnungen verwalten.</p></div></div>
         <div class="panel admin-panel">
