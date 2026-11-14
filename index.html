@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="styles.css?v=pfms-search-20261112-1">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfms-team-roster-20261122-7" defer></script>
+  <script src="app.js?v=pfms-training-attendance-20261123-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -847,11 +847,42 @@
       <p id="pfmsTeamRosterMessage" class="admin-message" role="status" aria-live="polite"></p>
       <div id="pfmsTeamRosterList" class="pfms-team-roster-list"></div>
     </section>
+
+    <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TRAININGSBETRIEB</div>
+          <h3>Trainingstermine</h3>
+          <p>Plane Einheiten und öffne für jeden Termin die zugehörige Anwesenheitsliste.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamTrainingForm" class="pfms-training-form" hidden>
+        <label class="field">Titel<input name="title" maxlength="140" required placeholder="z. B. Athletik und Passspiel"></label>
+        <label class="field">Datum<input name="session_date" type="date" required></label>
+        <label class="field">Beginn<input name="starts_at" type="time" required></label>
+        <label class="field">Ende<input name="ends_at" type="time"></label>
+        <label class="field">Ort<input name="location" maxlength="160" placeholder="Sportplatz / Halle"></label>
+        <label class="field">Schwerpunkt<input name="focus" maxlength="160" placeholder="z. B. Umschaltspiel"></label>
+        <label class="field full">Notizen<textarea name="notes" rows="2" maxlength="4000"></textarea></label>
+        <button class="btn btn-primary" type="submit" id="pfmsTeamTrainingSave">Trainingstermin speichern</button>
+      </form>
+      <p id="pfmsTeamTrainingMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamTrainingList" class="pfms-training-list"></div>
+
+      <section class="pfms-attendance-panel" id="pfmsTeamAttendancePanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">TEAMORGANISATION</div><h3 id="pfmsTeamAttendanceTitle">Anwesenheit</h3><p id="pfmsTeamAttendanceMeta"></p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseAttendance">Schließen</button>
+        </div>
+        <p id="pfmsTeamAttendanceMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamAttendanceList" class="pfms-attendance-list"></div>
+      </section>
+    </section>
   </section>
   <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
     <article class="module-card module-feature" data-pfms-team-module="squad"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
-    <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung und Trainingsinhalte.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung und Einheiten je Mannschaft.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-training>Trainingstermine öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung pro Einheit.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-attendance>Trainingsanwesenheit öffnen</button></article>
     <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere und Veranstaltungen.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
