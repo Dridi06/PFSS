@@ -11,7 +11,7 @@ Die erlaubten Origins werden aus dem Supabase-Function-Secret `PFMS_ALLOWED_ORIG
 Beispiel für die **Staging-Umgebung** (Domains durch die tatsächliche Render-Staging-Domain ersetzen):
 
 ```text
-https://pfss-scouting.onrender.com,https://<tatsaechliche-staging-domain>
+https://<tatsaechliche-staging-domain>
 ```
 
 Wenn das Secret fehlt, erlaubt der Code-Fallback ausschließlich localhost auf Port 3000. Eine Produktions- oder Staging-Domain wird niemals automatisch freigegeben. Deshalb muss `PFMS_ALLOWED_ORIGINS` in jedem Supabase-Projekt explizit gesetzt werden und alle Origins enthalten, von denen dessen Frontend aus die Functions aufruft.
