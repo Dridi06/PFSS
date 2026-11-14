@@ -949,3 +949,9 @@ button,input,select,textarea{max-width:100%}
   .pfms-global-member-card .admin-user-controls label{min-width:0}
   .pfms-global-member-card [data-save-global-membership]{width:100%}
 }
+
+.page-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+.player-card-actions{display:flex;gap:7px;margin-top:11px}
+.player-card-actions button{border:1px solid rgba(198,161,91,.28);border-radius:7px;padding:6px 9px;background:#17191b;color:#d6bd83;font-size:10px;cursor:pointer}
+.player-card-actions button:hover{background:rgba(198,161,91,.12)}
+@media(max-width:600px){.page-heading-actions{width:100%;justify-content:stretch}.page-heading-actions .btn{flex:1}}
