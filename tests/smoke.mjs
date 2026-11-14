@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFile(path, "utf8");
 const mainStyles = await read("styles.css");
+const workspaceStyles = await read("scout-workspace.css");
 
 const [
   html,
@@ -477,9 +478,9 @@ assert.ok(
   "Team event UI must include the independent events workspace and module navigation"
 );
 assert.ok(
-  mainStyles.includes(".pfms-team-event-card")
-    && mainStyles.includes(".pfms-event-form")
-    && mainStyles.includes("@media(max-width:640px)"),
+  workspaceStyles.includes(".pfms-team-event-card")
+    && workspaceStyles.includes(".pfms-event-form")
+    && workspaceStyles.includes("@media(max-width:640px)"),
   "Team event UI must have responsive card and form styling"
 );
 
