@@ -3017,6 +3017,13 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   document.getElementById('pfmsTeamMatchLineupPanel').hidden = true;
   document.getElementById('pfmsTeamTrainingPanel').hidden = true;
   document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+  document.getElementById('pfmsTeamExerciseLibraryPanel').hidden = true;
+  document.getElementById('pfmsTeamSessionPlanPanel').hidden = true;
+  document.getElementById('pfmsTeamExerciseLibrary').innerHTML = '';
+  document.getElementById('pfmsTeamSessionPlanExercises').innerHTML = '';
+  document.getElementById('pfmsTeamExerciseMessage').textContent = '';
+  document.getElementById('pfmsTeamSessionPlanMessage').textContent = '';
+  resetPfmsLegacyTrainingExerciseForm();
   const matchList = document.getElementById('pfmsTeamMatchesList');
   if (matchList) matchList.innerHTML = '';
   const matchLineupList = document.getElementById('pfmsTeamMatchLineupList');
@@ -3972,7 +3979,7 @@ function renderPfmsLegacyTrainingSessionPlan() {
     const current = planned.get(exercise.exercise_id);
     const checked = !!current;
     const duration = current?.planned_duration_minutes ?? exercise.duration_minutes;
-    const order = current?.sort_order ?? index + 1;
+    const order = index + 1;
     const notes = current?.notes || '';
     return '<article class="pfms-session-plan-row" data-pfms-session-plan-row="' + escapeHtml(exercise.exercise_id) + '">' +
       '<label class="pfms-plan-select"><input type="checkbox" data-pfms-plan-selected ' + (checked ? 'checked ' : '') + (canEdit ? '' : 'disabled ') + '><span>' +
@@ -4958,6 +4965,10 @@ function resetPfmsAuthenticatedState() {
   document.getElementById('pfmsTeamCalendarList')?.replaceChildren();
   document.getElementById('pfmsTeamTrainingPanel')?.setAttribute('hidden', '');
   document.getElementById('pfmsTeamAttendancePanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamExerciseLibraryPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamSessionPlanPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamExerciseLibrary')?.replaceChildren();
+  document.getElementById('pfmsTeamSessionPlanExercises')?.replaceChildren();
   const trainingList = document.getElementById('pfmsTeamTrainingList');
   if (trainingList) trainingList.innerHTML = '';
   const attendanceList = document.getElementById('pfmsTeamAttendanceList');
