@@ -629,6 +629,16 @@ assert.ok(
   "The workspace must consume server-resolved permissions rather than infer them from role labels"
 );
 
+assert.ok(
+  app.includes("function openPfmsLegacyTeamMatch(matchRecord = null) {\\n  const form = document.getElementById('pfmsTeamMatchForm');\\n  if (!form || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true) return;"),
+  "The match editor must independently enforce matches.edit before opening"
+);
+assert.ok(
+  app.includes("function openPfmsLegacyCalendarEvent(eventRecord = null) {\\n  const form = document.getElementById('pfmsTeamCalendarForm');\\n  if (!form || pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true) return;"),
+  "The calendar editor must independently enforce calendar.edit before opening"
+);
+
+
 
 assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
 assert.ok(html.includes('id="pfmsTeamRosterPanel"') && html.includes('id="pfmsTeamRosterForm"') && html.includes('id="pfmsTeamRosterList"'), "Team roster UI is incomplete");
