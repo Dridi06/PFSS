@@ -240,7 +240,7 @@ const legacyTeamPermissions = (
     "utf8"
   )
 ).replace(/\s+/g, " ").toLowerCase();
-assert.match(legacyTeamPermissions, /create or replace function public\.pfms_save_legacy_team_permissions\(p_assignment_id uuid, p_permissions jsonb\)/);
+assert.match(legacyTeamPermissions, /create or replace function public\\.pfms_save_legacy_team_permissions\\s*\\(\\s*p_assignment_id uuid,\\s*p_permissions jsonb\\s*\\)/);
 assert.match(legacyTeamPermissions, /if not public\.pfms_can_manage_legacy_team\(v_team_id\) then/);
 assert.match(legacyTeamPermissions, /jsonb_array_length\(p_permissions\) <> 8/);
 assert.match(legacyTeamPermissions, /v_can_edit and not v_can_view/);
