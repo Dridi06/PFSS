@@ -790,7 +790,7 @@ const taskAssigneeScope = (
   )
 ).replace(/\s+/g, " ").toLowerCase();
 assert.equal(
-  (taskAssigneeScope.match(/o\.status in \('approved','active'\)/g) || []).length,
+  (taskAssigneeScope.match(/o\.status in \('approved',\s*'active'\)/g) || []).length,
   2,
   "Both task creation and update must verify current organization membership"
 );
@@ -803,11 +803,6 @@ assert.equal(
   (taskAssigneeScope.match(/m\.role = s\.role/g) || []).length,
   2,
   "Both task creation and update must require the membership/team role to match"
-);
-assert.equal(
-  (taskAssigneeScope.match(/o\\.status in \\('approved','active'\\)/g) || []).length,
-  2,
-  "Both task creation and update must require an approved/active organization"
 );
 assert.match(taskAssigneeScope, /for share of s, o, m/);
 assert.match(taskAssigneeScope, /revoke all on function public\.pfms_create_legacy_team_task/);
