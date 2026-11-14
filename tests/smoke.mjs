@@ -174,6 +174,19 @@ assert.ok(
   !/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout),
   "Scout workspace must not ship demo data or preview copy"
 );
+assert.ok(
+  scout.includes("'global-search'") &&
+  scout.includes("pfms_global_players") &&
+  scout.includes("data-scout-copy-global") &&
+  scout.includes("source_global_player_id"),
+  "Scout global search and private player copy workflow is missing"
+);
+assert.ok(
+  globalCatalogueMigration.includes("source_global_player_id") &&
+  globalCatalogueMigration.includes("pfss_scout_players_owner_global_source_uidx"),
+  "Private Scout profiles must link to a global source without duplicate copies"
+);
+
 const mediaDeleteStart = scout.indexOf("async function deleteMedia(id)");
 const mediaDeleteBody = scout.slice(mediaDeleteStart, scout.indexOf("\n  function bindEvents", mediaDeleteStart));
 const storageDeletePosition = mediaDeleteBody.indexOf(".storage.from(BUCKET).remove");
