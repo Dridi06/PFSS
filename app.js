@@ -2467,7 +2467,7 @@ async function openPfmsLegacyTeamStaffDialog(teamId) {
   document.getElementById('pfmsTeamStaffTitle').textContent = 'Trainerteam · ' + team.team_name;
   candidate.innerHTML = '<option value="">Mitglieder werden geladen …</option>';
   message.textContent = 'Aktive Vereinsmitglieder werden geprüft …';
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
 
   try {
     const [candidatesResult, staffResult] = await Promise.all([
@@ -2603,6 +2603,7 @@ function setupPfmsLegacyTeamWorkspace() {
   document.addEventListener('click', event => {
     const openButton = event.target.closest('[data-pfms-open-team]');
     if (openButton) {
+      if (openButton.closest('#view-teams')) showView('team-workspace');
       openPfmsLegacyTeamWorkspace(openButton.dataset.pfmsOpenTeam);
       return;
     }
