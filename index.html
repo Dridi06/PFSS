@@ -767,23 +767,18 @@
       </section>
 
       <section class="view" id="view-scouts">
-        <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Scout-Profile, Beobachtungsgebiete und kontrollierte Berichtsfreigaben.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scout">＋ Scout einladen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Verwalte Scout-Mitgliedschaften und nutze den privaten Scout-Arbeitsbereich mit globaler Spielersuche.</p></div><button class="btn btn-primary" type="button" data-view="club-scouting">Scouts der Organisation verwalten</button></div>
         <section class="admin-org-console" id="adminScoutConsole" hidden>
           <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Einzelscout finden</h3></div><span class="module-status">Verwaltung</span></div>
-            <div class="org-search-grid">
-              <label class="field">Scout-Name<input type="search" placeholder="Vor- oder Nachname eingeben"></label>
-              <label class="field">Scout-User-ID<input type="text" placeholder="Scout-ID eingeben"></label>
-              <button class="btn btn-primary" type="button" disabled>Suchen</button>
-            </div>
-            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
+            <div class="panel-heading"><div><div class="eyebrow">PLATTFORMADMINISTRATION</div><h3>Scout-Konten und Organisationsrollen</h3></div><span class="module-status">Live-Verwaltung</span></div>
+            <p>Scout-Konten und ihre Organisationszuordnungen werden über die organisationsübergreifende Mitgliederverwaltung gesucht und geprüft.</p>
+            <button class="btn btn-primary" type="button" data-view="admin-members">Scout-Konten verwalten</button>
           </div>
-          <div class="panel"><div class="panel-heading"><div><div class="eyebrow">SCOUT-PROFIL</div><h3>Persönliche Berechtigungen</h3></div></div><div class="org-empty-state">Nach Auswahl eines Scouts werden dessen User-ID, Status und sämtliche individuellen Rechte angezeigt.</div></div>
         </section>
         <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scout-Profile</h3><p>Scouts können Spieler und Statistiken erfassen, beobachten und Berichte erstellen.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">◉</span><h3>Private Datenbereiche</h3><p>Eigene Scouting-Daten und private Notizen bleiben zunächst nur für den jeweiligen Scout sichtbar.</p></article>
-          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Berichte können gezielt und freiwillig mit ausgewählten Vereinen geteilt und wieder entzogen werden.</p></article>
+          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Privater Scout-Arbeitsbereich</h3><p>Eigene Spielerprofile, Beobachtungen, Berichte und Medien werden getrennt vom globalen PFMS-Katalog gespeichert.</p></article>
+          <article class="module-card"><span class="module-symbol">⌕</span><h3>Globale Spielersuche</h3><p>Freigegebene globale Spielerprofile können gefiltert und in den privaten Scout-Bereich übernommen werden.</p></article>
+          <article class="module-card"><span class="module-symbol">⇄</span><h3>Organisationszuordnung</h3><p>Vereine und Agenturen verwalten aktive Scouts über ihre Mitgliedschaften und Einladungslinks.</p><button class="btn btn-secondary" type="button" data-view="club-scouting">Scout-Zuordnungen öffnen</button></article>
         </div>
       </section>
 
