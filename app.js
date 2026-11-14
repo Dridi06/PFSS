@@ -1260,7 +1260,7 @@ function applyAdminPreviewMode(mode) {
   }
 }
 
-async async function showAuthenticatedApp(user, profile) {
+async function showAuthenticatedApp(user, profile) {
   window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
