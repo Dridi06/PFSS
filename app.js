@@ -1080,6 +1080,33 @@ document.addEventListener('click', event => {
     return;
   }
 
+  const clubNavigation = event.target.closest('[data-pfms-club-nav]');
+  if (clubNavigation) {
+    const targetView = clubNavigation.dataset.pfmsClubNav;
+    if (targetView === 'club-members') {
+      const organizationId = clubNavigation.dataset.organizationId;
+      const select = document.getElementById('pfmsLegacyMembersOrganization');
+      if (select && organizationId) select.value = organizationId;
+      showView('club-members');
+      loadPfmsLegacyOrganizationMembers();
+    } else if (targetView === 'teams') {
+      showView('teams');
+    }
+    return;
+  }
+
+  const inviteOrganizationButton = event.target.closest('[data-pfms-open-invitation]');
+  if (inviteOrganizationButton) {
+    const organizationId = inviteOrganizationButton.dataset.pfmsOpenInvitation;
+    const select = document.getElementById('pfmsLegacyInvitationOrganization');
+    if (select && organizationId) select.value = organizationId;
+    const panel = document.getElementById('pfmsLegacyInvitationPanel');
+    if (panel) panel.hidden = false;
+    showView('club-members');
+    document.getElementById('pfmsLegacyInvitationPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'show-legacy-invitation') {
     const panel = document.getElementById('pfmsLegacyInvitationPanel');
@@ -1976,6 +2003,54 @@ let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
 let pfmsLegacyInvitationOrganizations = [];
 
+function renderPfmsClubWorkspace() {
+  const host = document.getElementById('pfmsClubOrganizationsGrid');
+  const status = document.getElementById('pfmsClubWorkspaceStatus');
+  if (!host) return;
+  if (!window.pfssCurrentUserId) {
+    host.innerHTML = '<div class="empty-state"><b>Bitte anmelden</b><p>Deine Organisationen werden nach der Anmeldung angezeigt.</p></div>';
+    if (status) { status.hidden = false; status.textContent = 'Nicht angemeldet'; }
+    return;
+  }
+
+  const organizations = Array.isArray(pfmsLegacyInvitationOrganizations)
+    ? pfmsLegacyInvitationOrganizations
+    : [];
+  if (!organizations.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine verwaltbare Organisation</b><p>Wenn du einen Verein oder eine Agentur registriert hast, wird sie nach der Freigabe hier angezeigt. Mitglieder können über einen gültigen Einladungslink beitreten.</p></div>';
+    if (status) { status.hidden = false; status.textContent = 'Keine verwaltbaren Organisationen gefunden'; }
+    return;
+  }
+
+  const typeLabels = { club: 'Verein', agency: 'Agentur', scout_workspace: 'Scout-Arbeitsbereich' };
+  const statusLabels = { approved: 'Freigegeben', active: 'Aktiv', pending: 'Prüfung ausstehend', suspended: 'Gesperrt' };
+  const roleLabels = {
+    owner: 'Inhaber',
+    club_admin: 'Vereinsleitung',
+    agency_admin: 'Agenturleitung',
+    platform_admin: 'Plattformadministration'
+  };
+  host.innerHTML = organizations.map(org => {
+    const type = typeLabels[org.organization_type] || 'Organisation';
+    const state = statusLabels[String(org.organization_status || '').toLowerCase()] || org.organization_status || 'Unbekannt';
+    const role = roleLabels[org.member_role] || org.member_role || 'Verwaltung';
+    const canInvite = ['approved','active'].includes(String(org.organization_status || '').toLowerCase());
+    return '<article class="module-card pfms-club-organization-card">' +
+      '<div class="eyebrow">' + escapeHtml(type) + '</div>' +
+      '<h3>' + escapeHtml(org.organization_name || 'Organisation') + '</h3>' +
+      '<div class="pfms-club-organization-meta"><span class="module-status">' + escapeHtml(state) + '</span><span>' + escapeHtml(role) + '</span></div>' +
+      '<div class="pfms-club-organization-actions">' +
+        '<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-members" data-organization-id="' + escapeHtml(org.organization_id) + '">Mitglieder verwalten</button>' +
+        '<button type="button" class="btn btn-secondary" data-pfms-club-nav="teams">Mannschaften öffnen</button>' +
+        (canInvite ? '<button type="button" class="btn btn-primary" data-pfms-open-invitation="' + escapeHtml(org.organization_id) + '">Mitglied einladen</button>' : '') +
+      '</div></article>';
+  }).join('');
+  if (status) {
+    status.hidden = false;
+    status.textContent = organizations.length + ' verwaltbare Organisation(en) geladen.';
+  }
+}
+
 async function loadPfmsLegacyInvitationOrganizations() {
   const panel = document.getElementById('pfmsLegacyInvitationPanel');
   const form = document.getElementById('pfmsLegacyInvitationForm');
@@ -1997,6 +2072,8 @@ async function loadPfmsLegacyInvitationOrganizations() {
   if (!requestUserId) {
     panel.hidden = true;
     membersPanel.hidden = true;
+    pfmsLegacyInvitationOrganizations = [];
+    renderPfmsClubWorkspace();
     return;
   }
 
@@ -2006,6 +2083,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (error) throw error;
 
     pfmsLegacyInvitationOrganizations = data || [];
+    renderPfmsClubWorkspace();
     const organizations = pfmsLegacyInvitationOrganizations;
     const inviteEligible = organizations.filter(org =>
       ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
@@ -2054,6 +2132,8 @@ async function loadPfmsLegacyInvitationOrganizations() {
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS legacy invitation organizations:', error);
+    pfmsLegacyInvitationOrganizations = [];
+    renderPfmsClubWorkspace();
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
     message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
     membersPanel.hidden = true;
