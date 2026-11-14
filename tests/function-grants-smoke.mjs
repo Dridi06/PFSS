@@ -371,3 +371,66 @@ for (const rpc of [
 ]) {
   assert.ok(applicationSource.includes(rpc), "Application is missing secured RPC integration: " + rpc);
 }
+
+
+// Protect team events, participants, event logistics and transport planning.
+const legacyTeamEvents = (
+  await readFile(resolve(directory, "20261203_pfms_legacy_team_events.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'view'\\)/);
+assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'edit'\\)/);
+assert.match(legacyTeamEvents, /p_event_type not in \\('tournament','event'\\)/);
+assert.match(legacyTeamEvents, /delete from public\\.pfms_legacy_team_calendar_events/);
+assert.match(legacyTeamEvents, /event_type in \\('tournament','event'\\)/);
+
+const legacyEventParticipants = (
+  await readFile(resolve(directory, "20261204_pfms_legacy_team_event_participants.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyEventParticipants, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
+assert.match(legacyEventParticipants, /foreign key \\(team_player_assignment_id, team_id\\) references public\\.pfms_legacy_team_players\\(id, team_id\\)/);
+assert.match(legacyEventParticipants, /pfms_has_legacy_team_permission\\(v_team_id, 'events', 'edit'\\)/);
+assert.match(legacyEventParticipants, /selected player is not an active member of this team/);
+assert.match(legacyEventParticipants, /status not in \\('invited','confirmed','declined','attended','absent'\\)/);
+assert.match(legacyEventParticipants, /force row level security/);
+
+const legacyEventLogistics = (
+  await readFile(resolve(directory, "20261205_pfms_legacy_team_event_logistics.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyEventLogistics, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
+assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'view'\\)/);
+assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'edit'\\)/);
+assert.match(legacyEventLogistics, /capacity cannot be lower than the current registered participant count/);
+assert.match(legacyEventLogistics, /fee_per_person/);
+assert.match(legacyEventLogistics, /force row level security/);
+assert.doesNotMatch(legacyEventLogistics, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_event_logistics to authenticated/);
+
+const legacyEventTravel = (
+  await readFile(resolve(directory, "20261205_pfms_legacy_team_event_travel_plans.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(legacyEventTravel, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
+assert.match(legacyEventTravel, /pfms_has_legacy_team_permission\\(v_team_id, 'events', 'edit'\\)/);
+assert.match(legacyEventTravel, /seat capacity cannot be lower than the current active participant count/);
+assert.match(legacyEventTravel, /transport vehicle is at seat capacity/);
+assert.match(legacyEventTravel, /on conflict \\(event_id\\) do update/);
+assert.match(legacyEventTravel, /force row level security/);
+assert.doesNotMatch(legacyEventTravel, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_event_travel_plans to authenticated/);
+
+// The UI must use the permission-checked RPC interface for event operations.
+for (const rpc of [
+  "pfms_list_legacy_team_events",
+  "pfms_create_legacy_team_event",
+  "pfms_update_legacy_team_event",
+  "pfms_delete_legacy_team_event",
+  "pfms_list_legacy_team_event_participants",
+  "pfms_list_legacy_team_event_player_options",
+  "pfms_add_legacy_team_event_participant",
+  "pfms_update_legacy_team_event_participant",
+  "pfms_remove_legacy_team_event_participant",
+  "pfms_list_legacy_team_events_with_logistics",
+  "pfms_save_legacy_team_event",
+  "pfms_list_legacy_team_event_travel_plans",
+  "pfms_save_legacy_team_event_travel_plan",
+  "pfms_delete_legacy_team_event_travel_plan"
+]) {
+  assert.ok(applicationSource.includes(rpc), "Application is missing secured event RPC integration: " + rpc);
+}
