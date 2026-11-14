@@ -1341,3 +1341,7 @@ button,input,select,textarea{max-width:100%}
 .pfms-club-organization-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
 .pfms-club-organization-actions .btn{min-height:38px}
 @media(max-width:620px){.pfms-club-organization-actions{display:grid;grid-template-columns:1fr}.pfms-club-organization-actions .btn{width:100%}}
+
+#pfmsClubScoutingPanel .admin-user-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#pfmsClubScoutingPanel .admin-user-main{display:flex;flex-direction:column;gap:4px}
+#pfmsClubScoutingPanel .admin-user-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
