@@ -2352,6 +2352,8 @@ let pfmsLegacyTrainingCycles = [];
 let pfmsLegacyTeamAnalysis = [];
 let pfmsLegacyTeamAnalysisMatches = [];
 let pfmsEditingTeamAnalysisId = null;
+let pfmsLegacyTeamTasks = [];
+let pfmsEditingLegacyTeamTaskId = null;
 let pfmsLegacyTeamEvents = [];
 let pfmsEditingTeamEventId = null;
 let pfmsLegacyTeamEventParticipants = [];
@@ -2435,6 +2437,34 @@ function resetPfmsLegacyTeamAnalysisState() {
   const save = document.getElementById('pfmsTeamAnalysisSave');
   if (save) save.textContent = 'Analyse speichern';
   document.getElementById('pfmsTeamAnalysisCancelEdit')?.setAttribute('hidden', '');
+}
+
+function resetPfmsLegacyTeamTasksState() {
+  pfmsLegacyTeamTasks = [];
+  pfmsEditingLegacyTeamTaskId = null;
+
+  const panel = document.getElementById('pfmsTeamTasksPanel');
+  if (panel) panel.hidden = true;
+
+  const form = document.getElementById('pfmsTeamTaskForm');
+  form?.reset();
+  if (form?.elements.task_id) form.elements.task_id.value = '';
+
+  const host = document.getElementById('pfmsTeamTasksList');
+  if (host) host.replaceChildren();
+
+  const message = document.getElementById('pfmsTeamTasksMessage');
+  if (message) message.textContent = '';
+
+  const assignee = document.getElementById('pfmsTeamTaskAssignee');
+  if (assignee) {
+    assignee.innerHTML = '<option value="">Noch nicht zugewiesen</option>';
+    assignee.value = '';
+  }
+
+  const save = document.getElementById('pfmsTeamTaskSave');
+  if (save) save.textContent = 'Teamaufgabe speichern';
+  document.getElementById('pfmsTeamTaskCancelEdit')?.setAttribute('hidden', '');
 }
 
 function renderPfmsClubWorkspace() {
@@ -3277,7 +3307,8 @@ const PFMS_TEAM_PERMISSION_MODULES = {
   events: 'Fahrten & Veranstaltungen',
   calendar: 'Mannschaftskalender',
   matches: 'Spiele & Aufstellungen',
-  analysis: 'Taktik & Analyse'
+  analysis: 'Taktik & Analyse',
+  tasks: 'Teamaufgaben'
 };
 
 async function openPfmsLegacyTeamPermissions(assignmentId) {
@@ -4342,6 +4373,246 @@ async function removePfmsLegacyTeamEventParticipant(button) {
   }
 }
 
+
+function resetPfmsLegacyTeamTaskForm() {
+  const form = document.getElementById('pfmsTeamTaskForm');
+  if (!form) return;
+  pfmsEditingLegacyTeamTaskId = null;
+  form.reset();
+  form.elements.task_id.value = '';
+  form.elements.priority.value = 'normal';
+  form.elements.status.value = 'open';
+  const save = document.getElementById('pfmsTeamTaskSave');
+  const cancel = document.getElementById('pfmsTeamTaskCancelEdit');
+  if (save) save.textContent = 'Teamaufgabe speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+function renderPfmsLegacyTeamTasks() {
+  const host = document.getElementById('pfmsTeamTasksList');
+  const message = document.getElementById('pfmsTeamTasksMessage');
+  if (!host) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('tasks')?.can_edit === true;
+  const statusLabels = {
+    open: 'Offen',
+    in_progress: 'In Bearbeitung',
+    done: 'Erledigt',
+    cancelled: 'Abgebrochen'
+  };
+  const priorityLabels = { low: 'Niedrig', normal: 'Normal', high: 'Hoch' };
+
+  if (!pfmsLegacyTeamTasks.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Teamaufgaben vorhanden</b><p>' +
+      (canEdit ? 'Lege eine Aufgabe an und weise sie einem aktiven Teammitglied zu.' : 'Für diese Mannschaft wurden noch keine Aufgaben angelegt.') +
+      '</p></div>';
+    if (message) message.textContent = 'Keine Teamaufgaben vorhanden.';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyTeamTasks.map(task => {
+    const assignee = [task.assigned_name, task.assigned_username].filter(Boolean)[0] || 'Nicht zugewiesen';
+    const due = task.due_date ? pfmsFormatTeamDate(task.due_date) : 'Keine Frist';
+    return '<article class="pfms-team-task-card" data-pfms-team-task="' + escapeHtml(task.task_id) + '">' +
+      '<div class="pfms-team-task-card-head"><div><span class="eyebrow">' +
+        escapeHtml(priorityLabels[task.priority] || task.priority) + ' · ' + escapeHtml(due) +
+        '</span><h4>' + escapeHtml(task.title) + '</h4></div><span class="module-status">' +
+        escapeHtml(statusLabels[task.status] || task.status) + '</span></div>' +
+      '<div class="pfms-team-task-meta"><span>Verantwortlich: ' + escapeHtml(assignee) + '</span>' +
+        '<span>Erstellt am ' + escapeHtml(pfmsFormatTeamDate(String(task.created_at || '').slice(0, 10))) + '</span></div>' +
+      (task.description ? '<p class="pfms-team-task-description">' + escapeHtml(task.description) + '</p>' : '') +
+      (canEdit
+        ? '<div class="pfms-team-task-card-actions"><button type="button" class="btn btn-secondary" data-pfms-team-task-edit="' +
+            escapeHtml(task.task_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-team-task-delete="' +
+            escapeHtml(task.task_id) + '">Löschen</button></div>'
+        : '') +
+      '</article>';
+  }).join('');
+  if (message) message.textContent = pfmsLegacyTeamTasks.length + ' Teamaufgabe(n) geladen.';
+}
+
+async function loadPfmsLegacyTeamTasks(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamTasksPanel');
+  const form = document.getElementById('pfmsTeamTaskForm');
+  const host = document.getElementById('pfmsTeamTasksList');
+  const message = document.getElementById('pfmsTeamTasksMessage');
+  const assigneeSelect = document.getElementById('pfmsTeamTaskAssignee');
+  if (!team || !panel || !form || !host || !message || !assigneeSelect) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('tasks') || {};
+  if (permission.can_view !== true) {
+    resetPfmsLegacyTeamTasksState();
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Teamaufgaben werden geladen …';
+  host.replaceChildren();
+
+  const currentAssignee = assigneeSelect.value;
+  const activeStaff = (pfmsSelectedTeamStaff || []).filter(item => item.assignment_status === 'active');
+  assigneeSelect.innerHTML = '<option value="">Noch nicht zugewiesen</option>' +
+    activeStaff.map(member =>
+      '<option value="' + escapeHtml(member.user_id) + '">' +
+        escapeHtml(member.full_name || member.username || member.email || 'Teammitglied') +
+        ' · ' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) +
+      '</option>'
+    ).join('');
+  if (activeStaff.some(member => member.user_id === currentAssignee)) {
+    assigneeSelect.value = currentAssignee;
+  }
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_tasks', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    pfmsLegacyTeamTasks = data || [];
+    renderPfmsLegacyTeamTasks();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team tasks load failed:', error);
+    pfmsLegacyTeamTasks = [];
+    host.innerHTML = '<div class="empty-state">Teamaufgaben konnten nicht geladen werden. Prüfe die Teamaufgaben-Migration und tasks.view.</div>';
+    message.textContent = 'Teamaufgaben derzeit nicht verfügbar.';
+  }
+}
+
+function openPfmsLegacyTeamTask(task = null) {
+  const form = document.getElementById('pfmsTeamTaskForm');
+  if (!form || pfmsSelectedTeamPermissions.get('tasks')?.can_edit !== true) return;
+  resetPfmsLegacyTeamTaskForm();
+  pfmsEditingLegacyTeamTaskId = task?.task_id || null;
+  form.elements.task_id.value = pfmsEditingLegacyTeamTaskId || '';
+  form.elements.title.value = task?.title || '';
+  form.elements.description.value = task?.description || '';
+  form.elements.assigned_to.value = task?.assigned_to || '';
+  form.elements.due_date.value = task?.due_date || '';
+  form.elements.priority.value = task?.priority || 'normal';
+  form.elements.status.value = task?.status || 'open';
+  const save = document.getElementById('pfmsTeamTaskSave');
+  const cancel = document.getElementById('pfmsTeamTaskCancelEdit');
+  if (save) save.textContent = task ? 'Änderungen speichern' : 'Teamaufgabe speichern';
+  if (cancel) cancel.hidden = !task;
+  form.hidden = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.title.focus();
+}
+
+async function savePfmsLegacyTeamTask(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamTasksMessage');
+  const button = document.getElementById('pfmsTeamTaskSave');
+  if (!team || pfmsSelectedTeamPermissions.get('tasks')?.can_edit !== true) {
+    if (message) message.textContent = 'Für Teamaufgaben fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const title = String(data.title || '').trim();
+  if (title.length < 3 || title.length > 160 ||
+      !['low','normal','high'].includes(data.priority) ||
+      !['open','in_progress','done','cancelled'].includes(data.status) ||
+      String(data.description || '').length > 3000) {
+    if (message) message.textContent = 'Bitte Titel, Beschreibung, Priorität und Status prüfen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isEditing = Boolean(pfmsEditingLegacyTeamTaskId);
+  button.disabled = true;
+  if (message) message.textContent = 'Teamaufgabe wird gespeichert …';
+
+  const args = {
+    p_title: title,
+    p_description: String(data.description || '').trim() || null,
+    p_assigned_to: data.assigned_to || null,
+    p_due_date: data.due_date || null,
+    p_priority: data.priority,
+    p_status: data.status
+  };
+
+  try {
+    const result = isEditing
+      ? await pfssSupabase.rpc('pfms_update_legacy_team_task', {
+          p_task_id: pfmsEditingLegacyTeamTaskId,
+          ...args
+        })
+      : await pfssSupabase.rpc('pfms_create_legacy_team_task', {
+          p_team_id: team.team_id,
+          p_title: args.p_title,
+          p_description: args.p_description,
+          p_assigned_to: args.p_assigned_to,
+          p_due_date: args.p_due_date,
+          p_priority: args.p_priority
+        });
+
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (result.error) throw result.error;
+
+    resetPfmsLegacyTeamTaskForm();
+    await loadPfmsLegacyTeamTasks(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
+      if (message) message.textContent = isEditing ? 'Teamaufgabe wurde aktualisiert.' : 'Teamaufgabe wurde gespeichert.';
+      toast(isEditing ? 'Teamaufgabe aktualisiert.' : 'Teamaufgabe gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team task save failed:', error);
+    if (message) message.textContent = 'Teamaufgabe konnte nicht gespeichert werden. Prüfe die Teamzuordnung und tasks.edit.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deletePfmsLegacyTeamTask(taskId) {
+  const team = pfmsSelectedLegacyTeam;
+  const task = pfmsLegacyTeamTasks.find(item => item.task_id === taskId);
+  if (!team || !task || pfmsSelectedTeamPermissions.get('tasks')?.can_edit !== true) return;
+  if (!window.confirm('Teamaufgabe "' + task.title + '" wirklich löschen?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_delete_legacy_team_task', {
+      p_task_id: taskId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamTasks(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) toast('Teamaufgabe gelöscht.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team task delete failed:', error);
+    const message = document.getElementById('pfmsTeamTasksMessage');
+    if (message) message.textContent = 'Teamaufgabe konnte nicht gelöscht werden. Prüfe tasks.edit.';
+  }
+}
+
 function applyPfmsLegacyTeamModulePermissions() {
   const grid = document.getElementById('pfmsTeamModules');
   const notice = document.getElementById('pfmsTeamPermissionNotice');
@@ -4658,6 +4929,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   resetPfmsLegacyTrainingCycleState();
   resetPfmsLegacyTeamAnalysisState();
   resetPfmsLegacyTeamEventsState();
+  resetPfmsLegacyTeamTasksState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
@@ -4755,6 +5027,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   await loadPfmsLegacyTeamMatches(teamId);
   await loadPfmsLegacyTeamAnalysis(teamId);
   await loadPfmsLegacyTeamEvents(teamId);
+  await loadPfmsLegacyTeamTasks(teamId);
 }
 
 const PFMS_TEAM_MATCH_STATUSES = {
@@ -6910,6 +7183,7 @@ function setupPfmsLegacyTeamWorkspace() {
     resetPfmsLegacyTrainingCycleState();
     resetPfmsLegacyTeamAnalysisState();
     resetPfmsLegacyTeamEventsState();
+    resetPfmsLegacyTeamTasksState();
     pfmsLegacyTeamExercises = [];
     pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
@@ -7335,6 +7609,7 @@ function resetPfmsAuthenticatedState() {
   resetPfmsLegacyTrainingCycleState();
   resetPfmsLegacyTeamAnalysisState();
   resetPfmsLegacyTeamEventsState();
+  resetPfmsLegacyTeamTasksState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingPlanSession = null;
