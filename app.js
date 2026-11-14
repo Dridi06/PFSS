@@ -1960,8 +1960,6 @@ let pfmsLegacyCalendarEvents = [];
 let pfmsEditingCalendarEventId = null;
 let pfmsSelectedTrainingSession = null;
 let pfmsLegacyTrainingAttendance = [];
-let pfmsLegacyTeamCalendarEvents = [];
-let pfmsEditingTeamCalendarEventId = null;
 
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
@@ -2992,8 +2990,6 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsSelectedTeamPermissions = new Map();
   pfmsLegacyCalendarEvents = [];
   pfmsEditingCalendarEventId = null;
-  pfmsLegacyCalendarEvents = [];
-  pfmsEditingCalendarEventId = null;
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
@@ -3155,7 +3151,9 @@ async function loadPfmsLegacyTeamCalendar(teamId = pfmsSelectedLegacyTeam?.team_
     pfmsLegacyCalendarEvents = data || [];
     renderPfmsLegacyTeamCalendar();
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team calendar load failed:', error);
     pfmsLegacyCalendarEvents = [];
     host.innerHTML = '<div class="empty-state">Mannschaftskalender konnte nicht geladen werden. Prüfe die Kalendermigration und Bereichsrechte.</div>';
@@ -3262,7 +3260,9 @@ async function savePfmsLegacyCalendarEvent(event) {
       toast(isEditing ? 'Termin wurde aktualisiert.' : 'Termin wurde gespeichert.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     console.error('PFMS team calendar save failed:', error);
     message.textContent = 'Termin konnte nicht gespeichert werden. Prüfe Datums-/Zeitangaben und Kalenderrechte.';
   } finally {
@@ -3298,7 +3298,9 @@ async function updatePfmsLegacyCalendarEventStatus(eventId, status) {
     await loadPfmsLegacyTeamCalendar(team.team_id);
     toast(status === 'completed' ? 'Termin abgeschlossen.' : 'Termin wurde abgesagt.');
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     console.error('PFMS calendar status update failed:', error);
     document.getElementById('pfmsTeamCalendarMessage').textContent = 'Terminstatus konnte nicht gespeichert werden. Prüfe deine Kalenderrechte.';
   }
@@ -4053,6 +4055,8 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
+  pfmsLegacyCalendarEvents = [];
+  pfmsEditingCalendarEventId = null;
   document.getElementById('pfmsTeamCalendarPanel')?.setAttribute('hidden', '');
   document.getElementById('pfmsTeamCalendarList')?.replaceChildren();
   document.getElementById('pfmsTeamTrainingPanel')?.setAttribute('hidden', '');
