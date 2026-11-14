@@ -6,7 +6,11 @@ Deno.serve(async (req: Request) => {
   const json = (body: Record<string, unknown>, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
-      headers: { ...cors.headers, "Content-Type": "application/json" },
+      headers: {
+        ...cors.headers,
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
     });
 
   if (!cors.allowed) {
