@@ -939,6 +939,50 @@
       <p id="pfmsTeamTrainingMessage" class="admin-message" role="status" aria-live="polite"></p>
       <div id="pfmsTeamTrainingList" class="pfms-training-list"></div>
 
+      <section class="pfms-training-library" id="pfmsTeamExerciseLibraryPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">ÜBUNGSKATALOG</div><h3>Übungen dieser Mannschaft</h3>
+            <p>Lege Übungen einmal an und verwende sie in mehreren Trainingseinheiten.</p></div>
+        </div>
+        <form id="pfmsTeamExerciseForm" class="pfms-training-form pfms-exercise-form" hidden>
+          <label class="field">Übungsname<input name="title" maxlength="140" required placeholder="z. B. Rondo 5 gegen 2"></label>
+          <label class="field">Kategorie<select name="category" required>
+            <option value="warmup">Aufwärmen</option><option value="technical" selected>Technik</option>
+            <option value="tactical">Taktik</option><option value="physical">Athletik</option>
+            <option value="finishing">Abschluss</option><option value="cooldown">Cooldown</option>
+            <option value="other">Sonstiges</option></select></label>
+          <label class="field">Dauer in Minuten<input name="duration_minutes" type="number" min="1" max="180" value="15" required></label>
+          <label class="field">Spieler mindestens<input name="min_players" type="number" min="1" max="40" value="2" required></label>
+          <label class="field">Spieler maximal<input name="max_players" type="number" min="1" max="40" placeholder="Optional"></label>
+          <label class="field">Schwierigkeitsgrad<select name="difficulty"><option value="beginner">Einfach</option><option value="intermediate" selected>Mittel</option><option value="advanced">Fortgeschritten</option></select></label>
+          <label class="field">Feldgröße<input name="pitch_size" maxlength="100" placeholder="z. B. 20 × 25 m"></label>
+          <label class="field">Material<input name="equipment" maxlength="1500" placeholder="Bälle, Hütchen, Leibchen …"></label>
+          <label class="field full">Aufbau<textarea name="setup" rows="2" maxlength="4000" placeholder="Feldaufteilung und Organisation"></textarea></label>
+          <label class="field full">Ablauf und Regeln<textarea name="instructions" rows="3" maxlength="8000" placeholder="So wird die Übung durchgeführt …"></textarea></label>
+          <label class="field full">Coachingpunkte<textarea name="coaching_points" rows="2" maxlength="5000" placeholder="Worauf sollen die Trainer achten?"></textarea></label>
+          <div class="pfms-exercise-form-actions">
+            <button class="btn btn-primary" type="submit" id="pfmsTeamExerciseSave">Übung speichern</button>
+            <button class="btn btn-secondary" type="button" id="pfmsTeamExerciseCancelEdit" hidden>Bearbeitung abbrechen</button>
+          </div>
+        </form>
+        <p id="pfmsTeamExerciseMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamExerciseLibrary" class="pfms-exercise-library"></div>
+      </section>
+
+      <section class="pfms-training-plan-panel" id="pfmsTeamSessionPlanPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">TRAININGSPLAN</div><h3 id="pfmsTeamSessionPlanTitle">Übungsplan</h3>
+            <p>Stelle die Reihenfolge und Dauer der Übungen für diese Einheit zusammen.</p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseSessionPlan">Schließen</button>
+        </div>
+        <p id="pfmsTeamSessionPlanMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamSessionPlanExercises" class="pfms-session-plan-list"></div>
+        <div class="pfms-session-plan-footer">
+          <strong>Gesamtdauer: <span id="pfmsTeamSessionPlanTotal">0</span> Minuten</strong>
+          <button class="btn btn-primary" type="button" id="pfmsTeamSessionPlanSave" hidden>Übungsplan speichern</button>
+        </div>
+      </section>
+
       <section class="pfms-attendance-panel" id="pfmsTeamAttendancePanel" hidden>
         <div class="panel-heading">
           <div><div class="eyebrow">TEAMORGANISATION</div><h3 id="pfmsTeamAttendanceTitle">Anwesenheit</h3><p id="pfmsTeamAttendanceMeta"></p></div>
