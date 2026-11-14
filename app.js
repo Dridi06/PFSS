@@ -2416,6 +2416,9 @@ function resetPfmsLegacyTeamAnalysisState() {
   const form = document.getElementById('pfmsTeamAnalysisForm');
   form?.reset();
   if (form?.elements.analysis_id) form.elements.analysis_id.value = '';
+  if (form?.elements.video_url) {
+    form.elements.video_url.required = form.elements.analysis_type?.value === 'video';
+  }
 
   const host = document.getElementById('pfmsTeamAnalysisList');
   if (host) host.replaceChildren();
@@ -3461,6 +3464,9 @@ function resetPfmsLegacyTeamAnalysisForm() {
   form.reset();
   form.elements.analysis_id.value = '';
   form.elements.observation_date.value = new Date().toISOString().slice(0, 10);
+  if (form.elements.video_url) {
+    form.elements.video_url.required = form.elements.analysis_type.value === 'video';
+  }
   const save = document.getElementById('pfmsTeamAnalysisSave');
   const cancel = document.getElementById('pfmsTeamAnalysisCancelEdit');
   if (save) save.textContent = 'Analyse speichern';
@@ -3485,6 +3491,9 @@ function openPfmsLegacyTeamAnalysis(record = null) {
   form.elements.strengths.value = record?.strengths || '';
   form.elements.improvements.value = record?.improvements || '';
   form.elements.action_items.value = record?.action_items || '';
+  if (form.elements.video_url) {
+    form.elements.video_url.required = form.elements.analysis_type.value === 'video';
+  }
   const save = document.getElementById('pfmsTeamAnalysisSave');
   const cancel = document.getElementById('pfmsTeamAnalysisCancelEdit');
   if (save) save.textContent = record ? 'Änderungen speichern' : 'Analyse speichern';
