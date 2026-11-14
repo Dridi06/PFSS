@@ -145,7 +145,7 @@ for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
-assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 4, "Four PFMS subscription packages must remain available");
+assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 5, "Five PFMS registration choices must remain available");
 assert.ok(html.includes('aria-pressed="true"') && html.includes('aria-pressed="false"') && app.includes("setAttribute('aria-pressed'"), "Billing cycle controls must expose their selected state accessibly");
 
 assert.match(app, /window\.PFMS_CONFIG/, "Frontend must read generated environment configuration");
