@@ -1,4 +1,4 @@
-project_id = "nkkajhjdvfjzrvxkbokg"
+project_id = "pfms-local"
 
 [functions.username-login]
 verify_jwt = false
