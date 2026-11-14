@@ -11,8 +11,7 @@ const r2Check = await read("supabase/functions/r2-connection-check/index.ts");
 const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
 const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
 const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
-const ownerBootstrap = await read("supabase/functions/pfms-owner-bootstrap/index.ts");
-const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql");
+
 const supabaseConfig = await read("supabase/config.toml");
 
 const requiredFiles = [
@@ -64,6 +63,12 @@ assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForR
 assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner bootstrap registration choice is missing");
 assert.ok(html.includes('id="ownerBootstrapSection"'), "Owner bootstrap activation section is missing");
 assert.ok(app.includes("pfms_owner_setup_available") && app.includes("functions.invoke('pfms-owner-bootstrap'"), "Owner bootstrap UI is not connected to its server endpoint");
+const ownerVisibilityStart = app.indexOf("async function updateOwnerBootstrapVisibility(user)");
+const ownerVisibilityEnd = app.indexOf("\nfunction showPendingScreen", ownerVisibilityStart);
+const ownerVisibilityCode = app.slice(ownerVisibilityStart, ownerVisibilityEnd);
+assert.ok(ownerVisibilityStart >= 0 && ownerVisibilityCode.includes("user?.user_metadata?.registration_type !== 'owner_bootstrap'"), "Only dedicated owner registrations may see the owner activation panel");
+assert.ok(ownerVisibilityCode.includes("section.hidden = true"), "Owner activation must be hidden by default");
+assert.ok(app.includes("showPendingScreen(profile.status, user)"), "Pending profile flow must pass verified user metadata to owner visibility checks");
 assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("email_confirmed_at"), "Owner bootstrap must validate a confirmed authenticated account");
 assert.ok(ownerBootstrap.includes("registration_type") && ownerBootstrap.includes('"owner_bootstrap"'), "Owner bootstrap must require the dedicated registration type");
 assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstrap.includes("constantTimeEqual"), "Owner bootstrap secret comparison is missing");
