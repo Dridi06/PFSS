@@ -1034,3 +1034,42 @@ button,input,select,textarea{max-width:100%}
   .pfms-invitation-copy-row{flex-direction:column}
   .pfms-invitation-copy-row .btn{width:100%}
 }
+
+
+/* PFMS real organization membership directory */
+.pfms-members-directory{margin-top:20px}
+.pfms-members-directory[hidden]{display:none!important}
+.pfms-member-filter-form{
+  display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(180px,1.5fr) repeat(2,minmax(140px,1fr)) auto;
+  gap:11px;align-items:end;margin:18px 0 14px
+}
+.pfms-member-filter-form .field{display:grid;gap:7px;min-width:0;color:#c8c1b4;font-size:11px}
+.pfms-member-filter-form input,.pfms-member-filter-form select,
+.pfms-org-member-card .admin-user-controls select{
+  box-sizing:border-box;width:100%;min-width:0;height:40px;padding:0 10px;
+  border:1px solid rgba(198,161,91,.24);border-radius:8px;
+  background:#191c1e;color:#f0eee8;font:inherit
+}
+.pfms-member-summary{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+.pfms-member-summary[hidden]{display:none!important}
+.pfms-member-summary span{
+  padding:7px 10px;border:1px solid rgba(198,161,91,.19);border-radius:8px;
+  background:rgba(198,161,91,.06);color:#cfc7b8;font-size:11px
+}
+.pfms-member-summary b{color:#e7c77f}
+.pfms-member-results{display:grid;gap:10px}
+.pfms-org-member-card{align-items:center}
+.pfms-org-member-card .admin-user-controls{min-width:min(100%,330px)}
+.pfms-org-member-card .admin-user-controls label{display:grid;gap:5px;color:#aaa497;font-size:10px}
+.pfms-org-member-card .admin-user-controls .btn{margin-top:5px}
+.pfms-org-member-card .admin-message{flex-basis:100%;margin:0}
+.pfms-membership-finance-note{margin-top:18px;border:1px solid rgba(198,161,91,.18)}
+.pfms-membership-finance-note h3{margin:5px 0;color:#e1c78f}
+.pfms-membership-finance-note p{max-width:850px;color:#aaa69d;font-size:12px;line-height:1.6}
+@media(max-width:1000px){.pfms-member-filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .pfms-member-filter-form{grid-template-columns:1fr}
+  .pfms-member-filter-form .btn{width:100%}
+  .pfms-org-member-card{align-items:stretch}
+  .pfms-org-member-card .admin-user-controls{min-width:0;width:100%;grid-template-columns:1fr}
+}
