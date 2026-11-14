@@ -49,6 +49,7 @@ assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product sp
 assert.ok(cors.includes("PFMS_ALLOWED_ORIGINS") && cors.includes("DEFAULT_ALLOWED_ORIGINS"), "CORS allowlist configuration is missing");
 assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Username login must not allow wildcard CORS");
 assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
+assert.ok(usernameLogin.includes('"Cache-Control": "no-store"'), "Username login tokens must not be cached");
 assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForRequest"), "Edge Functions must use shared CORS policy");
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
 assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
