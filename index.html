@@ -330,6 +330,9 @@
         <button class="nav-item" data-view="media">
           <span class="nav-icon">▧</span>Medien
         </button>
+        <button class="nav-item" data-view="tasks">
+          <span class="nav-icon">☑</span>Meine Aufgaben
+        </button>
         <div class="admin-nav-section" id="adminNavSection" hidden>
           <div class="nav-section-label admin-section-title">ADMINISTRATOR</div>
           <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span>Vereine</button>
@@ -1057,6 +1060,31 @@
         </div>
         <div id="mainMediaStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <div id="mediaGrid" class="media-grid"></div>
+      </section>
+
+      <section class="view" id="view-tasks">
+        <div class="page-heading"><div><div class="eyebrow">PERSÖNLICHER WORKSPACE</div><h1>Meine Aufgaben</h1><p>Behalte persönliche Aufgaben, Fristen und Prioritäten im Blick. Deine Aufgaben sind privat und nur für dein Konto sichtbar.</p></div><span class="module-status">Privat</span></div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">NEUE AUFGABE</div><h3>Aufgabe erfassen</h3></div></div>
+            <form id="pfmsPersonalTaskForm" class="form-grid">
+              <label class="field">Titel<input name="title" type="text" maxlength="160" required placeholder="Was ist zu erledigen?"></label>
+              <label class="field">Fällig am<input name="due_date" type="date"></label>
+              <label class="field">Priorität<select name="priority"><option value="normal">Normal</option><option value="high">Hoch</option><option value="low">Niedrig</option></select></label>
+              <label class="field">Beschreibung<textarea name="description" rows="3" maxlength="3000" placeholder="Zusätzliche Hinweise …"></textarea></label>
+              <button class="btn btn-primary" type="submit" id="pfmsPersonalTaskSubmit">Aufgabe speichern</button>
+            </form>
+            <p class="admin-message" id="pfmsPersonalTaskFormMessage" role="status" aria-live="polite"></p>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">AUFGABENÜBERSICHT</div><h3>Deine Liste</h3></div><button class="btn btn-secondary" type="button" id="pfmsPersonalTaskRefresh">Aktualisieren</button></div>
+            <div class="pfss-search-fields">
+              <label class="field">Status<select id="pfmsPersonalTaskStatus"><option value="">Alle Aufgaben</option><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="done">Erledigt</option></select></label>
+            </div>
+            <p class="admin-message" id="pfmsPersonalTaskListMessage" role="status" aria-live="polite">Aufgaben werden geladen …</p>
+            <div id="pfmsPersonalTaskList" class="pfms-personal-task-list"></div>
+          </section>
+        </div>
       </section>
 
       <section class="view" id="view-admin">
