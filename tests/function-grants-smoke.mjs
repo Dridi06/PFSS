@@ -788,28 +788,28 @@ const taskAssigneeScope = (
     resolve(directory, "20261212_pfms_legacy_team_task_assignee_membership.sql"),
     "utf8"
   )
-).replace(/\\s+/g, " ").toLowerCase();
+).replace(/\s+/g, " ").toLowerCase();
 assert.equal(
-  (taskAssigneeScope.match(/join public\\.organization_memberships m/g) || []).length,
+  (taskAssigneeScope.match(/join public\.organization_memberships m/g) || []).length,
   2,
   "Both task creation and update must verify current organization membership"
 );
 assert.equal(
-  (taskAssigneeScope.match(/m\\.status = 'active'/g) || []).length,
+  (taskAssigneeScope.match(/m\.status = 'active'/g) || []).length,
   2,
   "Both task creation and update must require active organization membership"
 );
 assert.equal(
-  (taskAssigneeScope.match(/m\\.role = s\\.role/g) || []).length,
+  (taskAssigneeScope.match(/m\.role = s\.role/g) || []).length,
   2,
   "Both task creation and update must require the membership/team role to match"
 );
 assert.equal(
-  (taskAssigneeScope.match(/o\\.status in \\('approved', 'active'\\)/g) || []).length,
+  (taskAssigneeScope.match(/o\.status in \('approved', 'active'\)/g) || []).length,
   2,
   "Both task creation and update must require an approved/active organization"
 );
 assert.match(taskAssigneeScope, /for share of s, o, m/);
-assert.match(taskAssigneeScope, /revoke all on function public\\.pfms_create_legacy_team_task/);
-assert.match(taskAssigneeScope, /revoke all on function public\\.pfms_update_legacy_team_task/);
+assert.match(taskAssigneeScope, /revoke all on function public\.pfms_create_legacy_team_task/);
+assert.match(taskAssigneeScope, /revoke all on function public\.pfms_update_legacy_team_task/);
 assert.match(stagingAcceptance, /'legacy_team_access_requires_active_org_membership'/);
