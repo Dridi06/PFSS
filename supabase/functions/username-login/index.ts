@@ -107,7 +107,6 @@ Deno.serve(async (req: Request) => {
       token_type: sessionData.session.token_type,
       expires_in: sessionData.session.expires_in,
       expires_at: sessionData.session.expires_at,
-      user: sessionData.user,
     });
   } catch (error) {
     console.error("Username login request failed:", error);
