@@ -388,6 +388,17 @@ assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreet
 assert.match(app, /finishAuthentication\(\);/, "Authentication must complete after the reload path");
 assert.match(app, /async function showAuthenticatedApp\(user, profile\)/, "Authenticated app initialization must wait for cloud data");
 assert.ok(app.includes("await loadPfmsMainData()"), "Main cloud data must be loaded after authentication");
+const authenticatedInit = app.slice(
+  app.indexOf("async function showAuthenticatedApp(user, profile)"),
+  app.indexOf("async function loadAdminUsers")
+);
+assert.ok(
+  authenticatedInit.includes("const requestedUserId = user.id;") &&
+  authenticatedInit.indexOf("resetPfmsAuthenticatedState();") < authenticatedInit.indexOf("await pfssSupabase.rpc('pfms_list_my_legacy_teams')") &&
+  authenticatedInit.includes("authGeneration !== pfmsAuthGeneration"),
+  "Authentication must invalidate an older account before awaiting role and workspace data"
+);
+
 assert.ok(app.includes("function resetPfmsAuthenticatedState()") && app.includes("window.pfmsResetScoutWorkspace?.()"), "Logout must clear user-bound application data");
 assert.ok(app.includes("pfmsAuthGeneration") && app.includes("requestGeneration !== pfmsAuthGeneration"), "Stale main data requests must not overwrite a new user's session");
 assert.ok(app.includes("pfmsMainMediaOwnerId !== requestUserId") && app.includes("pfmsMainMediaRequestId"), "Private media cache must be isolated between accounts");
