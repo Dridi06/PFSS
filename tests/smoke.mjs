@@ -25,7 +25,8 @@ const [
   systemEventsHardeningMigration,
   mainMediaMigration,
   legacyOrgManagerMigration,
-  legacyInvitationWorkspaceMigration
+  legacyInvitationWorkspaceMigration,
+  legacyOrgMembershipManagementMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -48,7 +49,8 @@ const [
   read("supabase/migrations/20261117_pfms_system_event_hardening.sql"),
   read("supabase/migrations/20261117_pfms_main_media_library.sql"),
   read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql"),
-  read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql")
+  read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql"),
+  read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql")
 ]);
 
 const requiredFiles = [
@@ -74,6 +76,7 @@ const requiredFiles = [
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
+  "supabase/migrations/20261121_pfms_legacy_org_membership_management.sql",
   "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
@@ -167,6 +170,13 @@ assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.include
 assert.ok(legacyInvitationWorkspaceMigration.includes("pfms_list_my_manageable_legacy_organizations()"), "Managed organization list RPC is missing");
 assert.ok(legacyInvitationWorkspaceMigration.includes("coalesce(m.role, 'platform_admin')") && legacyInvitationWorkspaceMigration.includes("public.is_admin()"), "Platform administrators must be able to administer legacy invitations");
 assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="pfmsLegacyInvitationUrl"'), "Invitation workspace UI is missing");
+assert.ok(html.includes('id="pfmsLegacyMembersFilterForm"') && html.includes('id="pfmsLegacyMemberResults"'), "Organization membership directory UI is missing");
+assert.ok(app.includes("pfms_list_legacy_org_members_for_manager") && app.includes("pfms_update_legacy_org_membership_for_manager"), "Organization membership directory is not connected to its secure RPCs");
+assert.ok(legacyOrgMembershipManagementMigration.includes("public.can_manage_org(p_organization_id)") && legacyOrgMembershipManagementMigration.includes("public.can_manage_org(v_organization_id)"), "Organization membership RPCs must verify manager scope server-side");
+assert.ok(legacyOrgMembershipManagementMigration.includes("'scout','trainer','co_trainer','betreuer','member'"), "Organization managers must not assign leadership roles");
+assert.ok(legacyOrgMembershipManagementMigration.includes("v_current_role in ('owner','club_admin','agency_admin')"), "Leadership memberships must be protected from organization managers");
+assert.ok(legacyOrgMembershipManagementMigration.includes("You cannot suspend your own organization membership"), "Organization managers must not suspend their own membership");
+
 assert.ok(app.includes("pfms_list_my_manageable_legacy_organizations") && app.includes("pfms_create_legacy_invitation"), "Invitation workspace must call both secure backend RPCs");
 
 assert.ok(legacyInvitationWorkspaceMigration.includes("public.can_manage_org(o.id)") && legacyInvitationWorkspaceMigration.includes("m.status = 'active'"), "Managed organization list must be owner-scoped");
