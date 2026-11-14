@@ -5,7 +5,7 @@
 create table if not exists public.pfms_legacy_team_finance_entries (
   id uuid primary key default gen_random_uuid(),
   team_id uuid not null
-    references public.pfms_legacy_teams(id) on delete cascade,
+    references public.pfms_legacy_teams(id) on delete restrict,
   transaction_date date not null,
   entry_type text not null
     check (entry_type in ('income','expense')),
@@ -157,6 +157,8 @@ begin
        'membership','team_contribution','donation','tournament',
        'equipment','travel','facility','referee','other'
      )
+     or (p_entry_type = 'income' and p_category not in ('membership','team_contribution','donation','tournament','other'))
+     or (p_entry_type = 'expense' and p_category not in ('tournament','equipment','travel','facility','referee','other'))
      or p_description is null
      or pg_catalog.length(pg_catalog.btrim(p_description)) not between 1 and 300
      or p_amount is null or p_amount <= 0 or p_amount > 1000000
