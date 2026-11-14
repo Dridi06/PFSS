@@ -5383,6 +5383,13 @@ function resetPfmsAuthenticatedState() {
   editingMainReportId = null;
   pfmsLegacyTeams = [];
   pfmsManageableLegacyOrganizations = [];
+  pfmsLegacyInvitationOrganizations = [];
+  const clubOrganizationsGrid = document.getElementById('pfmsClubOrganizationsGrid');
+  if (clubOrganizationsGrid) clubOrganizationsGrid.innerHTML = '<div class="empty-state"><b>Bitte anmelden</b><p>Organisationsdaten werden nach der Anmeldung geladen.</p></div>';
+  const clubScoutingResults = document.getElementById('pfmsClubScoutingResults');
+  if (clubScoutingResults) clubScoutingResults.replaceChildren();
+  const clubScoutingMessage = document.getElementById('pfmsClubScoutingMessage');
+  if (clubScoutingMessage) clubScoutingMessage.textContent = 'Bitte anmelden.';
   pfmsSelectedLegacyTeam = null;
   pfmsSelectedTeamStaff = [];
   pfmsSelectedTeamPermissionAssignment = null;
