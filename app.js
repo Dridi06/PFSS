@@ -207,6 +207,14 @@ async function loadPfmsPersonalTasks() {
     pfmsPersonalTasks = [];
   pfmsSupportTickets = [];
   pfmsAdminSupportTickets = [];
+  document.getElementById('pfmsPersonalTaskForm')?.reset();
+  document.getElementById('pfmsSupportTicketForm')?.reset();
+  const supportFormMessage = document.getElementById('pfmsSupportTicketFormMessage');
+  if (supportFormMessage) supportFormMessage.textContent = '';
+  const supportListMessage = document.getElementById('pfmsSupportTicketListMessage');
+  if (supportListMessage) supportListMessage.textContent = 'Bitte anmelden.';
+  const adminSupportMessage = document.getElementById('pfmsAdminSupportMessage');
+  if (adminSupportMessage) adminSupportMessage.textContent = 'Administratoranmeldung erforderlich.';
   document.getElementById('pfmsSupportTicketList')?.replaceChildren();
   document.getElementById('pfmsAdminSupportList')?.replaceChildren();
     renderPfmsPersonalTasks();
