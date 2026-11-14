@@ -1429,6 +1429,24 @@ assert.ok(
   calendarSaver.includes("button.disabled = false"),
   "Calendar save completion and button cleanup must remain scoped to the original team"
 );
+for (const [handler, nextHandler, label] of [
+  ["savePfmsLegacyTrainingCycle", "savePfmsLegacyTrainingCycleWeek", "training cycle creation"],
+  ["savePfmsLegacyTrainingCycleWeek", "updatePfmsLegacyTrainingCycleStatus", "training cycle week editing"],
+  ["updatePfmsLegacyTrainingCycleStatus", "assignPfmsLegacyTrainingSessionToWeek", "training cycle status"],
+  ["savePfmsLegacyTeamExercise", "deletePfmsLegacyTeamExercise", "team exercise editing"],
+  ["updatePfmsLegacyTrainingStatus", "openPfmsLegacyTrainingAttendance", "training session status"],
+  ["savePfmsLegacyTeamFinanceEntry", "voidPfmsLegacyTeamFinanceEntry", "team finance entry"]
+]) {
+  const start = app.indexOf("async function " + handler);
+  const end = app.indexOf("async function " + nextHandler, start + 1);
+  const source = app.slice(start, end);
+  assert.ok(
+    start >= 0 && end > start &&
+    source.includes("pfmsSelectedLegacyTeam?.team_id ===") &&
+    source.includes("button.disabled = false"),
+    label + " must only re-enable its control while its original team remains selected"
+  );
+}
 const teamWorkspaceAccessLoader = app.slice(
   app.indexOf("async function openPfmsLegacyTeamWorkspace"),
   app.indexOf("const PFMS_TEAM_MATCH_STATUSES")
