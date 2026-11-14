@@ -1908,3 +1908,13 @@ assert.ok(
   staffAssignment.includes("button.disabled = false"),
   "Team staff assignment must remain bound to its original team during refresh and cleanup"
 );
+
+const travelPlanSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyTeamEventTravelPlan("),
+  app.indexOf("\nasync function ", app.indexOf("async function savePfmsLegacyTeamEventTravelPlan(") + 10)
+);
+assert.ok(
+  travelPlanSaver.includes("pfmsSelectedLegacyTeam?.team_id === team.team_id") &&
+  travelPlanSaver.includes("submit.disabled = false"),
+  "Event travel plan submit control must only be re-enabled while the original team remains selected"
+);
