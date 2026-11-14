@@ -759,3 +759,23 @@ assert.match(teamMembershipScope, /s\.role = 'trainer'/);
 assert.match(teamMembershipScope, /set search_path = ''/);
 assert.match(teamMembershipScope, /revoke all on function public\.pfms_can_access_legacy_team\(uuid\) from public, anon/);
 assert.match(teamMembershipScope, /revoke all on function public\.pfms_can_manage_legacy_team\(uuid\) from public, anon/);
+
+
+// The staging acceptance audit must verify private scout ownership, private media
+// storage and the complete one-time invitation redemption guard.
+for (const check of [
+  "private_scout_tables_force_rls",
+  "private_scout_owner_policies",
+  "private_scout_storage_isolated",
+  "invitation_redemption_status_guard"
+]) {
+  assert.ok(
+    stagingAcceptance.includes("'" + check + "'"),
+    "Read-only Staging acceptance must verify " + check
+  );
+}
+assert.match(stagingAcceptance, /pfss_scout_reports_insert/);
+assert.match(stagingAcceptance, /pfss_scout_media_insert/);
+assert.match(stagingAcceptance, /storage\.foldername\(name\)/);
+assert.match(stagingAcceptance, /i\.revoked_at is null/);
+assert.match(stagingAcceptance, /v_org_status not in \(''approved'',''active''\)/);
