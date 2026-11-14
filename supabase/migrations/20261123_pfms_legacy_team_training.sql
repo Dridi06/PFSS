@@ -231,7 +231,7 @@ begin
      or pg_catalog.length(pg_catalog.btrim(coalesce(p_title,''))) not between 1 and 140
      or p_starts_at is null
      or (p_ends_at is not null and p_ends_at <= p_starts_at)
-     or p_status not in ('planned','completed','cancelled')
+     or p_status is null or p_status not in ('planned','completed','cancelled')
      or (p_location is not null and pg_catalog.length(p_location) > 160)
      or (p_focus is not null and pg_catalog.length(p_focus) > 160)
      or (p_notes is not null and pg_catalog.length(p_notes) > 4000) then
@@ -335,7 +335,7 @@ begin
     raise exception 'Not authorized to edit team attendance' using errcode = '42501';
   end if;
 
-  if p_attendance_status not in ('pending','present','absent','excused','injured','late')
+  if p_attendance_status is null or p_attendance_status not in ('pending','present','absent','excused','injured','late')
      or (p_notes is not null and pg_catalog.length(p_notes) > 1000) then
     raise exception 'Invalid attendance data' using errcode = '22023';
   end if;
