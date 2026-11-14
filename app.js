@@ -1083,14 +1083,6 @@ document.getElementById('mediaInput')
     e.target.value = '';
   });
 
-document.querySelectorAll('input[type=file]:not(#mediaInput)')
-  .forEach(input => {
-    input.addEventListener('change', e => {
-      addMedia(e.target.files);
-      e.target.value = '';
-    });
-  });
-
 window.addEventListener('popstate', event => {
   const state = event.state;
   if (!state?.pfssView) return;
