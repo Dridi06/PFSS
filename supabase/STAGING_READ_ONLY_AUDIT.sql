@@ -132,6 +132,22 @@ bucket_rows AS (
   FROM storage.buckets
   WHERE id IN ('pfss-scout-private')
 ),
+row_estimate_rows AS (
+  SELECT
+    'ROW_ESTIMATES'::text AS section,
+    t.schema_name || '.' || t.table_name AS object_name,
+    jsonb_build_object(
+      'live_rows_estimate', coalesce(s.n_live_tup, greatest(c.reltuples, 0)::bigint),
+      'dead_rows_estimate', coalesce(s.n_dead_tup, 0),
+      'last_analyze', s.last_analyze,
+      'last_autoanalyze', s.last_autoanalyze,
+      'note', 'PostgreSQL statistics estimate; not an exact row count'
+    ) AS details
+  FROM target_tables t
+  JOIN pg_class c ON c.oid = t.oid
+  LEFT JOIN pg_stat_user_tables s ON s.relid = t.oid
+  WHERE t.schema_name = 'public'
+),
 migration_table AS (
   SELECT 'MODEL_COMPARISON'::text AS section,
          'organizations_and_memberships'::text AS object_name,
@@ -147,7 +163,15 @@ migration_table AS (
            'platform_owner_exists',
              to_regclass('public.pfms_platform_owner') IS NOT NULL,
            'profiles_exists',
-             to_regclass('public.profiles') IS NOT NULL
+             to_regclass('public.profiles') IS NOT NULL,
+           'legacy_organizations_rows_estimate',
+             (select greatest(reltuples, 0)::bigint from pg_class where oid = to_regclass('public.organizations')),
+           'legacy_memberships_rows_estimate',
+             (select greatest(reltuples, 0)::bigint from pg_class where oid = to_regclass('public.organization_memberships')),
+           'new_pfms_organizations_rows_estimate',
+             (select greatest(reltuples, 0)::bigint from pg_class where oid = to_regclass('public.pfms_organizations')),
+           'new_pfms_memberships_rows_estimate',
+             (select greatest(reltuples, 0)::bigint from pg_class where oid = to_regclass('public.pfms_memberships'))
          ) AS details
 )
 SELECT section, object_name, details
@@ -160,6 +184,7 @@ FROM (
   UNION ALL SELECT * FROM function_rows
   UNION ALL SELECT * FROM grant_rows
   UNION ALL SELECT * FROM bucket_rows
+  UNION ALL SELECT * FROM row_estimate_rows
   UNION ALL SELECT * FROM migration_table
 ) audit
 ORDER BY section, object_name, details::text;
