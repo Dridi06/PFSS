@@ -1891,8 +1891,7 @@ const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_KEY,
   {
     auth: {
-      // Passkeys werden über Supabase Auth (experimentelle WebAuthn-API) abgewickelt.
-      experimental: { passkey: true },
+      // Passkeys werden durch die aktuelle Supabase-JS-Version nativ unterstützt.
       // Die Anmeldung bleibt beim normalen Neuladen der Seite erhalten.
       persistSession: true,
       autoRefreshToken: true,
