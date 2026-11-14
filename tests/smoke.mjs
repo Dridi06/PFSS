@@ -16,6 +16,7 @@ const ownerGuide = await read("docs/OWNER_BOOTSTRAP.md");
 const adminMembersMigration = await read("supabase/migrations/20261115_admin_global_member_directory.sql");
 
 const supabaseConfig = await read("supabase/config.toml");
+const globalCatalogueMigration = await read("supabase/migrations/20261115_pfms_global_player_catalogue.sql");
 
 const requiredFiles = [
   "index.html",
@@ -95,6 +96,13 @@ assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstra
 assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("userData.user.id") && !/payload[^;]*p_user_id/s.test(ownerBootstrap), "Owner bootstrap must derive identity from verified JWT, not request body");
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("auth.role()") && ownerMigration.includes("'service_role'"), "Owner migration must enforce a single server-side owner claim");
 assert.ok(supabaseConfig.includes("[functions.pfms-owner-bootstrap]") && supabaseConfig.includes("verify_jwt = true"), "Owner bootstrap must require JWT verification");
+assert.ok(app.includes("pfms_global_players") && app.includes("pfms_main_scouting_reports"), "Main player catalogue and reports must use Supabase");
+assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy local data must have an explicit safe cloud import path");
+assert.ok(globalCatalogueMigration.includes("public.pfms_global_players") && globalCatalogueMigration.includes("public.pfms_main_scouting_reports"), "Persistent global catalogue migration is incomplete");
+assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalCatalogueMigration.includes("pfms_current_user_is_approved"), "Global catalogue RLS must enforce approved users and administrator writes");
+assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
+assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migration must use valid PostgreSQL date syntax");
+
 assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
 assert.ok(app.includes("function loadPfmsAdminMembers()") && app.includes("pfms_admin_list_legacy_members"), "Admin member directory is not connected to its database RPC");
 assert.ok(app.includes("pfms_admin_update_legacy_membership"), "Admin member role/status updates are not connected");
@@ -165,7 +173,7 @@ assert.ok(
 );
 
 const knownGaps = [];
-if (/pfss_players_v1|pfss_reports_v1/.test(app)) knownGaps.push("Haupt-Spieler und Berichte verwenden noch localStorage.");
+if (/let players = read|let reports = read|write\(DB_KEYS/.test(app)) knownGaps.push("Haupt-Spieler und Berichte verwenden noch lokale Speicherung.");
 if (!/pfss_scout_players/.test(scout)) knownGaps.push("Scout-Workspace ist noch nicht mit Supabase verbunden.");
 for (const [label, pattern] of [
   ["Vereinsworkflow", /Platzhalter|Funktionen folgen/i],
