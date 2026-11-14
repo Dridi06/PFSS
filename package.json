@@ -5,10 +5,10 @@
   "description": "PFMS – Professionell Football Management System",
   "type": "module",
   "scripts": {
-    "check:syntax": "node --check app.js && node --check scout-workspace.js && node --check scripts/build-static.mjs && node --check scripts/build-ci.mjs && node --check tests/build-config-smoke.mjs && node --check tests/accessibility-smoke.mjs && node --check tests/migration-syntax-smoke.mjs",
+    "check:syntax": "node --check app.js && node --check scout-workspace.js && node --check scripts/build-static.mjs && node --check scripts/build-ci.mjs && node --check tests/build-config-smoke.mjs && node --check tests/accessibility-smoke.mjs && node --check tests/migration-syntax-smoke.mjs && node --check tests/function-grants-smoke.mjs",
     "build": "node scripts/build-static.mjs",
     "test": "npm run check:syntax && npm run build:ci && npm run test:dist",
     "build:ci": "node scripts/build-ci.mjs",
-    "test:dist": "node tests/smoke.mjs && node tests/build-config-smoke.mjs && node tests/build-smoke.mjs && node tests/accessibility-smoke.mjs && node tests/migration-syntax-smoke.mjs"
+    "test:dist": "node tests/smoke.mjs && node tests/build-config-smoke.mjs && node tests/build-smoke.mjs && node tests/accessibility-smoke.mjs && node tests/migration-syntax-smoke.mjs && node tests/function-grants-smoke.mjs"
   }
 }
