@@ -158,8 +158,11 @@ begin
     raise exception 'Not authorized to change team permissions' using errcode = '42501';
   end if;
 
-  if pg_catalog.jsonb_typeof(p_permissions) <> 'array'
-     or pg_catalog.jsonb_array_length(p_permissions) <> 8 then
+  if pg_catalog.jsonb_typeof(p_permissions) is distinct from 'array' then
+    raise exception 'Permissions must be supplied as an array' using errcode = '22023';
+  end if;
+
+  if pg_catalog.jsonb_array_length(p_permissions) <> 8 then
     raise exception 'Exactly eight module permission entries are required' using errcode = '22023';
   end if;
 
@@ -167,7 +170,7 @@ begin
     select pg_catalog.count(distinct value ->> 'module_key')
     from pg_catalog.jsonb_array_elements(p_permissions)
   ) <> 8 then
-    raise exception 'Duplicate module permission entries are not allowed' using errcode = '22023';
+    raise exception 'Duplicate or missing module permission entries are not allowed' using errcode = '22023';
   end if;
 
   for v_item in
@@ -177,8 +180,8 @@ begin
     if v_module_key not in (
       'squad','training','attendance','finance',
       'events','calendar','matches','analysis'
-    ) or pg_catalog.jsonb_typeof(v_item -> 'can_view') <> 'boolean'
-      or pg_catalog.jsonb_typeof(v_item -> 'can_edit') <> 'boolean' then
+    ) or pg_catalog.jsonb_typeof(v_item -> 'can_view') is distinct from 'boolean'
+      or pg_catalog.jsonb_typeof(v_item -> 'can_edit') is distinct from 'boolean' then
       raise exception 'Invalid module permission entry' using errcode = '22023';
     end if;
 
