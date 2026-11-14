@@ -172,3 +172,23 @@
   .pfms-event-travel-grid .field.full{grid-column:auto}
   .pfms-event-travel-actions{display:grid;grid-template-columns:1fr}
 }
+
+
+/* Shared team task workspace */
+.pfms-team-task-form{padding:16px;margin:14px 0 18px;border:1px solid #4b402d;border-radius:12px;background:linear-gradient(145deg,#191a18,#111210)}
+.pfms-team-task-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-team-task-form-grid .field.full{grid-column:1/-1}
+.pfms-team-task-actions,.pfms-team-task-card-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.pfms-team-task-list{display:grid;gap:12px}
+.pfms-team-task-card{padding:16px;border:1px solid #4b402d;border-radius:12px;background:linear-gradient(150deg,#1b1c1a,#111312);box-shadow:0 10px 24px #0003}
+.pfms-team-task-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pfms-team-task-card h4{margin:5px 0 0;color:#f0dfbb;font:800 16px Manrope,sans-serif}
+.pfms-team-task-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin:10px 0;color:#c9b78f;font-size:12px}
+.pfms-team-task-description{margin:0;color:#d0ccc3;font-size:13px;line-height:1.6;white-space:pre-wrap}
+@media(max-width:640px){
+  .pfms-team-task-form{padding:13px}
+  .pfms-team-task-form-grid{grid-template-columns:minmax(0,1fr)}
+  .pfms-team-task-form-grid .field.full{grid-column:auto}
+  .pfms-team-task-actions{display:grid;grid-template-columns:1fr}
+  .pfms-team-task-card{padding:13px}
+}
