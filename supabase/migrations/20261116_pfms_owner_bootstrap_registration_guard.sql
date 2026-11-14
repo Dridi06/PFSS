@@ -20,7 +20,7 @@ set search_path = ''
 as $$
 begin
   if pg_catalog.lower(
-    pg_catalog.coalesce(new.raw_user_meta_data ->> 'registration_type', '')
+    coalesce(new.raw_user_meta_data ->> 'registration_type', '')
   ) = 'owner_bootstrap' then
     insert into public.pfms_owner_bootstrap_requests(user_id)
     values (new.id)
@@ -62,8 +62,8 @@ as $$
     and not exists (
       select 1
       from public.profiles p
-      where pg_catalog.lower(pg_catalog.coalesce(p.role, '')) in ('admin', 'administrator')
-        and pg_catalog.lower(pg_catalog.coalesce(p.status, '')) = 'approved'
+      where pg_catalog.lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and pg_catalog.lower(coalesce(p.status, '')) = 'approved'
     );
 $$;
 
@@ -79,7 +79,7 @@ as $$
 declare
   v_request public.pfms_owner_bootstrap_requests%rowtype;
 begin
-  if pg_catalog.coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.role(), '') <> 'service_role' then
     raise exception 'Not authorized' using errcode = '42501';
   end if;
 
@@ -110,8 +110,8 @@ begin
     select 1
     from public.profiles p
     where p.id <> p_user_id
-      and pg_catalog.lower(pg_catalog.coalesce(p.role, '')) in ('admin', 'administrator')
-      and pg_catalog.lower(pg_catalog.coalesce(p.status, '')) = 'approved'
+      and pg_catalog.lower(coalesce(p.role, '')) in ('admin', 'administrator')
+      and pg_catalog.lower(coalesce(p.status, '')) = 'approved'
   ) then
     raise exception 'An approved administrator already exists; initial owner bootstrap is disabled'
       using errcode = '42501';
