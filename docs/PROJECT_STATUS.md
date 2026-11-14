@@ -455,3 +455,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die vorherige Aussage, der neue CI-Lauf stehe noch aus, ist damit überholt. Der aktuelle geprüfte Stand ist `0778f08`.
 - Nächster Umsetzungsschritt: Staging-Umgebung anhand des tatsächlichen Render-Hostnamens und des dedizierten Supabase-Projekts `PFSS-Test` vorbereiten. Ohne Zugriff auf das Render-/Supabase-Dashboard können tatsächliche Service-Existenz, Projekt-Referenz, Secrets und Domain nicht verifiziert oder eingerichtet werden.
 - Keine Änderung an `main`, Produktions-Supabase, Live-Render-Service oder Produktivdaten. Kein Deployment.
+
+
+### Browser-Build: Supabase-URL-Validierung weiter gehärtet – 15.11.2026
+
+- Die Build-Konfiguration akzeptiert jetzt ausschließlich eine kanonische HTTPS-Projekt-Origin im Format `https://<20-stellige-ref>.supabase.co/`.
+- Zugangsdaten in der URL, Ports, zusätzliche Pfade, Query-Parameter, Fragmente, ungültige URLs und fremde Host-Suffixe werden fail-closed abgewiesen.
+- Neue Regressionstests decken diese fehlerhaften URL-Formen sowie ungültige URL-Syntax ab. Die vorhandene Prüfung auf Staging-Projekt-Referenz und öffentliche Schlüssel bleibt bestehen.
+- Die Änderung ist im Feature-Branch; der CI-Lauf für den neuen Stand steht noch aus. Kein Deployment und keine Änderung an Supabase-Projekten.
