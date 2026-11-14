@@ -412,3 +412,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 
 - Nachkontrolle der teamgebundenen Abschlussaktionen: Auch das Submit-Steuerelement des Fahrt-/Transportplans wird nach einem asynchronen Speichern nur noch freigegeben, wenn die ursprüngliche Mannschaft weiterhin aktiv ist. Ein zusätzlicher Smoke-Test schützt diesen Sonderfall.
+
+
+### Passkey-Verwaltung ergänzt – 15.11.2026
+
+- Das Konto-Sicherheitsfeld kann die für den aktuell angemeldeten Benutzer registrierten Passkeys über `auth.passkey.list()` laden.
+- Passkeys können mit `auth.passkey.update()` umbenannt und mit `auth.passkey.delete()` entfernt werden. Die Bedienoberfläche begrenzt Namen auf 1–120 Zeichen und verlangt vor dem Entfernen eine Bestätigung.
+- Die Oberfläche blockiert das Entfernen des letzten aktuell gelisteten Passkeys und fordert zunächst einen zweiten Zugang. Das ist eine zusätzliche clientseitige Schutzmaßnahme, aber keine serverseitige Garantie gegen parallele Änderungen oder Löschungen außerhalb dieser Oberfläche.
+- Die Passkey-Verwaltungs-API ist in der aktuellen Supabase-JavaScript-Dokumentation beschrieben. Passkeys bleiben experimentell; produktive Aktivierung erst nach Staging-Konfiguration und Ende-zu-Ende-Abnahme.
+- Die Verwaltung wurde im Feature-Branch ergänzt; noch kein Browser-/Staging-Test und kein Deployment.
