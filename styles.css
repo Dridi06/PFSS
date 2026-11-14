@@ -1261,3 +1261,42 @@ button,input,select,textarea{max-width:100%}
 .pfms-match-captain{display:flex!important;align-items:center;gap:6px}
 @media(max-width:760px){.pfms-match-form{grid-template-columns:repeat(2,minmax(0,1fr))}.pfms-match-lineup-row{grid-template-columns:1fr 1fr}.pfms-match-lineup-player{grid-column:1/-1}}
 @media(max-width:520px){.pfms-match-form{grid-template-columns:1fr;padding:12px}.pfms-match-form-actions{flex-direction:column}.pfms-match-form-actions .btn{width:100%}.pfms-match-card-head{flex-direction:column}}
+
+
+/* PFMS team exercise library and per-session training plan */
+.pfms-exercise-form{margin:14px 0 18px;padding:16px;border:1px solid rgba(194,160,94,.2);border-radius:13px;background:rgba(255,255,255,.018)}
+.pfms-exercise-form-actions{display:flex;flex-wrap:wrap;gap:9px;grid-column:1/-1}
+.pfms-exercise-library{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-exercise-card{min-width:0;padding:15px;border:1px solid rgba(194,160,94,.18);border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012))}
+.pfms-exercise-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pfms-exercise-card h4{margin:3px 0 8px;color:#f2eee5;font-size:14px}
+.pfms-exercise-card p{color:#b9b5ac;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.pfms-exercise-card details{margin-top:8px;color:#c6b27f;font-size:11px}
+.pfms-exercise-card details summary{cursor:pointer}
+.pfms-exercise-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pfms-training-plan-panel{margin-top:18px;padding:16px;border:1px solid rgba(194,160,94,.24);border-radius:14px;background:rgba(194,160,94,.035)}
+.pfms-session-plan-list{display:grid;gap:10px;margin-top:12px}
+.pfms-session-plan-row{display:grid;grid-template-columns:minmax(190px,1.5fr) repeat(2,minmax(90px,.45fr));gap:12px;align-items:end;padding:13px;border:1px solid rgba(194,160,94,.16);border-radius:11px;background:rgba(0,0,0,.13)}
+.pfms-plan-select{display:flex;align-items:flex-start;gap:10px;min-width:0;padding-bottom:8px;cursor:pointer}
+.pfms-plan-select input{margin-top:3px;accent-color:#c5a15e}
+.pfms-plan-select span{display:grid;gap:4px;min-width:0}
+.pfms-plan-select b{color:#eee9dc;font-size:12px;overflow-wrap:anywhere}
+.pfms-plan-select small{color:#a9a49a;font-size:10px}
+.pfms-session-plan-row .field{display:grid;gap:5px;color:#c7c1b4;font-size:10px}
+.pfms-session-plan-row input[type=number],.pfms-session-plan-row textarea{box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid rgba(194,160,94,.23);border-radius:7px;background:#181b1d;color:#f2eee5;font:inherit}
+.pfms-session-plan-row textarea{resize:vertical}
+.pfms-session-plan-row .field.full{grid-column:1/-1}
+.pfms-session-plan-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(194,160,94,.15)}
+.pfms-session-plan-footer strong{color:#ddc17f;font-size:12px}
+.pfms-exercise-library[hidden],.pfms-training-plan-panel[hidden],.pfms-exercise-form[hidden]{display:none!important}
+@media(max-width:760px){
+  .pfms-exercise-library{grid-template-columns:1fr}
+  .pfms-session-plan-row{grid-template-columns:minmax(0,1fr) repeat(2,minmax(72px,.4fr));gap:8px;padding:10px}
+  .pfms-plan-select{grid-column:1/-1;padding-bottom:0}
+}
+@media(max-width:460px){
+  .pfms-session-plan-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pfms-session-plan-row .pfms-plan-select,.pfms-session-plan-row .field.full{grid-column:1/-1}
+  .pfms-session-plan-footer{align-items:stretch}
+  .pfms-session-plan-footer .btn{width:100%}
+}
