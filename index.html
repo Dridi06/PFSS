@@ -91,6 +91,21 @@
             <button type="button" class="btn btn-primary choice-select" data-registration-choice="agency">30 Tage kostenlos starten</button>
           </article>
 
+
+          <article class="registration-choice-card pricing-card owner-bootstrap-card">
+            <div class="pricing-card-head"><span class="pricing-icon">♛</span><span class="pricing-label">ERSTEINRICHTUNG</span></div>
+            <h3>PFMS-Plattforminhaber</h3>
+            <p class="pricing-subtitle">Einmaliger, geschützter Besitzerzugang für die erstmalige Inbetriebnahme der gesamten Plattform.</p>
+            <ul class="pricing-features">
+              <li>✓ Zentrale Plattformadministration</li>
+              <li>✓ Verwaltung aller Vereine und Agenturen</li>
+              <li>✓ Vergabe von Administratorrechten</li>
+              <li>✓ Nur mit einmaligem Inhabercode aktivierbar</li>
+            </ul>
+            <div class="member-invite-note">Dieser Zugang ist ausschließlich für die erstmalige PFMS-Inhaberschaft vorgesehen.</div>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="owner_bootstrap">Inhaberzugang einrichten</button>
+          </article>
+
           <article class="registration-choice-card pricing-card solo-scout-card">
             <div class="pricing-card-head"><span class="pricing-icon">⌕</span><span class="pricing-label">FÜR EINZELSCOUTS</span></div>
             <h3>Einzelscout</h3>
@@ -239,6 +254,18 @@
       <p id="pendingText" class="auth-intro">
         Dein Konto wurde angelegt. Der Zugang wird nach Prüfung freigeschaltet.
       </p>
+      <section id="ownerBootstrapSection" class="owner-bootstrap-panel" hidden>
+        <div class="eyebrow">EINMALIGE ERSTEINRICHTUNG</div>
+        <h2>PFMS-Plattforminhaberschaft aktivieren</h2>
+        <p>Nur solange noch kein Plattforminhaber hinterlegt ist. Zur Aktivierung wird ein separater, sicher verwahrter Einmalcode benötigt.</p>
+        <form id="ownerBootstrapForm">
+          <label class="field">Einmaliger Inhabercode
+            <input id="ownerBootstrapToken" type="password" minlength="40" maxlength="512" autocomplete="off" required>
+          </label>
+          <p id="ownerBootstrapMessage" class="auth-message" role="status" aria-live="polite"></p>
+          <button class="btn btn-primary" id="ownerBootstrapButton" type="submit">Plattforminhaberschaft aktivieren</button>
+        </form>
+      </section>
       <button class="btn btn-secondary" id="logoutPending" type="button">
         Abmelden
       </button>
