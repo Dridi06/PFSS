@@ -224,3 +224,13 @@ Vor einer Staging-Freigabe auch die neuen Inhaber-Schutzprüfungen ausführen:
 ## 7. Freigabegrenze
 
 Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/Restore- und Datenschutzabnahme darf ein separater Produktionsfreigabeplan erstellt werden. Zahlungsabwicklung bleibt deaktiviert, bis Anbieter, Gebühren, Webhooks, Rechnungs-/Steueranforderungen und rechtliche Texte geprüft und ausdrücklich freigegeben wurden.
+
+
+### Private Scout-Arbeitsbereiche, Medien und Einladungen
+
+- Read-only-Abnahme: `private_scout_tables_force_rls`, `private_scout_owner_policies`, `private_scout_storage_isolated` und `invitation_redemption_status_guard` müssen jeweils `passed = true` melden.
+- Mit zwei getrennten Scout-Testkonten prüfen: Scout A kann eigene Spieler, Berichte und Medien lesen; Scout B kann diese Datensätze weder lesen noch ändern. Ein Bericht oder Medium darf nicht an einen Spieler des jeweils anderen Scouts angehängt werden.
+- Storage-Negativtest: Upload und Lesen unter dem UID-Ordner eines anderen Kontos müssen scheitern. Der Bucket `pfss-scout-private` muss privat bleiben; keine öffentlichen URLs oder öffentlichen Buckets für diese Dateien verwenden.
+- Einladungstests: gültiger Code genau einmal; derselbe Code ein zweites Mal; widerrufener Code; abgelaufener Code; Organisation im gesperrten Status; parallele Einlösung desselben Codes. Nur der erste gültige Vorgang bei aktiver/freigegebener Organisation darf eine Mitgliedschaft erzeugen.
+- Der globale Spielerkatalog ist absichtlich für freigegebene Konten lesbar; Schreiboperationen bleiben Plattformadministratoren vorbehalten. Die Team-Kaderzuordnung und private Scout-Kopien sind davon getrennte Datensätze. Bei der Abnahme daher globale Katalogsichtbarkeit nicht mit Zugriff auf fremde Teamdaten oder private Scout-Arbeitsbereiche verwechseln.
+- Tests mit Testkonto, Benutzer-ID, Tabellen-/Objekt-ID, erwarteter Berechtigung und tatsächlichem Ergebnis protokollieren. Diese Tests sind erst nach separatem Staging-Setup auszuführen; keine Produktionsdaten verwenden.
