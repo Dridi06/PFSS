@@ -722,3 +722,19 @@ assert.match(eventTravel, /foreign key \(event_id, team_id\)/);
 assert.match(eventTravel, /events', 'edit'/);
 assert.match(eventTravel, /seat_capacity between 1 and 80/);
 
+// Protect the separately designated platform owner and serialize last-owner changes.
+const ownerIntegrity = (
+  await readFile(resolve(directory, "20261210_pfms_owner_integrity_hardening.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(ownerIntegrity, /where po\\.singleton is true and po\\.owner_user_id = p_user_id/);
+assert.match(ownerIntegrity, /the platform owner account is protected/);
+assert.match(ownerIntegrity, /set search_path = ''/);
+assert.match(ownerIntegrity, /revoke all on function public\\.pfss_admin_update_profile\\(uuid, text, text\\) from public, anon/);
+assert.match(ownerIntegrity, /grant execute on function public\\.pfss_admin_update_profile\\(uuid, text, text\\) to authenticated/);
+const orgLockIndex = ownerIntegrity.indexOf("perform 1 from public.organizations o where o.id = v_org_id for update");
+const membershipLockIndex = ownerIntegrity.indexOf("select m.organization_id, m.role, m.status into v_locked_org_id, v_current_role, v_current_status from public.organization_memberships m where m.id = p_membership_id for update");
+assert.ok(orgLockIndex >= 0 && membershipLockIndex > orgLockIndex, "Organization row must be locked before the membership row");
+assert.match(ownerIntegrity, /other_owner\\.role = 'owner' and other_owner\\.status = 'active'/);
+assert.match(ownerIntegrity, /the organization must retain at least one active owner/);
+assert.match(ownerIntegrity, /p_role is null or p_role not in/);
+assert.match(ownerIntegrity, /p_status is null or p_status not in/);
