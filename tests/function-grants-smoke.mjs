@@ -741,3 +741,18 @@ assert.match(ownerIntegrity, /other_owner\.role = 'owner' and other_owner\.statu
 assert.match(ownerIntegrity, /the organization must retain at least one active owner/);
 assert.match(ownerIntegrity, /p_role is null or p_role not in/);
 assert.match(ownerIntegrity, /p_status is null or p_status not in/);
+
+// Legacy team access must follow current organization membership and status.
+const teamMembershipScope = (
+  await readFile(resolve(directory, "20261211_pfms_legacy_team_membership_scope.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamMembershipScope, /join public\.organizations o on o\.id = t\.organization_id/);
+assert.match(teamMembershipScope, /o\.status in \('approved', 'active'\)/);
+assert.match(teamMembershipScope, /join public\.organization_memberships m/);
+assert.match(teamMembershipScope, /m\.status = 'active'/);
+assert.match(teamMembershipScope, /m\.role = s\.role/);
+assert.match(teamMembershipScope, /s\.status = 'active'/);
+assert.match(teamMembershipScope, /s\.role = 'trainer'/);
+assert.match(teamMembershipScope, /set search_path = ''/);
+assert.match(teamMembershipScope, /revoke all on function public\.pfms_can_access_legacy_team\(uuid\) from public, anon/);
+assert.match(teamMembershipScope, /revoke all on function public\.pfms_can_manage_legacy_team\(uuid\) from public, anon/);
