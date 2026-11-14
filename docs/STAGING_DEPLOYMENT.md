@@ -70,6 +70,13 @@ Ergebnisse sichern und insbesondere prüfen:
 
 Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
 
+### Gemeinsame Teamaufgaben
+- Ein Konto mit `tasks.view` darf nur Aufgaben der eigenen Mannschaft lesen. Ohne Leserecht muss der List-RPC scheitern.
+- Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
+- Aufgaben dürfen nur aktiven Trainern, Co-Trainern oder Betreuern derselben Mannschaft zugewiesen werden. Versuche mit einem Mitarbeiter aus einer anderen Mannschaft oder einem inaktiven/entfernten Mitarbeiter müssen scheitern.
+- Beim Löschen einer Staff-Zuordnung bleibt die Teamaufgabe erhalten und wird automatisch unzugewiesen; Aufgaben dürfen nicht kaskadierend mit Staff-Mitgliedern gelöscht werden.
+- Teamaufgaben sind strikt von privaten persönlichen Aufgaben getrennt. Ein normales Mitglied ohne Teamaufgabenrecht darf die Teamliste nicht lesen und persönliche Aufgaben anderer Konten nie sehen.
+
 ### Training und Trainingszyklen
 - Mit `training.view` Trainingszyklen, Wochen, Übungen und Einheitenpläne der eigenen Mannschaft lesen; ohne dieses Recht muss der Lese-RPC scheitern.
 - Mit `training.edit` einen Zyklus über maximal 364 Tage anlegen. Die Wochen müssen ohne Lücken erzeugt und im Zykluszeitraum gehalten werden. Wochenziele, Schwerpunkt, Trainerhinweise und Belastungsstufe 1–5 speichern und wieder laden.
