@@ -18,11 +18,18 @@ stable
 security definer
 set search_path = ''
 as $$
-  select not exists (
-    select 1
-    from public.pfms_platform_owner
-    where singleton is true
-  );
+  select
+    not exists (
+      select 1
+      from public.pfms_platform_owner
+      where singleton is true
+    )
+    and not exists (
+      select 1
+      from public.profiles p
+      where lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and lower(coalesce(p.status, '')) = 'approved'
+    );
 $$;
 
 revoke all on function public.pfms_owner_setup_available() from public, anon;
@@ -50,6 +57,20 @@ begin
     select 1 from public.pfms_platform_owner where singleton is true
   ) then
     raise exception 'Platform owner is already configured' using errcode = '23505';
+  end if;
+
+  -- Do not create a second root identity if the legacy platform already has
+  -- an approved administrator. Such installations require a reviewed manual
+  -- owner assignment after the staging schema/data audit.
+  if exists (
+    select 1
+    from public.profiles p
+    where p.id <> p_user_id
+      and lower(coalesce(p.role, '')) in ('admin', 'administrator')
+      and lower(coalesce(p.status, '')) = 'approved'
+  ) then
+    raise exception 'An approved administrator already exists; initial owner bootstrap is disabled'
+      using errcode = '42501';
   end if;
 
   update public.profiles
