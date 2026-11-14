@@ -534,7 +534,7 @@ assert.match(invitationStatusGuard, /for update/);
 assert.match(invitationStatusGuard, /for share/);
 assert.match(invitationStatusGuard, /v_org_status not in \('approved','active'\)/);
 assert.match(invitationStatusGuard, /membership already exists/);
-assert.match(invitationStatusGuard, /grant execute on function public\.pfms_apply_legacy_invitation/);
+assert.match(invitationStatusGuard, /revoke all on function public\\.pfms_apply_legacy_invitation\\(\\) from public, anon, authenticated/);
 
 const usernameLogin = await readFile(
   resolve(process.cwd(), "supabase/functions/username-login/index.ts"),
