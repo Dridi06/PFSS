@@ -1300,3 +1300,38 @@ button,input,select,textarea{max-width:100%}
   .pfms-session-plan-footer{align-items:stretch}
   .pfms-session-plan-footer .btn{width:100%}
 }
+
+
+/* PFMS team finance ledger */
+.pfms-finance-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+.pfms-finance-kpis article{min-width:0;padding:13px;border:1px solid rgba(194,160,94,.2);border-radius:11px;background:rgba(255,255,255,.025)}
+.pfms-finance-kpis article span{display:block;color:#a9a49a;font-size:9px;letter-spacing:.9px;font-weight:700}
+.pfms-finance-kpis article strong{display:block;margin-top:7px;color:#e7d09a;font-size:clamp(15px,2vw,21px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pfms-finance-form{margin:14px 0 18px;padding:16px;border:1px solid rgba(194,160,94,.2);border-radius:13px;background:rgba(255,255,255,.018)}
+.pfms-finance-form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:13px}
+.pfms-finance-form-grid .field{display:grid;gap:6px;min-width:0;color:#c7c1b4;font-size:11px}
+.pfms-finance-form-grid .field.full{grid-column:1/-1}
+.pfms-finance-form-grid input,.pfms-finance-form-grid select{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid rgba(194,160,94,.23);border-radius:8px;background:#181b1d;color:#f2eee5;font:inherit}
+.pfms-finance-list-wrap{overflow-x:auto}
+.pfms-finance-list{display:grid;gap:8px;min-width:0}
+.pfms-finance-entry{display:grid;grid-template-columns:minmax(95px,.55fr) minmax(160px,1.6fr) minmax(110px,.65fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid rgba(194,160,94,.15);border-radius:10px;background:rgba(255,255,255,.018)}
+.pfms-finance-entry-date,.pfms-finance-entry-description{display:grid;gap:4px;min-width:0}
+.pfms-finance-entry-date b,.pfms-finance-entry-description b{color:#eee9dc;font-size:12px;overflow-wrap:anywhere}
+.pfms-finance-entry-date small,.pfms-finance-entry-description small{color:#a9a49a;font-size:10px;overflow-wrap:anywhere}
+.pfms-finance-entry>strong{font-size:13px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pfms-finance-entry .is-income{color:#79c69a}
+.pfms-finance-entry .is-expense{color:#e2a18d}
+.pfms-finance-entry.is-voided{opacity:.62}
+.pfms-finance-entry.is-voided .pfms-finance-entry-description b{text-decoration:line-through}
+.pfms-finance-entry button{white-space:nowrap}
+#pfmsTeamFinancePanel[hidden],#pfmsTeamFinanceForm[hidden]{display:none!important}
+@media(max-width:800px){.pfms-finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pfms-finance-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+  .pfms-finance-entry{grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .pfms-finance-entry-date{grid-column:1/-1;display:flex;justify-content:space-between}
+  .pfms-finance-entry-description{grid-column:1}
+  .pfms-finance-entry>strong{grid-column:2;grid-row:2}
+  .pfms-finance-entry button{grid-column:1/-1;width:100%}
+  .pfms-finance-form-grid{grid-template-columns:1fr}
+  .pfms-finance-form-grid .field.full{grid-column:1}
+}
