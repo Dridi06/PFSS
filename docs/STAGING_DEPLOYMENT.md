@@ -168,3 +168,7 @@ GitHub CI verwendet ausschließlich `PFMS_BUILD_TARGET=ci` mit einer ungültigen
 ## 7. Freigabegrenze
 
 Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/Restore- und Datenschutzabnahme darf ein separater Produktionsfreigabeplan erstellt werden. Zahlungsabwicklung bleibt deaktiviert, bis Anbieter, Gebühren, Webhooks, Rechnungs-/Steueranforderungen und rechtliche Texte geprüft und ausdrücklich freigegeben wurden.
+
+## Organisationsrechte – Migrationsreihenfolge
+
+`20261207_pfms_legacy_org_permissions.sql` erst nach Organisations-, Team- und Aufgabenmigrationen im Staging anwenden.
