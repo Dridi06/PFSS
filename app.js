@@ -4189,6 +4189,10 @@ async function loadPfmsLegacyTeamTraining(teamId = pfmsSelectedLegacyTeam?.team_
         pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (error) throw error;
     pfmsLegacyTrainingSessions = data || [];
+    await loadPfmsLegacyTeamExercises(teamId);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     renderPfmsLegacyTeamTraining();
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
@@ -4417,6 +4421,39 @@ function setupPfmsLegacyTeamWorkspace() {
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
   });
   document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
+  document.getElementById('pfmsTeamExerciseForm')?.addEventListener('submit', savePfmsLegacyTeamExercise);
+  document.getElementById('pfmsTeamExerciseCancelEdit')?.addEventListener('click', resetPfmsLegacyTrainingExerciseForm);
+  document.getElementById('pfmsTeamExerciseLibrary')?.addEventListener('click', event => {
+    const editButton = event.target.closest('[data-pfms-exercise-edit]');
+    if (editButton) {
+      const exercise = pfmsLegacyTeamExercises.find(item => item.exercise_id === editButton.dataset.pfmsExerciseEdit);
+      if (exercise) openPfmsLegacyTeamExercise(exercise);
+      return;
+    }
+    const deleteButton = event.target.closest('[data-pfms-exercise-delete]');
+    if (deleteButton) deletePfmsLegacyTeamExercise(deleteButton.dataset.pfmsExerciseDelete);
+  });
+  document.getElementById('pfmsTeamSessionPlanSave')?.addEventListener('click', savePfmsLegacyTrainingSessionPlan);
+  document.getElementById('pfmsCloseSessionPlan')?.addEventListener('click', () => {
+    document.getElementById('pfmsTeamSessionPlanPanel').hidden = true;
+    pfmsSelectedTrainingPlanSession = null;
+    pfmsLegacySessionExercises = [];
+    document.getElementById('pfmsTeamSessionPlanExercises').innerHTML = '';
+  });
+  document.getElementById('pfmsTeamSessionPlanExercises')?.addEventListener('change', event => {
+    const checkbox = event.target.closest('[data-pfms-plan-selected]');
+    if (checkbox) {
+      const row = checkbox.closest('[data-pfms-session-plan-row]');
+      const enabled = checkbox.checked && pfmsSelectedTeamPermissions.get('training')?.can_edit === true;
+      row.querySelectorAll('[data-pfms-plan-order],[data-pfms-plan-duration],[data-pfms-plan-notes]')
+        .forEach(control => { control.disabled = !enabled; });
+    }
+    updatePfmsLegacyTrainingPlanTotal();
+  });
+  document.getElementById('pfmsTeamSessionPlanExercises')?.addEventListener('input', event => {
+    if (event.target.matches('[data-pfms-plan-duration]')) updatePfmsLegacyTrainingPlanTotal();
+  });
+
   document.getElementById('pfmsTeamMatchForm')?.addEventListener('submit', savePfmsLegacyTeamMatch);
   document.getElementById('pfmsTeamMatchCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamMatchForm);
   document.getElementById('pfmsTeamMatchesList')?.addEventListener('click', event => {
@@ -4465,6 +4502,11 @@ function setupPfmsLegacyTeamWorkspace() {
     pfmsLegacyTrainingAttendance = [];
   });
   document.getElementById('pfmsTeamTrainingList')?.addEventListener('click', event => {
+    const planButton = event.target.closest('[data-pfms-open-training-plan]');
+    if (planButton) {
+      openPfmsLegacyTrainingPlan(planButton.dataset.pfmsOpenTrainingPlan);
+      return;
+    }
     const attendanceButton = event.target.closest('[data-pfms-open-attendance]');
     if (attendanceButton) {
       openPfmsLegacyTrainingAttendance(attendanceButton.dataset.pfmsOpenAttendance);
