@@ -31,7 +31,8 @@ const [
   legacyTeamRosterMigration,
   teamPermissionsMigration,
   legacyTeamTrainingMigration,
-  legacyTeamCalendarMigration
+  legacyTeamCalendarMigration,
+  legacyTeamMatchesMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -60,7 +61,8 @@ const [
   read("supabase/migrations/20261122_pfms_legacy_team_roster.sql"),
   read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql"),
   read("supabase/migrations/20261123_pfms_legacy_team_training.sql"),
-  read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql")
+  read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql"),
+  read("supabase/migrations/20261125_pfms_legacy_team_matches.sql")
 ]);
 
 const requiredFiles = [
@@ -362,6 +364,66 @@ assert.ok(
   app.includes("pfmsEditingCalendarEventId = null"),
   "Calendar data and edit state must be cleared on team/account changes"
 );
+assert.ok(
+  legacyTeamMatchesMigration.includes("public.pfms_legacy_team_matches") &&
+  legacyTeamMatchesMigration.includes("public.pfms_legacy_team_match_lineup"),
+  "Team match and lineup tables are missing"
+);
+assert.ok(
+  legacyTeamMatchesMigration.includes("pfms_list_legacy_team_matches") &&
+  legacyTeamMatchesMigration.includes("pfms_create_legacy_team_match") &&
+  legacyTeamMatchesMigration.includes("pfms_update_legacy_team_match") &&
+  legacyTeamMatchesMigration.includes("pfms_list_legacy_team_match_lineup") &&
+  legacyTeamMatchesMigration.includes("pfms_save_legacy_team_match_lineup") &&
+  legacyTeamMatchesMigration.includes("pfms_list_legacy_team_match_candidates"),
+  "Team match and lineup RPCs are incomplete"
+);
+assert.ok(
+  legacyTeamMatchesMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'matches', 'view')") &&
+  legacyTeamMatchesMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'matches', 'edit')"),
+  "Match operations must enforce matches-specific permissions"
+);
+assert.ok(
+  legacyTeamMatchesMigration.includes("Player is not assigned to this team") &&
+  legacyTeamMatchesMigration.includes("v_starters > 11") &&
+  legacyTeamMatchesMigration.includes("v_captains > 1"),
+  "Match lineup must reject players outside the team, more than 11 starters or multiple captains"
+);
+assert.ok(
+  legacyTeamMatchesMigration.includes("force row level security") &&
+  legacyTeamMatchesMigration.includes("revoke all on table public.pfms_legacy_team_matches") &&
+  legacyTeamMatchesMigration.includes("revoke all on table public.pfms_legacy_team_match_lineup"),
+  "Match and lineup tables must use forced RLS and deny direct client writes"
+);
+assert.ok(
+  html.includes('id="pfmsTeamMatchesPanel"') &&
+  html.includes('id="pfmsTeamMatchForm"') &&
+  html.includes('id="pfmsTeamMatchesList"') &&
+  html.includes('id="pfmsTeamMatchLineupPanel"') &&
+  html.includes('id="pfmsTeamMatchLineupList"') &&
+  html.includes("data-pfms-show-matches"),
+  "Team matches and lineup UI is incomplete"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamMatches") &&
+  app.includes("async function savePfmsLegacyTeamMatch") &&
+  app.includes("async function openPfmsLegacyTeamMatchLineup") &&
+  app.includes("async function savePfmsLegacyTeamMatchLineup"),
+  "Team matches and lineup frontend handlers are incomplete"
+);
+assert.ok(
+  app.includes("pfms_list_legacy_team_match_candidates") &&
+  app.includes("pfms_save_legacy_team_match_lineup") &&
+  app.includes("pfmsSelectedTeamPermissions.get('matches')?.can_edit"),
+  "Team match lineup must load candidates and save only with match edit access"
+);
+assert.ok(
+  app.includes("pfmsLegacyMatches = []") &&
+  app.includes("pfmsSelectedTeamMatch = null") &&
+  app.includes("requestGeneration !== pfmsAuthGeneration"),
+  "Match and lineup state must clear and reject stale team/account responses"
+);
+
 
 
 
