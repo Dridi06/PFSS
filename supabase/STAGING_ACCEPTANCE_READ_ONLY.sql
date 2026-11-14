@@ -720,6 +720,30 @@ with checks as (
     ), false),
     'Task-Zuweisungen verlangen aktive Teamzuordnung, aktive Mitgliedschaft, passende Rolle und aktive Organisation; SECURITY DEFINER mit leerem search_path'
 
+  union all
+  select
+    'training_cycle_session_date_integrity',
+    coalesce((
+      select t.tgname = 'pfms_training_session_cycle_week_guard'
+        and t.tgenabled in ('O','A')
+        and p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_week_team_id <> new.team_id%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%new.session_date < v_week_start%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%new.session_date > v_week_end%'
+        and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_trigger t
+      join pg_catalog.pg_class c on c.oid = t.tgrelid
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      join pg_catalog.pg_proc p on p.oid = t.tgfoid
+      where n.nspname = 'public'
+        and c.relname = 'pfms_legacy_training_sessions'
+        and t.tgname = 'pfms_training_session_cycle_week_guard'
+        and not t.tgisinternal
+    ), false),
+    'Zugeordnete Trainingseinheiten bleiben innerhalb des Datumsbereichs ihrer Team-Mikrozykluswoche; Trigger ist aktiv und nicht direkt aufrufbar'
+
 )
 select check_name, passed, details
 from checks
