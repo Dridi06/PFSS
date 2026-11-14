@@ -855,8 +855,20 @@
         </div>
       </section>
       <section class="view" id="view-admin-errors">
-        <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Technische Fehler und gemeldete Probleme zentral prüfen.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Fehlerprotokoll</h3><p>Die Fehlerübersicht wird vorbereitet. Eine automatische Protokollierung ist noch nicht angebunden.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Erfasste technische Frontend-Fehler prüfen, filtern und bearbeiten.</p></div></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">SYSTEMEREIGNISSE</div><h3>Fehlerprotokoll</h3></div><span class="module-status">Administrator</span></div>
+          <form id="pfmsAdminErrorsFilterForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Suche<input id="pfmsAdminErrorsQuery" type="search" placeholder="Fehlermeldung oder Pfad"></label>
+              <label class="field">Schweregrad<select id="pfmsAdminErrorsSeverity"><option value="">Alle Schweregrade</option><option value="warning">Warnung</option><option value="error">Fehler</option><option value="critical">Kritisch</option></select></label>
+              <label class="field">Bearbeitungsstatus<select id="pfmsAdminErrorsStatus"><option value="">Alle Status</option><option value="open">Offen</option><option value="in_review">In Prüfung</option><option value="resolved">Erledigt</option></select></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          </form>
+          <p id="pfmsAdminErrorsMessage" class="admin-message" role="status" aria-live="polite">Fehlerprotokoll wird geladen …</p>
+          <div id="pfmsAdminErrorsResults" class="admin-user-list"></div>
+        </div>
       </section>
       <section class="view" id="view-admin-inbox">
         <div class="page-heading"><div><div class="eyebrow">KOMMUNIKATION</div><h1>Postfach</h1><p>Systemnachrichten und Kontaktanfragen verwalten.</p></div></div>
