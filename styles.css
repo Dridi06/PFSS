@@ -971,3 +971,10 @@ button,input,select,textarea{max-width:100%}
   .pfms-system-event-card .admin-user-controls label{min-width:0}
   .pfms-system-event-card [data-save-event-status]{width:100%}
 }
+
+/* Main scouting report permissions and actions */
+.report-card-content{flex:1;min-width:0}
+.report-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.report-card-actions button{border:1px solid #5a4930;border-radius:7px;padding:7px 10px;background:#191b1d;color:#d7bd82;font:600 10px 'DM Sans';cursor:pointer}
+.report-card-actions button:hover{background:#2a251d;border-color:#a98a50}
+.report-card-actions button:focus-visible{outline:2px solid #d9bd7b;outline-offset:2px}
