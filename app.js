@@ -1960,6 +1960,8 @@ let pfmsLegacyCalendarEvents = [];
 let pfmsEditingCalendarEventId = null;
 let pfmsSelectedTrainingSession = null;
 let pfmsLegacyTrainingAttendance = [];
+let pfmsLegacyTeamCalendarEvents = [];
+let pfmsEditingTeamCalendarEventId = null;
 
 let pfmsLegacyInvitationBound = false;
 let pfmsLegacyMemberDirectoryBound = false;
