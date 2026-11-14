@@ -72,8 +72,11 @@ const [
   read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
   read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
   read("supabase/migrations/20261128_pfms_personal_tasks.sql"),
-  read("supabase/migrations/20261129_pfms_support_tickets.sql")
+  read("supabase/migrations/20261129_pfms_support_tickets.sql",
+  "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql")
 ]);
+
+const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
 
 const requiredFiles = [
   "index.html",
@@ -170,6 +173,7 @@ assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Userna
 assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
 assert.ok(r2Check.includes("auth.getUser()") && r2Check.includes('rpc("pfms_is_admin")'), "R2 connection checks must require a verified administrator session");
 assert.ok(supabaseConfigText.includes("[functions.r2-connection-check]") && supabaseConfigText.includes("verify_jwt = true"), "R2 connection check must require JWT verification");
+assert.ok(authTriggerHardeningMigration.includes("set search_path = ''") && authTriggerHardeningMigration.includes("revoke all on function public.pfss_sync_signup_username()") && authTriggerHardeningMigration.includes("revoke all on function public.pfms_provision_new_account()"), "Signup trigger functions must use a fixed search path and non-public execution");
 assert.ok(usernameLogin.includes('"Cache-Control": "no-store"'), "Username login token responses must not be cached");
 
 // One-time owner setup: original registration evidence, confirmed email, JWT identity and server-side claim.
