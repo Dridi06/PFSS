@@ -38,6 +38,9 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - Dies ist ein Code-/CI-Nachweis. Die Function ist dadurch nicht automatisch im Supabase-Projekt deployed; der Login muss in Staging Ende-zu-Ende geprüft werden.
 
 ### Zusätzliche Sicherheitsregressionen – 14.11.2026
+- Zusätzlich zählen interne Profil-/Auth-Dienstfehler nicht als falsche Passwörter; sie liefern HTTP 503 und verbrauchen kein Fehlversuchskontingent. Die entsprechende Regression ist im CI enthalten.
+- Aktueller vollständiger GitHub-Actions-Nachweis nach diesen Login-Korrekturen: beide Jobs erfolgreich auf Commit `081d9486972a04ae95238d163822d9e814032e69`. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43639401973.
+
 
 - Die automatisierten Prüfungen decken jetzt zusätzlich die private Benachrichtigungs-Tabelle ab: FORCE RLS, Empfänger-Isolation und ausschließliches Update des Lesestatus.
 - Support-Tickets: transaktionale Begrenzung auf 10 Einträge je Konto in 24 Stunden, Eigentümer-/Admin-Isolation und eingeschränkte Admin-Updatefelder.
