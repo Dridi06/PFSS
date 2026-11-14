@@ -2,3 +2,6 @@ project_id = "nkkajhjdvfjzrvxkbokg"
 
 [functions.username-login]
 verify_jwt = false
+
+[functions.pfms-owner-bootstrap]
+verify_jwt = true
