@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="pfms-config.js" defer></script>
-  <script src="app.js?v=pfms-billing-readiness-20261114-1" defer></script>
+  <script src="app.js?v=pfms-live-staff-directory-20261114-2" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -758,13 +758,34 @@
 </section>
       
       <section class="view" id="view-staff">
-        <div class="page-heading"><div><div class="eyebrow">TEAMORGANISATION</div><h1>Trainer & Betreuer</h1><p>Trainer, Co-Trainer und Betreuer mit getrennten Bereichsrechten.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitarbeiter">＋ Person zuordnen</button></div>
-        <div class="module-grid">
-          <article class="module-card"><span class="module-symbol">♙</span><h3>Trainer</h3><p>Teamverantwortung, Kaderübersicht und sportliche Organisation.</p></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Co-Trainer</h3><p>Individuelle Rechte je Bereich: lesen oder bearbeiten.</p></article>
-          <article class="module-card"><span class="module-symbol">＋</span><h3>Betreuer</h3><p>Organisatorische Aufgaben und gezielte Zugriffsrechte.</p></article>
-          <article class="module-card module-wide"><div class="eyebrow">BERECHTIGUNGSPRINZIP</div><h3>Rechte pro Bereich statt pauschaler Adminrechte</h3><p>Der verantwortliche Trainer kann Co-Trainern und Betreuern für einzelne Bereiche Leserechte oder Bearbeitungsrechte geben. Diese Freigaben bleiben auf das jeweilige Team begrenzt und können widerrufen werden.</p><div class="permission-preview"><span>Spielerkader <b>Lesen / Bearbeiten</b></span><span>Training <b>Lesen / Bearbeiten</b></span><span>Spiele <b>Lesen / Bearbeiten</b></span><span>Mannschaftskasse <b>Lesen / Bearbeiten</b></span></div></article>
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">TEAMORGANISATION</div>
+            <h1>Trainer & Betreuer</h1>
+            <p>Übersicht deiner Mannschaften, Trainer, Co-Trainer und Betreuer. Teamrechte bleiben immer auf die jeweilige Mannschaft begrenzt.</p>
+          </div>
+          <div class="page-heading-actions">
+            <button class="btn btn-secondary" id="pfmsStaffRefreshButton" type="button">↻ Aktualisieren</button>
+            <button class="btn btn-primary" type="button" data-view="teams">Mannschaften verwalten</button>
+          </div>
         </div>
+        <div class="notice">
+          <span>ⓘ</span>
+          <p><b>Gezielte Teamrechte:</b> Verantwortliche Trainer und berechtigte Vereinsleitungen können Personen aus den aktiven Vereinsmitgliedern zuordnen und pro Bereich Lese- oder Bearbeitungsrechte vergeben. Die Berechtigungen gelten ausschließlich für die jeweilige Mannschaft.</p>
+        </div>
+        <p id="pfmsStaffMessage" class="admin-message" role="status" aria-live="polite">Trainerteams werden geladen …</p>
+        <div id="pfmsStaffDirectory" class="team-category-grid" aria-live="polite"></div>
+        <section class="module-card module-wide pfms-staff-permissions-guide">
+          <div class="eyebrow">BERECHTIGUNGSPRINZIP</div>
+          <h3>Rechte pro Bereich statt pauschaler Adminrechte</h3>
+          <p>Die acht getrennten Bereiche sind Spielerkader, Training, Anwesenheit, Mannschaftskasse, Veranstaltungen, Mannschaftskalender, Spiele und Analyse. Bearbeitungsrechte setzen die jeweiligen Leserechte voraus und können jederzeit widerrufen werden.</p>
+          <div class="permission-preview">
+            <span>Spielerkader <b>Lesen / Bearbeiten</b></span>
+            <span>Training & Anwesenheit <b>Lesen / Bearbeiten</b></span>
+            <span>Spiele & Kalender <b>Lesen / Bearbeiten</b></span>
+            <span>Mannschaftskasse <b>Lesen / Bearbeiten</b></span>
+          </div>
+        </section>
       </section>
 
       <section class="view" id="view-scouts">
