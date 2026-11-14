@@ -300,6 +300,12 @@ assert.ok(legacyTeamManagementMigration.includes("public.pfms_can_access_legacy_
 assert.ok(legacyTeamManagementMigration.includes("alter table public.pfms_legacy_teams force row level security") && legacyTeamManagementMigration.includes("alter table public.pfms_legacy_team_staff force row level security"), "Legacy team tables must enforce row-level security");
 assert.ok(legacyTeamManagementMigration.includes("pfms_create_legacy_team") && legacyTeamManagementMigration.includes("pfms_update_legacy_team") && legacyTeamManagementMigration.includes("pfms_assign_legacy_team_staff") && legacyTeamManagementMigration.includes("pfms_remove_legacy_team_staff"), "Legacy team CRUD or staff assignment RPCs are missing");
 assert.ok(app.includes("async function loadPfmsLegacyTeams") && app.includes("setupPfmsLegacyTeamWorkspace") && app.includes("pfms_list_legacy_team_staff_candidates"), "Legacy team workspace frontend is not connected to its RPCs");
+assert.ok(html.includes('id="pfmsStaffDirectory"') && html.includes('id="pfmsStaffRefreshButton"'), "Trainer and Betreuer live directory UI is missing");
+assert.ok(!html.includes('data-skeleton-action="Mitarbeiter"'), "Trainer and Betreuer page must not retain the static skeleton action");
+assert.ok(app.includes("async function loadPfmsStaffDirectory()") && app.includes("pfms_list_legacy_team_staff"), "Trainer and Betreuer page must load live staff through the protected team RPC");
+assert.ok(app.includes("data-pfms-team-staff") && app.includes("data-pfms-open-team"), "Staff directory must link to existing team-scoped staff management and workspace");
+assert.ok(app.includes("requestGeneration !== pfmsAuthGeneration") && app.includes("pfmsStaffDirectoryRequestId"), "Staff directory requests must be guarded against account changes and stale navigation");
+
 assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
 assert.ok(stagingAudit.includes("'pfms_legacy_teams'") && stagingAudit.includes("'pfms_legacy_team_staff'"), "Staging audit must inspect team and staff data");
 assert.ok(legacyTeamRosterMigration.includes("public.pfms_legacy_team_players") && legacyTeamRosterMigration.includes("references public.pfms_global_players(id) on delete restrict"), "Team roster must link to global players without deleting their shared profile");
