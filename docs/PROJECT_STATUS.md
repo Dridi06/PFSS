@@ -76,7 +76,7 @@ Die vorhandenen Migrationen belegen zwei parallele Datenmodelle:
 
 Bevor weitere Organisations- oder Teamfunktionen ergänzt werden, muss der tatsächliche Staging-Schema-Stand aufgenommen und ein einziges kanonisches Modell festgelegt werden. Es erfolgt keine automatische Zusammenführung, Löschung oder Migration auf Grundlage bloßer Annahmen.
 
-Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript ist rein lesend und erfasst Tabellen/Spalten, RLS, Policies, Grants, Constraints, Trigger, relevante Funktionen und den privaten Scout-Bucket. Es muss im **Staging-Supabase-Projekt** ausgeführt und das Ergebnis geprüft werden.
+Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript ist rein lesend und erfasst Tabellen/Spalten, RLS, Policies, Grants, Constraints, Trigger, relevante Funktionen, Storage-Konfiguration sowie geschätzte Zeilenbestände der beiden Organisationsmodelle und ihrer Mitgliedschaftstabellen. Die Zeilenzahlen basieren auf PostgreSQL-Statistiken und sind Näherungswerte, keine exakten Counts. Es muss im **Staging-Supabase-Projekt** ausgeführt und das Ergebnis geprüft werden.
 
 ## 5. Sicherheits- und Integrationsrisiken
 
