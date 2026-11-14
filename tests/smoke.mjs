@@ -34,7 +34,8 @@ const [
   legacyTeamCalendarMigration,
   legacyTeamMatchesMigration,
   legacyTeamTrainingExercisesMigration,
-  legacyTeamFinanceMigration
+  legacyTeamFinanceMigration,
+  personalTasksMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -66,7 +67,8 @@ const [
   read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql"),
   read("supabase/migrations/20261125_pfms_legacy_team_matches.sql"),
   read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
-  read("supabase/migrations/20261127_pfms_legacy_team_finance.sql")
+  read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
+  read("supabase/migrations/20261128_pfms_personal_tasks.sql")
 ]);
 
 const requiredFiles = [
@@ -89,6 +91,7 @@ const requiredFiles = [
   "supabase/migrations/20261116_pfms_system_event_monitoring.sql",
   "supabase/migrations/20261117_pfms_system_event_hardening.sql",
   "supabase/migrations/20261117_pfms_main_media_library.sql",
+  "supabase/migrations/20261128_pfms_personal_tasks.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -193,6 +196,11 @@ assert.ok(html.includes('id="pfmsClubOrganizationsGrid"') && html.includes('id="
 assert.ok(html.includes('data-view="admin-members"') && app.includes("if (view === 'admin-members') loadPfmsAdminMembers()"), "Administrator navigation must open the live member directory");
 
 assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
+assert.ok(html.includes('id="view-tasks"') && html.includes('id="pfmsPersonalTaskForm"') && html.includes('id="pfmsPersonalTaskList"'), "Personal task center UI is incomplete");
+assert.ok(app.includes("async function loadPfmsPersonalTasks()") && app.includes("async function savePfmsPersonalTask(event)") && app.includes("async function updatePfmsPersonalTaskStatus") && app.includes("async function deletePfmsPersonalTask"), "Personal task CRUD is incomplete");
+assert.ok(personalTasksMigration.includes("force row level security") && personalTasksMigration.includes("owner_id = auth.uid()") && personalTasksMigration.includes("pfms_current_user_is_approved()"), "Personal tasks must enforce approved owner-only access");
+assert.ok(app.includes(".eq('owner_id', requestUserId)") && app.includes("pfmsPersonalTasks = [];"), "Personal task reads and mutations must remain account-scoped");
+
 assert.ok(app.includes("data-pfms-club-nav") && app.includes("data-pfms-open-invitation"), "Club workspace navigation and invite actions are not wired");
 assert.ok(html.includes('id="pfmsClubScoutingOrganization"') && html.includes('id="pfmsClubScoutingResults"'), "Club scouting roster UI is missing");
 assert.ok(html.includes('data-view="club-members"') && html.includes('data-view="team-workspace"') && html.includes('Organisationsweite frei definierbare Rollen- und Rechteprofile'), "Club administration must link to connected management workflows and disclose remaining scope");
