@@ -19,6 +19,7 @@ target_tables AS (
         'profiles', 'organizations', 'organization_memberships',
         'organization_invitations',
         'pfms_organizations', 'pfms_memberships', 'pfms_scout_profiles',
+        'pfms_platform_owner',
         'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media'
       )
     )
@@ -141,6 +142,8 @@ migration_table AS (
              to_regclass('public.pfms_organizations') IS NOT NULL,
            'new_pfms_memberships_exists',
              to_regclass('public.pfms_memberships') IS NOT NULL,
+           'platform_owner_exists',
+             to_regclass('public.pfms_platform_owner') IS NOT NULL,
            'profiles_exists',
              to_regclass('public.profiles') IS NOT NULL
          ) AS details
