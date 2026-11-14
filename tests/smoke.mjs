@@ -181,21 +181,29 @@ assert.ok(backupWorkflow.includes("aws s3api head-object"), "Backup workflow mus
 assert.ok(backupRunbook.includes("neue, isolierte Testdatenbank") && backupRunbook.includes("RESTORE_DATABASE_URL"), "Backup restore documentation must limit restore to an isolated test database");
 assert.ok(backupRunbook.includes("pg_restore --list") && backupRunbook.includes("Storage-Objekte"), "Backup restore runbook must include archive validation and explain separate Storage recovery");
 assert.ok(
-  backupWorkflow.includes("hmac.new(key, digestmod=hashlib.sha256)")
-    && backupWorkflow.includes("hmac.compare_digest(digest.hexdigest(), expected)")
+  backupWorkflow.includes("python3 scripts/backup-hmac.py create")
+    && backupWorkflow.includes("python3 scripts/backup-hmac.py verify")
     && backupWorkflow.includes("BACKUP_FILE.hmac")
-    && backupWorkflow.includes("Backup HMAC verification failed"),
+    && helper.includes("hmac.compare_digest(actual, expected)")
+    && helper.includes("Backup HMAC verification failed; refusing to decrypt."),
   "Database backups must authenticate the encrypted archive and refuse tampered ciphertext"
 );
 assert.ok(
-  backupWorkflow.indexOf("hmac.compare_digest") < backupWorkflow.indexOf("openssl enc -d")
-    && backupRunbook.indexOf("hmac.compare_digest") < backupRunbook.indexOf("openssl enc -d"),
+  backupWorkflow.indexOf("backup-hmac.py verify") < backupWorkflow.indexOf("openssl enc -d")
+    && backupRunbook.indexOf("backup-hmac.py verify") < backupRunbook.indexOf("openssl enc -d"),
   "Backup HMAC must be verified before decryption in both CI and the restore runbook"
 );
 assert.ok(
-  backupWorkflow.includes('key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)')
-    && backupRunbook.includes('key = hashlib.pbkdf2_hmac("sha256", passphrase, b"PFSS-R2-BACKUP-HMAC-v1", 600000, dklen=32)'),
-  "Backup creation and restore must derive the same domain-separated HMAC key"
+  helper.includes('hashlib.pbkdf2_hmac(')
+    && helper.includes('DOMAIN = b"PFSS-R2-BACKUP-HMAC-v1"')
+    && helper.includes("ITERATIONS = 600_000")
+    && backupRunbook.includes("PFSS_BACKUP_ENCRYPTION_PASSPHRASE"),
+  "Backup creation and restore must use the shared domain-separated HMAC key derivation"
+);
+assert.ok(
+  backupWorkflow.includes('test -n "$PFSS_BACKUP_ENCRYPTION_PASSPHRASE"')
+    && backupWorkflow.includes("-pass env:PFSS_BACKUP_ENCRYPTION_PASSPHRASE"),
+  "Backup encryption and verification must use the same configured passphrase"
 );
 
 assert.ok(teamTasksMigration.includes("public.pfms_legacy_team_tasks") && teamTasksMigration.includes("force row level security"), "Team task table must enforce RLS");
