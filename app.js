@@ -5108,32 +5108,34 @@ async function addPfmsLegacyTeamPlayer(event) {
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const teamId = team?.team_id;
+  if (!requestUserId || !teamId) return;
   const button = document.getElementById('pfmsTeamRosterAddButton');
   button.disabled = true;
   message.textContent = 'Spieler wird dem Kader zugeordnet …';
   try {
     const { error } = await pfssSupabase.rpc('pfms_add_legacy_team_player', {
-      p_team_id: team.team_id,
+      p_team_id: teamId,
       p_player_id: playerId,
       p_jersey_number: jerseyNumber,
       p_position_override: position,
       p_squad_status: 'active',
       p_notes: null
     });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (error) throw error;
 
     form.reset();
-    await loadPfmsLegacyTeamRoster(team.team_id);
-    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+    await loadPfmsLegacyTeamRoster(teamId);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) {
       toast('Spieler wurde dem Mannschaftskader zugeordnet.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team roster add failed:', error);
     message.textContent = 'Spieler konnte nicht hinzugefügt werden. Prüfe, ob er bereits im Kader steht oder die Trikotnummer vergeben ist.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -5152,6 +5154,8 @@ async function updatePfmsLegacyTeamPlayer(button) {
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const teamId = team?.team_id;
+  if (!requestUserId || !teamId) return;
   button.disabled = true;
   try {
     const { error } = await pfssSupabase.rpc('pfms_update_legacy_team_player', {
@@ -5161,16 +5165,16 @@ async function updatePfmsLegacyTeamPlayer(button) {
       p_squad_status: card.querySelector('[data-roster-status]')?.value || 'active',
       p_notes: null
     });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (error) throw error;
     message.textContent = 'Kaderzuordnung wurde aktualisiert.';
-    await loadPfmsLegacyTeamRoster(team.team_id);
+    await loadPfmsLegacyTeamRoster(teamId);
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team roster update failed:', error);
     message.textContent = 'Änderung konnte nicht gespeichert werden. Prüfe Trikotnummer und Kaderrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -5183,23 +5187,25 @@ async function removePfmsLegacyTeamPlayer(button) {
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const teamId = team?.team_id;
+  if (!requestUserId || !teamId) return;
   button.disabled = true;
   try {
     const { error } = await pfssSupabase.rpc('pfms_remove_legacy_team_player', {
       p_assignment_id: card.dataset.pfmsRosterAssignment
     });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (error) throw error;
-    await loadPfmsLegacyTeamRoster(team.team_id);
-    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+    await loadPfmsLegacyTeamRoster(teamId);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) {
       toast('Spieler wurde aus dem Mannschaftskader entfernt.');
     }
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team roster remove failed:', error);
     toast('Spieler konnte nicht aus dem Kader entfernt werden.');
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -5408,7 +5414,7 @@ async function loadPfmsLegacyTeamMatches(teamId = pfmsSelectedLegacyTeam?.team_i
     pfmsLegacyMatches = data || [];
     renderPfmsLegacyTeamMatches();
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team matches load failed:', error);
     pfmsLegacyMatches = [];
     host.innerHTML = '<div class="empty-state">Spiele konnten nicht geladen werden. Prüfe die Spielbetriebs-Migration und Bereichsrechte.</div>';
