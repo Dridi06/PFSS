@@ -286,3 +286,26 @@ assert.match(legacyTeamEventParticipants, /foreign key \(team_player_assignment_
 assert.match(legacyTeamEventParticipants, /pfms_has_legacy_team_permission\(v_team_id, 'events', 'edit'\)/);
 assert.match(legacyTeamEventParticipants, /selected player is not an active member of this team/);
 assert.match(legacyTeamEventParticipants, /alter table public\.pfms_legacy_team_event_participants force row level security/);
+
+
+// Notifications remain private to each recipient and browser updates are read-only.
+const teamTaskNotifications = (
+  await readFile(resolve(directory, "20261207_pfms_in_app_notifications.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(teamTaskNotifications, /recipient_id = auth\.uid\(\)/);
+assert.match(teamTaskNotifications, /grant update \(is_read\) on table public\.pfms_notifications to authenticated/);
+assert.match(teamTaskNotifications, /security definer set search_path = ''/);
+assert.match(teamTaskNotifications, /after insert or update of assigned_to, status on public\.pfms_legacy_team_tasks/);
+assert.match(teamTaskNotifications, /new\.assigned_to is distinct from v_actor_id/);
+assert.match(teamTaskNotifications, /new\.status = 'done' and old\.status is distinct from 'done'/);
+assert.match(teamTaskNotifications, /revoke all on function public\.pfms_notify_legacy_team_task_changes\(\) from public, anon, authenticated/);
+assert.doesNotMatch(teamTaskNotifications, /grant (?:insert|delete|all) on table public\.pfms_notifications to authenticated/);
+
+const supportNotifications = (
+  await readFile(resolve(directory, "20261208_pfms_support_ticket_notifications.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(supportNotifications, /new\.owner_id is not null and new\.owner_id is distinct from v_actor_id/);
+assert.match(supportNotifications, /new\.admin_response is distinct from old\.admin_response/);
+assert.match(supportNotifications, /new\.status = 'resolved' and old\.status is distinct from 'resolved'/);
+assert.match(supportNotifications, /after update of admin_response, status on public\.pfms_support_tickets/);
+assert.match(supportNotifications, /revoke all on function public\.pfms_notify_support_ticket_changes\(\) from public, anon, authenticated/);
