@@ -995,12 +995,22 @@ let pfmsClientErrorWindowStart = 0;
 let pfmsClientErrorCount = 0;
 let pfmsClientErrorHandlersAttached = false;
 
-function pfmsSanitizeLogValue(value, maxLength = 2000) {
+function pfmsSanitizeLogValue(value, maxLength = 600) {
   return String(value ?? '')
     .replace(/Bearer\s+[A-Za-z0-9._~+/-]+/gi, 'Bearer [redacted]')
-    .replace(/(access_token|refresh_token|password|authorization|bootstrap_token|client_secret|api_key|apikey)(\s*[:=]\s*)[^\s,;]+/gi, '$1$2[redacted]')
-    .replace(/([?&](?:access_token|refresh_token|token|key|password)=)[^&#\s]*/gi, '$1[redacted]')
+    .replace(/\b[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\b/g, '[redacted-token]')
+    .replace(/(access_token|refresh_token|password|authorization|bootstrap_token|client_secret|api_key|apikey|secret|token)(\s*[:=]\s*)[^\s,;]+/gi, '$1$2[redacted]')
+    .replace(/([?&](?:access_token|refresh_token|token|key|password|apikey)=)[^&#\s]*/gi, '$1[redacted]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
     .slice(0, maxLength);
+}
+
+function pfmsSanitizeLogPath(value) {
+  return String(value || '/')
+    .split('?')[0]
+    .replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, '[id]')
+    .replace(/\b\d{5,}\b/g, '[id]')
+    .slice(0, 255) || '/';
 }
 
 async function pfmsLogClientError(message, context = {}) {
@@ -1026,17 +1036,16 @@ async function pfmsLogClientError(message, context = {}) {
     }
 
     const details = {
-      source: sourcePath,
+      source: pfmsSanitizeLogPath(sourcePath),
       line: Number.isFinite(Number(context.line)) ? Number(context.line) : null,
-      column: Number.isFinite(Number(context.column)) ? Number(context.column) : null,
-      stack: pfmsSanitizeLogValue(context.stack || '', 6000)
+      column: Number.isFinite(Number(context.column)) ? Number(context.column) : null
     };
 
     const { error } = await pfssSupabase.from('pfms_system_events').insert({
       event_type: 'frontend_error',
       severity: 'error',
       message: pfmsSanitizeLogValue(message, 2000) || 'Unbekannter Frontend-Fehler',
-      route: String(window.location.pathname || '/').slice(0, 255),
+      route: pfmsSanitizeLogPath(window.location.pathname || '/'),
       details
     });
     if (error) console.debug('PFMS error event could not be stored:', error.message);
@@ -1054,16 +1063,14 @@ function setupPfmsClientErrorLogging() {
     void pfmsLogClientError(event.message || 'Unbehandelter JavaScript-Fehler', {
       source: event.filename,
       line: event.lineno,
-      column: event.colno,
-      stack: event.error?.stack || ''
+      column: event.colno
     });
   });
 
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
     void pfmsLogClientError(
-      reason instanceof Error ? reason.message : String(reason ?? 'Unbehandelte Promise-Ablehnung'),
-      { stack: reason instanceof Error ? reason.stack : '' }
+      reason instanceof Error ? reason.message : String(reason ?? 'Unbehandelte Promise-Ablehnung')
     );
   });
 }
@@ -1809,7 +1816,7 @@ async function loadPfmsAdminErrors() {
         details.source ? 'Quelle: ' + details.source : '',
         details.line ? 'Zeile: ' + details.line : '',
         details.column ? 'Spalte: ' + details.column : '',
-        details.stack ? 'Stack:\\n' + details.stack : ''
+        ''
       ].filter(Boolean).join('\\n');
       const statusOptions = Object.entries(PFMS_SYSTEM_EVENT_STATUSES).map(([value, label]) =>
         '<option value="' + escapeHtml(value) + '"' +
