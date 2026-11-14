@@ -544,6 +544,8 @@ assert.ok(
   teamEventLogisticsMigration.includes("pfms_save_legacy_team_event")
     && teamEventLogisticsMigration.includes("pfms_list_legacy_team_events_with_logistics")
     && teamEventLogisticsMigration.includes("p_capacity")
+    && teamEventLogisticsMigration.includes("p_registration_deadline > p_event_date")
+    && app.includes("data.registration_deadline > data.event_date")
     && teamEventLogisticsMigration.includes("v_participant_count >= v_capacity")
     && teamEventLogisticsMigration.includes("create or replace function public.pfms_update_legacy_team_event_participant")
     && teamEventLogisticsMigration.includes("revoke all on function public.pfms_update_legacy_team_event_participant"),
