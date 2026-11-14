@@ -156,6 +156,7 @@ begin
      or p_starts_at is null
      or (p_ends_at is not null and p_ends_at <= p_starts_at)
      or (p_status is not null and p_status not in ('planned','completed','cancelled'))
+     or (p_registration_deadline is not null and p_registration_deadline > p_event_date)
      or (p_location is not null and pg_catalog.length(p_location) > 160)
      or (p_notes is not null and pg_catalog.length(p_notes) > 4000)
      or (p_meeting_point is not null and pg_catalog.length(p_meeting_point) > 180)
