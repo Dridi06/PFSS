@@ -617,8 +617,6 @@ assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legac
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
 
-") &&
-  legacyTeamTrainingExercisesMigration.includes("(v_item ->> 'planned_duration_minutes') !~ '^[0-9]+
 assert.ok(
   legacyTeamTrainingExercisesMigration.includes("force row level security") &&
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
