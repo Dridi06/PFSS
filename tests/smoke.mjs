@@ -100,7 +100,7 @@ const supportNotificationsMigration = await read("supabase/migrations/20261208_p
 const stagingAcceptanceSql = await read("supabase/STAGING_ACCEPTANCE_READ_ONLY.sql");
 const edgeFunctionGuide = await read("docs/EDGE_FUNCTION_CONFIGURATION.md");
 assert.ok(
-  !/PFMS_ALLOWED_ORIGINS="[^"]*pfss-scouting\\.onrender\\.com/i.test(edgeFunctionGuide),
+  !/PFMS_ALLOWED_ORIGINS="[^"]*pfss-scouting\.onrender\.com/i.test(edgeFunctionGuide),
   "Staging Edge Function examples must not allow the production Render origin"
 );
 assert.ok(
