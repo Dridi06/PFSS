@@ -55,6 +55,16 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - GitHub Actions auf Commit `dc69a3a5ea4002fee4a70b183b35aef8777cd807` erfolgreich: Node-Projektprüfungen und Deno-Typprüfung. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43639327757.
 - Diese Tests prüfen Quelltext-/Migrationsinvarianten. Sie ersetzen keine realen RLS-/Rollen-Negativtests gegen die getrennte Staging-Datenbank.
 
+### Passkey/WebAuthn – erste Frontend-Integration – 14.11.2026
+
+- Die bestehende Supabase-Auth-Instanz wird mit der experimentellen Passkey-API aktiviert; das Browser-SDK ist auf mindestens v2.105.0 festgesetzt.
+- Der Login-Bildschirm enthält zusätzlich „Mit Passkey anmelden“. Nach erfolgreicher Passkey-Authentifizierung wird derselbe serverseitige PFMS-Profil- und Zugangscheck wie beim bisherigen Login ausgeführt.
+- Im angemeldeten Dashboard gibt es eine Funktion zum Einrichten eines Passkeys. Die Registrierung läuft über `supabase.auth.registerPasskey()`; die privaten Schlüssel bleiben beim Geräte-Authenticator.
+- Passwort- und Benutzername-Login bleiben als Rückfallweg erhalten. Es wurden keine Konten, Rollen oder bestehenden Auth-Daten verändert.
+- **Noch nicht aktiv/verifiziert:** Im getrennten Supabase-Stagingprojekt müssen Passkey-Authentifizierung und WebAuthn-Relying-Party konfiguriert werden. RP-ID und erlaubte Origins müssen exakt zur finalen Staging-Domain passen. Die RP-ID darf nach Ausgabe erster Passkeys nicht leichtfertig geändert werden.
+- **Noch offen:** Staging-E2E-Test auf iOS/Safari, Android/Chrome und Desktop; Passkey-Verwaltung/Entfernen; verbindliche MFA-/Recovery-Regeln; Hardware-Sicherheitsschlüssel für Plattforminhaber; Produktions-RP-Konfiguration. Da Supabase die Passkey-API als experimentell kennzeichnet, bleibt Passwortlogin bis zur vollständigen Abnahme verfügbar.
+- Diese Codeänderungen liegen ausschließlich im Feature-Branch und sind nicht automatisch in Render oder Supabase deployed.
+
 ## 2. Vorhandene Bausteine
 
 ### Build- und Umgebungsisolation (neu)
