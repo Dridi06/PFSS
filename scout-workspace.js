@@ -612,12 +612,18 @@
   async function deletePlayer(id) {
     const player = state.players.find((item) => item.id === id);
     if (!player || !window.confirm('Spieler "' + fullName(player) + '" und die zugehörigen Berichte wirklich löschen?')) return;
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) return;
+
     try {
       const { error } = await supabase().from(TABLES.players).delete().eq('id', id);
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (error) throw error;
       await loadData();
-      notify('Spielerprofil wurde gelöscht.');
+      if (isCurrentRequest(requestGeneration, requestUserId)) notify('Spielerprofil wurde gelöscht.');
     } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       showMessage('Spieler konnte nicht gelöscht werden: ' + (error?.message || 'Datenbankfehler'), true);
     }
   }
@@ -625,13 +631,136 @@
   async function deleteReport(id) {
     const report = state.reports.find((item) => item.id === id);
     if (!report || !window.confirm('Diesen Scoutingbericht wirklich löschen?')) return;
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) return;
+
     try {
       const { error } = await supabase().from(TABLES.reports).delete().eq('id', id);
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (error) throw error;
       await loadData();
-      notify('Scoutingbericht wurde gelöscht.');
+      if (isCurrentRequest(requestGeneration, requestUserId)) notify('Scoutingbericht wurde gelöscht.');
     } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       showMessage('Bericht konnte nicht gelöscht werden: ' + (error?.message || 'Datenbankfehler'), true);
+    }
+  }
+
+  function safeFileName(name) {
+    return String(name || 'datei')
+      .normalize('NFKD')
+      .replace(/[\\u0300-\\u036f]/g, '')
+      .replace(/[^A-Za-z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(-120) || 'datei';
+  }
+
+  async function uploadFiles(files) {
+    const selected = [...(files || [])];
+    if (!selected.length) return;
+    const userId = window.pfssCurrentUserId;
+    const requestGeneration = state.generation;
+    if (!userId) {
+      showMessage('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.', true);
+      return;
+    }
+    if (selected.length > 20) {
+      showMessage('Bitte lade höchstens 20 Dateien gleichzeitig hoch.', true);
+      return;
+    }
+
+    const input = el('scoutMediaInput');
+    if (input) input.disabled = true;
+    let completed = 0;
+    for (const file of selected) {
+      if (!isCurrentRequest(requestGeneration, userId)) break;
+      if (!ALLOWED_MEDIA_TYPES.has(file.type)) {
+        showMessage('Dateityp nicht zugelassen: ' + file.name, true);
+        continue;
+      }
+      if (!file.size || file.size > MAX_FILE_SIZE) {
+        showMessage('Die Datei "' + file.name + '" überschreitet 50 MB oder ist leer.', true);
+        continue;
+      }
+
+      const path = userId + '/' + makeId() + '-' + safeFileName(file.name);
+      try {
+        const client = supabase();
+        const uploaded = await client.storage.from(BUCKET).upload(path, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: false
+        });
+        if (!isCurrentRequest(requestGeneration, userId)) {
+          if (!uploaded.error) {
+            try { await client.storage.from(BUCKET).remove([path]); } catch (_cleanupError) {}
+          }
+          break;
+        }
+        if (uploaded.error) throw uploaded.error;
+
+        const metadata = await client.from(TABLES.media).insert({
+          owner_id: userId,
+          media_type: file.type.startsWith('video/') ? 'video' : 'photo',
+          file_name: file.name,
+          storage_path: path,
+          mime_type: file.type,
+          file_size: file.size
+        });
+        if (!isCurrentRequest(requestGeneration, userId)) break;
+        if (metadata.error) {
+          await client.storage.from(BUCKET).remove([path]);
+          throw metadata.error;
+        }
+        completed += 1;
+      } catch (error) {
+        if (!isCurrentRequest(requestGeneration, userId)) break;
+        console.error('PFMS Scout media upload failed:', error);
+        showMessage('Upload für "' + file.name + '" fehlgeschlagen: ' + (error?.message || 'Speicherfehler'), true);
+      }
+    }
+
+    if (input) {
+      input.value = '';
+      input.disabled = false;
+    }
+    if (!isCurrentRequest(requestGeneration, userId)) return;
+    await loadData();
+    if (isCurrentRequest(requestGeneration, userId) && completed) {
+      notify(completed + ' Datei(en) wurden privat hochgeladen.');
+    }
+  }
+
+  async function deleteMedia(id) {
+    const item = state.media.find((media) => media.id === id);
+    if (!item || !window.confirm('Datei "' + item.file_name + '" wirklich löschen?')) return;
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) return;
+
+    try {
+      const client = supabase();
+      // Keep the metadata row if Storage refuses deletion, so the file remains discoverable.
+      const removedFile = await client.storage.from(BUCKET).remove([item.storage_path]);
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
+      if (removedFile.error) throw removedFile.error;
+
+      const removedRow = await client.from(TABLES.media).delete()
+        .eq('id', id)
+        .eq('owner_id', requestUserId);
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
+      if (removedRow.error) {
+        showMessage('Die Datei wurde aus dem privaten Speicher entfernt, aber der Datenbankeintrag konnte nicht gelöscht werden: ' + removedRow.error.message, true);
+        await loadData();
+        return;
+      }
+
+      await loadData();
+      if (isCurrentRequest(requestGeneration, requestUserId)) notify('Datei wurde gelöscht.');
+    } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
+      showMessage('Datei konnte nicht gelöscht werden: ' + (error?.message || 'Speicherfehler'), true);
     }
   }
 
@@ -811,6 +940,8 @@
     state.media = [];
     state.editingPlayerId = null;
     state.editingReportId = null;
+    const mediaInput = el('scoutMediaInput');
+    if (mediaInput) { mediaInput.disabled = false; mediaInput.value = ''; }
     const nav = el('scoutWorkspaceNav');
     if (nav) nav.hidden = true;
     const view = el('view-scout-workspace');
