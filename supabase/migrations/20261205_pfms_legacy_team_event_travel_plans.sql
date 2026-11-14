@@ -432,6 +432,68 @@ begin
 end;
 $$;
 
+-- Keep event/participant lock order consistent across add, update and remove.
+create or replace function public.pfms_remove_legacy_team_event_participant(
+  p_participant_id uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_team_id uuid;
+  v_event_id uuid;
+  v_event_type text;
+begin
+  select ep.team_id, ep.event_id
+    into v_team_id, v_event_id
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id;
+
+  if not found then
+    raise exception 'Event participant not found' using errcode = 'P0002';
+  end if;
+
+  select e.event_type
+    into v_event_type
+  from public.pfms_legacy_team_calendar_events e
+  where e.id = v_event_id
+    and e.team_id = v_team_id
+  for update;
+
+  if not found or v_event_type not in ('tournament','event') then
+    raise exception 'Event participant does not belong to an event entry'
+      using errcode = '42501';
+  end if;
+
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to remove event participant'
+      using errcode = '42501';
+  end if;
+
+  perform 1
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id
+    and ep.event_id = v_event_id
+    and ep.team_id = v_team_id
+  for update;
+
+  if not found then
+    raise exception 'Event participant was removed during the update'
+      using errcode = 'P0002';
+  end if;
+
+  delete from public.pfms_legacy_team_event_participants
+  where id = p_participant_id;
+end;
+$;
+
+revoke all on function public.pfms_remove_legacy_team_event_participant(uuid)
+  from public, anon;
+grant execute on function public.pfms_remove_legacy_team_event_participant(uuid)
+  to authenticated;
+
 revoke all on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
   from public, anon;
 grant execute on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
