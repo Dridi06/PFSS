@@ -212,6 +212,7 @@ assert.ok(legalPage.includes("Hilfe & Support") && !legalPage.includes("Kontaktf
 assert.ok(app.includes("async function createPfmsSupportTicket") && app.includes("async function loadPfmsAdminSupportTickets") && app.includes("async function savePfmsAdminSupportTicket"), "Support ticket submission and admin workflow are incomplete");
 assert.ok(supportTicketsMigration.includes("force row level security") && supportTicketsMigration.includes("owner_id = auth.uid()") && supportTicketsMigration.includes("public.pfms_is_admin()"), "Support inbox must use private owner/admin ticket policies");
 assert.ok(supportTicketsMigration.includes("grant update (status, admin_response)") && supportTicketsMigration.includes("pfms_support_tickets_insert_own"), "Support tickets must restrict users to submission and admins to response/status updates");
+assert.ok(supportTicketsMigration.includes("pfms_enforce_support_ticket_rate_limit") && supportTicketsMigration.includes("v_recent_count >= 10"), "Support ticket submissions must be rate-limited per account");
 assert.ok(app.includes("document.getElementById('pfmsSupportTicketForm')?.reset()") && app.includes("document.getElementById('pfmsPersonalTaskForm')?.reset()"), "Support drafts must clear on account changes");
 assert.ok(stagingAudit.includes("'pfms_support_tickets'"), "Staging audit must include support tickets");
 
