@@ -46,5 +46,5 @@ jobs:
           deno-version: v2.x
       - name: Type-check Edge Functions
         run: |
-          deno check supabase/functions/username-login/index.ts
-          deno check supabase/functions/r2-connection-check/index.ts
+          deno check --node-modules-dir=auto supabase/functions/username-login/index.ts
+          deno check --node-modules-dir=auto supabase/functions/r2-connection-check/index.ts
