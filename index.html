@@ -1191,8 +1191,18 @@
         </div>
       </section>
       <section class="view" id="view-admin-payments">
-        <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Zahlungen</h1><p>Abonnements, Zahlungseingänge und offene Vorgänge im Blick behalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Zahlungsverwaltung</h3><p>Die Zahlungsübersicht wird vorbereitet. Es ist noch kein Zahlungsanbieter angebunden.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Abonnements & Zahlungen</h1><p>Vorbereitung der PFMS-Tarife, Testphase und späteren Zahlungsabwicklung.</p></div><span class="module-status">Noch nicht aktiviert</span></div>
+        <section class="panel">
+          <div class="panel-heading"><div><div class="eyebrow">ZAHLUNGSPROVIDER</div><h3>Keine Abbuchungen aktiv</h3></div><span class="module-status">Sicher deaktiviert</span></div>
+          <p>PFMS löst derzeit keine Zahlungen aus. Es ist noch kein Zahlungsanbieter verbunden und es werden keine Zahlungsdaten verarbeitet.</p>
+          <div class="notice"><span>ⓘ</span><p><b>Vor einer Aktivierung erforderlich:</b> Anbieter und Gebührenmodell festlegen, Test- und Live-Schlüssel sicher hinterlegen, signierte Webhooks einrichten, Tarif-/Preis-IDs konfigurieren und Kündigung, Erstattung, Rechnungen sowie steuerliche Anforderungen prüfen.</p></div>
+          <div class="module-grid">
+            <article class="module-card"><div class="eyebrow">1 · ANBIETER</div><h3>Provider auswählen</h3><p>Die Zahlungsintegration wird erst nach einer bewussten Anbieterentscheidung ergänzt.</p></article>
+            <article class="module-card"><div class="eyebrow">2 · TESTBETRIEB</div><h3>Testzahlungen</h3><p>Checkout, Webhooks, fehlgeschlagene Zahlungen, Kündigungen und Erstattungen in einer isolierten Testumgebung prüfen.</p></article>
+            <article class="module-card"><div class="eyebrow">3 · FREIGABE</div><h3>Live-Abrechnung</h3><p>Erst nach rechtlicher Prüfung und ausdrücklicher Produktionsfreigabe aktivieren.</p></article>
+          </div>
+          <button class="btn btn-secondary" type="button" data-view="admin-members">Organisationen und Tarife vorbereiten</button>
+        </section>
       </section>
       <section class="view" id="view-backup">
         <div class="page-heading">
