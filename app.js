@@ -2850,7 +2850,7 @@ async function loadPfmsLegacyTeamRoster(teamId = pfmsSelectedLegacyTeam?.team_id
       ? pfmsLegacyTeamRoster.length + ' Spieler im Mannschaftskader.'
       : 'Noch keine Spieler dieser Mannschaft zugeordnet.';
 
-    if (team.can_manage) {
+    if (canEditSquad) {
       await loadPfmsGlobalTeamPlayerCandidates();
     }
   } catch (error) {
