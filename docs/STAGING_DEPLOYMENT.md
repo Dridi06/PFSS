@@ -70,6 +70,14 @@ Ergebnisse sichern und insbesondere prüfen:
 
 Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
 
+### In-App-Mitteilungen
+- Eine neue Zuweisung einer Teamaufgabe erzeugt eine Mitteilung nur beim Empfänger; Selbstzuweisungen erzeugen keine eigene Mitteilung.
+- Beim Abschließen einer Aufgabe erhalten Ersteller und zugewiesene Person (außer dem ausführenden Konto) jeweils eine eigene Mitteilung.
+- Mitteilungen werden nur im persönlichen In-App-Posteingang dieses Kontos angezeigt. Ein anderes Konto darf die Datensätze weder lesen noch verändern.
+- Browserkonten dürfen Mitteilungen nicht einfügen oder löschen. Sie dürfen ausschließlich das eigene `is_read`-Feld ändern; `read_at` wird serverseitig gesetzt.
+- Abmeldung/Kontowechsel leert den lokalen Benachrichtigungszustand und die Badge-Zahl. Die Seitenleiste zeigt nach Anmeldung die Zahl ungelesener Mitteilungen.
+- Push-, E-Mail- und externe Zustellkanäle sind in diesem Arbeitsschritt nicht enthalten.
+
 ### Gemeinsame Teamaufgaben
 - Ein Konto mit `tasks.view` darf nur Aufgaben der eigenen Mannschaft lesen. Ohne Leserecht muss der List-RPC scheitern.
 - Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Beim Erstellen alle Anfangsstatus (`open`, `in_progress`, `done`, `cancelled`) testen; bei `done` muss `completed_at` gesetzt, bei allen anderen Status null sein. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
