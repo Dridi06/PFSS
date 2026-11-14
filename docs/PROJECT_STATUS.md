@@ -27,7 +27,7 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 - Redis-/HMAC-Konfiguration fehlt oder Redis ist nicht erreichbar: Login wird fail-closed mit HTTP 503 abgewiesen. Es gibt keinen ungeschützten Fallback.
 - Es wird bewusst keine IP-Identität aus ungeprüften Forwarding-Headern abgeleitet. Der Schutz ist ein kontobezogenes Passwortversuchs-Limit, noch kein vollständiger IP-/Bot-Schutz gegen verteilte Versuche über viele Benutzernamen.
 - Staging benötigt eine eigene Upstash-Datenbank sowie `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` und `PFMS_RATE_LIMIT_HMAC_KEY`; Function anschließend neu deployen und mit Positiv-/Negativtests abnehmen. Noch nicht deployed oder live verifiziert.
-- Regressionstests und Staging-Konfiguration sind im selben Feature-Branch ergänzt. CI-Nachweis für diese Änderungen steht noch aus.
+- Regressionstests und Staging-Konfiguration sind im selben Feature-Branch ergänzt. GitHub Actions auf Commit `939eb7ea476df9544aa6f588c721ad44bc638cac` erfolgreich: Node-Projektprüfungen und Deno-Typprüfung bestanden. Lauf: https://github.com/Dridi06/PFSS/actions/runs/43638855803.
 
 ### Username-Login: Antwortdaten minimiert – 14.11.2026
 
