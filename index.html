@@ -333,6 +333,9 @@
         <button class="nav-item" data-view="tasks">
           <span class="nav-icon">☑</span>Meine Aufgaben
         </button>
+        <button class="nav-item" data-view="support">
+          <span class="nav-icon">✉</span>Hilfe & Support
+        </button>
         <div class="admin-nav-section" id="adminNavSection" hidden>
           <div class="nav-section-label admin-section-title">ADMINISTRATOR</div>
           <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span>Vereine</button>
@@ -1178,9 +1181,37 @@
           <div id="pfmsAdminErrorsResults" class="admin-user-list"></div>
         </div>
       </section>
+      <section class="view" id="view-support">
+        <div class="page-heading"><div><div class="eyebrow">PFMS SERVICE</div><h1>Hilfe & Support</h1><p>Erstelle eine Supportanfrage und verfolge den Bearbeitungsstatus deiner eigenen Anfragen.</p></div><span class="module-status">Vertraulich</span></div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">NEUE ANFRAGE</div><h3>Support kontaktieren</h3></div></div>
+            <form id="pfmsSupportTicketForm" class="form-grid">
+              <label class="field">Betreff<input name="subject" type="text" minlength="4" maxlength="160" required placeholder="Worum geht es?"></label>
+              <label class="field">Bereich<select name="category"><option value="account">Konto & Anmeldung</option><option value="organization">Verein / Organisation</option><option value="scouting">Scouting & Spieler</option><option value="technical">Technisches Problem</option><option value="billing">Abrechnung</option><option value="other">Sonstiges</option></select></label>
+              <label class="field">Nachricht<textarea name="message" rows="6" minlength="10" maxlength="5000" required placeholder="Beschreibe dein Anliegen möglichst genau …"></textarea></label>
+              <button class="btn btn-primary" type="submit" id="pfmsSupportTicketSubmit">Anfrage senden</button>
+            </form>
+            <p class="admin-message" id="pfmsSupportTicketFormMessage" role="status" aria-live="polite"></p>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">MEINE ANFRAGEN</div><h3>Bearbeitungsstand</h3></div><button class="btn btn-secondary" type="button" id="pfmsSupportTicketRefresh">Aktualisieren</button></div>
+            <p class="admin-message" id="pfmsSupportTicketListMessage" role="status" aria-live="polite">Anfragen werden geladen …</p>
+            <div id="pfmsSupportTicketList" class="pfms-support-ticket-list"></div>
+          </section>
+        </div>
+      </section>
+
       <section class="view" id="view-admin-inbox">
-        <div class="page-heading"><div><div class="eyebrow">KOMMUNIKATION</div><h1>Postfach</h1><p>Systemnachrichten und Kontaktanfragen verwalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Administratives Postfach</h3><p>Hier wird später die zentrale Nachrichten- und Supportübersicht angezeigt.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION · SERVICE</div><h1>Support-Postfach</h1><p>Supportanfragen aller PFMS-Konten prüfen, beantworten und abschließen.</p></div><span class="module-status">Administrator</span></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">TICKETVERWALTUNG</div><h3>Eingegangene Anfragen</h3></div><button class="btn btn-secondary" type="button" id="pfmsAdminSupportRefresh">Aktualisieren</button></div>
+          <div class="pfss-search-fields">
+            <label class="field">Status<select id="pfmsAdminSupportStatus"><option value="">Alle Anfragen</option><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="resolved">Erledigt</option></select></label>
+          </div>
+          <p class="admin-message" id="pfmsAdminSupportMessage" role="status" aria-live="polite">Supportanfragen werden geladen …</p>
+          <div id="pfmsAdminSupportList" class="pfms-support-ticket-list"></div>
+        </div>
       </section>
       <section class="view" id="view-admin-payments">
         <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Zahlungen</h1><p>Abonnements, Zahlungseingänge und offene Vorgänge im Blick behalten.</p></div></div>
