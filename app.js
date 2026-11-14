@@ -4,10 +4,16 @@ const DB_KEYS = {
   reports: 'pfss_reports_v1'
 };
 
-let players = read(DB_KEYS.players, []);
-let reports = read(DB_KEYS.reports, []);
+// Legacy browser data are retained until an administrator explicitly imports them.
+let legacyLocalPlayers = read(DB_KEYS.players, []);
+let legacyLocalReports = read(DB_KEYS.reports, []);
+let players = [];
+let reports = [];
 let mediaItems = [];
 let playerSearchHasRun = false;
+let pfmsMainDataReady = false;
+let pfmsMainDataLoading = false;
+let pfmsMainDataError = '';
 
 function read(key, fallback) {
   try {
@@ -17,9 +23,101 @@ function read(key, fallback) {
   }
 }
 
-function write() {
-  localStorage.setItem(DB_KEYS.players, JSON.stringify(players));
-  localStorage.setItem(DB_KEYS.reports, JSON.stringify(reports));
+function mapPfmsPlayerRow(row) {
+  return {
+    id: row.id,
+    name: row.name || '',
+    surname: row.surname || '',
+    birth: row.birth || '',
+    joinDate: row.join_date || '',
+    nationality: row.nationality || '',
+    position: row.position || 'Mittelfeld',
+    club: row.club || '',
+    height: row.height ?? '',
+    foot: row.foot || '',
+    notes: row.notes || '',
+    createdAt: row.created_at || ''
+  };
+}
+
+function mapPfmsReportRow(row) {
+  return {
+    id: row.id,
+    playerId: row.player_id,
+    date: row.observation_date || '',
+    rating: row.overall_rating,
+    notes: row.notes || '',
+    createdAt: row.created_at || '',
+    authorId: row.author_id || ''
+  };
+}
+
+function updateMainDataStatus() {
+  const playerStatus = document.getElementById('mainPlayerDataStatus');
+  const reportStatus = document.getElementById('mainReportDataStatus');
+  const text = pfmsMainDataError || (!pfmsMainDataReady ? 'Die Cloud-Daten werden geladen …' : '');
+  [playerStatus, reportStatus].forEach(host => {
+    if (!host) return;
+    host.hidden = !text;
+    host.textContent = text;
+  });
+
+  const addButton = document.getElementById('addGlobalPlayerButton');
+  if (addButton) addButton.hidden = !window.pfssIsRealAdmin || !pfmsMainDataReady;
+  document.querySelectorAll('[data-action="new-player"]').forEach(button => {
+    button.hidden = !window.pfssIsRealAdmin || !pfmsMainDataReady;
+  });
+
+  const importButton = document.getElementById('importLegacyDataButton');
+  if (importButton) {
+    importButton.hidden = !window.pfssIsRealAdmin || !pfmsMainDataReady ||
+      (!legacyLocalPlayers.length && !legacyLocalReports.length);
+  }
+}
+
+async function loadPfmsMainData() {
+  if (!window.pfssCurrentUserId || pfmsMainDataLoading) return false;
+  pfmsMainDataLoading = true;
+  pfmsMainDataReady = false;
+  pfmsMainDataError = '';
+  updateMainDataStatus();
+
+  try {
+    const [playerResult, reportResult] = await Promise.all([
+      pfssSupabase.from('pfms_global_players')
+        .select('*')
+        .order('surname', { ascending: true, nullsFirst: false }),
+      pfssSupabase.from('pfms_main_scouting_reports')
+        .select('*')
+        .order('observation_date', { ascending: false })
+    ]);
+    if (playerResult.error) throw playerResult.error;
+    if (reportResult.error) throw reportResult.error;
+
+    players = (playerResult.data || []).map(mapPfmsPlayerRow);
+    reports = (reportResult.data || []).map(mapPfmsReportRow);
+    pfmsMainDataReady = true;
+    pfmsMainDataError = '';
+    updateMainDataStatus();
+    renderDashboard();
+    renderPlayers();
+    renderReports();
+    return true;
+  } catch (error) {
+    console.error('PFMS main cloud data could not be loaded:', error);
+    players = [];
+    reports = [];
+    pfmsMainDataReady = false;
+    pfmsMainDataError =
+      'Die zentrale Spielerdatenbank konnte nicht geladen werden. Bitte prüfe, ob die PFMS-Katalogmigration in der Testdatenbank angewendet wurde und dein Konto freigegeben ist.';
+    updateMainDataStatus();
+    renderDashboard();
+    renderPlayers();
+    renderReports();
+    return false;
+  } finally {
+    pfmsMainDataLoading = false;
+  }
 }
 
 function escapeHtml(value = '') {
