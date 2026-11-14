@@ -472,6 +472,12 @@ assert.ok(
   "Team cashbox RPCs must enforce finance.view and finance.edit"
 );
 assert.ok(
+  legacyTeamFinanceMigration.includes("on delete restrict") &&
+  legacyTeamFinanceMigration.includes("p_entry_type = 'income' and p_category not in") &&
+  legacyTeamFinanceMigration.includes("p_entry_type = 'expense' and p_category not in"),
+  "Team cashbox must preserve team history and validate transaction categories"
+);
+assert.ok(
   legacyTeamFinanceMigration.includes("force row level security") &&
   legacyTeamFinanceMigration.includes("revoke all on table public.pfms_legacy_team_finance_entries") &&
   !legacyTeamFinanceMigration.includes("grant insert on table public.pfms_legacy_team_finance_entries") &&
