@@ -190,6 +190,16 @@ assert.match(
   /public\.is_admin\(\) or public\.can_manage_org\(p_organization_id\)/
 );
 
+const stagingAcceptance = (
+  await readFile(resolve(process.cwd(), "supabase/STAGING_ACCEPTANCE_READ_ONLY.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(stagingAcceptance, /'legacy_org_manager_guard'/);
+assert.match(stagingAcceptance, /'legacy_invitation_manager_authorization'/);
+assert.match(stagingAcceptance, /pg_catalog\.aclexplode\(/);
+assert.match(stagingAcceptance, /a\.grantee = 0 and a\.privilege_type = 'execute'/);
+assert.match(stagingAcceptance, /has_function_privilege\('authenticated'/);
+assert.match(stagingAcceptance, /has_function_privilege\('anon'/);
+
 assert.ok(definitions.size > 0, "No public function signatures were inspected.");
 assert.ok(grants.length > 0, "No authenticated/public function grants were inspected.");
 
