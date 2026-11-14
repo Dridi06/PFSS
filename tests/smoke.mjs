@@ -14,6 +14,7 @@ const ownerGuardMigration = await read("supabase/migrations/20261116_pfms_owner_
 const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
 const ownerGuide = await read("docs/OWNER_BOOTSTRAP.md");
 const adminMembersMigration = await read("supabase/migrations/20261115_admin_global_member_directory.sql");
+const legacyOrgAdminMigration = await read("supabase/migrations/20261111_admin_legacy_organization_management.sql");
 
 const supabaseConfig = await read("supabase/config.toml");
 const globalCatalogueMigration = await read("supabase/migrations/20261115_pfms_global_player_catalogue.sql");
@@ -128,6 +129,10 @@ assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes(
 assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
 assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
+assert.ok(adminMembersMigration.includes("public.pfms_is_admin()") && !adminMembersMigration.includes("public.is_admin()"), "Admin member directory must use the existing PFMS admin helper");
+assert.ok(legacyOrgAdminMigration.includes("pfms_admin_update_legacy_membership"), "Legacy membership update RPC used by the admin interface is missing");
+assert.ok(systemEventsMigration.includes("public.pfms_is_admin()") && !systemEventsMigration.includes("public.is_admin()"), "System event policies must use the existing PFMS admin helper");
+
 assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migration must use valid PostgreSQL date syntax");
 
 assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
