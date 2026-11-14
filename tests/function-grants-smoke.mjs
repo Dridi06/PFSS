@@ -586,7 +586,7 @@ assert.match(notifications, /alter table public\.pfms_notifications enable row l
 assert.match(notifications, /alter table public\.pfms_notifications force row level security/);
 assert.match(notifications, /recipient_id = auth\.uid\(\)/);
 assert.match(notifications, /grant select on table public\.pfms_notifications to authenticated/);
-assert.match(notifications, /grant update \(is_read\) on public\.pfms_notifications to authenticated/);
+assert.match(notifications, /grant update \(is_read\) on table public\.pfms_notifications to authenticated/);
 assert.doesNotMatch(notifications, /grant (?:insert|delete|update) on table public\.pfms_notifications to authenticated/);
 assert.match(notifications, /revoke all on table public\.pfms_notifications from public, anon, authenticated/);
 assert.match(notifications, /revoke all on function public\.pfms_notify_legacy_team_task_changes\(\) from public, anon, authenticated/);
