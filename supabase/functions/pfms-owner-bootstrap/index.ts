@@ -106,6 +106,13 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Authentication required" }, 401);
     }
 
+    // The first owner must have confirmed the account's email and must have
+    // registered through the dedicated owner onboarding choice.
+    if (!userData.user.email || !userData.user.email_confirmed_at ||
+        userData.user.user_metadata?.registration_type !== "owner_bootstrap") {
+      return json({ error: "Verified owner registration required" }, 403);
+    }
+
     const serviceClient = createClient(supabaseUrl, secretKey, {
       auth: {
         autoRefreshToken: false,
