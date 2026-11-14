@@ -12,7 +12,8 @@ const publicFiles = [
   "scout-workspace.css",
   "app.js",
   "scout-workspace.js",
-  "pfms-logo.svg"
+  "pfms-logo.svg",
+  "pfms-welcome.webp"
 ];
 
 await rm(outputDirectory, { recursive: true, force: true });
