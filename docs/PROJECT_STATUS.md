@@ -357,3 +357,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Fehlerantworten werden nun nur noch angezeigt, wenn Benutzer, ausgewählte Mannschaft und der jeweils geöffnete Termin/das Spiel weiterhin übereinstimmen. Ein alter Request kann dadurch nicht mehr den gerade geöffneten anderen Mannschaftsbereich mit einer veralteten Fehlermeldung oder leeren Daten überschreiben.
 - Drei Regressionstests sichern diese Team-/Sitzungs-/Spielbindung.
 - Keine Datenbankänderung und kein Deployment. Die Änderung liegt ausschließlich im Feature-Branch; Staging- und Live-Akzeptanz bleiben offen.
+
+
+## Zusätzliche Teamwechsel-Isolation bei Berechtigungs- und Aufstellungsaktionen – 14.11.2026
+
+- Die Fehlerbehandlung beim Laden des ausgewählten Team-Workspaces prüft jetzt auch im Fehlerfall, ob die angeforderte Mannschaft weiterhin ausgewählt ist. Ein verspäteter Fehler einer vorherigen Mannschaft darf die aktuelle Ansicht nicht sperren oder überschreiben.
+- Das Speichern einer Spielaufstellung bindet den gesamten Vorgang jetzt bereits vor dem RPC an die ursprüngliche Benutzer-, Team- und Spiel-ID. Erfolgs-, Fehler- und Abschlussbehandlung werden bei einem zwischenzeitlichen Team-/Spielwechsel verworfen; insbesondere wird kein Button einer inzwischen anderen Ansicht durch einen alten Request verändert.
+- Zwei Regressionstests sichern diese Team-/Spielbindung.
+- Keine Migration, Datenbankänderung oder Bereitstellung. Die Änderungen bleiben auf dem Feature-Branch.
