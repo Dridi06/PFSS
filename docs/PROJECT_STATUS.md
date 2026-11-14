@@ -382,3 +382,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Deren Abschlussbehandlung aktiviert Schaltflächen nur noch dann wieder, wenn Benutzerkonto und ursprünglich ausgewählte Mannschaft weiterhin übereinstimmen.
 - Sechs Regressionstests sichern die betroffenen Schreibwege. Serverseitige RPC-/RLS-Prüfungen bleiben weiterhin die maßgebliche Autorisierung.
 - Keine Datenbank-, Storage-, Secret- oder Live-Änderung; keine Bereitstellung. Feature-Branch bleibt isoliert.
+
+
+## Mannschaftskader-Schreibvorgänge an Teamkontext gebunden – 14.11.2026
+
+- Hinzufügen, Bearbeiten und Entfernen von Kaderzuordnungen erfassen jetzt die ursprüngliche Team-ID.
+- Nach einem asynchronen Datenbankaufruf werden Erfolg, Fehler, Neuladen und Button-Freigabe nur ausgeführt, wenn dieselbe Mannschaft noch ausgewählt ist.
+- Drei Regressionstests schützen die Teamkontextbindung aller drei Kader-Schreibwege.
+- Globale Spielerprofile werden weiterhin nicht gelöscht, wenn eine Mannschaftszuordnung entfernt wird.
+- Keine Migration, keine Änderung an Produktivdaten und kein Deployment.
