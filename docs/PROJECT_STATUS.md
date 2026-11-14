@@ -421,3 +421,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Oberfläche blockiert das Entfernen des letzten aktuell gelisteten Passkeys und fordert zunächst einen zweiten Zugang. Das ist eine zusätzliche clientseitige Schutzmaßnahme, aber keine serverseitige Garantie gegen parallele Änderungen oder Löschungen außerhalb dieser Oberfläche.
 - Die Passkey-Verwaltungs-API ist in der aktuellen Supabase-JavaScript-Dokumentation beschrieben. Passkeys bleiben experimentell; produktive Aktivierung erst nach Staging-Konfiguration und Ende-zu-Ende-Abnahme.
 - Die Verwaltung wurde im Feature-Branch ergänzt; noch kein Browser-/Staging-Test und kein Deployment.
+
+
+### Passkey-Regressionstests und CI-Nachweis – 15.11.2026
+
+- Der vollständige GitHub-Actions-Lauf für Commit `bd096c164523cc9bd88a8b70505e4da939ef882c` ist erfolgreich: beide Jobs „Syntax and project smoke tests“ und „Type-check Supabase Edge Functions“ abgeschlossen.
+- Neue Smoke-Assertions sichern die Passkey-Login-/Registrierungs- und Verwaltungsoberfläche, Supabase-Auth-Opt-in, Listen/Umbenennen/Entfernen sowie die UI-Schutzprüfung gegen das versehentliche Entfernen des letzten gelisteten Passkeys.
+- Die Supabase-JavaScript-Referenz bestätigt die verwendeten Aufrufe `registerPasskey()`, `signInWithPasskey()` sowie `auth.passkey.list/update/delete`. Die Funktion bleibt experimentell; SDK-/Serverkompatibilität und die Dashboard-Aktivierung müssen im Staging praktisch geprüft werden.
+- Der neue Regressionstest liegt auf dem Feature-Branch. Für dessen neuen Commit steht der nächste CI-Lauf noch aus.
+- Die Staging-Umgebung ist weiterhin nicht als aktiv und getestet bestätigt. Keine Datenbankmigration, Supabase-Function oder Render-Service wurde durch diese Codeänderungen deployed.
