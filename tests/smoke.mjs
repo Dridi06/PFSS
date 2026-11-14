@@ -39,7 +39,9 @@ const [
   legacyTeamTrainingExercisesMigration,
   legacyTeamFinanceMigration,
   personalTasksMigration,
-  supportTicketsMigration
+  supportTicketsMigration,
+  backupWorkflow,
+  backupRunbook
 ] = await Promise.all([
   read("index.html"),
   read("rechtliches.html"),
@@ -74,7 +76,9 @@ const [
   read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
   read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
   read("supabase/migrations/20261128_pfms_personal_tasks.sql"),
-  read("supabase/migrations/20261129_pfms_support_tickets.sql")
+  read("supabase/migrations/20261129_pfms_support_tickets.sql"),
+  read(".github/workflows/pfss-database-backup.yml"),
+  read("docs/BACKUP_RESTORE.md")
 ]);
 
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
@@ -99,6 +103,7 @@ const requiredFiles = [
   "deno.json",
   "docs/PROJECT_STATUS.md",
   "docs/STAGING_DEPLOYMENT.md",
+  "docs/BACKUP_RESTORE.md",
   "docs/OWNER_BOOTSTRAP.md",
   "SECURITY.md",
   ".github/dependabot.yml",
@@ -163,6 +168,13 @@ for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
 
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
+assert.ok(backupWorkflow.includes('pg_restore --list "backup/$FILE"') && backupWorkflow.includes('pg_restore --list "$VERIFY_FILE"'), "Backup workflow must validate the archive before and after encryption");
+assert.ok(backupWorkflow.includes("openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000"), "Backup workflow must verify decryption using the configured KDF parameters");
+assert.ok(backupWorkflow.includes("aws s3api head-object"), "Backup workflow must verify the uploaded encrypted object");
+assert.ok(backupRunbook.includes("neue, isolierte Testdatenbank") && backupRunbook.includes("RESTORE_DATABASE_URL"), "Backup restore documentation must limit restore to an isolated test database");
+assert.ok(backupRunbook.includes("pg_restore --list") && backupRunbook.includes("Storage-Objekte"), "Backup restore runbook must include archive validation and explain separate Storage recovery");
+assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--clean`"), "Restore guide must prohibit destructive clean restore flags");
+
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
 assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 5, "Five PFMS registration choices must remain available");
 assert.equal((html.match(/data-registration-choice="(?:user|club|agency|scout)"/g) || []).length, 4, "Four public PFMS access packages must remain available separately from owner bootstrap");
