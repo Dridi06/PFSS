@@ -24,10 +24,19 @@ for (const file of requiredFiles) {
   await access(resolve(outputDirectory, file));
 }
 
-const runtimeConfig = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
-assert.ok(runtimeConfig.includes('"buildTarget":"ci"'), "CI build must use an isolated placeholder config");
-assert.ok(runtimeConfig.includes("ci-placeholder.supabase.co"), "CI build must not embed a real Supabase project");
-assert.ok(!runtimeConfig.includes("sb_secret_") && !runtimeConfig.includes("service_role"), "Browser config must not contain server-side secrets");
+const runtimeConfigSource = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
+const runtimeConfigMatch = runtimeConfigSource.match(/Object\\.freeze\\((\\{.*\\})\\);/s);
+assert.ok(runtimeConfigMatch, "Generated frontend config must be valid JSON data");
+const runtimeConfig = JSON.parse(runtimeConfigMatch[1]);
+assert.ok(["ci", "staging"].includes(runtimeConfig.buildTarget), "Build must explicitly identify CI or Staging target");
+if (runtimeConfig.buildTarget === "ci") {
+  assert.equal(runtimeConfig.projectRef, "ci-placeholder");
+  assert.equal(runtimeConfig.supabaseUrl, "https://ci-placeholder.supabase.co");
+} else {
+  assert.match(runtimeConfig.projectRef, /^[a-z0-9]{20}$/);
+  assert.equal(new URL(runtimeConfig.supabaseUrl).hostname, runtimeConfig.projectRef + ".supabase.co");
+}
+assert.ok(!runtimeConfigSource.includes("sb_secret_") && !runtimeConfigSource.includes("service_role"), "Browser config must not contain server-side secrets");
 
 
 for (const page of ["index.html", "rechtliches.html"]) {
