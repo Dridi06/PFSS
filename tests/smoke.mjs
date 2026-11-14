@@ -218,6 +218,7 @@ assert.ok(app.includes(".eq('owner_id', requestUserId)") && app.includes("pfmsPe
 
 assert.ok(app.includes("data-pfms-club-nav") && app.includes("data-pfms-open-invitation"), "Club workspace navigation and invite actions are not wired");
 assert.ok(html.includes('id="pfmsClubScoutingOrganization"') && html.includes('id="pfmsClubScoutingResults"'), "Club scouting roster UI is missing");
+assert.ok(html.includes('id="view-scouts"') && html.includes('data-view="admin-members"') && html.includes('data-view="club-scouting"'), "Scout network page must route to live membership and organization workflows");
 assert.ok(html.includes('data-view="club-members"') && html.includes('data-view="team-workspace"') && html.includes('Organisationsweite frei definierbare Rollen- und Rechteprofile'), "Club administration must link to connected management workflows and disclose remaining scope");
 
 assert.ok(app.includes("async function loadPfmsClubScouts()") && app.includes("p_role: 'scout'") && app.includes("p_status: 'active'"), "Club scouting must list active scouts from the organization");
