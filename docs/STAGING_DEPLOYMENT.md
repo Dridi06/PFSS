@@ -33,6 +33,8 @@ supabase db push
 
 Die CLI wendet alle noch ausstehenden, versionierten Migrationen in ihrer Reihenfolge an. Keine einzelne Migration überspringen.
 
+Die Migration `20261118_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit, den die Einladungs-RPC verwendet. Sie muss in der regulären chronologischen Migrationenfolge nach `20261111_fix_invitation_admin_access.sql` angewendet werden; nicht isoliert vorziehen oder auslassen.
+
 ## 3. Edge Functions bereitstellen
 
 Nach erfolgreichem Datenbank-Push:
