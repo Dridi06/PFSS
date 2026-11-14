@@ -146,3 +146,129 @@ using (author_id = auth.uid() or public.pfms_is_admin());
 
 grant select, insert, update, delete on public.pfms_global_players to authenticated;
 grant select, insert, update, delete on public.pfms_main_scouting_reports to authenticated;
+
+
+-- Controlled, transactional migration of legacy browser backups into the cloud catalogue.
+-- Input IDs are remapped; no browser-provided ownership IDs are trusted.
+create or replace function public.pfms_import_legacy_catalogue(
+  p_players jsonb,
+  p_reports jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  player_item jsonb;
+  report_item jsonb;
+  old_player_id text;
+  new_player_id uuid;
+  id_map jsonb := '{}'::jsonb;
+  player_count integer := 0;
+  report_count integer := 0;
+  player_name text;
+  player_position text;
+  player_foot text;
+  rating_value numeric;
+  report_notes text;
+begin
+  if not public.pfms_is_admin() then
+    raise exception 'Administrator access required' using errcode = '42501';
+  end if;
+
+  if pg_catalog.jsonb_typeof(p_players) <> 'array'
+     or pg_catalog.jsonb_typeof(p_reports) <> 'array' then
+    raise exception 'Invalid backup payload' using errcode = '22023';
+  end if;
+
+  if pg_catalog.jsonb_array_length(p_players) > 5000
+     or pg_catalog.jsonb_array_length(p_reports) > 20000 then
+    raise exception 'Backup is too large' using errcode = '22023';
+  end if;
+
+  for player_item in
+    select value from pg_catalog.jsonb_array_elements(p_players) as rows(value)
+  loop
+    old_player_id := nullif(player_item ->> 'id', '');
+    player_name := pg_catalog.btrim(coalesce(player_item ->> 'name', ''));
+    player_position := coalesce(nullif(player_item ->> 'position', ''), 'Mittelfeld');
+    player_foot := nullif(player_item ->> 'foot', '');
+
+    if old_player_id is null or id_map ? old_player_id then
+      raise exception 'Invalid or duplicate player ID in backup' using errcode = '22023';
+    end if;
+    if pg_catalog.length(player_name) not between 1 and 120 then
+      raise exception 'Invalid player name in backup' using errcode = '22023';
+    end if;
+    if player_position not in ('Torwart','Abwehr','Mittelfeld','Sturm') then
+      raise exception 'Invalid player position in backup' using errcode = '22023';
+    end if;
+    if player_foot is not null and player_foot not in ('Rechts','Links','Beidfüßig') then
+      raise exception 'Invalid player foot in backup' using errcode = '22023';
+    end if;
+
+    new_player_id := gen_random_uuid();
+    id_map := id_map || pg_catalog.jsonb_build_object(old_player_id, new_player_id::text);
+
+    insert into public.pfms_global_players (
+      id, name, surname, birth, join_date, nationality, position,
+      club, height, foot, notes, created_by, updated_by
+    ) values (
+      new_player_id,
+      player_name,
+      nullif(pg_catalog.btrim(coalesce(player_item ->> 'surname', '')), ''),
+      nullif(player_item ->> 'birth', '')::date,
+      nullif(player_item ->> 'joinDate', '')::date,
+      nullif(pg_catalog.btrim(coalesce(player_item ->> 'nationality', '')), ''),
+      player_position,
+      nullif(pg_catalog.btrim(coalesce(player_item ->> 'club', '')), ''),
+      nullif(player_item ->> 'height', '')::integer,
+      player_foot,
+      nullif(pg_catalog.btrim(coalesce(player_item ->> 'notes', '')), ''),
+      auth.uid(),
+      auth.uid()
+    );
+
+    player_count := player_count + 1;
+  end loop;
+
+  for report_item in
+    select value from pg_catalog.jsonb_array_elements(p_reports) as rows(value)
+  loop
+    old_player_id := nullif(report_item ->> 'playerId', '');
+    report_notes := pg_catalog.btrim(coalesce(report_item ->> 'notes', ''));
+    rating_value := nullif(report_item ->> 'rating', '')::numeric;
+
+    if old_player_id is null or not (id_map ? old_player_id) then
+      raise exception 'A report references a player missing from the backup' using errcode = '22023';
+    end if;
+    if rating_value is null or rating_value < 1 or rating_value > 10 then
+      raise exception 'Invalid scouting rating in backup' using errcode = '22023';
+    end if;
+    if pg_catalog.length(report_notes) not between 1 and 10000 then
+      raise exception 'Invalid report notes in backup' using errcode = '22023';
+    end if;
+
+    insert into public.pfms_main_scouting_reports (
+      player_id, author_id, observation_date, overall_rating, notes
+    ) values (
+      (id_map ->> old_player_id)::uuid,
+      auth.uid(),
+      coalesce(nullif(report_item ->> 'date', '')::date, pg_catalog.current_date),
+      rating_value,
+      report_notes
+    );
+
+    report_count := report_count + 1;
+  end loop;
+
+  return pg_catalog.jsonb_build_object(
+    'players_imported', player_count,
+    'reports_imported', report_count
+  );
+end;
+$$;
+
+revoke all on function public.pfms_import_legacy_catalogue(jsonb, jsonb) from public, anon;
+grant execute on function public.pfms_import_legacy_catalogue(jsonb, jsonb) to authenticated;
