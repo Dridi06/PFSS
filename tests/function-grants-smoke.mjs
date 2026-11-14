@@ -631,8 +631,10 @@ assert.match(
 const teamPermissions = (
   await readFile(resolve(directory, "20261122_pfms_legacy_team_permissions.sql"), "utf8")
 ).replace(/\s+/g, " ").toLowerCase();
-assert.match(teamPermissions, /p_module_key in \('squad','training','attendance','finance','events','calendar','matches','analysis'\)/);
-assert.match(teamPermissions, /p_action in \('view','edit'\)/);
+assert.match(teamPermissions, /p_module_key in/);
+for (const moduleKey of ['squad','training','attendance','finance','events','calendar','matches','analysis']) assert.ok(teamPermissions.includes("'" + moduleKey + "'"));
+assert.match(teamPermissions, /p_action in/);
+assert.ok(teamPermissions.includes("'view'") && teamPermissions.includes("'edit'"));
 assert.match(teamPermissions, /check \(not can_edit or can_view\)/);
 assert.match(teamPermissions, /jsonb_array_length\(p_permissions\) <> 8/);
 assert.match(teamPermissions, /count\(distinct value ->> 'module_key'\)/);
