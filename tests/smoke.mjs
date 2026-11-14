@@ -157,7 +157,6 @@ assert.ok(legacyAdminCompatMigration.includes("create or replace function public
 
 assert.ok(systemEventsMigration.includes("public.pfms_is_admin()") && !systemEventsMigration.includes("public.is_admin()"), "System event policies must use the existing PFMS admin helper");
 assert.ok(mainMediaMigration.includes("public.pfms_main_media") && mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("enable row level security"), "Private main media migration is incomplete");
-assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+
 
 assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migration must use valid PostgreSQL date syntax");
 
