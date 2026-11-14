@@ -186,8 +186,8 @@ assert.ok(
   backupWorkflow.includes("python3 scripts/backup-hmac.py create")
     && backupWorkflow.includes("python3 scripts/backup-hmac.py verify")
     && backupWorkflow.includes("BACKUP_FILE.hmac")
-    && helper.includes("hmac.compare_digest(actual, expected)")
-    && helper.includes("Backup HMAC verification failed; refusing to decrypt."),
+    && backupHmacHelper.includes("hmac.compare_digest(actual, expected)")
+    && backupHmacHelper.includes("Backup HMAC verification failed; refusing to decrypt."),
   "Database backups must authenticate the encrypted archive and refuse tampered ciphertext"
 );
 assert.ok(
@@ -196,9 +196,9 @@ assert.ok(
   "Backup HMAC must be verified before decryption in both CI and the restore runbook"
 );
 assert.ok(
-  helper.includes('hashlib.pbkdf2_hmac(')
-    && helper.includes('DOMAIN = b"PFSS-R2-BACKUP-HMAC-v1"')
-    && helper.includes("ITERATIONS = 600_000")
+  backupHmacHelper.includes('hashlib.pbkdf2_hmac(')
+    && backupHmacHelper.includes('DOMAIN = b"PFSS-R2-BACKUP-HMAC-v1"')
+    && backupHmacHelper.includes("ITERATIONS = 600_000")
     && backupRunbook.includes("PFSS_BACKUP_ENCRYPTION_PASSPHRASE"),
   "Backup creation and restore must use the shared domain-separated HMAC key derivation"
 );
