@@ -448,14 +448,7 @@ assert.ok(
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
   legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_training_session_exercises"),
   "Training exercise tables must deny direct client writes and enforce RLS"
-);
-
-  legacyTeamTrainingExercisesMigration.includes("force row level security") &&
-  legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_team_training_exercises") &&
-  legacyTeamTrainingExercisesMigration.includes("revoke all on table public.pfms_legacy_training_session_exercises"),
-  "Training exercise tables must deny direct client writes and enforce RLS"
-);
-assert.ok(
+);assert.ok(
   legacyTeamFinanceMigration.includes("public.pfms_legacy_team_finance_entries"),
   "Team finance ledger table is missing"
 );
