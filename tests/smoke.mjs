@@ -72,11 +72,11 @@ const [
   read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
   read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
   read("supabase/migrations/20261128_pfms_personal_tasks.sql"),
-  read("supabase/migrations/20261129_pfms_support_tickets.sql",
-  "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql")
+  read("supabase/migrations/20261129_pfms_support_tickets.sql")
 ]);
 
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
+const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql");
 
 const requiredFiles = [
   "index.html",
@@ -111,6 +111,8 @@ const requiredFiles = [
   "supabase/migrations/20261117_pfms_main_media_library.sql",
   "supabase/migrations/20261128_pfms_personal_tasks.sql",
   "supabase/migrations/20261129_pfms_support_tickets.sql",
+  "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
+  "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -687,6 +689,13 @@ assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must i
 assert.ok(stagingAudit.includes("FUNCTION_GRANTS") && stagingAudit.includes("aclexplode"), "Staging audit must inventory effective function EXECUTE grants, including Security Definer routines");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
+assert.ok(
+  legacyInvitationLifecycleHardeningMigration.includes("v_org_status not in ('approved','active')")
+    && legacyInvitationLifecycleHardeningMigration.includes("for share")
+    && legacyInvitationLifecycleHardeningMigration.includes("revoke all on function public.pfms_apply_legacy_invitation()"),
+  "Invitation redemption must re-check organization status under a row lock and keep the trigger function non-executable by browser roles"
+);
+
 
 
 assert.ok(
