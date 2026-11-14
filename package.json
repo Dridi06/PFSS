@@ -5,7 +5,8 @@
   "description": "PFMS – Professionell Football Management System",
   "type": "module",
   "scripts": {
-    "check:syntax": "node --check app.js && node --check scout-workspace.js",
-    "test": "npm run check:syntax && node tests/smoke.mjs"
+    "check:syntax": "node --check app.js && node --check scout-workspace.js && node --check scripts/build-static.mjs",
+    "build": "node scripts/build-static.mjs",
+    "test": "npm run check:syntax && npm run build && node tests/smoke.mjs && node tests/build-smoke.mjs"
   }
 }
