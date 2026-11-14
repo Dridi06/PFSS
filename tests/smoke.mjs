@@ -212,7 +212,14 @@ assert.ok(legacyTeamRosterMigration.includes("pfms_has_legacy_team_permission(p_
 assert.ok(legacyTeamRosterMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'squad', 'edit')"), "Team roster mutations and player search must require squad edit permission");
 assert.ok(legacyTeamRosterMigration.includes("position_override text") && legacyTeamRosterMigration.includes("coalesce(tp.position_override, p.position)"), "Team position overrides must remain separate from global player positions");
 assert.ok(app.includes("pfms_get_my_legacy_team_permissions") && app.includes("applyPfmsLegacyTeamModulePermissions"), "Team module visibility must be driven by server-resolved per-user permissions");
-assert.ok(app.includes("pfmsSelectedTeamPermissions.get('squad')?.can_view") && app.includes("pfmsSelectedTeamPermissions.get('squad')?.can_edit"), "Roster view/edit controls must respect separate team permissions");
+assert.ok(
+  app.includes("const canViewSquad = squadPermission.can_view === true;") &&
+  app.includes("const canEditSquad = squadPermission.can_edit === true;") &&
+  app.includes("rosterPanel.hidden = !canViewSquad") &&
+  app.includes("form.hidden = !canEditSquad") &&
+  app.includes("searchForm.hidden = !canEditSquad"),
+  "Roster view/edit controls must respect separate team permissions"
+);
 assert.ok(app.includes("pfmsSelectedTeamPermissions = new Map()") && app.includes("pfmsTeamPermissionsDialog") && app.includes("requestGeneration !== pfmsAuthGeneration"), "Team permission UI must clear state and reject stale account responses");
 
 assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
