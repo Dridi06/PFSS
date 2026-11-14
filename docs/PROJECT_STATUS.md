@@ -235,16 +235,18 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Produktionsdeployment erst nach dokumentierter Abnahme und ausdrücklicher Freigabe.
 
 
-## 9. Qualitätssicherung – Ergänzungen vom 14.11.2026
+## 9. Qualitätssicherung – Stand 14.11.2026
 
-- Der Support-Ticket-Rate-Limit-Trigger hatte einen fehlerhaften PostgreSQL-Dollar-Quote-Begrenzer. Dieser Syntaxfehler wurde in `20261129_pfms_support_tickets.sql` korrigiert.
-- Neuer Test `tests/migration-syntax-smoke.mjs` prüft alle versionierten SQL-Migrationen auf paarige Dollar-Quote-Begrenzer und verbotene einzelne Dollar-Begrenzer direkt nach `AS`. Er läuft in `npm test`.
-- Die Edge Function `r2-connection-check` verlangt nun zusätzlich ein verifiziertes Benutzer-JWT und die serverseitige PFMS-Administratorprüfung über `pfms_is_admin`. `verify_jwt = true` ist explizit in `supabase/config.toml` gesetzt. Antworten werden nicht gecacht.
-- Regressionstests prüfen die Admin-Authentifizierung des R2-Endpunkts und dessen JWT-Konfiguration.
-- Die Render-CSP erlaubt zusätzlich ausschließlich die konkret benötigte Google-Fonts-Stylesheet-Origin `https://fonts.googleapis.com`; der Build-Smoke-Test prüft diese Abhängigkeit. Font-Dateien bleiben durch `font-src https:` abgedeckt.
-- **Staging-Blocker:** Die Build-Konfiguration ist jetzt getrennt und fail-closed. Vor dem ersten Render-Staging-Deployment muss ein dediziertes Staging-Supabase-Projekt festgelegt und dessen Projekt-Referenz, URL und Publishable-Key in den Render-Environment-Variablen eingetragen werden. Ein vorhandener Render-Dienst fragt `sync: false`-Werte nicht automatisch nachträglich ab; diese sind manuell zu setzen.
-- Die Signup-Trigger-Härtung in `20261130_pfms_auth_trigger_hardening.sql` und `20261131_pfms_legacy_invitation_status_guard.sql` setzt einen leeren `search_path` und entzieht Browserrollen die direkte Funktionsausführung, ohne das bisherige Provisionierungsverhalten zu ändern.
-- Das read-only Staging-Audit erfasst jetzt auch effektive `EXECUTE`-Grants einschließlich impliziter `PUBLIC`-Freigaben für PFMS-/PFSS-Funktionen.
-- Die zuletzt geprüften GitHub-Actions-Läufe auf dem PR-Branch waren erfolgreich: Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen einschließlich Trainingszyklen, Videoanalyse, Event-RSVP, Logistik/Kapazitätsregeln sowie Deno-Typprüfung aller Edge Functions. Nach jeder weiteren Änderung ist die CI erneut abzuwarten.
+- `npm test` führt Syntaxprüfung, isolierten CI-Build, Projekt-Smoke-Tests, Build-/Asset-/CSP-Prüfungen, Accessibility-Prüfung, SQL-Migrationssyntaxprüfung und Funktionsrechte-Signaturprüfung aus.
+- Der Migrationstest prüft paarige PostgreSQL-Dollar-Quote-Begrenzer; der Funktionstest vergleicht deklarierte Funktionssignaturen mit `GRANT EXECUTE` und SECURITY-DEFINER-`REVOKE`.
+- Die Edge Function `r2-connection-check` verlangt ein verifiziertes Benutzer-JWT und die serverseitige PFMS-Administratorprüfung über `pfms_is_admin`. `verify_jwt = true` ist explizit gesetzt; Antworten werden nicht gecacht.
+- Die Render-CSP erlaubt die erforderliche Google-Fonts-Stylesheet-Origin, ohne die übrige Richtlinie pauschal zu öffnen.
+- Build-/Staging-Isolation ist fail-closed: CI nutzt Platzhalterdaten; Staging muss eine ausdrücklich konfigurierte Projekt-ID, URL und einen Publishable-/Anon-Key verwenden. Secret-/Service-Role-Schlüssel werden für Browserbuilds abgewiesen.
+- Teamaufgaben verwenden einen eigenen neunten Berechtigungsbereich `tasks.view/edit`; aktive Teammitarbeiter werden über einen zusammengesetzten Fremdschlüssel derselben Mannschaft zugeordnet.
+- In-App-Mitteilungen sind persönlich RLS-geschützt. Datenbanktrigger erzeugen Mitteilungen bei Teamaufgabenzuweisung und -abschluss; Browserkonten können nur eigene Mitteilungen lesen und als gelesen markieren.
+- `supabase/STAGING_READ_ONLY_AUDIT.sql` inventarisiert Organisationsmodelle, Tabellen, Policies, Grants, Storage und Funktionsrechte.
+- `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` ergänzt nach dem Migrationseinsatz gezielte Prüfungen für RLS/FORCE RLS, Team-Aufgabenzuweisung, neun Berechtigungsbereiche, RPC-EXECUTE, Benachrichtigungstrigger und private Leserechte. Es liest ausschließlich Kataloge und Privilegien und verändert keine Daten oder Schemaobjekte.
+- GitHub Actions prüft beide CI-Jobs: Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen und Deno-Typprüfung aller Supabase Edge Functions. Der aktuelle Stand wird nach der letzten Änderung erneut geprüft.
+
 
 Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächliche Ausführen der Migrationen in Staging noch den Funktionstest des R2-Endpunkts mit einem Administrator- und einem Nicht-Administrator-Konto.
