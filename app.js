@@ -5943,9 +5943,15 @@ const inviteFromUrl = new URLSearchParams(window.location.search).get('invite');
 if (inviteFromUrl && invitationCodeInput) invitationCodeInput.value = inviteFromUrl;
 document.querySelectorAll('[data-pricing]').forEach(group => {
   group.dataset.selectedPlan = 'monthly';
-  group.querySelectorAll('.price-option').forEach(option => {
+  const options = [...group.querySelectorAll('.price-option')];
+  options.forEach(option => {
+    option.setAttribute('aria-pressed', String(option.dataset.plan === 'monthly'));
     option.addEventListener('click', () => {
-      group.querySelectorAll('.price-option').forEach(item => item.classList.toggle('active', item === option));
+      options.forEach(item => {
+        const selected = item === option;
+        item.classList.toggle('active', selected);
+        item.setAttribute('aria-pressed', String(selected));
+      });
       group.dataset.selectedPlan = option.dataset.plan;
       if (selectedRegistrationChoice === group.dataset.pricing) {
         selectedBillingCycle = option.dataset.plan;
