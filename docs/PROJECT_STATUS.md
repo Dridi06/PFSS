@@ -430,3 +430,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Supabase-JavaScript-Referenz bestätigt die verwendeten Aufrufe `registerPasskey()`, `signInWithPasskey()` sowie `auth.passkey.list/update/delete`. Die Funktion bleibt experimentell; SDK-/Serverkompatibilität und die Dashboard-Aktivierung müssen im Staging praktisch geprüft werden.
 - Der neue Regressionstest liegt auf dem Feature-Branch. Für dessen neuen Commit steht der nächste CI-Lauf noch aus.
 - Die Staging-Umgebung ist weiterhin nicht als aktiv und getestet bestätigt. Keine Datenbankmigration, Supabase-Function oder Render-Service wurde durch diese Codeänderungen deployed.
+
+
+### WebAuthn-RP-Domainprüfung für Render-Staging – 15.11.2026
+
+- Die Staging-Anleitung legt jetzt die Reihenfolge für Supabase Authentication → Passkeys fest: tatsächlichen Render-Host ermitteln, RP-ID und HTTPS-Origin exakt eintragen, erst danach Passkey-Authentifizierung im dedizierten Projekt `PFSS-Test` aktivieren.
+- Sicherheitsrelevanter Befund: `onrender.com` ist in der Public Suffix List als Public Suffix eingetragen. Es darf daher nicht als gemeinsame RP-ID für PFMS verwendet werden. Der vollständige konkrete Staging-Hostname kann als RP-ID dienen; ein eigenes PFMS-Custom-Domain ist langfristig vorzuziehen.
+- Eine Änderung der RP-ID macht bereits registrierte Passkeys unbrauchbar. Staging- und Produktionsdomains bleiben getrennte Credential-Bereiche.
+- Beleg: Supabase Passkey-Konfigurationsanleitung und W3C WebAuthn-RP-ID-Regeln; Public-Suffix-Eintrag von Render. Staging-Konfiguration wurde noch nicht im Dashboard geändert.
