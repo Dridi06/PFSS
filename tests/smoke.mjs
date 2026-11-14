@@ -307,6 +307,9 @@ assert.ok(!html.includes("data-skeleton-action") && !app.includes("data-skeleton
 assert.ok(!html.includes('data-skeleton-action="Mitarbeiter"'), "Trainer and Betreuer page must not retain the static skeleton action");
 assert.ok(app.includes("async function loadPfmsStaffDirectory()") && app.includes("pfms_list_legacy_team_staff"), "Trainer and Betreuer page must load live staff through the protected team RPC");
 assert.ok(app.includes("data-pfms-team-staff") && app.includes("data-pfms-open-team"), "Staff directory must link to existing team-scoped staff management and workspace");
+assert.ok(app.includes("function pfmsTeamStaffStatusLabel") && app.includes("member.assignment_status === 'inactive'"), "Staff directory must distinguish active and inactive assignments");
+assert.ok(app.includes("staff.filter(member => member.assignment_status === 'active').length"), "Staff directory must count only active assignments as active");
+
 assert.ok(app.includes("requestGeneration !== pfmsAuthGeneration") && app.includes("pfmsStaffDirectoryRequestId"), "Staff directory requests must be guarded against account changes and stale navigation");
 
 assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
