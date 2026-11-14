@@ -1,7 +1,7 @@
 # PFMS – Verbindlicher Projektstatus
 
 Stand: 14.11.2026  
-Geschätzter Gesamtfortschritt: **ca. 40 %** (Arbeitsfortschritt, keine abgenommene Funktionsquote)  
+Geschätzter Gesamtfortschritt: **ca. 42 %** (Arbeitsfortschritt, keine abgenommene Funktionsquote)  
 Arbeitsbranch: `feature/pfss-complete-platform-build`  
 Produktivbranch: `main`  
 Produktionsfreigabe: **nicht erteilt**
@@ -55,7 +55,7 @@ Vorhandene Migrationen betreffen:
 | Privater Scout-Bereich | Private Supabase-CRUDs und Storage; globale Spielersuche mit Übernahme in private Scout-Datenbank vorbereitet | Migrationen in Staging anwenden; Suche, Übernahme, CRUD-, RLS- und Storage-Tests verwenden |
 | Vereine und Agenturen | Teile der Oberfläche und Admin-RPCs vorhanden | Besitzer-/Leitungsworkflows, Datenpflege, Einladungen und Mitgliedschaften vervollständigen |
 | Mannschaften und Staff | Legacy-Teamtabellen mit RLS; Teams und Trainerteam; global verknüpfter Kader; acht getrennte Modulrechte; Trainingstermine und spielerbezogene Anwesenheit mit serverseitigen Rechteprüfungen | Team-, Rechte-, Kader-, Trainings- und Anwesenheitsmigrationen in Staging anwenden; positive/negative Zugriffstests je Rolle abnehmen |
-| Trainer-/Team-Workspace | Teamübersicht, Trainerteam, granularer Rechte-Editor, Kader, Training/Anwesenheit, Mannschaftskalender sowie Spielansetzungen/Ergebnisse und matchbezogene Aufstellungen verbunden; jede Funktion nutzt eigene Teamrechte | Staging-Migrationen anwenden; Vereinsleitung/Trainer/Co-Trainer/Betreuer mit positiven und negativen Tests abnehmen; danach Übungen/Trainingszyklen, Mannschaftskasse und Events ergänzen |
+| Trainer-/Team-Workspace | Teamübersicht, Trainerteam, granularer Rechte-Editor, Kader, Trainingsübungen und Einheitenpläne, Anwesenheit, Mannschaftskalender, Spiele/Aufstellungen sowie Mannschaftskasse im Entwicklungszweig angebunden; getrennte Teamrechte | Team-Migrationen in Staging anwenden und mit Vereinsleitung/Trainer/Co-Trainer/Betreuer positiv und negativ abnehmen; Trainingszyklen, Analyse und Events ergänzen |
 | Vereinsmitgliedschaften | Einmalige Einladungslinks für verwaltbare Legacy-Organisationen; Rollen Scout/Trainer/Co-Trainer/Betreuer/Mitglied und Laufzeit 1–30 Tage; Codes werden nur gehasht gespeichert | Staging-Migrationen anwenden; Einladung erzeugen, Link öffnen, Registrierung mit E-Mail-Bestätigung und einmalige Einlösung/Nichtwiederverwendung Ende-zu-Ende testen; Beitrags- und Austrittsabläufe sind offen |
 | Vereins-Scouting | Oberfläche/Übersicht | Scout-Zuordnung, Beobachtungsgebiete, Berichtsfreigaben |
 | Plattforminhaber | Einmaliger Owner-Claim und Aktivierungsoberfläche im Entwicklungszweig vorbereitet | Staging-Migration/Secret/Edge-Function deployen; bestätigte E-Mail, korrekter Owner, Zweitclaim-Sperre und Negativtests abnehmen |
@@ -74,8 +74,10 @@ Vorhandene Migrationen betreffen:
 - **Training:** Termine mit Titel, Datum, Beginn/Ende, Ort, Schwerpunkt und Notizen können durch Benutzer mit `training.edit` angelegt werden. Berechtigte Trainer können geplante Einheiten abschließen oder absagen. Ein teambezogener Übungskatalog speichert Kategorien, Dauer, Spielerzahl, Schwierigkeitsgrad, Material, Aufbau, Ablauf und Coachingpunkte; mehrere Übungen können mit Reihenfolge, Dauer und Einheitenhinweis in einem Trainingsplan kombiniert werden.
 - **Anwesenheit:** Für jede Einheit wird eine Liste der Kaderspieler angezeigt. Mit `attendance.edit` lassen sich Status (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) und Notiz pro Spieler speichern. Die Datenbank blockiert Zuordnungen zu einer anderen Mannschaft.
 - **Zugriff:** `training.view/edit` und `attendance.view/edit` sind getrennte Module. Tabellen sind nicht direkt für Browser-Schreibzugriffe freigegeben; Änderungen laufen über berechtigungsgeprüfte RPCs.
+- **Mannschaftskasse:** Einnahmen und Ausgaben in EUR werden dem Team zugeordnet. `finance.view` erlaubt die Übersicht, `finance.edit` zusätzlich das Buchen und Stornieren. Der Kassenstand berücksichtigt alle aktiven Buchungen; die Oberfläche zeigt die letzten 200 Buchungen. Originalbuchungen werden nicht gelöscht, sondern mit Benutzer, Zeit und Begründung storniert. Es handelt sich nicht um Bank- oder Zahlungsabwicklung.
 - **Zusätzlich umgesetzt:** Mannschaftskalender, Spielansetzungen und Ergebnisse sowie Spieltagskader und matchbezogene Aufstellungen mit Startelf, Ersatzbank, Position, Reihenfolge und Kapitän.
-- **Noch offen:** Trainingszyklen/Wochenplanung, Taktik-/Videoanalyse, Mannschaftskasse und Veranstaltungen. Die Übungsbibliothek und die Planerstellung je Trainingseinheit sind jetzt im Entwicklungszweig implementiert. Die bereits umgesetzten Teamfunktionen sind im Entwicklungszweig verbunden, aber noch nicht auf der Supabase-Testdatenbank abgenommen.
+- **Zusätzlich umgesetzt:** Teambezogener Übungskatalog mit geordneten Einheitenplänen sowie eine Mannschaftskasse für Einnahmen/Ausgaben mit Kassenstand und nachvollziehbarer Stornierung.
+- **Noch offen:** Trainingszyklen/Wochenplanung, Taktik-/Videoanalyse und Veranstaltungen. Alle bisher umgesetzten Teamfunktionen sind im Entwicklungszweig verbunden, aber noch nicht auf der Supabase-Testdatenbank abgenommen.
 
 ### Teamkalender
 
@@ -86,7 +88,7 @@ Der Mannschaftskalender verwendet `pfms_legacy_team_calendar_events` mit getrenn
 - `pfms_legacy_team_matches` speichert Spielansetzungen, Gegner, Wettbewerb, Heim/Auswärts, Spielstätte, Status und Ergebnisse.
 - `pfms_legacy_team_match_lineup` speichert eine matchbezogene Aufstellung mit Startelf/Ersatzbank, Position, Reihenfolge und Kapitän. Alle Spieler müssen zum Kader der Mannschaft gehören.
 - Lesen und Ändern werden durch `matches.view/edit` kontrolliert. Die Datenbank erzwingt maximal elf Startelf-Spieler und höchstens einen Kapitän. Direkte Browser-Schreibzugriffe auf die Tabellen bleiben gesperrt.
-- - **Übungskatalog und Einheitenplan:** Die Migration `20261126_pfms_legacy_training_exercises.sql` ergänzt Mannschaftsübungen und die Verknüpfung mit Trainingseinheiten. Teamrechte `training.view/edit` gelten für Katalog und Plan. Zusammengesetzte Fremdschlüssel verhindern teamfremde Übungen; die Plan-RPC prüft Anzahl, Reihenfolge, Dauer und Teamzugehörigkeit vor dem Austausch des bestehenden Plans. Direkte Browser-Schreibzugriffe bleiben gesperrt. Frontend und CI-Smoke-Tests sind verbunden; Staging-Migration und Rollen-/Browserabnahme stehen noch aus.
+- **Übungskatalog und Einheitenplan:** Die Migration `20261126_pfms_legacy_training_exercises.sql` ergänzt Mannschaftsübungen und die Verknüpfung mit Trainingseinheiten. Teamrechte `training.view/edit` gelten für Katalog und Plan. Zusammengesetzte Fremdschlüssel verhindern teamfremde Übungen; die Plan-RPC prüft Anzahl, Reihenfolge, Dauer und Teamzugehörigkeit vor dem Austausch des bestehenden Plans. Direkte Browser-Schreibzugriffe bleiben gesperrt. Frontend und CI-Smoke-Tests sind verbunden; Staging-Migration und Rollen-/Browserabnahme stehen noch aus.
 
 Die Migration `20261125_pfms_legacy_team_matches.sql` enthält Spielansetzungen, Ergebnisse und matchbezogene Aufstellungen. `matches.view/edit` werden serverseitig geprüft; die SQL-Funktionen erzwingen Teamzugehörigkeit, maximal elf Startelf-Spieler und höchstens einen Kapitän. Die Oberfläche unterstützt Erstellen/Bearbeiten von Spielen, Ergebnis-/Statuspflege, Spieltagskandidaten und das Speichern der Aufstellung. Die Migration muss noch in Staging angewendet und mit verschiedenen Teamrollen Ende-zu-Ende geprüft werden.
 
@@ -125,6 +127,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `supabase/migrations/20261116_pfms_system_event_monitoring.sql` ergänzt einen erzwungenen RLS-Fehlerlog mit kontobezogenem Insert und Admin-only Review. Frontend-Logging redigiert bekannte Token-/Passwortwerte und begrenzt die Rate; Migration und Browser-Integration müssen noch in Staging geprüft werden.
 - `supabase/migrations/20261117_pfms_system_event_hardening.sql` beschränkt Admin-Updates auf Status-/Abschlussfelder, macht den ursprünglichen Fehlernachweis unveränderbar und weist häufige Credential-/Tokenmuster bereits in der Datenbank zurück. Diese Folge-Migration muss nach der Basis-Migration ebenfalls in Staging angewendet und geprüft werden.
 - `supabase/migrations/20261117_pfms_main_media_library.sql` ergänzt `pfms_main_media` mit erzwungener Owner-RLS und privatem Storage im vorhandenen Bucket. Die Haupt-Medienansicht unterstützt Upload, signierte Anzeige und Löschen; die Migration wurde noch nicht in Staging angewendet.
+- `supabase/migrations/20261127_pfms_legacy_team_finance.sql` ergänzt ein teambezogenes EUR-Buchungsjournal für Einnahmen und Ausgaben, einen serverseitig berechneten Kassenstand sowie begründete Stornierungen. `finance.view/edit` steuert Lese- und Bearbeitungszugriff; direkte Browser-Schreibzugriffe und physisches Löschen sind gesperrt. Oberfläche und RPC-Aufrufe sind im Entwicklungszweig verbunden; Staging-Migration, Rollen- und Browserabnahme stehen noch aus.
 - `supabase/migrations/20261123_pfms_legacy_team_training.sql` ergänzt mannschaftsbezogene Trainingstermine und Anwesenheitslisten. Trainer/Co-Trainer/Betreuer erhalten Zugriff je nach `training.view/edit` und `attendance.view/edit`; Anwesenheitseinträge verweisen auf konkrete Kaderzuordnungen und werden serverseitig auf dieselbe Mannschaft geprüft. Die Oberfläche kann Termine mit Datum, Uhrzeit, Ort, Schwerpunkt und Notizen anlegen, Einheiten abschließen/absagen und den Status jedes Kaderspielers (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) mit Notiz speichern. Die Migration ist noch nicht in Staging ausgeführt oder im Browser abgenommen.
 - `supabase/migrations/20261122_pfms_legacy_team_permissions.sql` ergänzt acht getrennte Berechtigungsbereiche je Teamzuordnung: Kader, Training, Anwesenheit, Mannschaftskasse, Veranstaltungen, Kalender, Spiele und Analyse. Co-Trainer/Betreuer erhalten standardmäßig keine Modulrechte, bis ein Trainer oder eine berechtigte Vereinsleitung sie setzt. Die Funktion `pfms_has_legacy_team_permission(team_id, module_key, action)` ist als serverseitige Prüfbasis für künftige RLS-Policies vorgesehen; UI und RPCs speichern Lesen/Bearbeiten getrennt, und Bearbeiten setzt Lesen voraus. Die Migration ist noch nicht in Staging angewendet.
 - `supabase/migrations/20261121_pfms_legacy_team_management.sql` ergänzt das Team- und Trainerteam-Modell auf Basis der bestehenden `public.organizations`.
@@ -141,7 +144,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `package.json` enthält `npm test` und `npm run check:syntax`. Die Smoke-Tests prüfen nun auch den Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
-- Der GitHub-Actions-Lauf `43598858042` auf Commit `c3c90d9b59165a1667a158bd25cb39467af86b1a` war am 14.11.2026 erfolgreich: Frontend-Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Die Smoke-Tests prüfen jetzt zusätzlich die Team-Übungsbibliothek, den Session-Plan, zusammengesetzte Team-Fremdschlüssel, Dauergrenzen, Berechtigungen und das Staging-Audit. Der unmittelbar vorherige Lauf `43597684884` scheiterte an einer veralteten Textannahme im Smoke-Test; der Test wurde an die tatsächliche SQL-Fehlermeldung angepasst. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
+- Der letzte vor der Mannschaftskasse abgeschlossene GitHub-Actions-Lauf `43598858042` auf Commit `c3c90d9...` war erfolgreich: Frontend-Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Für die neuen Finanzfunktionen wird ein eigener CI-Lauf abgewartet. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
@@ -160,11 +163,11 @@ Die tatsächliche Browser-, Supabase-, Storage- und Render-Ende-zu-Ende-Prüfung
 | Teamverwaltung und Kader | 55 % |
 | Training und Kalender | 65 % |
 | Spiele und Aufstellungen | 70 % |
-| Finanzen, Abos und Zahlungen | 10 % |
+| Finanzen, Abos und Zahlungen | 25 % |
 | Sicherheit und Qualitätssicherung | 55 % |
 | Staging-, Betriebs- und Produktionsreife | 20 % |
 
-Die Schätzwerte bewerten die Implementierung im Repository, nicht den produktiven Nutzungsgrad. Der Gesamtwert von ca. 40 % ist eine gewichtete Arbeitsprognose für das gesamte geplante PFMS. Ohne ausgeführte Staging-Migrationen, Rollen-/Negativtests und Browser-Abnahme werden die betroffenen Module nicht als abgenommen gewertet.
+Die Schätzwerte bewerten die Implementierung im Repository, nicht den produktiven Nutzungsgrad. Der Gesamtwert von ca. 42 % ist eine gewichtete Arbeitsprognose für das gesamte geplante PFMS. Ohne ausgeführte Staging-Migrationen, Rollen-/Negativtests und Browser-Abnahme werden die betroffenen Module nicht als abgenommen gewertet.
 
 ## 7. Verbindliche Reihenfolge
 
@@ -173,7 +176,7 @@ Die Schätzwerte bewerten die Implementierung im Repository, nicht den produktiv
 3. **Identität und Organisation vereinheitlichen:** kanonisches Modell, sicherer Owner-Claim, Mitgliedschaften, Rollen, Rechte, Einladungen und Audit.
 4. **Datenpersistenz und Fußball-Stammdaten:** Haupt-Spieler, Berichte, Vereine, Agenturen, Mannschaften und Staff mit serverseitiger Mandantenprüfung.
 5. **Scouting und Medien:** Scout-Bereich in Staging Ende-zu-Ende prüfen; organisationsbezogene Freigaben, Bewertungen, Shortlists und Medien ergänzen.
-6. **Betriebsmodule:** Training, Anwesenheit, Spiele, Kalender, Aufgaben, Nachrichten, Finanzen und Exporte.
+6. **Betriebsmodule:** Training, Anwesenheit, Spiele, Kalender, Mannschaftskasse, Aufgaben, Nachrichten und Exporte.
 7. **Geschäft und Produktionsbetrieb:** Abos/Zahlungen, Monitoring, Backups/Restore, Datenschutz-/Rechtsprüfung und formale Freigabe.
 
 Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehlerfälle, Tests und Dokumentation zusammen funktionieren. Ein Menüpunkt, eine Vorschau oder ein erfolgreicher Seitenaufruf allein ist kein Funktionsnachweis.
