@@ -1815,8 +1815,7 @@ async function loadPfmsAdminErrors() {
       const detailText = [
         details.source ? 'Quelle: ' + details.source : '',
         details.line ? 'Zeile: ' + details.line : '',
-        details.column ? 'Spalte: ' + details.column : '',
-        ''
+        details.column ? 'Spalte: ' + details.column : ''
       ].filter(Boolean).join('\\n');
       const statusOptions = Object.entries(PFMS_SYSTEM_EVENT_STATUSES).map(([value, label]) =>
         '<option value="' + escapeHtml(value) + '"' +
