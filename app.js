@@ -906,6 +906,85 @@ const pfssSupabase = window.supabase.createClient(
   }
 );
 
+let pfmsClientErrorWindowStart = 0;
+let pfmsClientErrorCount = 0;
+let pfmsClientErrorHandlersAttached = false;
+
+function pfmsSanitizeLogValue(value, maxLength = 2000) {
+  return String(value ?? '')
+    .replace(/Bearer\s+[A-Za-z0-9._~+/-]+/gi, 'Bearer [redacted]')
+    .replace(/(access_token|refresh_token|password|authorization|bootstrap_token|client_secret|api_key|apikey)(\s*[:=]\s*)[^\s,;]+/gi, '$1$2[redacted]')
+    .replace(/([?&](?:access_token|refresh_token|token|key|password)=)[^&#\s]*/gi, '$1[redacted]')
+    .slice(0, maxLength);
+}
+
+async function pfmsLogClientError(message, context = {}) {
+  const now = Date.now();
+  if (now - pfmsClientErrorWindowStart > 60000) {
+    pfmsClientErrorWindowStart = now;
+    pfmsClientErrorCount = 0;
+  }
+  if (pfmsClientErrorCount >= 5) return;
+  pfmsClientErrorCount += 1;
+
+  try {
+    const { data, error: sessionError } = await pfssSupabase.auth.getSession();
+    if (sessionError || !data.session?.user) return;
+
+    let sourcePath = '';
+    if (context.source) {
+      try {
+        sourcePath = new URL(String(context.source), window.location.origin).pathname.slice(0, 255);
+      } catch (error) {
+        sourcePath = '';
+      }
+    }
+
+    const details = {
+      source: sourcePath,
+      line: Number.isFinite(Number(context.line)) ? Number(context.line) : null,
+      column: Number.isFinite(Number(context.column)) ? Number(context.column) : null,
+      stack: pfmsSanitizeLogValue(context.stack || '', 6000)
+    };
+
+    const { error } = await pfssSupabase.from('pfms_system_events').insert({
+      event_type: 'frontend_error',
+      severity: 'error',
+      message: pfmsSanitizeLogValue(message, 2000) || 'Unbekannter Frontend-Fehler',
+      route: String(window.location.pathname || '/').slice(0, 255),
+      details
+    });
+    if (error) console.debug('PFMS error event could not be stored:', error.message);
+  } catch (error) {
+    // Error reporting must never create another uncaught application error.
+    console.debug('PFMS error reporting failed:', error?.message || error);
+  }
+}
+
+function setupPfmsClientErrorLogging() {
+  if (pfmsClientErrorHandlersAttached) return;
+  pfmsClientErrorHandlersAttached = true;
+
+  window.addEventListener('error', (event) => {
+    void pfmsLogClientError(event.message || 'Unbehandelter JavaScript-Fehler', {
+      source: event.filename,
+      line: event.lineno,
+      column: event.colno,
+      stack: event.error?.stack || ''
+    });
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    void pfmsLogClientError(
+      reason instanceof Error ? reason.message : String(reason ?? 'Unbehandelte Promise-Ablehnung'),
+      { stack: reason instanceof Error ? reason.stack : '' }
+    );
+  });
+}
+
+setupPfmsClientErrorLogging();
+
 function updateConnectionStatus() {
   const online = navigator.onLine;
   const userDot = document.getElementById('userPresenceDot');
@@ -1148,6 +1227,7 @@ async function showAuthenticatedApp(user, profile) {
   applyAdminPreviewMode('admin');
   setupPfmsAdminManagement();
   setupPfmsAdminMembers();
+  setupPfmsAdminErrors();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -1583,6 +1663,144 @@ async function loadPfmsAdminMembers() {
     message.textContent = 'Mitglieder konnten nicht geladen werden. Bitte Datenbankmigration und Administratorrechte prüfen.';
     results.innerHTML = '';
   }
+}
+
+const PFMS_SYSTEM_EVENT_STATUSES = {
+  open: 'Offen',
+  in_review: 'In Prüfung',
+  resolved: 'Erledigt'
+};
+
+function formatPfmsSystemEventDate(value) {
+  if (!value) return '–';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '–' : date.toLocaleString('de-DE');
+}
+
+async function loadPfmsAdminErrors() {
+  const message = document.getElementById('pfmsAdminErrorsMessage');
+  const results = document.getElementById('pfmsAdminErrorsResults');
+  if (!message || !results) return;
+  if (!window.pfssIsRealAdmin) {
+    message.textContent = 'Kein Administratorzugang.';
+    results.innerHTML = '';
+    return;
+  }
+
+  const query = pfssNormalizeSearch(document.getElementById('pfmsAdminErrorsQuery')?.value);
+  const severity = document.getElementById('pfmsAdminErrorsSeverity')?.value || '';
+  const status = document.getElementById('pfmsAdminErrorsStatus')?.value || '';
+
+  message.textContent = 'Systemereignisse werden geladen …';
+  results.innerHTML = '';
+
+  try {
+    const { data, error } = await pfssSupabase
+      .from('pfms_system_events')
+      .select('id,actor_id,severity,message,route,details,status,created_at,resolved_at,resolved_by')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) throw error;
+
+    const events = (data || []).filter((item) =>
+      (!severity || item.severity === severity) &&
+      (!status || item.status === status) &&
+      (!query || pfssNormalizeSearch(item.message).includes(query) ||
+        pfssNormalizeSearch(item.route).includes(query))
+    );
+
+    message.textContent = events.length
+      ? events.length + ' Ereignis(se) angezeigt (maximal 200 neueste Einträge).'
+      : 'Keine passenden Systemereignisse gefunden.';
+
+    if (!events.length) {
+      results.innerHTML = '<div class="empty-state"><b>Keine Fehler gefunden</b><p>Es gibt derzeit keine passenden protokollierten Frontend-Fehler.</p></div>';
+      return;
+    }
+
+    results.innerHTML = events.map((item) => {
+      const details = item.details && typeof item.details === 'object' ? item.details : {};
+      const detailText = [
+        details.source ? 'Quelle: ' + details.source : '',
+        details.line ? 'Zeile: ' + details.line : '',
+        details.column ? 'Spalte: ' + details.column : '',
+        details.stack ? 'Stack:\\n' + details.stack : ''
+      ].filter(Boolean).join('\\n');
+      const statusOptions = Object.entries(PFMS_SYSTEM_EVENT_STATUSES).map(([value, label]) =>
+        '<option value="' + escapeHtml(value) + '"' +
+        (item.status === value ? ' selected' : '') + '>' +
+        escapeHtml(label) + '</option>'
+      ).join('');
+
+      return '<article class="admin-user-card pfms-system-event-card" data-event-id="' +
+        escapeHtml(item.id) + '">' +
+        '<div class="admin-user-info">' +
+          '<b>' + escapeHtml(item.message) + '</b>' +
+          '<span class="tag">' + escapeHtml(item.severity) + ' · ' + escapeHtml(PFMS_SYSTEM_EVENT_STATUSES[item.status] || item.status) + '</span>' +
+          '<small>' + escapeHtml(formatPfmsSystemEventDate(item.created_at)) + ' · ' + escapeHtml(item.route || '/') + '</small>' +
+          '<small>Benutzer-ID: ' + escapeHtml(item.actor_id || 'nicht verfügbar') + '</small>' +
+          (detailText ? '<details class="pfms-system-event-details"><summary>Technische Details</summary><pre>' + escapeHtml(detailText) + '</pre></details>' : '') +
+        '</div>' +
+        '<div class="admin-user-controls"><label>Bearbeitungsstatus<select data-event-status>' + statusOptions + '</select></label>' +
+        '<button type="button" class="btn btn-secondary" data-save-event-status>Status speichern</button></div>' +
+        '<p class="admin-message" data-event-message role="status" aria-live="polite"></p>' +
+      '</article>';
+    }).join('');
+  } catch (error) {
+    console.error('PFMS system event directory:', error);
+    message.textContent = 'Fehlerprotokoll konnte nicht geladen werden. Bitte Staging-Migration und Administratorrechte prüfen.';
+    results.innerHTML = '';
+  }
+}
+
+function setupPfmsAdminErrors() {
+  if (!window.pfssIsRealAdmin) return;
+  const form = document.getElementById('pfmsAdminErrorsFilterForm');
+  const results = document.getElementById('pfmsAdminErrorsResults');
+  if (!form || !results) return;
+
+  if (!form.dataset.pfmsBound) {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      loadPfmsAdminErrors();
+    });
+    form.addEventListener('reset', () => window.setTimeout(loadPfmsAdminErrors, 0));
+    form.dataset.pfmsBound = 'true';
+  }
+
+  if (!results.dataset.pfmsBound) {
+    results.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-save-event-status]');
+      if (!button) return;
+      const card = button.closest('[data-event-id]');
+      if (!card) return;
+
+      const status = card.querySelector('[data-event-status]').value;
+      const message = card.querySelector('[data-event-message]');
+      button.disabled = true;
+      message.textContent = 'Status wird gespeichert …';
+      try {
+        const { error } = await pfssSupabase
+          .from('pfms_system_events')
+          .update({
+            status,
+            resolved_at: status === 'resolved' ? new Date().toISOString() : null,
+            resolved_by: status === 'resolved' ? window.pfssCurrentUserId : null
+          })
+          .eq('id', card.dataset.eventId);
+        if (error) throw error;
+        message.textContent = 'Status gespeichert.';
+        await loadPfmsAdminErrors();
+      } catch (error) {
+        console.error('PFMS system event status update:', error);
+        message.textContent = 'Status konnte nicht gespeichert werden: ' + (error?.message || 'Berechtigung oder Datenbank prüfen.');
+        button.disabled = false;
+      }
+    });
+    results.dataset.pfmsBound = 'true';
+  }
+
+  loadPfmsAdminErrors();
 }
 
 function setupPfmsAdminMembers() {
