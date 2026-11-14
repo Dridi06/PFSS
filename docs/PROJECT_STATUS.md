@@ -20,6 +20,15 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 
 **Noch nicht verifiziert:** Es muss im Supabase-Dashboard ein eigenständiges Staging-Projekt eindeutig bestätigt und dessen öffentliche Build-Konfiguration in Render eingetragen werden. Existenz und Datenisolation dieses externen Projekts lassen sich nicht aus dem Git-Repository ableiten.
 
+### Username-Login: Redis-Rate-Limit ergänzt – 14.11.2026
+
+- Die Edge Function verwendet Upstash Redis mit einem atomaren gleitenden Fenster: maximal 5 Versuche je normalisiertem Benutzernamen pro 15 Minuten; Überschreitungen erhalten HTTP 429 mit `Retry-After`.
+- Redis-Schlüssel verwenden HMAC-SHA-256 mit dem separaten Secret `PFMS_RATE_LIMIT_HMAC_KEY`; Benutzernamen werden nicht im Klartext als Redis-Schlüssel gespeichert.
+- Redis-/HMAC-Konfiguration fehlt oder Redis ist nicht erreichbar: Login wird fail-closed mit HTTP 503 abgewiesen. Es gibt keinen ungeschützten Fallback.
+- Es wird bewusst keine IP-Identität aus ungeprüften Forwarding-Headern abgeleitet. Der Schutz ist ein kontobezogenes Passwortversuchs-Limit, noch kein vollständiger IP-/Bot-Schutz gegen verteilte Versuche über viele Benutzernamen.
+- Staging benötigt eine eigene Upstash-Datenbank sowie `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` und `PFMS_RATE_LIMIT_HMAC_KEY`; Function anschließend neu deployen und mit Positiv-/Negativtests abnehmen. Noch nicht deployed oder live verifiziert.
+- Regressionstests und Staging-Konfiguration sind im selben Feature-Branch ergänzt. CI-Nachweis für diese Änderungen steht noch aus.
+
 ### Username-Login: Antwortdaten minimiert – 14.11.2026
 
 - Die Edge Function `username-login` gibt nach erfolgreicher Anmeldung ausschließlich die Sitzungstokens und Sitzungsmetadaten zurück. Das vollständige Supabase-Userobjekt wird nicht mehr in der Function-Antwort ausgegeben; damit wird insbesondere die darin enthaltene E-Mail-Adresse nicht zusätzlich offengelegt.
