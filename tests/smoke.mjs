@@ -1326,8 +1326,8 @@ assert.ok(scout.includes("data-scout-edit-player") && scout.includes("data-scout
 assert.ok(!/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout), "Scout workspace must not ship preview data");
 assert.ok(scout.includes("'global-search'") && scout.includes("pfms_global_players") && scout.includes("data-scout-copy-global") && scout.includes("source_global_player_id"), "Scout global search/copy workflow is missing");
 assert.ok(scout.includes("isCurrentRequest(requestGeneration, requestUserId)"), "Scout global player import must stop safely on account changes");
-assert.equal((scout.match(/async function uploadFiles\\(files\\)/g) || []).length, 1, "Scout workspace must have exactly one media upload handler");
-assert.equal((scout.match(/async function deleteMedia\\(id\\)/g) || []).length, 1, "Scout workspace must have exactly one media delete handler");
+assert.equal((scout.match(/async function uploadFiles\(files\)/g) || []).length, 1, "Scout workspace must have exactly one media upload handler");
+assert.equal((scout.match(/async function deleteMedia\(id\)/g) || []).length, 1, "Scout workspace must have exactly one media delete handler");
 assert.ok(
   scout.includes("const requestGeneration = state.generation;") &&
   scout.includes("if (!isCurrentRequest(requestGeneration, userId)) break;") &&
