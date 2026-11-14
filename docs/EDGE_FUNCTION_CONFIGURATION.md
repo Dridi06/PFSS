@@ -34,7 +34,7 @@ Staging und Produktion sind getrennt zu konfigurieren. Das Secret enthält keine
 Beispielbefehl (Platzhalter vor Ausführung ersetzen):
 
 ```bash
-supabase secrets set PFMS_ALLOWED_ORIGINS="https://pfss-scouting.onrender.com,https://<tatsaechliche-staging-domain>" --project-ref <STAGING_PROJECT_REF>
+supabase secrets set PFMS_ALLOWED_ORIGINS="https://<tatsaechliche-staging-domain>" --project-ref <STAGING_PROJECT_REF>
 supabase functions deploy username-login --project-ref <STAGING_PROJECT_REF>
 supabase functions deploy r2-connection-check --project-ref <STAGING_PROJECT_REF>
 supabase functions deploy pfms-owner-bootstrap --project-ref <STAGING_PROJECT_REF>
