@@ -159,6 +159,8 @@ assert.ok(cors.includes("PFMS_ALLOWED_ORIGINS") && cors.includes("DEFAULT_ALLOWE
 assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForRequest"), "Edge Functions must use shared CORS policy");
 assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Username login must not allow wildcard CORS");
 assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
+assert.ok(r2Check.includes("auth.getUser()") && r2Check.includes('rpc("pfms_is_admin")'), "R2 connection checks must require a verified administrator session");
+assert.ok(supabaseConfigText.includes("[functions.r2-connection-check]") && supabaseConfigText.includes("verify_jwt = true"), "R2 connection check must require JWT verification");
 assert.ok(usernameLogin.includes('"Cache-Control": "no-store"'), "Username login token responses must not be cached");
 
 // One-time owner setup: original registration evidence, confirmed email, JWT identity and server-side claim.
