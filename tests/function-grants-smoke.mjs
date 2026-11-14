@@ -314,40 +314,40 @@ assert.match(supportNotifications, /revoke all on function public\.pfms_notify_s
 // Protect training, attendance, matchday lineups and tactical analysis boundaries.
 const legacyTeamTraining = (
   await readFile(resolve(directory, "20261123_pfms_legacy_team_training.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(p_team_id, 'training', 'view'\\)/);
-assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(p_team_id, 'training', 'edit'\\)/);
-assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\\(v_team_id, 'attendance', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'view'\)/);
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'edit'\)/);
+assert.match(legacyTeamTraining, /pfms_has_legacy_team_permission\(v_team_id, 'attendance', 'edit'\)/);
 assert.match(legacyTeamTraining, /v_assignment_team_id <> v_team_id/);
-assert.match(legacyTeamTraining, /p_attendance_status not in \\('pending','present','absent','excused','injured','late'\\)/);
-assert.match(legacyTeamTraining, /if p_attendance_status = 'pending' then delete from public\\.pfms_legacy_training_attendance/);
+assert.match(legacyTeamTraining, /p_attendance_status not in \('pending','present','absent','excused','injured','late'\)/);
+assert.match(legacyTeamTraining, /if p_attendance_status = 'pending' then delete from public\.pfms_legacy_training_attendance/);
 assert.match(legacyTeamTraining, /force row level security/);
-assert.doesNotMatch(legacyTeamTraining, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_training_attendance to authenticated/);
+assert.doesNotMatch(legacyTeamTraining, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_training_attendance to authenticated/);
 
 const legacyTeamMatches = (
   await readFile(resolve(directory, "20261125_pfms_legacy_team_matches.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(p_team_id, 'matches', 'edit'\\)/);
-assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(v_team_id, 'matches', 'edit'\\)/);
-assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\\(v_team_id, 'matches', 'view'\\)/);
-assert.match(legacyTeamMatches, /tp\\.team_id = v_team_id/);
-assert.match(legacyTeamMatches, /tp\\.squad_status in \\('active','injured','loaned'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\(p_team_id, 'matches', 'edit'\)/);
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\(v_team_id, 'matches', 'edit'\)/);
+assert.match(legacyTeamMatches, /pfms_has_legacy_team_permission\(v_team_id, 'matches', 'view'\)/);
+assert.match(legacyTeamMatches, /tp\.team_id = v_team_id/);
+assert.match(legacyTeamMatches, /tp\.squad_status in \('active','injured','loaned'\)/);
 assert.match(legacyTeamMatches, /v_starters > 11 or v_captains > 1/);
 assert.match(legacyTeamMatches, /duplicate player assignments are not allowed/);
 assert.match(legacyTeamMatches, /every lineup player must belong to the selected team/);
 assert.match(legacyTeamMatches, /force row level security/);
-assert.doesNotMatch(legacyTeamMatches, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_match_lineup to authenticated/);
+assert.doesNotMatch(legacyTeamMatches, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_match_lineup to authenticated/);
 
 const legacyTeamAnalysis = (
   await readFile(resolve(directory, "20261202_pfms_legacy_team_analysis.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyTeamAnalysis, /foreign key \\(match_id, team_id\\) references public\\.pfms_legacy_team_matches\\(id, team_id\\)/);
-assert.match(legacyTeamAnalysis, /m\\.id = p_match_id and m\\.team_id = p_team_id/);
-assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(p_team_id, 'analysis', 'view'\\)/);
-assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(p_team_id, 'analysis', 'edit'\\)/);
-assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\\(v_team_id, 'analysis', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamAnalysis, /foreign key \(match_id, team_id\) references public\.pfms_legacy_team_matches\(id, team_id\)/);
+assert.match(legacyTeamAnalysis, /m\.id = p_match_id and m\.team_id = p_team_id/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\(p_team_id, 'analysis', 'view'\)/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\(p_team_id, 'analysis', 'edit'\)/);
+assert.match(legacyTeamAnalysis, /pfms_has_legacy_team_permission\(v_team_id, 'analysis', 'edit'\)/);
 assert.match(legacyTeamAnalysis, /force row level security/);
-assert.doesNotMatch(legacyTeamAnalysis, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_analysis to authenticated/);
+assert.doesNotMatch(legacyTeamAnalysis, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_analysis to authenticated/);
 
 // Ensure the existing application calls the secured RPCs rather than requiring
 // direct client-side writes to these operational tables.
@@ -376,44 +376,44 @@ for (const rpc of [
 // Protect team events, participants, event logistics and transport planning.
 const legacyTeamEvents = (
   await readFile(resolve(directory, "20261203_pfms_legacy_team_events.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'view'\\)/);
-assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'edit'\\)/);
-assert.match(legacyTeamEvents, /p_event_type not in \\('tournament','event'\\)/);
-assert.match(legacyTeamEvents, /delete from public\\.pfms_legacy_team_calendar_events/);
-assert.match(legacyTeamEvents, /event_type in \\('tournament','event'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\(p_team_id, 'events', 'view'\)/);
+assert.match(legacyTeamEvents, /pfms_has_legacy_team_permission\(p_team_id, 'events', 'edit'\)/);
+assert.match(legacyTeamEvents, /p_event_type not in \('tournament','event'\)/);
+assert.match(legacyTeamEvents, /delete from public\.pfms_legacy_team_calendar_events/);
+assert.match(legacyTeamEvents, /event_type in \('tournament','event'\)/);
 
 const legacyEventParticipants = (
   await readFile(resolve(directory, "20261204_pfms_legacy_team_event_participants.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyEventParticipants, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
-assert.match(legacyEventParticipants, /foreign key \\(team_player_assignment_id, team_id\\) references public\\.pfms_legacy_team_players\\(id, team_id\\)/);
-assert.match(legacyEventParticipants, /pfms_has_legacy_team_permission\\(v_team_id, 'events', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyEventParticipants, /foreign key \(event_id, team_id\) references public\.pfms_legacy_team_calendar_events\(id, team_id\)/);
+assert.match(legacyEventParticipants, /foreign key \(team_player_assignment_id, team_id\) references public\.pfms_legacy_team_players\(id, team_id\)/);
+assert.match(legacyEventParticipants, /pfms_has_legacy_team_permission\(v_team_id, 'events', 'edit'\)/);
 assert.match(legacyEventParticipants, /selected player is not an active member of this team/);
-assert.match(legacyEventParticipants, /status not in \\('invited','confirmed','declined','attended','absent'\\)/);
+assert.match(legacyEventParticipants, /status not in \('invited','confirmed','declined','attended','absent'\)/);
 assert.match(legacyEventParticipants, /force row level security/);
 
 const legacyEventLogistics = (
   await readFile(resolve(directory, "20261205_pfms_legacy_team_event_logistics.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyEventLogistics, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
-assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'view'\\)/);
-assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\\(p_team_id, 'events', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyEventLogistics, /foreign key \(event_id, team_id\) references public\.pfms_legacy_team_calendar_events\(id, team_id\)/);
+assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\(p_team_id, 'events', 'view'\)/);
+assert.match(legacyEventLogistics, /pfms_has_legacy_team_permission\(p_team_id, 'events', 'edit'\)/);
 assert.match(legacyEventLogistics, /capacity cannot be lower than the current registered participant count/);
 assert.match(legacyEventLogistics, /fee_per_person/);
 assert.match(legacyEventLogistics, /force row level security/);
-assert.doesNotMatch(legacyEventLogistics, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_event_logistics to authenticated/);
+assert.doesNotMatch(legacyEventLogistics, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_event_logistics to authenticated/);
 
 const legacyEventTravel = (
   await readFile(resolve(directory, "20261205_pfms_legacy_team_event_travel_plans.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(legacyEventTravel, /foreign key \\(event_id, team_id\\) references public\\.pfms_legacy_team_calendar_events\\(id, team_id\\)/);
-assert.match(legacyEventTravel, /pfms_has_legacy_team_permission\\(v_team_id, 'events', 'edit'\\)/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyEventTravel, /foreign key \(event_id, team_id\) references public\.pfms_legacy_team_calendar_events\(id, team_id\)/);
+assert.match(legacyEventTravel, /pfms_has_legacy_team_permission\(v_team_id, 'events', 'edit'\)/);
 assert.match(legacyEventTravel, /seat capacity cannot be lower than the current active participant count/);
 assert.match(legacyEventTravel, /transport vehicle is at seat capacity/);
-assert.match(legacyEventTravel, /on conflict \\(event_id\\) do update/);
+assert.match(legacyEventTravel, /on conflict \(event_id\) do update/);
 assert.match(legacyEventTravel, /force row level security/);
-assert.doesNotMatch(legacyEventTravel, /grant (?:insert|update|delete|all) on table public\\.pfms_legacy_team_event_travel_plans to authenticated/);
+assert.doesNotMatch(legacyEventTravel, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_event_travel_plans to authenticated/);
 
 // The UI must use the permission-checked RPC interface for event operations.
 for (const rpc of [
