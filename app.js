@@ -1958,6 +1958,11 @@ let pfmsLegacyTeamRosterCandidates = [];
 let pfmsLegacyTrainingSessions = [];
 let pfmsLegacyCalendarEvents = [];
 let pfmsEditingCalendarEventId = null;
+let pfmsLegacyMatches = [];
+let pfmsEditingMatchId = null;
+let pfmsSelectedTeamMatch = null;
+let pfmsLegacyMatchCandidates = [];
+let pfmsLegacyMatchLineup = [];
 let pfmsSelectedTrainingSession = null;
 let pfmsLegacyTrainingAttendance = [];
 
@@ -3063,6 +3068,366 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   await loadPfmsLegacyTeamRoster(teamId);
   await loadPfmsLegacyTeamTraining(teamId);
   await loadPfmsLegacyTeamCalendar(teamId);
+}
+
+const PFMS_TEAM_MATCH_STATUSES = {
+  scheduled: 'Geplant',
+  completed: 'Abgeschlossen',
+  postponed: 'Verlegt',
+  cancelled: 'Abgesagt'
+};
+
+const PFMS_TEAM_MATCH_POSITIONS = ['Torwart','Abwehr','Mittelfeld','Sturm'];
+
+function renderPfmsLegacyTeamMatches() {
+  const host = document.getElementById('pfmsTeamMatchesList');
+  const message = document.getElementById('pfmsTeamMatchesMessage');
+  if (!host) return;
+  const canEdit = pfmsSelectedTeamPermissions.get('matches')?.can_edit === true;
+  const canView = pfmsSelectedTeamPermissions.get('matches')?.can_view === true;
+
+  if (!pfmsLegacyMatches.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Spiele eingetragen</b><p>' +
+      (canEdit ? 'Lege die erste Spielansetzung für deine Mannschaft an.' : 'Für diese Mannschaft sind noch keine Spiele hinterlegt.') +
+      '</p></div>';
+    if (message) message.textContent = '0 Spiele';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyMatches.map(match => {
+    const status = PFMS_TEAM_MATCH_STATUSES[match.match_status] || match.match_status;
+    const result = match.team_goals === null || match.team_goals === undefined
+      ? 'Ergebnis offen'
+      : String(match.team_goals) + ' : ' + String(match.opponent_goals);
+    const homeAway = match.home_away === 'away' ? 'Auswärts' : 'Heim';
+    const editButton = canEdit
+      ? '<button type="button" class="btn btn-secondary" data-pfms-match-edit="' + escapeHtml(match.match_id) + '">Bearbeiten</button>'
+      : '';
+    const lineupButton = canView
+      ? '<button type="button" class="btn btn-primary" data-pfms-match-lineup="' + escapeHtml(match.match_id) + '">Aufstellung · ' + escapeHtml(match.lineup_count || 0) + '</button>'
+      : '';
+    return '<article class="pfms-match-card" data-pfms-match-card="' + escapeHtml(match.match_id) + '">' +
+      '<div class="pfms-match-card-head"><div><span class="eyebrow">' +
+        escapeHtml(pfmsFormatTeamDate(match.match_date)) + ' · ' + escapeHtml(homeAway) +
+        '</span><h4>' + escapeHtml(match.opponent) + '</h4><small>' +
+        escapeHtml(match.competition || 'Freundschaftsspiel') + '</small></div>' +
+        '<span class="module-status">' + escapeHtml(status) + '</span></div>' +
+      '<div class="pfms-match-meta"><span>' + escapeHtml(pfmsTeamTime(match.kickoff)) + '</span>' +
+        '<span>' + escapeHtml(match.venue || 'Spielstätte offen') + '</span>' +
+        '<strong>' + escapeHtml(result) + '</strong></div>' +
+      (match.match_notes ? '<p>' + escapeHtml(match.match_notes) + '</p>' : '') +
+      '<div class="pfms-match-card-actions">' + editButton + lineupButton + '</div>' +
+      '</article>';
+  }).join('');
+  if (message) message.textContent = pfmsLegacyMatches.length + ' Spiel(e) geladen.';
+}
+
+async function loadPfmsLegacyTeamMatches(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamMatchesPanel');
+  const form = document.getElementById('pfmsTeamMatchForm');
+  const message = document.getElementById('pfmsTeamMatchesMessage');
+  const host = document.getElementById('pfmsTeamMatchesList');
+  if (!team || !panel || !form || !message || !host) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('matches') || {};
+  if (permission.can_view !== true) {
+    panel.hidden = true;
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Spiele werden geladen …';
+  host.innerHTML = '';
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_matches', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    pfmsLegacyMatches = data || [];
+    renderPfmsLegacyTeamMatches();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team matches load failed:', error);
+    pfmsLegacyMatches = [];
+    host.innerHTML = '<div class="empty-state">Spiele konnten nicht geladen werden. Prüfe die Spielbetriebs-Migration und Bereichsrechte.</div>';
+    message.textContent = 'Spielübersicht derzeit nicht verfügbar.';
+  }
+}
+
+function openPfmsLegacyTeamMatch(matchRecord = null) {
+  const form = document.getElementById('pfmsTeamMatchForm');
+  if (!form) return;
+  pfmsEditingMatchId = matchRecord?.match_id || null;
+  form.reset();
+  form.elements.match_id.value = pfmsEditingMatchId || '';
+  form.elements.status.value = matchRecord?.match_status || 'scheduled';
+  if (matchRecord) {
+    form.elements.opponent.value = matchRecord.opponent || '';
+    form.elements.competition.value = matchRecord.competition || '';
+    form.elements.home_away.value = matchRecord.home_away || 'home';
+    form.elements.match_date.value = matchRecord.match_date || '';
+    form.elements.kickoff.value = String(matchRecord.kickoff || '').slice(0, 5);
+    form.elements.venue.value = matchRecord.venue || '';
+    form.elements.team_goals.value = matchRecord.team_goals ?? '';
+    form.elements.opponent_goals.value = matchRecord.opponent_goals ?? '';
+    form.elements.match_notes.value = matchRecord.match_notes || '';
+  } else {
+    form.elements.match_date.value = new Date().toISOString().slice(0, 10);
+    form.elements.home_away.value = 'home';
+    form.elements.status.value = 'scheduled';
+    form.elements.team_goals.value = '';
+    form.elements.opponent_goals.value = '';
+  }
+  const save = document.getElementById('pfmsTeamMatchSave');
+  const cancel = document.getElementById('pfmsTeamMatchCancelEdit');
+  if (save) save.textContent = matchRecord ? 'Änderungen speichern' : 'Spiel speichern';
+  if (cancel) cancel.hidden = !matchRecord;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.opponent.focus();
+}
+
+function resetPfmsLegacyTeamMatchForm() {
+  const form = document.getElementById('pfmsTeamMatchForm');
+  if (!form) return;
+  pfmsEditingMatchId = null;
+  form.reset();
+  form.elements.match_id.value = '';
+  form.elements.status.value = 'scheduled';
+  const save = document.getElementById('pfmsTeamMatchSave');
+  const cancel = document.getElementById('pfmsTeamMatchCancelEdit');
+  if (save) save.textContent = 'Spiel speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+async function savePfmsLegacyTeamMatch(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamMatchesMessage');
+  const button = document.getElementById('pfmsTeamMatchSave');
+  if (!team || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true) {
+    message.textContent = 'Für den Spielbetrieb fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const teamGoals = data.team_goals === '' ? null : Number(data.team_goals);
+  const opponentGoals = data.opponent_goals === '' ? null : Number(data.opponent_goals);
+  if (!data.opponent?.trim() || !data.match_date || !data.kickoff ||
+      !['home','away'].includes(data.home_away) ||
+      !Object.prototype.hasOwnProperty.call(PFMS_TEAM_MATCH_STATUSES, data.status) ||
+      ((teamGoals === null) !== (opponentGoals === null)) ||
+      (teamGoals !== null && (!Number.isInteger(teamGoals) || !Number.isInteger(opponentGoals) ||
+        teamGoals < 0 || teamGoals > 30 || opponentGoals < 0 || opponentGoals > 30)) ||
+      (data.status === 'completed' && (teamGoals === null || opponentGoals === null))) {
+    message.textContent = 'Bitte Gegner, Datum, Anstoß und Spielstatus korrekt ausfüllen. Ein abgeschlossenes Spiel benötigt beide Toreingaben.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isEditing = Boolean(pfmsEditingMatchId);
+  button.disabled = true;
+  message.textContent = 'Spiel wird gespeichert …';
+  try {
+    let result;
+    if (isEditing) {
+      result = await pfssSupabase.rpc('pfms_update_legacy_team_match', {
+        p_match_id: pfmsEditingMatchId,
+        p_opponent: data.opponent.trim(),
+        p_competition: data.competition || null,
+        p_home_away: data.home_away,
+        p_match_date: data.match_date,
+        p_kickoff: data.kickoff,
+        p_venue: data.venue || null,
+        p_match_notes: data.match_notes || null,
+        p_status: data.status,
+        p_team_goals: teamGoals,
+        p_opponent_goals: opponentGoals
+      });
+    } else {
+      result = await pfssSupabase.rpc('pfms_create_legacy_team_match', {
+        p_team_id: team.team_id,
+        p_opponent: data.opponent.trim(),
+        p_competition: data.competition || null,
+        p_home_away: data.home_away,
+        p_match_date: data.match_date,
+        p_kickoff: data.kickoff,
+        p_venue: data.venue || null,
+        p_match_notes: data.match_notes || null,
+        p_status: data.status,
+        p_team_goals: teamGoals,
+        p_opponent_goals: opponentGoals
+      });
+    }
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (result.error) throw result.error;
+    resetPfmsLegacyTeamMatchForm();
+    await loadPfmsLegacyTeamMatches(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast(isEditing ? 'Spiel wurde aktualisiert.' : 'Spiel wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS team match save failed:', error);
+    message.textContent = 'Spiel konnte nicht gespeichert werden. Prüfe Spieltag, Ergebnis und Berechtigungen.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderPfmsLegacyTeamMatchLineup() {
+  const host = document.getElementById('pfmsTeamMatchLineupList');
+  const saveButton = document.getElementById('pfmsTeamMatchLineupSave');
+  if (!host) return;
+  const canEdit = pfmsSelectedTeamPermissions.get('matches')?.can_edit === true;
+  if (!pfmsLegacyMatchCandidates.length) {
+    host.innerHTML = '<div class="empty-state">Es sind keine geeigneten Spieler im Mannschaftskader vorhanden.</div>';
+    if (saveButton) saveButton.hidden = !canEdit;
+    return;
+  }
+
+  const currentByAssignment = new Map(
+    pfmsLegacyMatchLineup.map(item => [item.assignment_id, item])
+  );
+  host.innerHTML = pfmsLegacyMatchCandidates.map((player, index) => {
+    const current = currentByAssignment.get(player.assignment_id);
+    const selected = Boolean(current);
+    const position = current?.position || player.preferred_position || 'Mittelfeld';
+    const role = current?.lineup_role || 'bench';
+    const order = current?.sort_order ?? index + 1;
+    return '<article class="pfms-match-lineup-row" data-pfms-match-lineup-row="' + escapeHtml(player.assignment_id) + '">' +
+      '<label class="pfms-match-lineup-player"><input type="checkbox" data-match-selected' +
+        (selected ? ' checked' : '') + ' ' + (!canEdit ? 'disabled' : '') + '><span>' +
+        '<b>' + (player.jersey_number ? '#' + escapeHtml(player.jersey_number) + ' ' : '') +
+        escapeHtml([player.player_name,player.player_surname].filter(Boolean).join(' ') || 'Spieler') +
+        '</b><small>' + escapeHtml(player.squad_status || 'Kader') + '</small></span></label>' +
+      '<label>Rolle<select data-match-role ' + (!selected || !canEdit ? 'disabled' : '') + '>' +
+        '<option value="starter"' + (role === 'starter' ? ' selected' : '') + '>Startelf</option>' +
+        '<option value="bench"' + (role === 'bench' ? ' selected' : '') + '>Ersatzbank</option></select></label>' +
+      '<label>Position<select data-match-position ' + (!selected || !canEdit ? 'disabled' : '') + '>' +
+        PFMS_TEAM_MATCH_POSITIONS.map(value => '<option value="' + value + '"' + (position === value ? ' selected' : '') + '>' + value + '</option>').join('') +
+        '</select></label>' +
+      '<label>Reihenfolge<input type="number" min="1" max="30" data-match-order value="' + escapeHtml(order) + '"' +
+        (!selected || !canEdit ? ' disabled' : '') + '></label>' +
+      '<label class="pfms-match-captain"><input type="checkbox" data-match-captain' +
+        (current?.is_captain ? ' checked' : '') + ' ' + (!selected || !canEdit ? 'disabled' : '') + '> Kapitän</label>' +
+      '</article>';
+  }).join('');
+
+  if (saveButton) saveButton.hidden = !canEdit;
+}
+
+async function openPfmsLegacyTeamMatchLineup(matchId) {
+  const match = pfmsLegacyMatches.find(item => item.match_id === matchId);
+  const team = pfmsSelectedLegacyTeam;
+  const panel = document.getElementById('pfmsTeamMatchLineupPanel');
+  const host = document.getElementById('pfmsTeamMatchLineupList');
+  const message = document.getElementById('pfmsTeamMatchLineupMessage');
+  if (!match || !team || !panel || !host ||
+      pfmsSelectedTeamPermissions.get('matches')?.can_view !== true) return;
+
+  pfmsSelectedTeamMatch = match;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  document.getElementById('pfmsTeamMatchLineupTitle').textContent = 'Aufstellung · ' + match.opponent;
+  message.textContent = 'Kaderspieler und Aufstellung werden geladen …';
+  host.innerHTML = '';
+  try {
+    const [candidatesResult, lineupResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_match_candidates', { p_match_id: matchId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_match_lineup', { p_match_id: matchId })
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id ||
+        pfmsSelectedTeamMatch?.match_id !== matchId) return;
+    if (candidatesResult.error) throw candidatesResult.error;
+    if (lineupResult.error) throw lineupResult.error;
+
+    pfmsLegacyMatchCandidates = candidatesResult.data || [];
+    pfmsLegacyMatchLineup = lineupResult.data || [];
+    renderPfmsLegacyTeamMatchLineup();
+    message.textContent = pfmsLegacyMatchLineup.length
+      ? pfmsLegacyMatchLineup.length + ' Spieler in der Aufstellung.'
+      : 'Noch keine Aufstellung gespeichert. Wähle Spieler aus dem Kader.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS match lineup load failed:', error);
+    pfmsLegacyMatchCandidates = [];
+    pfmsLegacyMatchLineup = [];
+    host.innerHTML = '<div class="empty-state">Aufstellung konnte nicht geladen werden. Prüfe die Spielbetriebs-Migration und Bereichsrechte.</div>';
+    message.textContent = 'Aufstellung derzeit nicht verfügbar.';
+  }
+}
+
+async function savePfmsLegacyTeamMatchLineup() {
+  const match = pfmsSelectedTeamMatch;
+  const host = document.getElementById('pfmsTeamMatchLineupList');
+  const message = document.getElementById('pfmsTeamMatchLineupMessage');
+  const button = document.getElementById('pfmsTeamMatchLineupSave');
+  if (!match || !host || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true) {
+    if (message) message.textContent = 'Für die Aufstellung fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const lineup = [...host.querySelectorAll('[data-pfms-match-lineup-row]')]
+    .filter(row => row.querySelector('[data-match-selected]')?.checked)
+    .map(row => ({
+      assignment_id: row.dataset.pfmsMatchLineupRow,
+      lineup_role: row.querySelector('[data-match-role]')?.value,
+      position: row.querySelector('[data-match-position]')?.value,
+      sort_order: Number(row.querySelector('[data-match-order]')?.value),
+      is_captain: row.querySelector('[data-match-captain]')?.checked === true
+    }));
+
+  const starters = lineup.filter(item => item.lineup_role === 'starter').length;
+  const captains = lineup.filter(item => item.is_captain).length;
+  const orders = lineup.map(item => item.sort_order);
+  if (lineup.length > 30 || starters > 11 || captains > 1 ||
+      lineup.some(item => !Number.isInteger(item.sort_order) || item.sort_order < 1 || item.sort_order > 30) ||
+      new Set(orders).size !== orders.length) {
+    message.textContent = 'Prüfe die Aufstellung: maximal 30 Spieler, höchstens 11 Startelf-Spieler, ein Kapitän und eindeutige Reihenfolgen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  message.textContent = 'Aufstellung wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_save_legacy_team_match_lineup', {
+      p_match_id: match.match_id,
+      p_lineup: lineup
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedTrainingSession?.session_id) {
+      // Team identity is checked below as well; this branch also prevents stale view updates.
+      if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    }
+    if (error) throw error;
+    await openPfmsLegacyTeamMatchLineup(match.match_id);
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
+      toast('Spielaufstellung wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS match lineup save failed:', error);
+    message.textContent = 'Aufstellung konnte nicht gespeichert werden. Prüfe Kaderzuordnung, Reihenfolge und Spielrechte.';
+  } finally {
+    button.disabled = false;
+  }
 }
 
 const PFMS_TEAM_CALENDAR_TYPES = {
