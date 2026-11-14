@@ -558,3 +558,15 @@ assert.match(ownerBootstrapFunction, /user_metadata\?\.registration_type !== "ow
 assert.match(ownerBootstrapFunction, /auth\.getUser\(\)/);
 assert.match(ownerBootstrapFunction, /pfms_claim_initial_owner/);
 assert.doesNotMatch(ownerBootstrapFunction, /payload[^\n]*user_id/);
+
+
+// Username login must return only the session material consumed by the browser.
+// In particular, do not expose Supabase's user object (which includes the email).
+const usernameLogin = await readFile(
+  resolve(process.cwd(), "supabase/functions/username-login/index.ts"),
+  "utf8"
+);
+assert.match(usernameLogin, /access_token: sessionData\.session\.access_token/);
+assert.match(usernameLogin, /refresh_token: sessionData\.session\.refresh_token/);
+assert.doesNotMatch(usernameLogin, /user:\s*sessionData\.user/);
+assert.doesNotMatch(usernameLogin, /email:\s*userData\.user\.email\s*[,}]/);
