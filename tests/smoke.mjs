@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFile(path, "utf8");
 const mainStyles = await read("styles.css");
-const workspaceStyles = await read("scout-workspace.css");
 
 const [
   html,
@@ -454,6 +453,10 @@ assert.ok(
   "Video references must be HTTPS-only, opened without opener access, and cleared on team/account changes"
 );
 assert.ok(
+  app.includes("form.elements.video_url.required = form.elements.analysis_type.value === 'video'"),
+  "Changing or resetting an analysis form must keep the conditional video URL requirement in sync"
+);
+assert.ok(
   html.includes('id="pfmsTeamAnalysisPanel"')
     && html.includes('id="pfmsTeamAnalysisForm"')
     && html.includes('id="pfmsTeamAnalysisList"')
@@ -461,9 +464,9 @@ assert.ok(
   "Tactical/video analysis panel, form, list and workspace navigation must exist"
 );
 assert.ok(
-  workspaceStyles.includes(".pfms-team-analysis-card")
-    && workspaceStyles.includes(".pfms-analysis-form-grid")
-    && workspaceStyles.includes("@media(max-width:640px)"),
+  mainStyles.includes(".pfms-team-analysis-card")
+    && mainStyles.includes(".pfms-analysis-form-grid")
+    && mainStyles.includes("@media(max-width:640px)"),
   "Tactical/video analysis forms and cards must have responsive styles"
 );
 
