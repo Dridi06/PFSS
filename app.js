@@ -660,10 +660,14 @@ function showAuthScreen() {
   document.getElementById('appShell').classList.add('hidden');
 }
 
-async function updateOwnerBootstrapVisibility() {
+async function updateOwnerBootstrapVisibility(user) {
   const section = document.getElementById('ownerBootstrapSection');
   if (!section) return;
   section.hidden = true;
+
+  // Only the account created through the dedicated owner registration route
+  // may see the bootstrap form. The Edge Function independently verifies it.
+  if (user?.user_metadata?.registration_type !== 'owner_bootstrap') return;
 
   try {
     const { data, error } = await pfssSupabase.rpc('pfms_owner_setup_available');
@@ -675,7 +679,7 @@ async function updateOwnerBootstrapVisibility() {
   }
 }
 
-function showPendingScreen(status) {
+function showPendingScreen(status, user) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.remove('hidden');
   document.getElementById('appShell').classList.add('hidden');
@@ -693,7 +697,7 @@ function showPendingScreen(status) {
     title.textContent = 'Freigabe ausstehend';
     message.textContent =
       'Dein Konto wurde angelegt. Der Zugang wird nach Prüfung freigeschaltet.';
-    updateOwnerBootstrapVisibility();
+    updateOwnerBootstrapVisibility(user);
   }
 }
 
@@ -1214,14 +1218,14 @@ async function checkPfssAccess(user) {
     .maybeSingle();
 
   if (error || !profile) {
-    showPendingScreen('pending');
+    showPendingScreen('pending', user);
     document.getElementById('pendingText').textContent =
       'Dein Profil konnte noch nicht geprüft werden. Bitte versuche es später erneut.';
     return;
   }
 
   if (profile.status !== 'approved') {
-    showPendingScreen(profile.status);
+    showPendingScreen(profile.status, user);
     return;
   }
 
