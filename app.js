@@ -3110,7 +3110,7 @@ function renderPfmsStaffDirectory(entries, messageText = '') {
             '<div class="pfms-staff-directory-member">' +
               '<span class="pfms-staff-avatar">' + escapeHtml(
                 String(member.full_name || member.username || member.email || 'PF')
-                  .trim().split(/\\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase()
+                  .trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase()
               ) + '</span>' +
               '<span class="pfms-staff-directory-person"><b>' +
                 escapeHtml(member.full_name || member.username || member.email || 'Mitglied') +
