@@ -8052,6 +8052,37 @@ async function pfssLogout() {
   showAuthScreen();
 }
 
+document.getElementById('registerPasskeyButton')
+  ?.addEventListener('click', async () => {
+    const button = document.getElementById('registerPasskeyButton');
+    const message = document.getElementById('passkeySetupMessage');
+    if (!button || !message) return;
+
+    if (!window.isSecureContext ||
+        !window.PublicKeyCredential ||
+        typeof pfssSupabase.auth.registerPasskey !== 'function') {
+      message.textContent = 'Passkey-Einrichtung ist in diesem Browser oder auf dieser Verbindung nicht verfügbar.';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Bitte bestätige die Passkey-Einrichtung auf deinem Gerät …';
+    try {
+      const { data, error } = await pfssSupabase.auth.registerPasskey();
+      if (error) throw error;
+      message.textContent = 'Passkey erfolgreich eingerichtet. Verwende nach Möglichkeit ein zweites Gerät oder einen separaten Sicherheitsschlüssel als Wiederherstellungszugang.';
+      button.textContent = 'Weiteren Passkey einrichten';
+      if (data?.id) console.info('PFMS passkey registered:', data.id);
+    } catch (error) {
+      console.warn('PFMS passkey registration failed:', error?.message || error);
+      message.textContent = error?.name === 'NotAllowedError'
+        ? 'Einrichtung abgebrochen oder nicht bestätigt. Du kannst es erneut versuchen.'
+        : 'Passkey konnte nicht eingerichtet werden. Prüfe die bestätigte E-Mail-Adresse und die Passkey-Konfiguration des PFMS-Testprojekts.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
 document.getElementById('passkeyLoginButton')
   ?.addEventListener('click', async () => {
     const button = document.getElementById('passkeyLoginButton');
