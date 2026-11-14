@@ -537,7 +537,7 @@ assert.ok(
     && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'events', 'edit')"),
 assert.ok(
   !teamEventTravelMigration.includes("pfms_legacy_team_event_travel_meeting_point_check")
-    && teamEventTravelMigration.includes("p_seat_capacity < v_participant_count"),
+    && teamEventTravelMigration.includes("v_participant_count > p_seat_capacity"),
   "Travel migration must not reference absent columns and must reject vehicle capacities below existing active RSVPs"
 );
 assert.ok(
