@@ -199,7 +199,8 @@ assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="p
 
 assert.ok(html.includes('id="pfmsClubOrganizationsGrid"') && html.includes('id="pfmsClubWorkspaceStatus"'), "Live club workspace container is missing");
 assert.ok(html.includes('data-view="admin-members"') && app.includes("if (view === 'admin-members') loadPfmsAdminMembers()"), "Administrator navigation must open the live member directory");
-assert.ok(html.includes('id="view-agencies"') && html.includes("Agenturen und Mitgliedschaften verwalten") && !html.includes("Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert."), "Agency administration must route to live member directory");
+const agencyViewHtml = html.slice(html.indexOf('id="view-agencies"'), html.indexOf('id="view-admin-members"'));
+assert.ok(agencyViewHtml.includes("Agenturen und Mitgliedschaften verwalten") && !agencyViewHtml.includes("Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert."), "Agency administration must route to live member directory");
 
 assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
 assert.ok(html.includes('id="view-tasks"') && html.includes('id="pfmsPersonalTaskForm"') && html.includes('id="pfmsPersonalTaskList"'), "Personal task center UI is incomplete");
