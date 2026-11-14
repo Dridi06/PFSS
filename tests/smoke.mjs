@@ -200,6 +200,7 @@ assert.ok(html.includes('id="pfmsLegacyInvitationForm"') && html.includes('id="p
 assert.ok(html.includes('id="pfmsClubOrganizationsGrid"') && html.includes('id="pfmsClubWorkspaceStatus"'), "Live club workspace container is missing");
 assert.ok(html.includes('data-view="admin-members"') && app.includes("if (view === 'admin-members') loadPfmsAdminMembers()"), "Administrator navigation must open the live member directory");
 const agencyViewHtml = html.slice(html.indexOf('id="view-agencies"'), html.indexOf('id="view-admin-members"'));
+assert.ok(html.includes("Keine Abbuchungen aktiv") && html.includes("signierte Webhooks") && html.includes("Live-Abrechnung"), "Billing administration must disclose disabled payments and activation requirements");
 assert.ok(agencyViewHtml.includes("Agenturen und Mitgliedschaften verwalten") && !agencyViewHtml.includes("Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert."), "Agency administration must route to live member directory");
 
 assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
