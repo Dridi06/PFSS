@@ -555,6 +555,27 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_event_travel_plans'"),
   "Staging audit must include event travel plans"
 );
+assert.ok(
+  teamEventTravelMigration.includes("v_event_type not in ('tournament','event')")
+    && teamEventTravelMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'events', 'edit')")
+    && teamEventTravelMigration.includes("p_departure_at is null")
+    && teamEventTravelMigration.includes("p_return_departure_at < p_arrival_at"),
+  "Travel plans must be event-only, edit-permission protected and validate departure/arrival/return ordering"
+);
+assert.ok(
+  teamEventTravelMigration.includes("grant execute on function public.pfms_list_legacy_team_event_travel_plans(uuid)")
+    && teamEventTravelMigration.includes("grant execute on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, timestamptz")
+    && teamEventTravelMigration.includes("grant execute on function public.pfms_delete_legacy_team_event_travel_plan(uuid)"),
+  "Travel plan RPC execution grants must match their exact function signatures"
+);
+assert.ok(
+  app.includes("function pfmsDateTimeLocalIso(value)")
+    && app.includes("pfmsLegacyTeamEventTravelPlans = []")
+    && app.includes("pfmsLegacyTeamEventTravelPlans = travelResult.data || []")
+    && app.includes("resetPfmsLegacyTeamEventsState()"),
+  "Travel plan timestamps and cached data must use local datetime conversion and clear on workspace reset"
+);
+
 
 assert.ok(
   mainStyles.includes(".pfms-team-event-card")
