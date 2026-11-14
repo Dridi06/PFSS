@@ -95,6 +95,7 @@ const requiredFiles = [
   "scripts/build-ci.mjs",
   "pfms-config.js",
   "tests/build-smoke.mjs",
+  "tests/build-config-smoke.mjs",
   "tests/accessibility-smoke.mjs",
   "tests/migration-syntax-smoke.mjs",
   "supabase/STAGING_READ_ONLY_AUDIT.sql",
