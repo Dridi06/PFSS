@@ -827,3 +827,20 @@ assert.match(cycleSessionGuard, /new\.session_date > v_week_end/);
 assert.match(cycleSessionGuard, /for share/);
 assert.match(cycleSessionGuard, /before insert or update of team_id, session_date, cycle_week_id/);
 assert.match(cycleSessionGuard, /revoke all on function public\.pfms_guard_training_session_cycle_week\(\) from public, anon, authenticated/);
+
+
+// Match lineup rows are bound to the same team as both match and roster assignment.
+const matchLineupIntegrity = (
+  await readFile(
+    resolve(directory, "20261214_pfms_match_lineup_team_integrity.sql"),
+    "utf8"
+  )
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(matchLineupIntegrity, /add column if not exists team_id uuid/);
+assert.match(matchLineupIntegrity, /m\.team_id <> tp\.team_id/);
+assert.match(matchLineupIntegrity, /alter column team_id set not null/);
+assert.match(matchLineupIntegrity, /foreign key \(match_id, team_id\)/);
+assert.match(matchLineupIntegrity, /foreign key \(team_player_assignment_id, team_id\)/);
+assert.match(matchLineupIntegrity, /before insert or update of match_id, team_id/);
+assert.match(matchLineupIntegrity, /new\.team_id := v_team_id/);
+assert.match(matchLineupIntegrity, /revoke all on function public\.pfms_set_legacy_match_lineup_team\(\) from public, anon, authenticated/);
