@@ -83,6 +83,15 @@ Jeden Test mit Konto, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler doku
 
 ## 6. Frontend und Render-Staging
 
+### Reproduzierbarer Static-Site-Build
+
+- `render.yaml` definiert den getrennten Dienst `pfms-staging-static` auf `feature/pfss-complete-platform-build`.
+- Der Render-Build-Befehl lautet `npm test`. Das Testskript prüft JavaScript-Syntax, bestehende Projekt-Smoke-Tests, erstellt anschließend `dist/` und prüft den vollständigen statischen Ausgabebaum.
+- `scripts/build-static.mjs` kopiert ausschließlich `index.html`, `rechtliches.html`, beide CSS-Dateien, beide JavaScript-Dateien und das PFMS-Logo nach `dist/`. SQL-Migrationen, Tests, interne Dokumentation und Repository-Konfigurationen werden nicht veröffentlicht.
+- Render veröffentlicht ausschließlich `./dist`. Automatische Deployments sind auf erfolgreiche Checks begrenzt (`autoDeployTrigger: checksPass`).
+- Die Blueprint-Datei provisioniert oder ändert keinen Dienst allein durch einen Git-Commit. Vor dem Anwenden in Render müssen Repository, Branch, Dienstname und Zielumgebung kontrolliert werden.
+- **Wichtige Typgrenze:** Der PFMS-Client ist eine statische Website. Render unterscheidet statische Websites (Blueprint: `type: web`, `runtime: static`) von normalen Web Services. Der Servicetyp kann nach der Erstellung nicht geändert werden. Ist der vorhandene Testdienst als normaler Web Service angelegt, muss ein separater Static-Site-Dienst erstellt werden; der bestehende Live-Dienst bleibt unverändert.
+
 - GitHub Actions muss beide Jobs grün melden: Node-Syntax-/Smoke-Tests und Deno-Typprüfung aller Edge Functions.
 - Render-Service-Typ im Dashboard verifizieren. Nicht allein aus der URL ableiten, ob es ein Static Site- oder Web-Service ist.
 - Staging-Service explizit auf den Entwicklungsbranch setzen.
