@@ -13,9 +13,9 @@ assert.ok(renderConfig.includes("branch: feature/pfss-complete-platform-build"))
 assert.match(renderConfig, /buildCommand: npm run check:syntax && npm run build && npm run test:dist/);
 assert.match(renderConfig, /staticPublishPath: \.\/dist/);
 assert.match(renderConfig, /autoDeployTrigger: checksPass/);
-assert.ok(/key: PFMS_BUILD_TARGET\\s+value: staging/.test(renderConfig));
+assert.ok(renderConfig.includes("key: PFMS_BUILD_TARGET\\n        value: staging"));
 for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABASE_KEY"]) {
-  assert.match(renderConfig, new RegExp("key: " + key + "\\s+sync: false"));
+  assert.ok(renderConfig.includes("key: " + key + "\\n        sync: false"), key + " must be supplied outside the repository");
 }
 assert.ok(!/branch: main/.test(renderConfig), "Staging blueprint must never deploy from production main");
 assert.ok(!/name: pfms-production/.test(renderConfig), "Staging blueprint must not define a production service");
