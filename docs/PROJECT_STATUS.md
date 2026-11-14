@@ -130,6 +130,8 @@ Bevor weitere Organisations- oder Teamfunktionen ergänzt werden, muss der tats�
 
 Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript ist rein lesend und erfasst Tabellen/Spalten, RLS, Policies, Grants, Constraints, Trigger, relevante Funktionen, Storage-Konfiguration sowie geschätzte Zeilenbestände der beiden Organisationsmodelle und ihrer Mitgliedschaftstabellen. Die Zeilenzahlen basieren auf PostgreSQL-Statistiken und sind Näherungswerte, keine exakten Counts. Es muss im **Staging-Supabase-Projekt** ausgeführt und das Ergebnis geprüft werden.
 
+Die Delegation von Organisationsrechten ist im Feature-Branch mit eigener SQL-Migration, Mitgliederansicht und Admin-Dialog für Bereichsrechte integriert. Sie ist noch nicht in Staging angewendet oder Ende-zu-Ende getestet. Die bestehenden Teamfachrechte bleiben davon getrennt.
+
 ## 5. Sicherheits- und Integrationsrisiken
 
 - Alle drei Edge Functions verwenden im Entwicklungszweig jetzt eine gemeinsame CORS-Origin-Allowlist statt `*`. Standardmäßig sind ausschließlich lokale Entwicklungsdomains zugelassen. Staging und Produktion müssen `PFMS_ALLOWED_ORIGINS` in den jeweiligen Supabase-Function-Secrets ausdrücklich und getrennt konfigurieren. Die geänderten Functions sind noch nicht deployed; die Live-Funktionen behalten bis dahin ihre bisherige Konfiguration.
