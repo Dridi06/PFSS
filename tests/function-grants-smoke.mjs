@@ -199,6 +199,20 @@ assert.match(stagingAcceptance, /pg_catalog\.aclexplode\(/);
 assert.match(stagingAcceptance, /a\.grantee = 0 and a\.privilege_type = 'execute'/);
 assert.match(stagingAcceptance, /has_function_privilege\('authenticated'/);
 assert.match(stagingAcceptance, /has_function_privilege\('anon'/);
+assert.match(stagingAcceptance, /'nine_team_permission_modules'/);
+for (const moduleKey of [
+  "squad", "training", "attendance", "finance", "events",
+  "calendar", "matches", "analysis", "tasks"
+]) {
+  assert.ok(
+    stagingAcceptance.includes("%''" + moduleKey + "''%"),
+    "Read-only Staging acceptance must verify the " + moduleKey + " permission module"
+  );
+}
+assert.match(stagingAcceptance, /count\(distinct value ->> ''module_key''\)/);
+assert.match(stagingAcceptance, /v_can_edit and not v_can_view/);
+assert.match(stagingAcceptance, /p_action in \(''view'',''edit''\)/);
+
 
 assert.ok(definitions.size > 0, "No public function signatures were inspected.");
 assert.ok(grants.length > 0, "No authenticated/public function grants were inspected.");
