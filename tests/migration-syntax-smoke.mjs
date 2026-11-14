@@ -61,6 +61,24 @@ for (const match of functionDefinitions) {
 
 assert.ok(securityDefinerCount > 0, "No SECURITY DEFINER migration functions were checked.");
 
+// Documentation must never instruct operators to apply a migration that is
+// absent from the repository. Check explicit migration paths in project docs.
+const docsDirectory = resolve(process.cwd(), "docs");
+const docsEntries = await readdir(docsDirectory, { withFileTypes: true });
+const markdownFiles = docsEntries
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+  .map((entry) => entry.name);
+for (const filename of markdownFiles) {
+  const document = await readFile(resolve(docsDirectory, filename), "utf8");
+  for (const match of document.matchAll(/supabase\\/migrations\\/([A-Za-z0-9_-]+\\.sql)/g)) {
+    assert.ok(
+      migrationFiles.includes(match[1]),
+      filename + " references a migration that does not exist: " + match[1]
+    );
+  }
+}
+
+
 console.log(
   "PFMS migration smoke tests passed: " +
   migrationFiles.length +
