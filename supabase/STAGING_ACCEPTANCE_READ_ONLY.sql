@@ -475,6 +475,52 @@ with checks as (
 
   union all
   select
+    'platform_owner_admin_protection',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) a
+          where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+        )
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_platform_owner%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%owner_user_id = p_user_id%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%the platform owner account is protected%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfss_admin_update_profile(uuid,text,text)')
+    ), false),
+    'Profilverwaltungs-RPC schützt den designierten Plattforminhaber; SECURITY DEFINER, leerer search_path, EXECUTE nur für authenticated'
+
+  union all
+  select
+    'legacy_owner_updates_serialized',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) a
+          where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+        )
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%from public.organizations o%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for update%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%the organization must retain at least one active owner%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_admin_update_legacy_membership(uuid,text,text)')
+    ), false),
+    'Mitgliedschafts-RPC sperrt die Organisation vor der Inhaberprüfung; parallele Änderungen werden serialisiert'
+
+  union all
+  select
     'main_media_metadata_rls',
     coalesce((
       select c.relrowsecurity and c.relforcerowsecurity
