@@ -72,7 +72,8 @@ Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattforma
 
 ### Gemeinsame Teamaufgaben
 - Ein Konto mit `tasks.view` darf nur Aufgaben der eigenen Mannschaft lesen. Ohne Leserecht muss der List-RPC scheitern.
-- Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
+- Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Beim Erstellen alle Anfangsstatus (`open`, `in_progress`, `done`, `cancelled`) testen; bei `done` muss `completed_at` gesetzt, bei allen anderen Status null sein. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
+- Die `EXECUTE`-Freigabe für `pfms_create_legacy_team_task` muss exakt zur siebenstelligen Signatur passen. Ein Aufruf mit dem gewählten `p_status` muss den gewählten Anfangsstatus unverändert speichern.
 - Aufgaben dürfen nur aktiven Trainern, Co-Trainern oder Betreuern derselben Mannschaft zugewiesen werden. Versuche mit einem Mitarbeiter aus einer anderen Mannschaft oder einem inaktiven/entfernten Mitarbeiter müssen scheitern.
 - Beim Löschen einer Staff-Zuordnung bleibt die Teamaufgabe erhalten und wird automatisch unzugewiesen; Aufgaben dürfen nicht kaskadierend mit Staff-Mitgliedern gelöscht werden.
 - Teamaufgaben sind strikt von privaten persönlichen Aufgaben getrennt. Ein normales Mitglied ohne Teamaufgabenrecht darf die Teamliste nicht lesen und persönliche Aufgaben anderer Konten nie sehen.
