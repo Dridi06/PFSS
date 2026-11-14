@@ -670,7 +670,7 @@ button,input,select,textarea{max-width:100%}
 #authScreen .pricing-intro>p{margin:0 0 15px;color:#bdb5a8;font-size:13px}
 #authScreen .trial-strip{display:inline-flex;align-items:center;gap:9px;padding:10px 16px;border:1px solid #8b6c37;border-radius:30px;background:linear-gradient(100deg,#302615,#1b1914);color:#e8d5aa;font-size:11px}
 #authScreen .trial-icon{color:#f5d27f;font-size:17px}
-#authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+#authScreen .pricing-grid{grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
 #authScreen .pricing-card{min-height:0;padding:19px 17px 17px;border:1px solid #59482e;border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#c49a4a16,transparent 45%),linear-gradient(155deg,#1c1d1d,#101214 75%);box-shadow:0 12px 28px #0004;transition:border-color .2s,transform .2s}
 #authScreen .pricing-card:hover{border-color:#b58c4a;transform:translateY(-2px)}
 #authScreen .pricing-card h3{margin:9px 0 6px;color:#f1dfb8;font-size:20px}
