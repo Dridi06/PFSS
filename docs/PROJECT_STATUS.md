@@ -14,6 +14,12 @@ PFMS ist noch kein vollständig integriertes Fußballmanagementsystem. Der Besta
 
 Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichnissen. Seitdem wurden eine Node-Projektkonfiguration, Smoke-Tests und ein GitHub-Actions-Workflow ergänzt. Eine Render-Blueprint-Konfiguration für einen getrennten Static-Site-Stagingdienst ist jetzt im Repository ergänzt. Sie wurde noch nicht im Render-Konto angewendet; der tatsächliche Servicetyp des bestehenden Testdiensts muss weiterhin verifiziert werden.
 
+### Aktueller Sicherheitsfortschritt – Supabase-Umgebungstrennung
+
+Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wurden aus `app.js` entfernt. Der Build generiert jetzt `dist/pfms-config.js` aus Umgebungsvariablen. Der Staging-Build erzwingt die Übereinstimmung zwischen Staging-Projekt-Referenz und Supabase-URL und verweigert fehlende Konfigurationen sowie Secret-/Service-Role-Keys. Der GitHub-CI-Build nutzt ausschließlich nicht funktionsfähige Platzhalterdaten. Damit wird verhindert, dass das Staging-Frontend versehentlich an die zuvor im Quelltext hinterlegte Supabase-Instanz gekoppelt wird.
+
+**Noch nicht verifiziert:** Es muss im Supabase-Dashboard ein eigenständiges Staging-Projekt eindeutig bestätigt und dessen öffentliche Build-Konfiguration in Render eingetragen werden. Existenz und Datenisolation dieses externen Projekts lassen sich nicht aus dem Git-Repository ableiten.
+
 ## 2. Vorhandene Bausteine
 
 ### Build- und Umgebungsisolation (neu)
