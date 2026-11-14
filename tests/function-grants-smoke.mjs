@@ -706,5 +706,5 @@ const eventTravel = (
 ).replace(/\s+/g, " ").toLowerCase();
 assert.match(eventTravel, /foreign key \(event_id, team_id\)/);
 assert.match(eventTravel, /events', 'edit'/);
-assert.match(eventTravel, /p_seat_capacity between 1 and 80/);
+assert.match(eventTravel, /seat_capacity between 1 and 80/);
 
