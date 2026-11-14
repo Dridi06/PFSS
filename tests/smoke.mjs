@@ -569,6 +569,59 @@ assert.ok(
 );
 assert.ok(app.includes("pfmsSelectedTeamPermissions = new Map()") && app.includes("pfmsTeamPermissionsDialog") && app.includes("requestGeneration !== pfmsAuthGeneration"), "Team permission UI must clear state and reject stale account responses");
 
+const expectedTeamPermissionModules = [
+  "squad", "training", "attendance", "finance", "events",
+  "calendar", "matches", "analysis", "tasks"
+];
+const permissionModuleMap = app.match(/const PFMS_TEAM_PERMISSION_MODULES = \{([\s\S]*?)\n\};/);
+assert.ok(permissionModuleMap, "The team permission editor must define its module map");
+for (const moduleKey of expectedTeamPermissionModules) {
+  assert.match(
+    permissionModuleMap[1],
+    new RegExp("\\b" + moduleKey + "\\s*:"),
+    "The team permission editor is missing the " + moduleKey + " module"
+  );
+  assert.ok(
+    app.includes("pfmsSelectedTeamPermissions.get('" + moduleKey + "')"),
+    "The UI must resolve the current user's " + moduleKey + " permission"
+  );
+}
+assert.equal(
+  (permissionModuleMap[1].match(/:\s*['"]/g) || []).length,
+  expectedTeamPermissionModules.length,
+  "The permission editor must expose exactly nine distinct team modules"
+);
+assert.ok(
+  app.includes("card.hidden = !canView") &&
+  app.includes("permission?.can_view === true"),
+  "Team module navigation must be hidden unless the server-resolved view permission is granted"
+);
+assert.ok(
+  app.includes("const canViewSquad = squadPermission.can_view === true;") &&
+  app.includes("const canEditSquad = squadPermission.can_edit === true;"),
+  "Squad UI must distinguish read and edit permissions"
+);
+assert.ok(
+  app.includes("pfmsSelectedTeamPermissions.get('attendance')?.can_view !== true") &&
+  app.includes("pfmsSelectedTeamPermissions.get('attendance')?.can_edit !== true"),
+  "Attendance viewing and attendance changes must use separate permissions"
+);
+for (const moduleKey of ["training", "finance", "events", "calendar", "matches", "analysis", "tasks"]) {
+  assert.ok(
+    app.includes("pfmsSelectedTeamPermissions.get('" + moduleKey + "')") &&
+    app.includes("can_view") && app.includes("can_edit"),
+    "The " + moduleKey + " workspace must apply separate view and edit permission checks"
+  );
+}
+assert.ok(
+  app.includes("pfms_get_my_legacy_team_permissions") &&
+  app.includes("permissionResult.data || []") &&
+  app.includes("can_view: permission.can_view === true") &&
+  app.includes("can_edit: permission.can_edit === true"),
+  "The workspace must consume server-resolved permissions rather than infer them from role labels"
+);
+
+
 assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
 assert.ok(html.includes('id="pfmsTeamRosterPanel"') && html.includes('id="pfmsTeamRosterForm"') && html.includes('id="pfmsTeamRosterList"'), "Team roster UI is incomplete");
 assert.ok(stagingAudit.includes("'pfms_legacy_team_players'"), "Staging audit must inspect team roster assignments");
