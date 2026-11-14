@@ -987,34 +987,45 @@ async function addMedia(files) {
 }
 
 async function deleteMainMedia(mediaId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isCurrentMediaSession = () =>
+    requestGeneration === pfmsAuthGeneration &&
+    requestUserId === window.pfssCurrentUserId;
   const item = mediaItems.find((media) => media.id === mediaId);
-  if (!item || item.owner_id !== window.pfssCurrentUserId) return;
+  if (!requestUserId || !item || item.owner_id !== requestUserId) return;
   if (!window.confirm('Datei "' + item.file_name + '" wirklich aus deiner privaten Medienbibliothek löschen?')) return;
 
   try {
     const removedFile = await pfssSupabase.storage
       .from(PFMS_MAIN_MEDIA_BUCKET)
       .remove([item.storage_path]);
+    if (!isCurrentMediaSession()) return;
     if (removedFile.error) throw removedFile.error;
 
     const removedRow = await pfssSupabase
       .from('pfms_main_media')
       .delete()
       .eq('id', mediaId)
-      .eq('owner_id', window.pfssCurrentUserId);
+      .eq('owner_id', requestUserId);
+    if (!isCurrentMediaSession()) return;
     if (removedRow.error) {
       await loadPfmsMainMedia(true);
-      toast('Die Datei wurde aus dem Speicher entfernt; der Datenbankeintrag muss noch geprüft werden.');
+      if (isCurrentMediaSession()) {
+        toast('Die Datei wurde aus dem Speicher entfernt; der Datenbankeintrag muss noch geprüft werden.');
+      }
       return;
     }
 
     await loadPfmsMainMedia(true);
-    toast('Datei wurde aus deiner privaten Medienbibliothek gelöscht.');
+    if (isCurrentMediaSession()) toast('Datei wurde aus deiner privaten Medienbibliothek gelöscht.');
   } catch (error) {
+    if (!isCurrentMediaSession()) return;
     console.error('PFMS main media deletion failed:', error);
     toast('Datei konnte nicht gelöscht werden. Bitte Berechtigung und Speicherverbindung prüfen.');
   }
 }
+
 
 document.addEventListener('click', event => {
   const navToggle = event.target.closest('[data-nav-toggle]');
