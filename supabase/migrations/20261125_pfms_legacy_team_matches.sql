@@ -329,7 +329,7 @@ language plpgsql
 stable
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_team_id uuid;
 begin
@@ -353,7 +353,7 @@ begin
   order by tp.jersey_number nulls last,
            pg_catalog.lower(p.surname), pg_catalog.lower(p.name);
 end;
-$;
+$$;
 
 create or replace function public.pfms_save_legacy_team_match_lineup(
   p_match_id uuid,
