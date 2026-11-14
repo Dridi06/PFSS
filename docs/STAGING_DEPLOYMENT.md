@@ -62,6 +62,7 @@ Ergebnisse sichern und insbesondere prüfen:
 - Storage-Bucket `pfss-scout-private` bleibt privat; Objektpfade sind benutzergebunden.
 - Neue Tabellen: globaler Spielerkatalog, Haupt-Scoutingberichte, Hauptmedien, persönliche Aufgaben und Supporttickets.
 - Security-Definer-Funktionen besitzen einen festen `search_path` und passende Grants.
+- Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
 
 ## 5. Funktionale Abnahme mit getrennten Testkonten
 
