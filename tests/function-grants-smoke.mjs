@@ -844,3 +844,18 @@ assert.match(matchLineupIntegrity, /foreign key \(team_player_assignment_id, tea
 assert.match(matchLineupIntegrity, /before insert or update of match_id, team_id/);
 assert.match(matchLineupIntegrity, /new\.team_id := v_team_id/);
 assert.match(matchLineupIntegrity, /revoke all on function public\.pfms_set_legacy_match_lineup_team\(\) from public, anon, authenticated/);
+
+
+// Module-level permissions and permission-list reads must pass central team access.
+const permissionMembershipGate = (
+  await readFile(
+    resolve(directory, "20261215_pfms_team_permission_membership_gate.sql"),
+    "utf8"
+  )
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(permissionMembershipGate, /and public\.pfms_can_access_legacy_team\(p_team_id\)/);
+assert.match(permissionMembershipGate, /'tasks'/);
+assert.match(permissionMembershipGate, /if not public\.pfms_can_access_legacy_team\(v_team_id\)/);
+assert.match(permissionMembershipGate, /security definer/);
+assert.match(permissionMembershipGate, /set search_path = ''/);
+assert.match(permissionMembershipGate, /grant execute on function public\.pfms_has_legacy_team_permission\(uuid,text,text\) to authenticated/);
