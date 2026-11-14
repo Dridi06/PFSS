@@ -111,7 +111,7 @@ assert.ok(globalCatalogueMigration.includes("public.pfms_global_players") && glo
 assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalCatalogueMigration.includes("pfms_current_user_is_approved"), "Global catalogue RLS must enforce approved users and administrator writes");
 assert.ok(globalCatalogueMigration.includes("enable row level security") && globalCatalogueMigration.includes("pfms_main_scouting_reports"), "Main cloud catalogue must have RLS and persistent reports");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy local backups must use a bounded transactional cloud import");
-assert.ok(audit.includes("'pfms_global_players'") && audit.includes("'pfms_main_scouting_reports'"), "Read-only audit must inspect main catalogue tables");
+assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.includes("'pfms_main_scouting_reports'"), "Read-only audit must inspect main catalogue tables");
 assert.ok(systemEventsMigration.includes("force row level security") && systemEventsMigration.includes("public.is_admin()"), "System events must be protected by forced RLS and admin review policies");
 assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && systemEventsMigration.includes("pfms_system_events_admin_select"), "System events must separate user inserts from administrator reads");
 assert.ok(!systemEventsMigration.includes("grant select, insert, update, delete on table public.pfms_system_events"), "System events must not grant delete access");
