@@ -119,7 +119,11 @@ for (const match of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public
   const signature = name + "(" + args + ")";
   definitions.add(signature);
 
-  const header = sql.slice(match.index, close + 1 + tail.search(/\breturns\b/i));
+  // SECURITY DEFINER appears after RETURNS in PostgreSQL declarations.
+  // Inspect the full declaration up to AS $ (or a named dollar-quote body).
+  const bodyStart = tail.search(/\bas\s+(?:\$\$|\$[a-z_][a-z0-9_]*\$)/i);
+  assert.notEqual(bodyStart, -1, "Function body delimiter not found for " + signature);
+  const header = sql.slice(match.index, close + 1) + tail.slice(0, bodyStart);
   if (/security\s+definer/i.test(header)) securityDefinerSignatures.add(signature);
 }
 
