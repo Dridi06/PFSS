@@ -43,6 +43,13 @@ for (const file of requiredFiles) {
   await access(resolve(outputDirectory, file));
 }
 
+const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
+const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js" defer>');
+const appScriptIndex = mainPageSource.indexOf('<script src="app.js');
+const workspaceScriptIndex = mainPageSource.indexOf('<script src="scout-workspace.js');
+assert.ok(configScriptIndex >= 0 && appScriptIndex > configScriptIndex, "Runtime config must load before the main application");
+assert.ok(workspaceScriptIndex > appScriptIndex, "Workspace script must load after the main application");
+
 const runtimeConfigSource = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
 const runtimeConfigMatch = runtimeConfigSource.match(/Object\.freeze\((\{.*\})\);/s);
 assert.ok(runtimeConfigMatch, "Generated frontend config must be valid JSON data");
