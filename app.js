@@ -2354,6 +2354,9 @@ let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
 let pfmsLegacyTrainingSessions = [];
 let pfmsLegacyTrainingCycles = [];
+let pfmsLegacyTeamAnalysis = [];
+let pfmsLegacyTeamAnalysisMatches = [];
+let pfmsEditingTeamAnalysisId = null;
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -2400,6 +2403,35 @@ function resetPfmsLegacyTrainingCycleState() {
 
   const panel = document.getElementById('pfmsTeamTrainingCyclesPanel');
   if (panel) panel.hidden = true;
+}
+
+function resetPfmsLegacyTeamAnalysisState() {
+  pfmsLegacyTeamAnalysis = [];
+  pfmsLegacyTeamAnalysisMatches = [];
+  pfmsEditingTeamAnalysisId = null;
+
+  const panel = document.getElementById('pfmsTeamAnalysisPanel');
+  if (panel) panel.hidden = true;
+
+  const form = document.getElementById('pfmsTeamAnalysisForm');
+  form?.reset();
+  if (form?.elements.analysis_id) form.elements.analysis_id.value = '';
+
+  const host = document.getElementById('pfmsTeamAnalysisList');
+  if (host) host.replaceChildren();
+
+  const message = document.getElementById('pfmsTeamAnalysisMessage');
+  if (message) message.textContent = '';
+
+  const matchSelect = document.getElementById('pfmsTeamAnalysisMatch');
+  if (matchSelect) {
+    matchSelect.innerHTML = '<option value="">Ohne konkretes Spiel</option>';
+    matchSelect.value = '';
+  }
+
+  const save = document.getElementById('pfmsTeamAnalysisSave');
+  if (save) save.textContent = 'Analyse speichern';
+  document.getElementById('pfmsTeamAnalysisCancelEdit')?.setAttribute('hidden', '');
 }
 
 function renderPfmsClubWorkspace() {
@@ -3593,6 +3625,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
   resetPfmsLegacyTrainingCycleState();
+  resetPfmsLegacyTeamAnalysisState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
@@ -5787,6 +5820,7 @@ function setupPfmsLegacyTeamWorkspace() {
     pfmsLegacyTeamRoster = [];
     pfmsLegacyTrainingSessions = [];
     resetPfmsLegacyTrainingCycleState();
+    resetPfmsLegacyTeamAnalysisState();
     pfmsLegacyTeamExercises = [];
     pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
@@ -6195,6 +6229,7 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTeamRosterCandidates = [];
   pfmsLegacyTrainingSessions = [];
   resetPfmsLegacyTrainingCycleState();
+  resetPfmsLegacyTeamAnalysisState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingPlanSession = null;
