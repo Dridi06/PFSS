@@ -91,6 +91,7 @@ const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy
 const teamEventParticipantsMigration = await read("supabase/migrations/20261204_pfms_legacy_team_event_participants.sql");
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
+const inAppNotificationsMigration = await read("supabase/migrations/20261207_pfms_in_app_notifications.sql");
 
 
 const requiredFiles = [
@@ -129,6 +130,7 @@ const requiredFiles = [
   "supabase/migrations/20261128_pfms_personal_tasks.sql",
   "supabase/migrations/20261129_pfms_support_tickets.sql",
   "supabase/migrations/20261206_pfms_legacy_team_tasks.sql",
+  "supabase/migrations/20261207_pfms_in_app_notifications.sql",
   "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
   "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
@@ -186,6 +188,54 @@ assert.ok(!/grant execute on function public\.pfms_create_legacy_team_task\(uuid
 assert.ok(app.includes("async function savePfmsLegacyTeamTask") && app.includes("p_status: args.p_status"), "Team task form must send the selected initial status to Supabase");
 assert.ok(app.includes("pfms_update_legacy_team_task") && app.includes("pfms_delete_legacy_team_task") && app.includes("loadPfmsLegacyTeamTasks"), "Team task update, delete and reload workflows must be connected");
 assert.ok(html.includes('id="pfmsTeamTasksPanel"') && html.includes('id="pfmsTeamTaskForm"') && html.includes('id="pfmsTeamTasksList"'), "Team task UI must be present in the team workspace");
+
+assert.ok(
+  inAppNotificationsMigration.includes("public.pfms_notifications")
+    && inAppNotificationsMigration.includes("recipient_id = auth.uid()")
+    && inAppNotificationsMigration.includes("grant select on table public.pfms_notifications to authenticated")
+    && inAppNotificationsMigration.includes("grant update (is_read) on table public.pfms_notifications to authenticated")
+    && !/grant\\s+(?:insert|all)\\s+on\\s+table\\s+public\\.pfms_notifications\\s+to\\s+authenticated/i.test(inAppNotificationsMigration),
+  "Notifications must be recipient-private and browser accounts may only read or mark their own rows as read"
+);
+assert.ok(
+  inAppNotificationsMigration.includes("security definer")
+    && inAppNotificationsMigration.includes("set search_path = ''")
+    && inAppNotificationsMigration.includes("revoke all on function public.pfms_notify_legacy_team_task_changes()")
+    && inAppNotificationsMigration.includes("after insert or update of assigned_to, status"),
+  "Team-task notifications must be created only by a restricted database trigger"
+);
+assert.ok(
+  inAppNotificationsMigration.includes("'team_task_assigned'")
+    && inAppNotificationsMigration.includes("'team_task_completed'")
+    && inAppNotificationsMigration.includes("new.assigned_to is distinct from v_actor_id")
+    && inAppNotificationsMigration.includes("old.status is distinct from 'done'"),
+  "In-app notifications must be generated for new assignees and task completion without self-notification"
+);
+assert.ok(
+  app.includes("async function loadPfmsNotifications")
+    && app.includes("async function markPfmsNotificationRead")
+    && app.includes("async function markAllPfmsNotificationsRead")
+    && app.includes("setupPfmsNotifications()")
+    && app.includes("resetPfmsAuthenticatedState()"),
+  "In-app notification loading, recipient-owned read state and account reset must be wired"
+);
+assert.ok(
+  html.includes('id="view-notifications"')
+    && html.includes('id="pfmsNotificationsList"')
+    && html.includes('id="pfmsNotificationsMarkAllRead"')
+    && html.includes('data-pfms-notification-count'),
+  "In-app notification inbox and unread counters must be present in the workspace"
+);
+assert.ok(
+  workspaceStyles.includes(".pfms-notifications-list")
+    && workspaceStyles.includes(".pfms-notification-card")
+    && workspaceStyles.includes(".pfms-notification-count"),
+  "Notification inbox cards and unread counters require workspace styling"
+);
+assert.ok(
+  stagingAudit.includes("'pfms_notifications'"),
+  "Staging audit must inventory the private notification table"
+);
 
 assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--clean`"), "Restore guide must prohibit destructive clean restore flags");
 
