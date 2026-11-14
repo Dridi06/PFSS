@@ -399,3 +399,6 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Zuordnung von Trainer-/Betreuerpersonal prüft die Team-ID jetzt auch nach dem RPC und nach dem Neuladen, bevor ein Dialog geöffnet oder eine Schaltfläche verändert wird.
 - Acht zusätzliche Regressionstests decken die verbleibenden Schreibwege und die Personalzuordnung ab.
 - Keine Datenbank- oder Live-Änderung; Feature-Branch und CI bleiben der Prüfpfad.
+
+
+- Nachkontrolle der teamgebundenen Abschlussaktionen: Auch das Submit-Steuerelement des Fahrt-/Transportplans wird nach einem asynchronen Speichern nur noch freigegeben, wenn die ursprüngliche Mannschaft weiterhin aktiv ist. Ein zusätzlicher Smoke-Test schützt diesen Sonderfall.
