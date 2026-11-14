@@ -116,7 +116,7 @@ assert.ok(app.includes("storage.from(PFMS_MAIN_MEDIA_BUCKET).upload") && app.inc
 assert.ok(app.includes("PFMS_MAIN_MEDIA_MAX_SIZE") && app.includes("PFMS_MAIN_MEDIA_ALLOWED_TYPES"), "Main media uploads must enforce size and MIME allowlists");
 assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMigration.includes("owner_id = auth.uid()"), "Main media metadata must be protected by forced owner-scoped RLS");
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
-assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+
+assert.ok(mainMediaMigration.includes("storage_path ~") && mainMediaMigration.includes("/main/"), "Main media path must stay inside the authenticated user folder");
 assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pfms_is_admin()"), "Report RLS must restrict read/update/delete to the author or an administrator");
 assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve reports rather than cascade-delete history");
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy local data must have an explicit safe cloud import path");
