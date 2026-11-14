@@ -313,7 +313,13 @@ assert.ok(
     && stagingAcceptanceSql.includes("team_tasks_rls")
     && stagingAcceptanceSql.includes("notifications_browser_privileges")
     && stagingAcceptanceSql.includes("task_same_team_assignee_fk")
-    && stagingAcceptanceSql.includes("notification_own_row_policies"),
+    && stagingAcceptanceSql.includes("notification_own_row_policies")
+    && stagingAcceptanceSql.includes("personal_tasks_owner_rls")
+    && stagingAcceptanceSql.includes("support_tickets_owner_admin_rls")
+    && stagingAcceptanceSql.includes("support_tickets_column_grants")
+    && stagingAcceptanceSql.includes("main_media_private_bucket")
+    && stagingAcceptanceSql.includes("main_media_storage_owner_path")
+    && stagingAcceptanceSql.includes("main_media_metadata_rls"),
   "Read-only Staging acceptance script must verify task, permission and notification security"
 );
 const acceptanceExecutableLines = stagingAcceptanceSql
