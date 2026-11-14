@@ -249,6 +249,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
   if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
+  if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'admin') loadAdminUsers();
   if (view === 'admin-members') loadPfmsAdminMembers();
@@ -1614,6 +1615,7 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsAdminMembers();
   setupPfmsAdminErrors();
   setupPfmsLegacyInvitationWorkspace();
+  setupPfmsClubScouting();
   const userIdDisplay = document.getElementById('userIdDisplay');
   const userIdValue = document.getElementById('userIdValue');
   if (userIdDisplay && userIdValue) {
@@ -2141,6 +2143,106 @@ async function loadPfmsLegacyInvitationOrganizations() {
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
     message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
     membersPanel.hidden = true;
+  }
+}
+
+async function loadPfmsClubScouts() {
+  const select = document.getElementById('pfmsClubScoutingOrganization');
+  const results = document.getElementById('pfmsClubScoutingResults');
+  const message = document.getElementById('pfmsClubScoutingMessage');
+  if (!select || !results || !message) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId) {
+    results.innerHTML = '';
+    message.textContent = 'Bitte melde dich an.';
+    return;
+  }
+
+  message.textContent = 'Organisationen und Scouts werden geladen …';
+  try {
+    await loadPfmsLegacyInvitationOrganizations();
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    const organizations = (pfmsLegacyInvitationOrganizations || []).filter(org =>
+      ['approved','active'].includes(String(org.organization_status || '').toLowerCase())
+    );
+    const previous = select.value;
+    if (!organizations.length) {
+      select.innerHTML = '<option value="">Keine freigegebene Organisation</option>';
+      results.innerHTML = '<div class="empty-state"><b>Keine Organisation verfügbar</b><p>Du benötigst eine freigegebene Organisation und entsprechende Leitungsrechte.</p></div>';
+      message.textContent = 'Keine freigegebene Organisation gefunden.';
+      return;
+    }
+    select.innerHTML = organizations.map(org =>
+      '<option value="' + escapeHtml(org.organization_id) + '">' +
+      escapeHtml(org.organization_name) + ' · ' +
+      escapeHtml(org.organization_type === 'agency' ? 'Agentur' : 'Verein') +
+      '</option>'
+    ).join('');
+    if (organizations.some(org => org.organization_id === previous)) select.value = previous;
+
+    const organizationId = select.value;
+    const query = document.getElementById('pfmsClubScoutingQuery')?.value.trim() || '';
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_org_members_for_manager', {
+      p_organization_id: organizationId,
+      p_query: query,
+      p_status: 'active',
+      p_role: 'scout'
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+    const scouts = data || [];
+    message.textContent = scouts.length
+      ? scouts.length + ' aktive(r) Scout(s) in dieser Organisation.'
+      : 'In dieser Organisation sind derzeit keine aktiven Scouts zugeordnet.';
+    results.innerHTML = scouts.length ? scouts.map(scout => {
+      const displayName = scout.full_name || scout.username || scout.email || 'PFMS Scout';
+      return '<article class="admin-user-card">' +
+        '<div class="admin-user-main"><strong>' + escapeHtml(displayName) + '</strong>' +
+        '<span>' + escapeHtml(scout.username ? '@' + scout.username : scout.email || 'Keine Kontaktdaten') + '</span></div>' +
+        '<div class="admin-user-meta"><span class="module-status">Aktiver Scout</span>' +
+        '<span>' + escapeHtml(scout.user_id) + '</span></div></article>';
+    }).join('') : '<div class="empty-state"><b>Noch keine Scouts zugeordnet</b><p>Du kannst einen Scout über einen einmaligen Einladungslink hinzufügen.</p></div>';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS club scouting directory failed:', error);
+    results.innerHTML = '';
+    message.textContent = 'Scouts konnten nicht geladen werden. Prüfe Organisationsrechte und die Mitgliedschafts-Migration.';
+  }
+}
+
+function setupPfmsClubScouting() {
+  const select = document.getElementById('pfmsClubScoutingOrganization');
+  const query = document.getElementById('pfmsClubScoutingQuery');
+  const invite = document.getElementById('pfmsClubInviteScoutButton');
+  if (select && !select.dataset.pfmsBound) {
+    select.addEventListener('change', loadPfmsClubScouts);
+    select.dataset.pfmsBound = 'true';
+  }
+  if (query && !query.dataset.pfmsBound) {
+    query.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        loadPfmsClubScouts();
+      }
+    });
+    query.addEventListener('change', loadPfmsClubScouts);
+    query.dataset.pfmsBound = 'true';
+  }
+  if (invite && !invite.dataset.pfmsBound) {
+    invite.addEventListener('click', async () => {
+      await loadPfmsLegacyInvitationOrganizations();
+      const organizationId = select?.value || '';
+      const inviteSelect = document.getElementById('pfmsLegacyInvitationOrganization');
+      const roleSelect = document.querySelector('#pfmsLegacyInvitationForm [name="role"]');
+      if (inviteSelect && organizationId) inviteSelect.value = organizationId;
+      if (roleSelect) roleSelect.value = 'scout';
+      showView('club-members');
+      const panel = document.getElementById('pfmsLegacyInvitationPanel');
+      if (panel) panel.hidden = false;
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    invite.dataset.pfmsBound = 'true';
   }
 }
 
