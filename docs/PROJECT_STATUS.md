@@ -1,6 +1,7 @@
 # PFMS – Verbindlicher Projektstatus
 
 Stand: 14.11.2026  
+Geschätzter Gesamtfortschritt: **ca. 40 %** (Arbeitsfortschritt, keine abgenommene Funktionsquote)  
 Arbeitsbranch: `feature/pfss-complete-platform-build`  
 Produktivbranch: `main`  
 Produktionsfreigabe: **nicht erteilt**
@@ -73,18 +74,19 @@ Vorhandene Migrationen betreffen:
 - **Training:** Termine mit Titel, Datum, Beginn/Ende, Ort, Schwerpunkt und Notizen können durch Benutzer mit `training.edit` angelegt werden. Berechtigte Trainer können geplante Einheiten abschließen oder absagen.
 - **Anwesenheit:** Für jede Einheit wird eine Liste der Kaderspieler angezeigt. Mit `attendance.edit` lassen sich Status (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) und Notiz pro Spieler speichern. Die Datenbank blockiert Zuordnungen zu einer anderen Mannschaft.
 - **Zugriff:** `training.view/edit` und `attendance.view/edit` sind getrennte Module. Tabellen sind nicht direkt für Browser-Schreibzugriffe freigegeben; Änderungen laufen über berechtigungsgeprüfte RPCs.
-- **Noch nicht umgesetzt:** Mannschaftskalender, Spiele, Spieltagskader, Aufstellungen und Taktik-/Spielanalyse.
+- **Zusätzlich umgesetzt:** Mannschaftskalender, Spielansetzungen und Ergebnisse sowie Spieltagskader und matchbezogene Aufstellungen mit Startelf, Ersatzbank, Position, Reihenfolge und Kapitän.
+- **Noch offen:** Taktik-/Spielanalyse, Videoanalyse, Trainingsübungen/-zyklen, Mannschaftskasse und Veranstaltungen. Die bereits umgesetzten Teamfunktionen sind im Entwicklungszweig verbunden, aber noch nicht auf der Supabase-Testdatenbank abgenommen.
 
 ### Teamkalender
 
-Der Mannschaftskalender verwendet `pfms_legacy_team_calendar_events` mit getrennten Terminarten (Spiel, Besprechung, Turnier, Veranstaltung, Sonstiges), Datum, Uhrzeit, Ort, Notizen und Status. Lesen und Ändern sind ausschließlich über `calendar.view` bzw. `calendar.edit` freigegeben; Browser-Schreibzugriffe auf die Tabelle bleiben gesperrt. Die Migration `20261124_pfms_legacy_team_calendar.sql` muss noch in Staging angewendet und mit verschiedenen Rollen getestet werden.
+Der Mannschaftskalender verwendet `pfms_legacy_team_calendar_events` mit getrennten Terminarten (Spiel, Besprechung, Turnier, Veranstaltung, Sonstiges), Datum, Uhrzeit, Ort, Notizen und Status. Lesen und Ändern sind ausschließlich über `calendar.view` bzw. `calendar.edit` freigegeben; Browser-Schreibzugriffe auf die Tabelle bleiben gesperrt. Die Migration `20261124_pfms_legacy_team_calendar.sql` ist im Entwicklungszweig vorhanden. Sie muss zusammen mit den vorherigen Team-/Rechtemigrationen in Staging angewendet und mit verschiedenen Rollen getestet werden.
 
 ## Teamspielbetrieb
 
 - `pfms_legacy_team_matches` speichert Spielansetzungen, Gegner, Wettbewerb, Heim/Auswärts, Spielstätte, Status und Ergebnisse.
 - `pfms_legacy_team_match_lineup` speichert eine matchbezogene Aufstellung mit Startelf/Ersatzbank, Position, Reihenfolge und Kapitän. Alle Spieler müssen zum Kader der Mannschaft gehören.
 - Lesen und Ändern werden durch `matches.view/edit` kontrolliert. Die Datenbank erzwingt maximal elf Startelf-Spieler und höchstens einen Kapitän. Direkte Browser-Schreibzugriffe auf die Tabellen bleiben gesperrt.
-- Die Migration `20261125_pfms_legacy_team_matches.sql` muss noch in Staging angewendet und mit verschiedenen Teamrollen Ende-zu-Ende geprüft werden.
+- Die Migration `20261125_pfms_legacy_team_matches.sql` enthält Spielansetzungen, Ergebnisse und matchbezogene Aufstellungen. `matches.view/edit` werden serverseitig geprüft; die SQL-Funktionen erzwingen Teamzugehörigkeit, maximal elf Startelf-Spieler und höchstens einen Kapitän. Die Oberfläche unterstützt Erstellen/Bearbeiten von Spielen, Ergebnis-/Statuspflege, Spieltagskandidaten und das Speichern der Aufstellung. Die Migration muss noch in Staging angewendet und mit verschiedenen Teamrollen Ende-zu-Ende geprüft werden.
 
 ## 4. Kritische Architekturentscheidung: Organisationsmodell
 
@@ -137,12 +139,30 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `package.json` enthält `npm test` und `npm run check:syntax`. Die Smoke-Tests prüfen nun auch den Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
-- Ein GitHub-Actions-Lauf auf Commit `60aa159084e0e0d674dffc5ff2b1f6f03267d267` war erfolgreich. Weitere Läufe nach den zusätzlichen Tests und Sicherheitsänderungen sind getrennt zu prüfen. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
+- Der GitHub-Actions-Lauf `43597799050` auf Commit `e32d14a59d1b0f07bc0c1bc5207734d39d6b3de0` war am 14.11.2026 erfolgreich: Frontend-Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Der unmittelbar vorherige Lauf `43597684884` scheiterte an einer veralteten Textannahme im Smoke-Test; der Test wurde an die tatsächliche SQL-Fehlermeldung angepasst. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
 
 Die tatsächliche Browser-, Supabase-, Storage- und Render-Ende-zu-Ende-Prüfung steht noch aus.
+
+## 6a. Aktueller Fortschritt und Abnahmegrenze
+
+| Arbeitspaket | Schätzung |
+|---|---:|
+| Grundgerüst, Authentifizierung und Navigation | 85 % |
+| Plattform- und Benutzeradministration | 60 % |
+| Organisationen, Vereine und Mitgliedschaften | 45 % |
+| Spieler- und Scoutingdaten | 65 % |
+| Privater Scout-Bereich und Medien | 70 % |
+| Teamverwaltung und Kader | 55 % |
+| Training und Kalender | 65 % |
+| Spiele und Aufstellungen | 70 % |
+| Finanzen, Abos und Zahlungen | 10 % |
+| Sicherheit und Qualitätssicherung | 55 % |
+| Staging-, Betriebs- und Produktionsreife | 20 % |
+
+Die Schätzwerte bewerten die Implementierung im Repository, nicht den produktiven Nutzungsgrad. Der Gesamtwert von ca. 40 % ist eine gewichtete Arbeitsprognose für das gesamte geplante PFMS. Ohne ausgeführte Staging-Migrationen, Rollen-/Negativtests und Browser-Abnahme werden die betroffenen Module nicht als abgenommen gewertet.
 
 ## 7. Verbindliche Reihenfolge
 
