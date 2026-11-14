@@ -437,6 +437,9 @@ assert.ok(app.includes("editingMainReportId") && app.includes("data-main-report-
 assert.ok(app.includes("query.update(payload)") && app.includes("query.insert(payload)"), "Main report create/update must use Supabase");
 assert.ok(globalCatalogueMigration.includes("public.pfms_global_players") && globalCatalogueMigration.includes("public.pfms_main_scouting_reports"), "Global catalogue migration is incomplete");
 assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalCatalogueMigration.includes("pfms_current_user_is_approved"), "Global catalogue RLS must enforce approved reads and administrator writes");
+assert.ok(globalCatalogueMigration.includes("alter table public.pfms_global_players force row level security") && globalCatalogueMigration.includes("alter table public.pfms_main_scouting_reports force row level security"), "Global player and report tables must force row-level security");
+assert.ok(stagingAcceptanceSql.includes("'global_player_catalogue_rls'") && stagingAcceptanceSql.includes("'main_scouting_reports_rls'") && stagingAcceptanceSql.includes("'main_media_owner_rls'"), "Staging acceptance audit must verify main catalogue and media RLS");
+
 assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pfms_is_admin()"), "Report access must be author-scoped or administrator-scoped");
 assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve report history");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy import must be bounded and transactional");
