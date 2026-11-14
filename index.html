@@ -879,6 +879,45 @@
       <div id="pfmsTeamCalendarList" class="pfms-calendar-list"></div>
     </section>
 
+    <section class="panel pfms-team-matches-panel" id="pfmsTeamMatchesPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">SPIELBETRIEB</div>
+          <h3>Spiele & Aufstellungen</h3>
+          <p>Erfasse Spielansetzungen, Ergebnisse und die Besetzung deiner Mannschaft.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamMatchForm" class="pfms-match-form" hidden>
+        <input type="hidden" name="match_id">
+        <label class="field">Gegner<input name="opponent" maxlength="140" required placeholder="Name des Gegners"></label>
+        <label class="field">Wettbewerb<input name="competition" maxlength="140" placeholder="Liga / Pokal / Freundschaftsspiel"></label>
+        <label class="field">Spielort<select name="home_away"><option value="home">Heimspiel</option><option value="away">Auswärtsspiel</option></select></label>
+        <label class="field">Datum<input name="match_date" type="date" required></label>
+        <label class="field">Anstoß<input name="kickoff" type="time" required></label>
+        <label class="field">Spielstätte<input name="venue" maxlength="180" placeholder="Sportanlage"></label>
+        <label class="field">Status<select name="status"><option value="scheduled">Geplant</option><option value="completed">Abgeschlossen</option><option value="postponed">Verlegt</option><option value="cancelled">Abgesagt</option></select></label>
+        <label class="field">Eigene Tore<input name="team_goals" type="number" min="0" max="30" placeholder="–"></label>
+        <label class="field">Gegner-Tore<input name="opponent_goals" type="number" min="0" max="30" placeholder="–"></label>
+        <label class="field full">Spielnotizen<textarea name="match_notes" rows="2" maxlength="6000"></textarea></label>
+        <div class="pfms-match-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamMatchSave">Spiel speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamMatchCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamMatchesMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamMatchesList" class="pfms-match-list"></div>
+
+      <section class="pfms-match-lineup-panel" id="pfmsTeamMatchLineupPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">SPIELTAGSKADER</div><h3 id="pfmsTeamMatchLineupTitle">Aufstellung</h3><p>Wähle Spieler aus dem Mannschaftskader und ordne Startelf, Ersatzbank, Position und Kapitän zu.</p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseMatchLineup">Schließen</button>
+        </div>
+        <p id="pfmsTeamMatchLineupMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamMatchLineupList" class="pfms-match-lineup-list"></div>
+        <button class="btn btn-primary" type="button" id="pfmsTeamMatchLineupSave" hidden>Aufstellung speichern</button>
+      </section>
+    </section>
+
     <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
       <div class="panel-heading">
         <div>
@@ -915,7 +954,7 @@
     <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung und Einheiten je Mannschaft.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-training>Trainingstermine öffnen</button></article>
     <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung pro Einheit.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-attendance>Trainingsanwesenheit öffnen</button></article>
     <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Besprechungen, Turniere, Spieltermine und Veranstaltungen.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-calendar>Kalender öffnen</button></article>
-    <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-matches>Spiele öffnen</button></article>
     <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Teambezogene Ausgaben und Kassenübersicht mit nachvollziehbarer Buchungslogik.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
