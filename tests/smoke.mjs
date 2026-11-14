@@ -96,7 +96,6 @@ const requiredFiles = [
   "render.yaml",
   "scripts/build-static.mjs",
   "scripts/build-ci.mjs",
-  "pfms-config.js",
   "tests/build-smoke.mjs",
   "tests/build-config-smoke.mjs",
   "tests/accessibility-smoke.mjs",
