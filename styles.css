@@ -1156,3 +1156,60 @@ button,input,select,textarea{max-width:100%}
   .pfms-roster-edit-controls label:first-child{grid-column:1}
   .pfms-roster-edit-controls .btn{min-height:38px}
 }
+
+/* PFMS team training and attendance */
+.pfms-team-training-panel{margin-top:18px}
+.pfms-training-form{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+  padding:15px;margin:14px 0;border:1px solid rgba(198,161,91,.2);
+  border-radius:11px;background:#171a1c;
+}
+.pfms-training-form .field{display:grid;gap:6px;min-width:0;color:#c9c2b6;font-size:11px}
+.pfms-training-form .field input,.pfms-training-form .field textarea{
+  box-sizing:border-box;width:100%;min-width:0;padding:10px 11px;
+  border:1px solid rgba(198,161,91,.23);border-radius:8px;
+  background:#111416;color:#f1ede4;font:inherit
+}
+.pfms-training-form .field.full{grid-column:1/-1}
+.pfms-training-form button{justify-self:start}
+.pfms-training-list{display:grid;gap:11px;margin-top:12px}
+.pfms-training-card{padding:15px;border:1px solid rgba(198,161,91,.2);border-radius:11px;background:#171a1c}
+.pfms-training-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pfms-training-card-head h4{margin:4px 0 0;color:#f0e8d8;font-size:15px}
+.pfms-training-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;color:#aaa69d;font-size:11px}
+.pfms-training-card>p{margin:10px 0 0;color:#bcb6a9;font-size:12px;white-space:pre-wrap}
+.pfms-training-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.pfms-training-actions{display:flex;flex-wrap:wrap;gap:7px}
+.pfms-training-card-actions .btn,.pfms-training-actions .btn{min-height:34px;padding:7px 10px;font-size:10px}
+.pfms-attendance-panel{margin-top:18px;padding-top:15px;border-top:1px solid rgba(198,161,91,.2)}
+.pfms-attendance-list{display:grid;gap:8px;margin-top:12px}
+.pfms-attendance-row{
+  display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(130px,.8fr) minmax(120px,1fr) auto;
+  align-items:end;gap:10px;padding:11px;border:1px solid rgba(198,161,91,.16);
+  border-radius:9px;background:#171a1c
+}
+.pfms-attendance-player{display:grid;gap:4px;align-self:center;min-width:0}
+.pfms-attendance-player b{color:#eee7d9;font-size:12px;overflow-wrap:anywhere}
+.pfms-attendance-player small{color:#9d9a92;font-size:10px}
+.pfms-attendance-row .field{display:grid;gap:5px;min-width:0;color:#bdb7ab;font-size:10px}
+.pfms-attendance-row select,.pfms-attendance-row input{
+  box-sizing:border-box;width:100%;min-width:0;height:36px;padding:0 8px;
+  border:1px solid rgba(198,161,91,.22);border-radius:7px;
+  background:#111416;color:#eee8dc;font:inherit;font-size:11px
+}
+.pfms-attendance-row .btn{min-height:36px;padding:7px 10px;font-size:10px}
+@media(max-width:760px){
+  .pfms-training-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pfms-attendance-row{grid-template-columns:1fr 1fr}
+  .pfms-attendance-player{grid-column:1/-1}
+  .pfms-attendance-row .btn{width:100%}
+}
+@media(max-width:480px){
+  .pfms-training-form{grid-template-columns:1fr}
+  .pfms-training-form .field.full{grid-column:auto}
+  .pfms-training-card-head{flex-direction:column}
+  .pfms-training-card-actions{display:grid;grid-template-columns:1fr}
+  .pfms-training-card-actions .btn{width:100%}
+  .pfms-attendance-row{grid-template-columns:1fr}
+  .pfms-attendance-player{grid-column:auto}
+}
