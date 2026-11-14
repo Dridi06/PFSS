@@ -182,6 +182,70 @@ with checks as (
 
   union all
   select
+    'global_catalogue_policy_scope',
+    exists (
+      select 1 from pg_catalog.pg_policies p
+      where p.schemaname = 'public'
+        and p.tablename = 'pfms_global_players'
+        and p.policyname = 'pfms_global_players_select'
+        and p.qual ilike '%pfms_current_user_is_approved()%'
+    )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_global_players'
+          and p.policyname = 'pfms_global_players_insert'
+          and p.with_check ilike '%pfms_is_admin()%'
+          and p.with_check ilike '%created_by = auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_global_players'
+          and p.policyname = 'pfms_global_players_update'
+          and p.qual ilike '%pfms_is_admin()%'
+          and p.with_check ilike '%pfms_is_admin()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_global_players'
+          and p.policyname = 'pfms_global_players_delete'
+          and p.qual ilike '%pfms_is_admin()%'
+      ),
+    'SELECT nur für freigegebene Konten; INSERT/UPDATE/DELETE nur für Plattformadministratoren'
+
+  union all
+  select
+    'main_scouting_report_policy_scope',
+    exists (
+      select 1 from pg_catalog.pg_policies p
+      where p.schemaname = 'public'
+        and p.tablename = 'pfms_main_scouting_reports'
+        and p.policyname = 'pfms_main_scouting_reports_select'
+        and p.qual ilike '%author_id = auth.uid()%'
+        and p.qual ilike '%pfms_is_admin()%'
+    )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_main_scouting_reports'
+          and p.policyname = 'pfms_main_scouting_reports_insert'
+          and p.with_check ilike '%author_id = auth.uid()%'
+          and p.with_check ilike '%pfms_current_user_is_approved()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_main_scouting_reports'
+          and p.policyname = 'pfms_main_scouting_reports_update'
+          and p.qual ilike '%author_id = auth.uid()%'
+          and p.with_check ilike '%pfms_is_admin()%'
+      ),
+    'Berichte sind verfassereigen; Administratoren dürfen moderieren und verwalten'
+
+  union all
+  select
     'main_scouting_reports_rls',
     coalesce((
       select c.relrowsecurity and c.relforcerowsecurity
