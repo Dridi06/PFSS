@@ -332,6 +332,11 @@ function playerCard(p) {
         ${p.nationality ? `<span class="tag">${escapeHtml(p.nationality)}</span>` : ''}
         ${p.foot ? `<span class="tag">${escapeHtml(p.foot)}</span>` : ''}
       </div>
+      ${window.pfssIsRealAdmin ? `
+        <div class="player-card-actions">
+          <button type="button" data-global-player-edit="${escapeHtml(p.id)}">Bearbeiten</button>
+          <button type="button" data-global-player-delete="${escapeHtml(p.id)}">Löschen</button>
+        </div>` : ''}
     </article>`;
 }
 
