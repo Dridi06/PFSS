@@ -56,6 +56,7 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 Vorhandene Migrationen betreffen:
 - Benutzername-Registrierung und Admin-Kontrollfunktionen.
 - Legacy-Organisationen, Mitgliedschaften und Einladungen.
+- Serverseitige Berechtigungsprüfung `can_manage_org(uuid)` für Einladungen: nur aktive Organisationsinhaber bzw. Vereins-/Agenturadministratoren; fester leerer `search_path`, kein `PUBLIC`-/`anon`-EXECUTE.
 - Ein zusätzliches neues Organisations-/Mitgliedschaftsmodell.
 - Private Scout-Spieler, Berichte, Medien und einen privaten Storage-Bucket.
 - Edge Functions: `username-login`, `r2-connection-check`, `pfms-owner-bootstrap`.
@@ -253,6 +254,7 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Die Authentifizierungsinitialisierung invalidiert jetzt bereits vor dem ersten asynchronen Rollenabruf die vorherige Sitzung. Veraltete Initialisierungen dürfen nach Kontowechsel weder Rollen noch Workspace-/Mediendaten des vorherigen Kontos aktivieren. Ein eigener Smoke-Test prüft die Reihenfolge; GitHub Actions auf Commit `6d7b155` waren in beiden Jobs erfolgreich.
 
 - `npm test` führt Syntaxprüfung, isolierten CI-Build, Projekt-Smoke-Tests, Build-/Asset-/CSP-Prüfungen, Accessibility-Prüfung, SQL-Migrationssyntaxprüfung und Funktionsrechte-Signaturprüfung aus.
+- Der Berechtigungstest prüft zusätzlich die vollständige `can_manage_org`-Regel (auth.uid, aktive Mitgliedschaft, erlaubte Leitungsrollen, leerer `search_path`, eingeschränkte EXECUTE-Rechte) und dass die Einladungs-RPC sowohl Plattformadministratoren als auch berechtigte Organisationsleitungen akzeptiert.
 - Der Migrationstest prüft paarige PostgreSQL-Dollar-Quote-Begrenzer; der Funktionstest vergleicht deklarierte Funktionssignaturen mit `GRANT EXECUTE` und SECURITY-DEFINER-`REVOKE`.
 - Die Edge Function `r2-connection-check` verlangt ein verifiziertes Benutzer-JWT und die serverseitige PFMS-Administratorprüfung über `pfms_is_admin`. `verify_jwt = true` ist explizit gesetzt; Antworten werden nicht gecacht.
 - Die Render-CSP erlaubt die erforderliche Google-Fonts-Stylesheet-Origin, ohne die übrige Richtlinie pauschal zu öffnen.
