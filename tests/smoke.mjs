@@ -80,6 +80,7 @@ const authTriggerHardeningMigration = await read("supabase/migrations/20261130_p
 const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql");
 const trainingCyclesMigration = await read("supabase/migrations/20261201_pfms_legacy_training_cycles.sql");
 const teamAnalysisMigration = await read("supabase/migrations/20261202_pfms_legacy_team_analysis.sql");
+const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy_team_events.sql");
 
 
 const requiredFiles = [
@@ -119,6 +120,7 @@ const requiredFiles = [
   "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
   "supabase/migrations/20261202_pfms_legacy_team_analysis.sql",
+  "supabase/migrations/20261203_pfms_legacy_team_events.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -429,6 +431,43 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_analysis'"),
   "Staging audit must inventory tactical and video analysis"
 );
+assert.ok(
+  teamEventsMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'view')")
+    && teamEventsMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'events', 'edit')")
+    && teamEventsMigration.includes("event_type in ('tournament','event')"),
+  "Events-only permissions must expose and manage only event/tournament entries"
+);
+assert.ok(
+  teamEventsMigration.includes("pfms_legacy_team_calendar_select")
+    && teamEventsMigration.includes("calendar', 'view'")
+    && teamEventsMigration.includes("events', 'view'")
+    && teamEventsMigration.includes("pfms_delete_legacy_team_event"),
+  "The event module must reuse the shared calendar while preserving independent permissions and guarded deletion"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamEvents")
+    && app.includes("async function savePfmsLegacyTeamEvent")
+    && app.includes("async function deletePfmsLegacyTeamEvent")
+    && app.includes("pfms_list_legacy_team_events")
+    && app.includes("pfms_create_legacy_team_event")
+    && app.includes("pfms_update_legacy_team_event")
+    && app.includes("pfms_delete_legacy_team_event"),
+  "Team event frontend must connect list, create, update and delete workflows"
+);
+assert.ok(
+  html.includes('id="pfmsTeamEventsPanel"')
+    && html.includes('id="pfmsTeamEventForm"')
+    && html.includes('id="pfmsTeamEventsList"')
+    && html.includes('data-pfms-show-events'),
+  "Team event UI must include the independent events workspace and module navigation"
+);
+assert.ok(
+  workspaceStyles.includes(".pfms-team-event-card")
+    && workspaceStyles.includes(".pfms-event-form")
+    && workspaceStyles.includes("@media(max-width:640px)"),
+  "Team event UI must have responsive card and form styling"
+);
+
 assert.ok(
   teamAnalysisMigration.includes("revoke all on table public.pfms_legacy_team_analysis")
     && teamAnalysisMigration.includes("grant select on table public.pfms_legacy_team_analysis to authenticated")
