@@ -234,6 +234,6 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - **Staging-Blocker:** Die Build-Konfiguration ist jetzt getrennt und fail-closed. Vor dem ersten Render-Staging-Deployment muss ein dediziertes Staging-Supabase-Projekt festgelegt und dessen Projekt-Referenz, URL und Publishable-Key in den Render-Environment-Variablen eingetragen werden. Ein vorhandener Render-Dienst fragt `sync: false`-Werte nicht automatisch nachträglich ab; diese sind manuell zu setzen.
 - Die Signup-Trigger-Härtung in `20261130_pfms_auth_trigger_hardening.sql` und `20261131_pfms_legacy_invitation_status_guard.sql` setzt einen leeren `search_path` und entzieht Browserrollen die direkte Funktionsausführung, ohne das bisherige Provisionierungsverhalten zu ändern.
 - Das read-only Staging-Audit erfasst jetzt auch effektive `EXECUTE`-Grants einschließlich impliziter `PUBLIC`-Freigaben für PFMS-/PFSS-Funktionen.
-- Der aktuelle CI-Stand `075a94d54cc24dae52697f33ea55e985e512981b` ist mit beiden Jobs erfolgreich (Runs 535 und 536).
+- Der aktuelle CI-Stand `857eccd47afe61e28215d3c601af4d9dc2514a31` ist mit beiden Jobs erfolgreich (GitHub-Actions-Runs 720 und 721): Node-/Build-/Smoke-/Accessibility-/SQL-Prüfungen einschließlich Trainingszyklen, Videoanalyse, Event-RSVP, Logistik/Kapazitätsregeln sowie Deno-Typprüfung aller Edge Functions.
 
 Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächliche Ausführen der Migrationen in Staging noch den Funktionstest des R2-Endpunkts mit einem Administrator- und einem Nicht-Administrator-Konto.
