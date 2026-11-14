@@ -26,9 +26,10 @@ Staging und Produktion sind getrennt zu konfigurieren. Das Secret enthält keine
    - `username-login`
    - `r2-connection-check`
 4. Login per E-Mail und Benutzername, fehlerhafte Anmeldedaten, unbekannte Origin und R2-Verbindungsprüfung testen.
-5. Für den Owner-Bootstrap zusätzlich die Datenbankmigration anwenden und ein mindestens 40 Zeichen langes, kryptografisch zufälliges `PFMS_OWNER_BOOTSTRAP_TOKEN` ausschließlich als Supabase Function Secret setzen. Die Owner-Function deployen und den Inhaber-Claim mit einem Testkonto prüfen.
-6. Den Einmalcode niemals in GitHub, HTML, Browser-Konfiguration, Issue-Tracker oder Chat speichern. Nach erfolgreichem Claim das Secret entfernen oder rotieren.
-5. Erst nach dokumentiertem Staging-Erfolg die Produktionskonfiguration getrennt prüfen und – nur nach ausdrücklicher Freigabe – deployen.
+5. Für den Owner-Bootstrap beide Datenbankmigrationen in dieser Reihenfolge anwenden: `20261115_pfms_platform_owner_bootstrap.sql`, danach `20261116_pfms_owner_bootstrap_registration_guard.sql`. Sie müssen **vor** der ersten Owner-Registrierung installiert sein, damit der Auth-Trigger die ursprüngliche Registrierungsart unveränderbar protokolliert.
+6. Ein mindestens 40 Zeichen langes, kryptografisch zufälliges `PFMS_OWNER_BOOTSTRAP_TOKEN` ausschließlich als Supabase Function Secret setzen. Die Owner-Function deployen und den Inhaber-Claim mit einem frisch registrierten Testkonto (E-Mail bestätigt) prüfen.
+7. Den Einmalcode niemals in GitHub, HTML, Browser-Konfiguration, Issue-Tracker oder Chat speichern. Nach erfolgreichem Claim das Secret entfernen oder rotieren.
+8. Erst nach dokumentiertem Staging-Erfolg die Produktionskonfiguration getrennt prüfen und – nur nach ausdrücklicher Freigabe – deployen.
 
 Beispielbefehl (Platzhalter vor Ausführung ersetzen):
 
@@ -41,13 +42,15 @@ supabase functions deploy pfms-owner-bootstrap --project-ref <STAGING_PROJECT_RE
 
 ## 3. Owner-Bootstrap-Secret
 
-Vor dem Deploy der Owner-Function ist im Staging-Projekt ein kryptografisch zufälliger Wert mit mindestens 40 Zeichen als `PFMS_OWNER_BOOTSTRAP_TOKEN` zu setzen. Der Wert wird nur serverseitig gelesen und nie in der Datenbank gespeichert. Der registrierte Benutzer muss sich mit einer gültigen Supabase-Sitzung anmelden; die Function ermittelt die User-ID ausschließlich aus dem geprüften JWT. Die SQL-RPC nimmt nur Aufrufe mit `auth.role() = 'service_role'` an und erlaubt genau einen Claim.
+Vor dem Deploy der Owner-Function ist im Staging-Projekt ein kryptografisch zufälliger Wert mit mindestens 40 Zeichen als `PFMS_OWNER_BOOTSTRAP_TOKEN` zu setzen. Der Wert wird nur serverseitig gelesen und nie in der Datenbank gespeichert. Der registrierte Benutzer muss sich mit einer gültigen Supabase-Sitzung anmelden; die Function ermittelt die User-ID ausschließlich aus dem geprüften JWT. Die SQL-RPC nimmt nur Aufrufe mit `auth.role() = 'service_role'` an und erlaubt genau einen Claim. Die Migration `20261116_pfms_owner_bootstrap_registration_guard.sql` protokolliert die Wahl des Inhaberzugangs beim ursprünglichen `auth.users`-INSERT in einer gesperrten Tabelle. Eine spätere Änderung von `user_metadata` kann diese Berechtigung nicht nachträglich erzeugen.
 
 ```bash
 supabase secrets set PFMS_OWNER_BOOTSTRAP_TOKEN="<mindestens-40-zeichen-zufaelliger-wert>" --project-ref <STAGING_PROJECT_REF>
 ```
 
 Nach erfolgreicher Inhabereinrichtung das Secret löschen bzw. rotieren.
+
+Die Owner-Registrierung muss nach Installation beider Migrationen neu erfolgen. Ein zuvor registriertes Konto erhält die unveränderbare Registrierungsmarkierung nicht rückwirkend.
 
 ## 4. Sicherheitsverhalten
 
