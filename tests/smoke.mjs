@@ -30,7 +30,8 @@ const [
   legacyTeamManagementMigration,
   legacyTeamRosterMigration,
   teamPermissionsMigration,
-  legacyTeamTrainingMigration
+  legacyTeamTrainingMigration,
+  legacyTeamCalendarMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -58,7 +59,8 @@ const [
   read("supabase/migrations/20261121_pfms_legacy_team_management.sql"),
   read("supabase/migrations/20261122_pfms_legacy_team_roster.sql"),
   read("supabase/migrations/20261122_pfms_legacy_team_permissions.sql"),
-  read("supabase/migrations/20261123_pfms_legacy_team_training.sql")
+  read("supabase/migrations/20261123_pfms_legacy_team_training.sql"),
+  read("supabase/migrations/20261124_pfms_legacy_team_calendar.sql")
 ]);
 
 const requiredFiles = [
@@ -315,6 +317,52 @@ assert.ok(
   app.includes("requestGeneration !== pfmsAuthGeneration"),
   "Training state must be cleared and asynchronous responses guarded on account changes"
 );
+assert.ok(
+  legacyTeamCalendarMigration.includes("public.pfms_legacy_team_calendar_events"),
+  "Team calendar table is missing"
+);
+assert.ok(
+  legacyTeamCalendarMigration.includes("pfms_list_legacy_team_calendar") &&
+  legacyTeamCalendarMigration.includes("pfms_create_legacy_team_calendar_event") &&
+  legacyTeamCalendarMigration.includes("pfms_update_legacy_team_calendar_event"),
+  "Team calendar RPCs are incomplete"
+);
+assert.ok(
+  legacyTeamCalendarMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'calendar', 'view')") &&
+  legacyTeamCalendarMigration.includes("pfms_has_legacy_team_permission(p_team_id, 'calendar', 'edit')"),
+  "Calendar RPCs must enforce calendar-specific permissions"
+);
+assert.ok(
+  legacyTeamCalendarMigration.includes("force row level security") &&
+  legacyTeamCalendarMigration.includes("revoke all on table public.pfms_legacy_team_calendar_events"),
+  "Calendar table must use forced RLS and deny direct client writes"
+);
+assert.ok(
+  html.includes('id="pfmsTeamCalendarPanel"') &&
+  html.includes('id="pfmsTeamCalendarForm"') &&
+  html.includes('id="pfmsTeamCalendarList"') &&
+  html.includes("data-pfms-show-calendar"),
+  "Team calendar interface is incomplete"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamCalendar") &&
+  app.includes("async function savePfmsLegacyCalendarEvent") &&
+  app.includes("async function updatePfmsLegacyCalendarEventStatus") &&
+  app.includes("setupPfmsLegacyTeamWorkspace"),
+  "Team calendar frontend handlers are incomplete"
+);
+assert.ok(
+  app.includes("pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true") &&
+  app.includes("pfmsSelectedTeamPermissions.get('calendar')?.can_edit === true") &&
+  app.includes("requestGeneration !== pfmsAuthGeneration"),
+  "Calendar operations must respect per-team permissions and account-switch guards"
+);
+assert.ok(
+  app.includes("pfmsLegacyCalendarEvents = []") &&
+  app.includes("pfmsEditingCalendarEventId = null"),
+  "Calendar data and edit state must be cleared on team/account changes"
+);
+
 
 
 
