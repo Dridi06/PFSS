@@ -346,3 +346,6 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Formular-Öffnungsfunktionen prüfen jetzt zusätzlich unmittelbar `matches.edit` bzw. `calendar.edit`. Damit bleibt auch bei direktem Aufruf oder verändertem DOM die UI-Berechtigungslogik konsistent.
 - Zwei Smoke-Regressionstests schützen diese Guards. Serverseitige Berechtigungen bleiben die maßgebliche Sicherheitsgrenze.
 - Die Änderung betrifft ausschließlich Frontend und Tests. Keine Migration, kein Datenbankzugriff und kein Deployment wurden ausgeführt.
+
+
+- GitHub-Actions-Lauf [43644791339](https://github.com/Dridi06/PFSS/actions/runs/43644791339) auf Commit `a1b587b573e6c0007f79ee43509174cfcf2745c5` war erfolgreich. Beide Jobs bestanden: Projekt-/Smoke-/Accessibility-/SQL-/Funktionsrechte-/Backup-Prüfungen und Deno-Typprüfung. Ein erster Testlauf hatte lediglich eine zu wörtliche Quelltext-Assertion im neu ergänzten Test beanstandet; die Assertion wurde auf eine robuste Funktions-/Guard-Prüfung umgestellt und danach erfolgreich ausgeführt.
