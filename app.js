@@ -5786,7 +5786,7 @@ function setupPfmsLegacyTeamWorkspace() {
     resetPfmsLegacyCalendarForm();
     pfmsLegacyTeamRoster = [];
     pfmsLegacyTrainingSessions = [];
-    pfmsLegacyTrainingCycles = [];
+    resetPfmsLegacyTrainingCycleState();
     pfmsLegacyTeamExercises = [];
     pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
