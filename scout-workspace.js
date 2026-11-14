@@ -28,6 +28,7 @@
     initialized: false,
     loading: false,
     hasLoaded: false,
+    generation: 0,
     players: [],
     globalPlayers: [],
     globalPlayersAvailable: false,
@@ -372,13 +373,16 @@
     const photoHost = el('scoutMediaGrid');
     const videoHost = el('scoutVideoGrid');
     if (!photoHost || !videoHost) return;
-    if (!state.media.length) {
+    const mediaSnapshot = [...state.media];
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!mediaSnapshot.length) {
       const empty = '<div class="empty-state"><b>Noch keine Medien vorhanden</b><p>Lade private Spielerfotos oder Videos hoch.</p></div>';
       photoHost.innerHTML = empty;
       videoHost.innerHTML = empty;
       return;
     }
-    const cards = await Promise.all(state.media.map(async (item) => {
+    const cards = await Promise.all(mediaSnapshot.map(async (item) => {
       const result = await supabase().storage.from(BUCKET).createSignedUrl(item.storage_path, 3600);
       if (result.error || !result.data?.signedUrl) {
         return '<article class="scout-media-card"><div class="scout-media-error">Datei derzeit nicht abrufbar</div><div class="scout-media-caption">' +
@@ -393,14 +397,18 @@
         '<small>' + escapeHtml(formatDate(item.created_at)) + '</small>' +
         '<button type="button" data-scout-delete-media="' + escapeHtml(item.id) + '">Datei löschen</button></div></article>';
     }));
-    const photos = cards.filter((card, index) => state.media[index].media_type === 'photo');
-    const videos = cards.filter((card, index) => state.media[index].media_type === 'video');
+    if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
+    const photos = cards.filter((card, index) => mediaSnapshot[index].media_type === 'photo');
+    const videos = cards.filter((card, index) => mediaSnapshot[index].media_type === 'video');
     photoHost.innerHTML = photos.length ? photos.join('') : '<div class="empty-state">Noch keine Fotos gespeichert.</div>';
     videoHost.innerHTML = videos.length ? videos.join('') : '<div class="empty-state">Noch keine Videos gespeichert.</div>';
   }
 
   async function loadData() {
     if (state.loading) return;
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) return;
     state.loading = true;
     showMessage('Deine privaten Scouting-Daten werden geladen …');
     try {
@@ -410,6 +418,7 @@
         client.from(TABLES.reports).select('*').order('observation_date', { ascending: false }),
         client.from(TABLES.media).select('*').order('created_at', { ascending: false })
       ]);
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       const firstError = playersResult.error || reportsResult.error || mediaResult.error;
       if (firstError) throw firstError;
       state.players = playersResult.data || [];
@@ -418,6 +427,7 @@
       const globalResult = await client.from('pfms_global_players')
         .select('id,name,surname,birth,nationality,position,club,foot,height')
         .order('surname', { ascending: true, nullsFirst: false });
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.globalPlayersAvailable = !globalResult.error;
       state.globalPlayers = globalResult.data || [];
       renderOverview();
@@ -425,10 +435,13 @@
       renderGlobalPlayers();
       renderReports();
       await renderMedia();
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
+      state.hasLoaded = true;
       showMessage(globalResult.error
         ? 'Private Daten geladen. Die globale Spielersuche benötigt noch die PFMS-Katalogmigration.'
         : 'Private Daten und globale Spielersuche erfolgreich geladen.');
     } catch (error) {
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.hasLoaded = false;
       console.error('PFMS Scout Workspace load failed:', error);
       showMessage(
@@ -437,7 +450,7 @@
         true
       );
     } finally {
-      state.loading = false;
+      if (requestGeneration === state.generation) state.loading = false;
     }
   }
 
@@ -764,6 +777,27 @@
       loadData();
     }
   }
+
+  window.pfmsResetScoutWorkspace = function resetScoutWorkspaceForAccountChange() {
+    state.generation += 1;
+    state.loading = false;
+    state.hasLoaded = false;
+    state.active = 'overview';
+    state.players = [];
+    state.globalPlayers = [];
+    state.globalPlayersAvailable = false;
+    state.reports = [];
+    state.media = [];
+    state.editingPlayerId = null;
+    state.editingReportId = null;
+    const nav = el('scoutWorkspaceNav');
+    if (nav) nav.hidden = true;
+    const view = el('view-scout-workspace');
+    if (view) view.classList.remove('active');
+    if (el('scoutPlayerDialog')?.open) el('scoutPlayerDialog').close();
+    if (el('scoutReportDialog')?.open) el('scoutReportDialog').close();
+    showMessage('');
+  };
 
   function boot() {
     addNav();
