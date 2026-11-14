@@ -956,9 +956,15 @@
         <label class="field">Datum<input name="event_date" type="date" required></label>
         <label class="field">Beginn<input name="starts_at" type="time" required></label>
         <label class="field">Ende<input name="ends_at" type="time"></label>
-        <label class="field">Ort / Treffpunkt<input name="location" maxlength="160" placeholder="Sportanlage / Treffpunkt"></label>
+        <label class="field">Veranstaltungsort<input name="location" maxlength="160" placeholder="Sportanlage / Veranstaltungsort"></label>
+        <label class="field">Treffpunkt<input name="meeting_point" maxlength="180" placeholder="z. B. Haupteingang, Parkplatz oder Bahnhof"></label>
+        <label class="field">Anmeldeschluss<input name="registration_deadline" type="date"></label>
+        <label class="field">Transportart<select name="transport_mode"><option value="none">Keine besondere Organisation</option><option value="bus">Mannschaftsbus</option><option value="carpool">Fahrgemeinschaften</option><option value="public_transport">Öffentliche Verkehrsmittel</option><option value="own_transport">Eigene Anreise</option></select></label>
+        <label class="field">Kosten pro Person (€)<input name="fee_per_person" type="number" min="0" max="10000" step="0.01" value="0"></label>
+        <label class="field">Maximale Teilnehmerzahl<input name="capacity" type="number" min="1" max="200" placeholder="Ohne Begrenzung"></label>
         <label class="field">Status<select name="status"><option value="planned">Geplant</option><option value="completed">Abgeschlossen</option><option value="cancelled">Abgesagt</option></select></label>
-        <label class="field full">Informationen / Hinweise<textarea name="notes" rows="3" maxlength="4000" placeholder="Ablauf, Anreise, Material und organisatorische Hinweise"></textarea></label>
+        <label class="field full">Transport- und Anreisehinweise<textarea name="transport_notes" rows="2" maxlength="3000" placeholder="Abfahrtszeit, Treffpunkt, Fahrgemeinschaften, Rückfahrt und notwendige Ausrüstung"></textarea></label>
+        <label class="field full">Informationen / Hinweise<textarea name="notes" rows="3" maxlength="4000" placeholder="Ablauf, Material und organisatorische Hinweise"></textarea></label>
         <div class="pfms-event-form-actions">
           <button class="btn btn-primary" type="submit" id="pfmsTeamEventSave">Veranstaltung speichern</button>
           <button class="btn btn-secondary" type="button" id="pfmsTeamEventCancelEdit" hidden>Bearbeitung abbrechen</button>
