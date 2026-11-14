@@ -128,8 +128,6 @@ begin
   from public.pfms_legacy_team_event_travel_plans tp
   join public.pfms_legacy_team_calendar_events e
     on e.id = tp.event_id and e.team_id = tp.team_id
-  left join public.pfms_legacy_team_event_logistics l
-    on l.event_id = tp.event_id and l.team_id = tp.team_id
   where tp.team_id = p_team_id
     and e.event_type in ('tournament','event')
   order by tp.departure_at;
