@@ -442,6 +442,14 @@ assert.ok(
   "Tactical/video analysis RPCs must enforce analysis module permissions"
 );
 assert.ok(
+  teamAnalysisMigration.includes("p_status text default 'draft'")
+    && teamAnalysisMigration.includes("status, created_by")
+    && teamAnalysisMigration.includes("p_status, auth.uid()")
+    && teamAnalysisMigration.includes("grant execute on function public.pfms_create_legacy_team_analysis(uuid, text, text, text, date, text, text, uuid, text, integer, text, text, text) to authenticated"),
+  "Create analysis RPC must persist its status and grant exactly the declared signature to authenticated users"
+);
+
+assert.ok(
   stagingAudit.includes("'pfms_legacy_team_analysis'"),
   "Staging audit must inventory tactical and video analysis"
 );
