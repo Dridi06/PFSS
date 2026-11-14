@@ -617,16 +617,6 @@ assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legac
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
 
-// All current navigation targets and all critical modules are represented once.
-const knownGaps = [];
-if (/Platzhalter|Funktionen folgen/i.test(html)) knownGaps.push("Einige Vereins-/Mannschafts- und Betriebsbereiche sind noch Platzhalter.");
-if (/kein Zahlungsanbieter|noch keine Zahlung/i.test(html)) knownGaps.push("Echte Zahlungsabwicklung ist noch nicht eingerichtet.");
-if (/Kontaktformular \/ Ticketversand: noch nicht/i.test(html)) knownGaps.push("Kontakt-/Supportfunktion ist noch nicht angebunden.");
-console.log("PFMS smoke tests passed. " + navViews.size + " navigation targets verified.");
-if (knownGaps.length) {
-  console.log("\nKnown unfinished areas (tracked, not hidden):");
-  for (const gap of knownGaps) console.log("- " + gap);
-}
 ") &&
   legacyTeamTrainingExercisesMigration.includes("(v_item ->> 'planned_duration_minutes') !~ '^[0-9]+
 assert.ok(
