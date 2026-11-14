@@ -468,7 +468,7 @@ revoke all on function public.pfms_list_legacy_team_match_candidates(uuid) from 
 revoke all on function public.pfms_save_legacy_team_match_lineup(uuid,jsonb) from public, anon;
 
 grant execute on function public.pfms_list_legacy_team_matches(uuid) to authenticated;
-grant execute on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text) to authenticated;
+grant execute on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) to authenticated;
 grant execute on function public.pfms_update_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) to authenticated;
 grant execute on function public.pfms_list_legacy_team_match_lineup(uuid) to authenticated;
 grant execute on function public.pfms_list_legacy_team_match_candidates(uuid) to authenticated;
