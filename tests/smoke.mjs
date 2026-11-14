@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import assert from "node:assert/strict";
 
 const read = (path) => fs.readFile(path, "utf8");
+const mainStyles = await read("styles.css");
 
 const [
   html,
@@ -362,6 +363,33 @@ assert.ok(
     && trainingCyclesMigration.includes("pfms_has_legacy_team_permission(v_team_id, 'training', 'edit')")
     && trainingCyclesMigration.includes("force row level security"),
   "Training cycle writes must be permission-checked and tables must use forced RLS"
+);
+assert.ok(
+  html.includes('id="pfmsTeamTrainingCyclesPanel"')
+    && html.includes('id="pfmsTeamTrainingCycleForm"')
+    && html.includes('id="pfmsTeamTrainingCycleWeek"'),
+  "Training cycle and week-assignment forms are missing from the team workspace"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTrainingCycles")
+    && app.includes("async function savePfmsLegacyTrainingCycle")
+    && app.includes("async function savePfmsLegacyTrainingCycleWeek")
+    && app.includes("async function updatePfmsLegacyTrainingCycleStatus")
+    && app.includes("async function assignPfmsLegacyTrainingSessionToWeek")
+    && app.includes("addEventListener('submit', savePfmsLegacyTrainingCycle)"),
+  "Training cycle UI actions are not fully connected"
+);
+assert.ok(
+  app.includes("pfms_assign_legacy_training_session_cycle_week")
+    && app.includes("p_session_id: sessionId")
+    && app.includes("p_week_id: data.cycle_week_id"),
+  "New training sessions must be assignable to a selected cycle week"
+);
+assert.ok(
+  mainStyles.includes(".pfms-training-cycle-card")
+    && mainStyles.includes(".pfms-cycle-week-form")
+    && mainStyles.includes("@media(max-width:640px)"),
+  "Training cycle cards and weekly forms need responsive styling"
 );
 assert.ok(
   stagingAudit.includes("'pfms_legacy_training_cycles'")
