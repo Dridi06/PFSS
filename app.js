@@ -3703,6 +3703,8 @@ async function assignPfmsLegacyTeamStaff(event) {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const team = pfmsSelectedLegacyTeam;
+  const teamId = team?.team_id;
+  if (!teamId) return;
   const select = document.getElementById('pfmsTeamStaffCandidate');
   const option = select.selectedOptions[0];
   const userId = select.value;
@@ -3725,13 +3727,14 @@ async function assignPfmsLegacyTeamStaff(event) {
     if (error) throw error;
     message.textContent = 'Trainerteam wurde aktualisiert.';
     await loadPfmsLegacyTeams();
-    await openPfmsLegacyTeamStaffDialog(team.team_id);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    await openPfmsLegacyTeamStaffDialog(teamId);
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS staff assignment failed:', error);
     message.textContent = 'Zuordnung fehlgeschlagen. Die Person muss aktives Vereinsmitglied mit derselben Rolle sein.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -4024,7 +4027,7 @@ async function savePfmsLegacyTeamAnalysis(event) {
     console.error('PFMS team analysis save failed:', error);
     if (message) message.textContent = 'Analyse konnte nicht gespeichert werden. Prüfe Videoquelle, Spielzuordnung und Analyse-Rechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -4220,7 +4223,7 @@ async function deletePfmsLegacyTeamEventTravelPlan(button) {
     const message = document.getElementById('pfmsTeamEventsMessage');
     if (message) message.textContent = 'Fahrtplan konnte nicht entfernt werden.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -4536,7 +4539,7 @@ async function savePfmsLegacyTeamEvent(event) {
     console.error('PFMS team event save failed:', error);
     if (message) message.textContent = 'Veranstaltung konnte nicht gespeichert werden. Prüfe Datum, Uhrzeit und Event-Rechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -4599,7 +4602,7 @@ async function addPfmsLegacyTeamEventParticipant(button) {
     console.error('PFMS event participant add failed:', error);
     message.textContent = 'Spieler konnte nicht angemeldet werden. Prüfe die Teamzuordnung und Event-Rechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -4661,7 +4664,7 @@ async function removePfmsLegacyTeamEventParticipant(button) {
     console.error('PFMS event participant removal failed:', error);
     toast('Spieler konnte nicht entfernt werden.');
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -4872,7 +4875,7 @@ async function savePfmsLegacyTeamTask(event) {
     console.error('PFMS team task save failed:', error);
     if (message) message.textContent = 'Teamaufgabe konnte nicht gespeichert werden. Prüfe die Teamzuordnung und tasks.edit.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
@@ -6723,7 +6726,7 @@ async function assignPfmsLegacyTrainingSessionToWeek(button, weekId, sessionId =
     console.error('PFMS training cycle session assignment failed:', error);
     message.textContent = 'Zuordnung fehlgeschlagen. Der Termin muss zum gewählten Team und Wochenzeitraum gehören.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === teamId) button.disabled = false;
   }
 }
 
@@ -6897,7 +6900,7 @@ async function savePfmsLegacyTeamTraining(event) {
     console.error('PFMS training session save failed:', error);
     message.textContent = 'Trainingstermin konnte nicht gespeichert werden. Prüfe Datum, Uhrzeit und Trainingsrechte.';
   } finally {
-    button.disabled = false;
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId && pfmsSelectedLegacyTeam?.team_id === team.team_id) button.disabled = false;
   }
 }
 
