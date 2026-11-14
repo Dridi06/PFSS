@@ -39,6 +39,8 @@
   };
 
   const el = (id) => document.getElementById(id);
+  const isCurrentRequest = (generation, userId) =>
+    generation === state.generation && userId === window.pfssCurrentUserId;
   const supabase = () => {
     if (typeof pfssSupabase === 'undefined') {
       throw new Error('Die Supabase-Verbindung ist nicht verfügbar.');
@@ -517,6 +519,13 @@
 
   async function savePlayer(event) {
     event.preventDefault();
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) {
+      showMessage('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.', true);
+      return;
+    }
+
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
     data.name = String(data.name || '').trim();
@@ -532,6 +541,7 @@
       showMessage('Bitte gib mindestens einen Vornamen ein.', true);
       return;
     }
+
     const button = form.querySelector('[type="submit"]');
     button.disabled = true;
     try {
@@ -539,12 +549,14 @@
       const result = state.editingPlayerId
         ? await client.from(TABLES.players).update(data).eq('id', state.editingPlayerId).select().single()
         : await client.from(TABLES.players).insert(data).select().single();
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (result.error) throw result.error;
       el('scoutPlayerDialog').close();
       state.editingPlayerId = null;
       await loadData();
-      notify('Spielerprofil wurde sicher gespeichert.');
+      if (isCurrentRequest(requestGeneration, requestUserId)) notify('Spielerprofil wurde sicher gespeichert.');
     } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       console.error('PFMS Scout player save failed:', error);
       showMessage('Spielerprofil konnte nicht gespeichert werden: ' + (error?.message || 'Datenbankfehler'), true);
     } finally {
@@ -554,6 +566,13 @@
 
   async function saveReport(event) {
     event.preventDefault();
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) {
+      showMessage('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.', true);
+      return;
+    }
+
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
     data.player_id = String(data.player_id || '');
@@ -575,12 +594,14 @@
       const result = state.editingReportId
         ? await client.from(TABLES.reports).update(data).eq('id', state.editingReportId).select().single()
         : await client.from(TABLES.reports).insert(data).select().single();
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (result.error) throw result.error;
       el('scoutReportDialog').close();
       state.editingReportId = null;
       await loadData();
-      notify('Scoutingbericht wurde sicher gespeichert.');
+      if (isCurrentRequest(requestGeneration, requestUserId)) notify('Scoutingbericht wurde sicher gespeichert.');
     } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       console.error('PFMS Scout report save failed:', error);
       showMessage('Scoutingbericht konnte nicht gespeichert werden: ' + (error?.message || 'Datenbankfehler'), true);
     } finally {
