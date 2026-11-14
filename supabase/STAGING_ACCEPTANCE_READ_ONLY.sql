@@ -496,6 +496,33 @@ with checks as (
 
   union all
   select
+    'legacy_team_access_requires_active_org_membership',
+    coalesce((
+      select
+        p_access.prosecdef
+        and coalesce(p_access.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p_access.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p_access.oid, 'EXECUTE')
+        and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%join public.organization_memberships m%'
+        and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%m.role = s.role%'
+        and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and exists (
+          select 1
+          from pg_catalog.pg_proc p_manage
+          where p_manage.oid = pg_catalog.to_regprocedure('public.pfms_can_manage_legacy_team(uuid)')
+            and p_manage.prosecdef
+            and coalesce(p_manage.proconfig::text, '') like '%search_path=""%'
+            and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%join public.organization_memberships m%'
+            and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%m.role = ''trainer''%'
+        )
+      from pg_catalog.pg_proc p_access
+      where p_access.oid = pg_catalog.to_regprocedure('public.pfms_can_access_legacy_team(uuid)')
+    ), false),
+    'Teamzugriff verlangt aktiven Organisationsstatus und eine passende aktive Organisationsmitgliedschaft; Trainerrechte sind ebenfalls daran gebunden'
+
+  union all
+  select
     'platform_owner_admin_protection',
     coalesce((
       select p.prosecdef
