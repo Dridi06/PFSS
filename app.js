@@ -1401,12 +1401,6 @@ document.addEventListener('click', event => {
     return;
   }
 
-  const skeletonAction = event.target.closest('[data-skeleton-action]');
-  if (skeletonAction) {
-    toast(`${skeletonAction.dataset.skeletonAction}-Modul ist vorbereitet; Datenbank-Anbindung folgt.`);
-    return;
-  }
-
   const adminSave = event.target.closest('[data-admin-save]');
   if (adminSave) { saveAdminUser(adminSave); return; }
 
