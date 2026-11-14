@@ -77,7 +77,7 @@ Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturle
 | Globaler Spielerkatalog | freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
 | Scout-Arbeitsbereich | Scout verwaltet eigene Spieler, Berichte und Medien | Scout A kann keine privaten Daten von Scout B lesen |
 | Hauptmedien | Upload, signierter Abruf und Löschen | fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
-| Mannschaften | Rollenrechte für Kader, Training, Anwesenheit, Kalender, Spiele und Finanzen; Trainingszyklus mit automatisch erzeugten Wochen, Wochenzielen, Belastungsstufen und Terminzuordnung | Ohne `training.edit` dürfen Zyklen/Wochen nicht angelegt oder geändert werden; teamfremde Wochen und Termine außerhalb des Wochenzeitraums werden serverseitig abgewiesen |
+| Mannschaften | Rollenrechte für Kader, Training, Anwesenheit, Kalender, Spiele, Finanzen und Analyse; Trainingszyklen mit automatisch erzeugten Wochen und Belastungsstufen; Taktik-/Videoanalyse mit Spielbezug und Zeitmarke | Ohne `training.edit` keine Zyklus-/Wochenänderungen; ohne `analysis.edit` keine Analyseänderungen; teamfremde Spiele und Datenzugriffe werden serverseitig abgewiesen; Videoanalyse ohne HTTPS-Quelle scheitert |
 | Persönliche Aufgaben | Anlegen, Statuswechsel, Löschen | fremdes Konto sieht keine Aufgaben |
 | Support | Nutzer erstellt Ticket und sieht eigene Antwort | Nutzer sieht keine fremden Tickets; nur Admin antwortet |
 | Backup | R2-Backup und isolierter Restore | Restore überschreibt niemals Produktionsdaten |
