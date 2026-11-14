@@ -93,6 +93,7 @@ const requiredFiles = [
   "render.yaml",
   "scripts/build-static.mjs",
   "scripts/build-ci.mjs",
+  "pfms-config.js",
   "tests/build-smoke.mjs",
   "tests/accessibility-smoke.mjs",
   "tests/migration-syntax-smoke.mjs",
@@ -141,7 +142,7 @@ for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
-assert.match(app, /window\\.PFMS_CONFIG/, "Frontend must read generated environment configuration");
+assert.match(app, /window\.PFMS_CONFIG/, "Frontend must read generated environment configuration");
 assert.ok(!app.includes("nkkajhjdvfjzrvxkbokg") && !app.includes("sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi"), "Frontend must not hard-code a Supabase project URL or key");
 assert.ok(html.indexOf('src="pfms-config.js"') < html.indexOf('src="app.js'), "Generated Supabase config must load before the application");
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
