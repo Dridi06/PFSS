@@ -492,3 +492,69 @@ assert.match(scoutWorkspaceHardening, /storage_path ~ \('\^' \|\| auth\.uid\(\):
 assert.match(scoutWorkspaceHardening, /p\.id = player_id and p\.owner_id = auth\.uid\(\)/);
 assert.match(scoutWorkspaceHardening, /pfss_scout_media_mime_type_allowlist/);
 assert.match(scoutWorkspaceHardening, /'image\/jpeg'.*'video\/webm'/);
+
+
+// Authentication lifecycle: signup provisioning, invitation redemption and
+// first-owner bootstrap must remain server-triggered and privilege-restricted.
+const usernameRegistration = (
+  await readFile(resolve(directory, "20261110_username_registration.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(usernameRegistration, /create trigger pfss_sync_signup_username after insert on auth\.users/);
+assert.match(usernameRegistration, /requested_username !~ '\^\[a-za-z0-9_\.-\]\{3,20\}\$'/);
+assert.match(usernameRegistration, /on conflict \(id\) do update set username = excluded\.username/);
+assert.doesNotMatch(usernameRegistration, /set username = excluded\.username,\s*role\s*=|set username = excluded\.username,\s*status\s*=/);
+
+const ownerBootstrapGuard = (
+  await readFile(resolve(directory, "20261116_pfms_owner_bootstrap_registration_guard.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(ownerBootstrapGuard, /create trigger pfms_register_owner_bootstrap_request after insert on auth\.users/);
+assert.match(ownerBootstrapGuard, /revoke all on table public\.pfms_owner_bootstrap_requests from public, anon, authenticated/);
+assert.match(ownerBootstrapGuard, /coalesce\(auth\.role\(\), ''\) <> 'service_role'/);
+assert.match(ownerBootstrapGuard, /grant execute on function public\.pfms_claim_initial_owner\(uuid\) to service_role/);
+assert.match(ownerBootstrapGuard, /for update/);
+assert.match(ownerBootstrapGuard, /claimed_at is null/);
+
+const authTriggerHardening = (
+  await readFile(resolve(directory, "20261130_pfms_auth_trigger_hardening.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(authTriggerHardening, /security definer set search_path = ''/);
+assert.match(authTriggerHardening, /revoke all on function public\.pfss_sync_signup_username\(\) from public, anon, authenticated/);
+assert.match(authTriggerHardening, /revoke all on function public\.pfms_provision_new_account\(\) from public, anon, authenticated/);
+assert.match(authTriggerHardening, /v_type in \('club','agency'\)/);
+assert.match(authTriggerHardening, /elsif v_type='scout'/);
+
+const invitationStatusGuard = (
+  await readFile(resolve(directory, "20261131_pfms_legacy_invitation_status_guard.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(invitationStatusGuard, /registration_type', ''\)\) <> 'user'/);
+assert.match(invitationStatusGuard, /i\.redeemed_at is null/);
+assert.match(invitationStatusGuard, /i\.revoked_at is null/);
+assert.match(invitationStatusGuard, /i\.expires_at > pg_catalog\.now\(\)/);
+assert.match(invitationStatusGuard, /for update/);
+assert.match(invitationStatusGuard, /for share/);
+assert.match(invitationStatusGuard, /v_org_status not in \('approved','active'\)/);
+assert.match(invitationStatusGuard, /membership already exists/);
+assert.match(invitationStatusGuard, /grant execute on function public\.pfms_apply_legacy_invitation/);
+
+const usernameLogin = await readFile(
+  resolve(process.cwd(), "supabase/functions/username-login/index.ts"),
+  "utf8"
+);
+assert.match(usernameLogin, /rawBody\.length > 8192/);
+assert.match(usernameLogin, /suppliedPassword\.length > 1024/);
+assert.match(usernameLogin, /cors\.allowed/);
+assert.match(usernameLogin, /Cache-Control.*no-store/);
+assert.match(usernameLogin, /select\("id"\)/);
+assert.match(usernameLogin, /auth\.signInWithPassword/);
+assert.doesNotMatch(usernameLogin, /console\.log\([^\n]*(?:password|access_token|refresh_token)/i);
+
+const ownerBootstrapFunction = await readFile(
+  resolve(process.cwd(), "supabase/functions/pfms-owner-bootstrap/index.ts"),
+  "utf8"
+);
+assert.match(ownerBootstrapFunction, /constantTimeEqual/);
+assert.match(ownerBootstrapFunction, /email_confirmed_at/);
+assert.match(ownerBootstrapFunction, /user_metadata\?\.registration_type !== "owner_bootstrap"/);
+assert.match(ownerBootstrapFunction, /auth\.getUser\(\)/);
+assert.match(ownerBootstrapFunction, /pfms_claim_initial_owner/);
+assert.doesNotMatch(ownerBootstrapFunction, /payload[^\n]*user_id/);
