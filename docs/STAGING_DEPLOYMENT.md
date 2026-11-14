@@ -65,6 +65,8 @@ Ergebnisse sichern und insbesondere prüfen:
 - Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
 
 ## 5. Funktionale Abnahme
+**Teilnahmelisten (Migration `20261204_pfms_legacy_team_event_participants.sql`):** Ein `events.view`-Konto darf Teilnehmer und den dafür nötigen reduzierten Kader-Datensatz nur für die eigene Mannschaft lesen. Mit `events.edit` dürfen Spieler des eigenen Kaders einer Veranstaltung zugeordnet und die Stati Eingeladen/Zugesagt/Abgesagt/Anwesend/Nicht erschienen gepflegt oder entfernt werden. Ein teamfremder Kader-Spieler, eine teamfremde Veranstaltung und direkte INSERT/UPDATE/DELETE-Aufrufe auf der Teilnehmer-Tabelle müssen scheitern. Ein Nutzer ohne `events.view` darf weder Teilnehmer noch Kaderoptionen abrufen.
+
 **Eventrechte (Migration `20261203_pfms_legacy_team_events.sql`):** Mit einem `events.view`-Konto muss die Eventliste Turniere/Veranstaltungen zeigen, aber Spiele und Besprechungen verbergen. Ein Konto ohne `events.view` darf die Liste nicht laden. Ohne `events.edit` müssen Anlegen, Bearbeiten und Löschen serverseitig abgewiesen werden. Versuche außerdem, per RPC einen teamfremden Eintrag zu ändern oder einen Kalendereintrag vom Typ `match`/`meeting` über die Event-RPCs zu verändern/löschen; beides muss scheitern. Ein `calendar.view`-Konto darf weiterhin den vollständigen Kalender sehen.
  mit getrennten Testkonten
 
