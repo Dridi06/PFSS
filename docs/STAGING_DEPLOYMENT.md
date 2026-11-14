@@ -2,6 +2,8 @@
 
 Diese Anleitung gilt ausschließlich für die getrennte PFMS-Testumgebung. Sie ist keine Freigabe für `main`, Produktions-Supabase oder die Live-Render-Domain.
 
+Die Wiederherstellung eines verschlüsselten PostgreSQL-Backups ist separat in [`docs/BACKUP_RESTORE.md`](BACKUP_RESTORE.md) dokumentiert. Sie darf ausschließlich in eine neu angelegte, isolierte Testdatenbank erfolgen; Storage-Binärdateien sind gesondert zu berücksichtigen.
+
 ## 1. Vorbedingungen
 
 - Der Code liegt auf `feature/pfss-complete-platform-build`.
