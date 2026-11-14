@@ -1888,7 +1888,7 @@ const remainingTeamWriteHandlers = [
   "savePfmsLegacyTeamTraining"
 ];
 for (const handler of remainingTeamWriteHandlers) {
-  const start = app.indexOf("async function " + handler);
+  const start = app.indexOf("async function " + handler + "(");
   const next = app.indexOf("\nasync function ", start + 1);
   const end = next >= 0 ? next : app.length;
   const source = app.slice(start, end);
