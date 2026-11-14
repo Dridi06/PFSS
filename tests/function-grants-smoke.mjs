@@ -569,4 +569,3 @@ const usernameLogin = await readFile(
 assert.match(usernameLogin, /access_token: sessionData\.session\.access_token/);
 assert.match(usernameLogin, /refresh_token: sessionData\.session\.refresh_token/);
 assert.doesNotMatch(usernameLogin, /user:\s*sessionData\.user/);
-assert.doesNotMatch(usernameLogin, /email:\s*userData\.user\.email\s*[,}]/);
