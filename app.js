@@ -1956,6 +1956,10 @@ let pfmsEditingLegacyTeamId = null;
 let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
 let pfmsLegacyTrainingSessions = [];
+let pfmsLegacyTeamExercises = [];
+let pfmsLegacySessionExercises = [];
+let pfmsSelectedTrainingPlanSession = null;
+let pfmsEditingTrainingExerciseId = null;
 let pfmsLegacyCalendarEvents = [];
 let pfmsEditingCalendarEventId = null;
 let pfmsLegacyMatches = [];
@@ -3002,7 +3006,11 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyMatchCandidates = [];
   pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
+  pfmsLegacyTeamExercises = [];
+  pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
+  pfmsSelectedTrainingPlanSession = null;
+  pfmsEditingTrainingExerciseId = null;
   pfmsLegacyTrainingAttendance = [];
   document.getElementById('pfmsTeamCalendarPanel').hidden = true;
   document.getElementById('pfmsTeamMatchesPanel').hidden = true;
@@ -4105,8 +4113,16 @@ function setupPfmsLegacyTeamWorkspace() {
     resetPfmsLegacyCalendarForm();
     pfmsLegacyTeamRoster = [];
     pfmsLegacyTrainingSessions = [];
+    pfmsLegacyTeamExercises = [];
+    pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
+    pfmsSelectedTrainingPlanSession = null;
+    pfmsEditingTrainingExerciseId = null;
     pfmsLegacyTrainingAttendance = [];
+    document.getElementById('pfmsTeamExerciseLibraryPanel').hidden = true;
+    document.getElementById('pfmsTeamSessionPlanPanel').hidden = true;
+    document.getElementById('pfmsTeamExerciseLibrary').innerHTML = '';
+    document.getElementById('pfmsTeamSessionPlanExercises').innerHTML = '';
   });
 
   document.addEventListener('click', event => {
