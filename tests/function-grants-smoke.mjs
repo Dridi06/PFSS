@@ -246,3 +246,43 @@ assert.match(legacyTeamPermissions, /jsonb_array_length\(p_permissions\) <> 8/);
 assert.match(legacyTeamPermissions, /v_can_edit and not v_can_view/);
 assert.match(legacyTeamPermissions, /p\.can_edit/);
 assert.match(legacyTeamPermissions, /p_action in \('view','edit'\)/);
+
+
+// Protect finance ledger access, validation and non-destructive correction.
+const legacyTeamFinance = (
+  await readFile(resolve(directory, "20261127_pfms_legacy_team_finance.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamFinance, /enable row level security; alter table public\.pfms_legacy_team_finance_entries force row level security/);
+assert.match(legacyTeamFinance, /pfms_has_legacy_team_permission\(team_id, 'finance', 'view'\)/);
+assert.match(legacyTeamFinance, /pfms_has_legacy_team_permission\(p_team_id, 'finance', 'edit'\)/);
+assert.match(legacyTeamFinance, /amount > 0 and amount <= 1000000/);
+assert.match(legacyTeamFinance, /status = 'voided'.*voided_by is not null/);
+assert.match(legacyTeamFinance, /only posted finance entries can be voided/);
+assert.match(legacyTeamFinance, /revoke all on table public\.pfms_legacy_team_finance_entries from public, anon, authenticated/);
+assert.match(legacyTeamFinance, /grant select on table public\.pfms_legacy_team_finance_entries to authenticated/);
+assert.doesNotMatch(legacyTeamFinance, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_finance_entries to authenticated/);
+
+// Protect the ninth team permission module and same-team task assignment boundary.
+const legacyTeamTasks = (
+  await readFile(resolve(directory, "20261206_pfms_legacy_team_tasks.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamTasks, /'analysis','tasks'/);
+assert.match(legacyTeamTasks, /jsonb_array_length\(p_permissions\) <> 9/);
+assert.match(legacyTeamTasks, /'tasks'\s*\)\s*and p_action in \('view','edit'\)/);
+assert.match(legacyTeamTasks, /foreign key \(team_id, assigned_to\) references public\.pfms_legacy_team_staff\(team_id, user_id\)/);
+assert.match(legacyTeamTasks, /s\.team_id = p_team_id and s\.user_id = p_assigned_to and s\.status = 'active'/);
+assert.match(legacyTeamTasks, /pfms_has_legacy_team_permission\(p_team_id, 'tasks', 'view'\)/);
+assert.match(legacyTeamTasks, /pfms_has_legacy_team_permission\(v_team_id, 'tasks', 'edit'\)/);
+assert.match(legacyTeamTasks, /alter table public\.pfms_legacy_team_tasks force row level security/);
+assert.match(legacyTeamTasks, /revoke all on table public\.pfms_legacy_team_tasks from public, anon, authenticated/);
+assert.match(legacyTeamTasks, /grant select on table public\.pfms_legacy_team_tasks to authenticated/);
+
+// Event participation must remain scoped to both the event's team and its roster.
+const legacyTeamEventParticipants = (
+  await readFile(resolve(directory, "20261204_pfms_legacy_team_event_participants.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTeamEventParticipants, /foreign key \(event_id, team_id\) references public\.pfms_legacy_team_calendar_events\(id, team_id\)/);
+assert.match(legacyTeamEventParticipants, /foreign key \(team_player_assignment_id, team_id\) references public\.pfms_legacy_team_players\(id, team_id\)/);
+assert.match(legacyTeamEventParticipants, /pfms_has_legacy_team_permission\(v_team_id, 'events', 'edit'\)/);
+assert.match(legacyTeamEventParticipants, /selected player is not an active member of this team/);
+assert.match(legacyTeamEventParticipants, /alter table public\.pfms_legacy_team_event_participants force row level security/);
