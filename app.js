@@ -2396,6 +2396,8 @@ function openPfmsLegacyTeamDialog(team = null) {
 
 async function savePfmsLegacyTeam(event) {
   event.preventDefault();
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const form = event.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
   const button = document.getElementById('pfmsTeamSaveButton');
@@ -2428,12 +2430,14 @@ async function savePfmsLegacyTeam(event) {
         p_division: data.division || null
       });
     }
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     if (result.error) throw result.error;
     document.getElementById('pfmsTeamDialog').close();
     pfmsEditingLegacyTeamId = null;
     await loadPfmsLegacyTeams();
-    toast('Mannschaft wurde gespeichert.');
+    if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) toast('Mannschaft wurde gespeichert.');
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS team save failed:', error);
     message.textContent = 'Mannschaft konnte nicht gespeichert werden. Prüfe Organisationsrechte und Eingaben.';
   } finally {
@@ -2465,6 +2469,8 @@ function renderPfmsTeamStaffList(teamId, staff, canManage) {
 }
 
 async function openPfmsLegacyTeamStaffDialog(teamId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
   if (!team || !team.can_manage) return;
   pfmsSelectedLegacyTeam = team;
@@ -2481,6 +2487,7 @@ async function openPfmsLegacyTeamStaffDialog(teamId) {
       pfssSupabase.rpc('pfms_list_legacy_team_staff_candidates', { p_team_id: teamId }),
       pfssSupabase.rpc('pfms_list_legacy_team_staff', { p_team_id: teamId })
     ]);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (candidatesResult.error) throw candidatesResult.error;
     if (staffResult.error) throw staffResult.error;
 
@@ -2500,6 +2507,7 @@ async function openPfmsLegacyTeamStaffDialog(teamId) {
     pfmsSelectedTeamStaff = staffResult.data || [];
     renderPfmsTeamStaffList(teamId, staffResult.data || [], true);
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS team staff load failed:', error);
     message.textContent = 'Trainerteam konnte nicht geladen werden. Prüfe Mitgliedschaften und Datenbankmigration.';
     candidate.innerHTML = '<option value="">Nicht verfügbar</option>';
@@ -2606,6 +2614,8 @@ function dialogClose(id) {
 
 async function assignPfmsLegacyTeamStaff(event) {
   event.preventDefault();
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const team = pfmsSelectedLegacyTeam;
   const select = document.getElementById('pfmsTeamStaffCandidate');
   const option = select.selectedOptions[0];
@@ -2625,11 +2635,13 @@ async function assignPfmsLegacyTeamStaff(event) {
       p_user_id: userId,
       p_role: role
     });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     if (error) throw error;
     message.textContent = 'Trainerteam wurde aktualisiert.';
     await loadPfmsLegacyTeams();
     await openPfmsLegacyTeamStaffDialog(team.team_id);
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS staff assignment failed:', error);
     message.textContent = 'Zuordnung fehlgeschlagen. Die Person muss aktives Vereinsmitglied mit derselben Rolle sein.';
   } finally {
@@ -2638,17 +2650,21 @@ async function assignPfmsLegacyTeamStaff(event) {
 }
 
 async function removePfmsLegacyTeamStaff(assignmentId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const team = pfmsSelectedLegacyTeam;
   if (!team || !window.confirm('Diese Teamzuordnung wirklich entfernen?')) return;
   try {
     const { error } = await pfssSupabase.rpc('pfms_remove_legacy_team_staff', {
       p_assignment_id: assignmentId
     });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     if (error) throw error;
     await loadPfmsLegacyTeams();
     await openPfmsLegacyTeamStaffDialog(team.team_id);
     toast('Teamzuordnung wurde entfernt.');
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS team staff removal failed:', error);
     toast('Teamzuordnung konnte nicht entfernt werden. Prüfe deine Berechtigung.');
   }
@@ -2912,6 +2928,8 @@ async function removePfmsLegacyTeamPlayer(button) {
 }
 
 async function openPfmsLegacyTeamWorkspace(teamId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
   if (!team) return;
   pfmsSelectedLegacyTeam = team;
@@ -2930,6 +2948,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
     const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_staff', {
       p_team_id: teamId
     });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     if (error) throw error;
     staffHost.innerHTML = '<h3>Trainer & Betreuer</h3>' +
       (data?.length ? data.map(member =>
@@ -2942,6 +2961,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
         escapeHtml(team.team_id) + '">Trainerteam verwalten</button>';
     }
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS selected team staff load failed:', error);
     staffHost.textContent = 'Trainerteam konnte nicht geladen werden.';
   }
