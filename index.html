@@ -8,7 +8,7 @@
   <title>PFMS | Professionell Football Management System</title>
   <link rel="stylesheet" href="styles.css?v=pfms-staff-status-hsts-20261114-4">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0"></script>
   <script src="pfms-config.js" defer></script>
   <script src="app.js?v=pfms-csv-export-20261114-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
@@ -445,6 +445,19 @@
             </button>
           </div>
         </div>
+
+        <section class="panel pfms-security-panel" aria-labelledby="pfmsSecurityHeading">
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">KONTO-SICHERHEIT</div>
+              <h3 id="pfmsSecurityHeading">Passkey für diesen Zugang einrichten</h3>
+              <p>Nutze Face ID, Touch ID, Windows Hello oder einen FIDO2-Sicherheitsschlüssel. Dein privater Schlüssel bleibt auf deinem Gerät.</p>
+            </div>
+            <span class="module-status">WebAuthn</span>
+          </div>
+          <button class="btn btn-secondary" type="button" id="registerPasskeyButton">Passkey auf diesem Gerät einrichten</button>
+          <p class="admin-message" id="passkeySetupMessage" role="status" aria-live="polite">Richte mindestens einen Passkey ein. Bewahre zusätzlich einen zweiten Zugang für den Geräteverlust auf.</p>
+        </section>
 
         <div class="hero-panel">
           <div class="hero-copy">
