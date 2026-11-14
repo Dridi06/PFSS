@@ -26,6 +26,7 @@ target_tables AS (
         'pfms_legacy_teams', 'pfms_legacy_team_staff', 'pfms_legacy_team_permissions', 'pfms_legacy_team_players',
         'pfms_legacy_team_calendar_events', 'pfms_legacy_team_matches', 'pfms_legacy_team_match_lineup', 'pfms_legacy_training_sessions', 'pfms_legacy_training_attendance',
         'pfms_legacy_team_training_exercises', 'pfms_legacy_training_session_exercises',
+        'pfms_legacy_training_cycles', 'pfms_legacy_training_cycle_weeks',
         'pfms_legacy_team_finance_entries', 'pfms_personal_tasks', 'pfms_support_tickets'
       )
     )
