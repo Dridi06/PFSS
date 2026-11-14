@@ -700,15 +700,15 @@ document.addEventListener('click', event => {
 });
 
 document.getElementById('playerForm')
-  .addEventListener('submit', e => {
+  .addEventListener('submit', async e => {
     e.preventDefault();
-    savePlayer(e.currentTarget);
+    await savePlayer(e.currentTarget);
   });
 
 document.getElementById('reportForm')
-  .addEventListener('submit', e => {
+  .addEventListener('submit', async e => {
     e.preventDefault();
-    saveReport(e.currentTarget);
+    await saveReport(e.currentTarget);
   });
 
 document.getElementById('playerSearchForm').addEventListener('submit', event => {
@@ -802,6 +802,8 @@ document.getElementById('exportBackupButton')
   .addEventListener('click', exportPfssBackup);
 document.getElementById('importBackupButton')
   .addEventListener('click', () => document.getElementById('backupFileInput').click());
+document.getElementById('importLegacyDataButton')
+  ?.addEventListener('click', importLegacyLocalData);
 document.getElementById('backupFileInput')
   .addEventListener('change', event => {
     importPfssBackup(event.target.files?.[0]);
@@ -1008,7 +1010,7 @@ function applyAdminPreviewMode(mode) {
   }
 }
 
-function showAuthenticatedApp(user, profile) {
+async function showAuthenticatedApp(user, profile) {
   window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
@@ -1059,6 +1061,7 @@ function showAuthenticatedApp(user, profile) {
   window.pfssCurrentRole = profile.role;
   window.pfssIsRealAdmin = isAdmin;
   window.pfssPreviewMode = 'admin';
+  await loadPfmsMainData();
   const previewSwitch = document.getElementById('adminPreviewSwitch');
   const previewSelect = document.getElementById('adminPreviewMode');
   if (previewSwitch) previewSwitch.hidden = !isAdmin;
@@ -1574,7 +1577,7 @@ async function checkPfssAccess(user) {
     return;
   }
 
-  showAuthenticatedApp(user, profile);
+  await showAuthenticatedApp(user, profile);
 }
 
 async function pfssLogout() {
