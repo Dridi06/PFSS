@@ -48,6 +48,17 @@ create index if not exists pfms_global_players_birth_idx
 create index if not exists pfms_global_players_club_idx
   on public.pfms_global_players (lower(coalesce(club, '')));
 
+-- Scouts can keep a private working copy of a global player without gaining
+-- write access to the global catalogue. One copy per scout/global player.
+alter table public.pfss_scout_players
+  add column if not exists source_global_player_id uuid
+  references public.pfms_global_players(id) on delete set null;
+
+create unique index if not exists pfss_scout_players_owner_global_source_uidx
+  on public.pfss_scout_players (owner_id, source_global_player_id)
+  where source_global_player_id is not null;
+
+
 create table if not exists public.pfms_main_scouting_reports (
   id uuid primary key default gen_random_uuid(),
   player_id uuid not null references public.pfms_global_players(id) on delete restrict,
