@@ -434,3 +434,43 @@ for (const rpc of [
 ]) {
   assert.ok(applicationSource.includes(rpc), "Application is missing secured event RPC integration: " + rpc);
 }
+
+
+// Protect training-cycle planning, week/session assignment and exercise plans.
+const legacyTrainingCycles = (
+  await readFile(resolve(directory, "20261201_pfms_legacy_training_cycles.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTrainingCycles, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'view'\)/);
+assert.match(legacyTrainingCycles, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'edit'\)/);
+assert.match(legacyTrainingCycles, /p_end_date > p_start_date \+ 363/);
+assert.match(legacyTrainingCycles, /v_week_team_id <> v_team_id/);
+assert.match(legacyTrainingCycles, /v_session_date < v_week_start or v_session_date > v_week_end/);
+assert.match(legacyTrainingCycles, /force row level security/);
+assert.doesNotMatch(legacyTrainingCycles, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_training_cycles to authenticated/);
+
+const legacyTrainingExercises = (
+  await readFile(resolve(directory, "20261126_pfms_legacy_training_exercises.sql"), "utf8")
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(legacyTrainingExercises, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'view'\)/);
+assert.match(legacyTrainingExercises, /pfms_has_legacy_team_permission\(p_team_id, 'training', 'edit'\)/);
+assert.match(legacyTrainingExercises, /p_category not in \('warmup','technical','tactical','physical','finishing','cooldown','other'\)/);
+assert.match(legacyTrainingExercises, /exercise is used in a training plan and cannot be deleted/);
+assert.match(legacyTrainingExercises, /jsonb_array_length\(p_items\) > 30/);
+assert.match(legacyTrainingExercises, /force row level security/);
+assert.doesNotMatch(legacyTrainingExercises, /grant (?:insert|update|delete|all) on table public\.pfms_legacy_team_training_exercises to authenticated/);
+
+for (const rpc of [
+  "pfms_list_legacy_training_cycles",
+  "pfms_create_legacy_training_cycle",
+  "pfms_update_legacy_training_cycle_week",
+  "pfms_update_legacy_training_cycle_status",
+  "pfms_assign_legacy_training_session_cycle_week",
+  "pfms_list_legacy_team_training_exercises",
+  "pfms_create_legacy_team_training_exercise",
+  "pfms_update_legacy_team_training_exercise",
+  "pfms_delete_legacy_team_training_exercise",
+  "pfms_list_legacy_training_session_exercises",
+  "pfms_save_legacy_training_session_exercises"
+]) {
+  assert.ok(applicationSource.includes(rpc), "Application is missing secured training RPC integration: " + rpc);
+}
