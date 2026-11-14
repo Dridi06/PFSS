@@ -808,6 +808,7 @@
   <section class="panel" id="pfmsSelectedTeamPanel" hidden>
     <div class="panel-heading"><div><div class="eyebrow">MANNSCHAFT</div><h2 id="pfmsSelectedTeamTitle"></h2><p id="pfmsSelectedTeamMeta"></p></div><button class="btn btn-secondary" type="button" id="pfmsCloseSelectedTeam">Schließen</button></div>
     <div id="pfmsSelectedTeamStaff" class="admin-user-list"></div>
+    <p id="pfmsTeamPermissionNotice" class="notice" role="status" aria-live="polite" hidden></p>
     <section class="pfms-team-roster-panel" id="pfmsTeamRosterPanel">
       <div class="panel-heading">
         <div>
@@ -848,14 +849,15 @@
     </section>
   </section>
   <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
-    <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
-    <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung und Trainingsinhalte.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere und Veranstaltungen.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-    <article class="module-card"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
-  </div>
-</section>
+    <article class="module-card module-feature" data-pfms-team-module="squad"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung und Trainingsinhalte.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere und Veranstaltungen.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Teambezogene Ausgaben und Kassenübersicht mit nachvollziehbarer Buchungslogik.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+  </div></section>
       
       <section class="view" id="view-reports">
         <div class="page-heading">
