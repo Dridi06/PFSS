@@ -448,35 +448,64 @@ async function savePlayer(form) {
     club: String(data.club || '').trim() || null,
     height: data.height ? Number(data.height) : null,
     foot: data.foot || null,
-    notes: String(data.notes || '').trim() || null,
-    created_by: window.pfssCurrentUserId
+    notes: String(data.notes || '').trim() || null
   };
   if (!row.name) {
     toast('Bitte gib einen Spielernamen ein.');
     return;
   }
+  if (!editingGlobalPlayerId) row.created_by = window.pfssCurrentUserId;
 
   const button = form.querySelector('[type="submit"]');
   button.disabled = true;
   try {
-    const { data: saved, error } = await pfssSupabase
-      .from('pfms_global_players')
-      .insert(row)
-      .select('*')
-      .single();
-    if (error) throw error;
+    const query = pfssSupabase.from('pfms_global_players');
+    const result = editingGlobalPlayerId
+      ? await query.update(row).eq('id', editingGlobalPlayerId).select('*').single()
+      : await query.insert(row).select('*').single();
+    if (result.error) throw result.error;
 
-    players.push(mapPfmsPlayerRow(saved));
+    const savedPlayer = mapPfmsPlayerRow(result.data);
+    if (editingGlobalPlayerId) {
+      players = players.map(player => player.id === editingGlobalPlayerId ? savedPlayer : player);
+    } else {
+      players.push(savedPlayer);
+    }
+    editingGlobalPlayerId = null;
     form.reset();
     closeDialog('playerDialog');
+    const heading = document.querySelector('#playerDialog .modal-head h2');
+    if (heading) heading.textContent = 'Spielerprofil anlegen';
     renderDashboard();
     renderPlayers();
     toast('Spielerprofil wurde in der globalen PFMS-Datenbank gespeichert.');
   } catch (error) {
-    console.error('PFMS global player insert failed:', error);
+    console.error('PFMS global player save failed:', error);
     toast('Spieler konnte nicht gespeichert werden. Bitte Datenbankmigration und Administratorrechte prüfen.');
   } finally {
     button.disabled = false;
+  }
+}
+
+async function deleteGlobalPlayer(playerId) {
+  if (!window.pfssIsRealAdmin || !pfmsMainDataReady) return;
+  const player = players.find(item => item.id === playerId);
+  if (!player) return;
+  if (!window.confirm('Spielerprofil "' + player.name + '" wirklich löschen? Die Datenbank verhindert die Löschung, solange noch Scoutingberichte auf den Spieler verweisen.')) return;
+
+  try {
+    const { error } = await pfssSupabase
+      .from('pfms_global_players')
+      .delete()
+      .eq('id', playerId);
+    if (error) throw error;
+    players = players.filter(item => item.id !== playerId);
+    renderDashboard();
+    renderPlayers();
+    toast('Spielerprofil wurde gelöscht.');
+  } catch (error) {
+    console.error('PFMS global player deletion failed:', error);
+    toast('Spieler wurde nicht gelöscht. Vorhandene Scoutingberichte schützen die Spielerhistorie.');
   }
 }
 
