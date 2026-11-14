@@ -150,14 +150,22 @@ Deno.serve(async (req: Request) => {
       .ilike("username", normalizedUsername.replace(/([%_\\])/g, "\\$1"))
       .maybeSingle();
 
-    if (lookupError || !profile) {
+    if (lookupError) {
+      console.error("Username profile lookup failed:", lookupError.message);
+      return json({ error: "Login service temporarily unavailable" }, 503);
+    }
+    if (!profile) {
       return await invalidCredentials();
     }
 
     const { data: userData, error: userError } =
       await adminClient.auth.admin.getUserById(profile.id);
 
-    if (userError || !userData.user?.email) {
+    if (userError) {
+      console.error("Username account lookup failed:", userError.message);
+      return json({ error: "Login service temporarily unavailable" }, 503);
+    }
+    if (!userData.user?.email) {
       return await invalidCredentials();
     }
 
@@ -170,8 +178,15 @@ Deno.serve(async (req: Request) => {
       password: suppliedPassword,
     });
 
-    if (signInError || !sessionData.session) {
+    if (signInError) {
+      if (signInError.status && signInError.status !== 400) {
+        console.error("Supabase Auth sign-in service error:", signInError.message);
+        return json({ error: "Login service temporarily unavailable" }, 503);
+      }
       return await invalidCredentials();
+    }
+    if (!sessionData.session) {
+      return json({ error: "Login service temporarily unavailable" }, 503);
     }
 
     return json({
