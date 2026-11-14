@@ -230,20 +230,10 @@ function showView(view, navElement = null, fromPopState = false) {
   };
 
   if (view === 'team-workspace') {
-    const teamCards = [...document.querySelectorAll('#view-team-workspace .team-module-grid .module-card')];
-    const teamLabel = selectedLabel || 'Mannschaftsübersicht';
-    const overviewNote = document.querySelector('#view-team-workspace .team-workspace-note');
-    teamCards.forEach(card => {
-      const heading = card.querySelector('h3')?.textContent?.trim() || '';
-      card.hidden = teamLabel === 'Mannschaftsübersicht' || heading !== teamLabel;
-    });
-    if (overviewNote) overviewNote.hidden = selectedLabel !== 'Mannschaftsübersicht';
     const heading = document.querySelector('#view-team-workspace .page-heading h1');
-    if (heading) heading.textContent = teamLabel;
+    if (heading) heading.textContent = 'Meine Mannschaften';
     const intro = document.querySelector('#view-team-workspace .page-heading p');
-    if (intro) intro.textContent = teamLabel === 'Mannschaftsübersicht'
-      ? 'Die zentrale Übersicht deines Mannschaftsbereichs.'
-      : 'Der ausgewählte Bereich deiner Mannschaft.';
+    if (intro) intro.textContent = 'Hier erscheinen ausschließlich deine aktiven Mannschaftszuordnungen.';
   }
 
   document.getElementById('pageTitle').textContent =
@@ -257,6 +247,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
   if (view === 'club-members' && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
+  if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'admin') loadAdminUsers();
 }
 
@@ -1522,7 +1513,14 @@ async function showAuthenticatedApp(user, profile) {
   if (adminClubConsole) adminClubConsole.hidden = !isAdmin;
   if (adminScoutConsole) adminScoutConsole.hidden = !isAdmin;
   const isScout = role.includes('scout');
-  const isTeam = ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
+  let hasAssignedTeam = false;
+  try {
+    const teamAccess = await pfssSupabase.rpc('pfms_list_my_legacy_teams');
+    if (!teamAccess.error) hasAssignedTeam = (teamAccess.data || []).length > 0;
+  } catch (teamAccessError) {
+    console.warn('PFMS team membership lookup unavailable:', teamAccessError?.message || teamAccessError);
+  }
+  const isTeam = hasAssignedTeam || ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
   const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
   const normalStartView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
   const firstLoginKey = 'pfms_first_dashboard_seen_' + user.id;
@@ -1566,7 +1564,9 @@ async function showAuthenticatedApp(user, profile) {
   window.pfssCurrentRole = profile.role;
   window.pfssIsRealAdmin = isAdmin;
   window.pfssPreviewMode = 'admin';
+  setupPfmsLegacyTeamWorkspace();
   await loadPfmsMainData();
+  void loadPfmsLegacyTeams();
   await loadPfmsMainMedia();
   const previewSwitch = document.getElementById('adminPreviewSwitch');
   const previewSelect = document.getElementById('adminPreviewMode');
@@ -2915,6 +2915,14 @@ function resetPfmsAuthenticatedState() {
   pfmsMainMediaRequestId += 1;
   editingGlobalPlayerId = null;
   editingMainReportId = null;
+  pfmsLegacyTeams = [];
+  pfmsManageableLegacyOrganizations = [];
+  pfmsSelectedLegacyTeam = null;
+  document.getElementById('pfmsTeamDialog')?.close();
+  document.getElementById('pfmsTeamStaffDialog')?.close();
+  document.getElementById('pfmsSelectedTeamPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamModules')?.setAttribute('hidden', '');
+  renderPfmsLegacyTeamCards();
   window.pfssCurrentUserId = null;
   window.pfssCurrentRole = '';
   window.pfssIsRealAdmin = false;
