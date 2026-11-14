@@ -16,12 +16,19 @@ const requiredFiles = [
   "app.js",
   "scout-workspace.js",
   "pfms-logo.svg",
-  "pfms-welcome.webp"
+  "pfms-welcome.webp",
+  "pfms-config.js"
 ];
 
 for (const file of requiredFiles) {
   await access(resolve(outputDirectory, file));
 }
+
+const runtimeConfig = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
+assert.ok(runtimeConfig.includes('"buildTarget":"ci"'), "CI build must use an isolated placeholder config");
+assert.ok(runtimeConfig.includes("ci-placeholder.supabase.co"), "CI build must not embed a real Supabase project");
+assert.ok(!runtimeConfig.includes("sb_secret_") && !runtimeConfig.includes("service_role"), "Browser config must not contain server-side secrets");
+
 
 for (const page of ["index.html", "rechtliches.html"]) {
   const pagePath = resolve(outputDirectory, page);
