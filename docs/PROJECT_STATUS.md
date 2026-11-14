@@ -318,3 +318,13 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Ein Regressionstest verhindert, dass die Produktionsdomain künftig erneut in einem Staging-Allowlist-Beispiel auftaucht.
 - GitHub-Actions-Lauf [43634340307](https://github.com/Dridi06/PFSS/actions/runs/43634340307) bestand beide Jobs. Der Testlauf bestätigte erneut 21 Navigationstargets, 44 SQL-Migrationen, 118 SECURITY-DEFINER-Definitionen sowie die Build-, Accessibility-, Grant- und Backup-Prüfungen.
 - Die Korrektur betrifft Dokumentation und CI-Schutz. Die tatsächlichen Supabase-Function-Secrets wurden nicht verändert; deren Dashboard-Konfiguration muss im Staging separat geprüft werden.
+
+
+## UI-/Datenbank-Berechtigungsabgleich – 14.11.2026
+
+- Die Team-Workspace-Oberfläche wurde gegen die neun serverseitig aufgelösten Berechtigungsbereiche geprüft: Spielerkader, Training, Anwesenheit, Mannschaftskasse, Veranstaltungen, Kalender, Spiele, Analyse und Teamaufgaben.
+- Die Oberfläche verwendet `pfms_get_my_legacy_team_permissions` und speichert die vom Server gelieferten `can_view`-/`can_edit`-Werte. Die Modulnavigation wird anhand der Leseberechtigung ausgeblendet; Bearbeitungsoberflächen und Schreibaktionen prüfen gesondert die Bearbeitungsberechtigung.
+- Die Anwesenheit hat eigenständige Lese- und Bearbeitungsprüfungen; ein reiner Trainings-Lesezugriff erteilt keine Anwesenheitsänderungsrechte.
+- Die bestehenden UI-Prüfungen wurden um Regressionstests ergänzt, die die neun Module, serverseitige Berechtigungsauflösung, getrennte Lese-/Bearbeitungsrechte und das Ausblenden nicht freigegebener Module absichern.
+- Die Änderung betrifft Tests und Projektdokumentation. Es wurden keine Datenbankmigrationen, Zugangsdaten, Render-Dienste oder Produktivsysteme geändert.
+- CI-Ausführung für den neuen Teststand ist nach dem Commit zu prüfen; ein grüner Lauf wird erst nach bestätigtem GitHub-Actions-Ergebnis dokumentiert.
