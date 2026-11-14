@@ -146,6 +146,9 @@ for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
 assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
+assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 4, "Four PFMS subscription packages must remain available");
+assert.ok(html.includes('aria-pressed="true"') && html.includes('aria-pressed="false"') && app.includes("setAttribute('aria-pressed'"), "Billing cycle controls must expose their selected state accessibly");
+
 assert.match(app, /window\.PFMS_CONFIG/, "Frontend must read generated environment configuration");
 assert.ok(!app.includes("nkkajhjdvfjzrvxkbokg") && !app.includes("sb_publishable_0FH-h-DJDhEnF4TKzTUiBg_7hDljTHi"), "Frontend must not hard-code a Supabase project URL or key");
 assert.ok(html.indexOf('src="pfms-config.js"') < html.indexOf('src="app.js'), "Generated Supabase config must load before the application");
