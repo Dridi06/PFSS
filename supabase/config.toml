@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.pfms-owner-bootstrap]
 verify_jwt = true
+
+[functions.r2-connection-check]
+verify_jwt = true
