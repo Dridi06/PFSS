@@ -200,6 +200,16 @@ GitHub CI verwendet ausschließlich `PFMS_BUILD_TARGET=ci` mit einer ungültigen
 - Build/Publish-Konfiguration und Umgebungsvariablen prüfen; anschließend Login, Reload, mobile Navigation, Medien und Support im Browser testen.
 - Health-/Deploy-Logs sichern. Produktionsservice und Produktions-Branch bleiben unverändert.
 
+### Zusätzliche Inhaber- und Profilrechte-Abnahme
+
+Vor einer Staging-Freigabe auch die neuen Inhaber-Schutzprüfungen ausführen:
+
+- Migration `20261210_pfms_owner_integrity_hardening.sql` erst nach Backup und Prüfung der tatsächlichen Migrationshistorie anwenden.
+- Mit einem zweiten Plattformadministrator versuchen, die Rolle und den Status des designierten Plattforminhabers über die normale Profilverwaltungs-RPC zu ändern. Der Aufruf muss serverseitig abgewiesen werden.
+- Als normal angemeldetes Konto prüfen, dass direkte UPDATE-Rechte auf `profiles.role` und `profiles.status` nicht bestehen. Die Abnahmeprüfung `profile_authority_columns_protected` muss `passed = true` melden. Falls nicht, zuerst die vorhandenen Profil-Policies, Spaltenrechte und legitimen Profiländerungsabläufe prüfen; keine pauschale Rechteänderung ohne diesen Audit.
+- Zwei parallele Administratorvorgänge simulieren, die unterschiedliche aktive Inhabermitgliedschaften derselben Organisation herabstufen. Die Organisationszeilensperre muss die Vorgänge serialisieren; am Ende muss mindestens ein aktiver Inhaber verbleiben.
+- Die Read-only-Abnahme muss `platform_owner_admin_protection` und `legacy_owner_updates_serialized` als bestanden ausweisen.
+
 ## 7. Freigabegrenze
 
 Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/Restore- und Datenschutzabnahme darf ein separater Produktionsfreigabeplan erstellt werden. Zahlungsabwicklung bleibt deaktiviert, bis Anbieter, Gebühren, Webhooks, Rechnungs-/Steueranforderungen und rechtliche Texte geprüft und ausdrücklich freigegeben wurden.
