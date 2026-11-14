@@ -350,7 +350,7 @@ function playerCard(p) {
       <div class="player-card-top">
         <div class="player-initial">${escapeHtml(initials(p.name))}</div>
         <div>
-          <h3>${escapeHtml(p.name)}</h3>
+          <h3>${escapeHtml(pfssPlayerFullName(p))}</h3>
           <small>${escapeHtml(p.club || 'Verein nicht angegeben')}</small>
         </div>
       </div>
@@ -365,6 +365,12 @@ function playerCard(p) {
           <button type="button" data-global-player-delete="${escapeHtml(p.id)}">Löschen</button>
         </div>` : ''}
     </article>`;
+}
+
+function pfssPlayerFullName(player) {
+  return [String(player?.name || '').trim(), String(player?.surname || '').trim()]
+    .filter(Boolean)
+    .join(' ') || 'Unbekannter Spieler';
 }
 
 function pfssNormalizeSearch(value) {
@@ -446,7 +452,7 @@ function renderReports() {
       <article class="report-card">
         <div class="rating-bubble">${escapeHtml(report.rating)}</div>
         <div class="report-card-content">
-          <h3>${escapeHtml(player?.name || 'Unbekannter Spieler')}</h3>
+          <h3>${escapeHtml(player ? pfssPlayerFullName(player) : 'Unbekannter Spieler')}</h3>
           <small>${escapeHtml(report.date || 'Ohne Datum')} · Scouting-Bewertung</small>
           <p>${escapeHtml(report.notes)}</p>
           ${canManage ? `
@@ -523,7 +529,7 @@ async function deleteGlobalPlayer(playerId) {
   if (!window.pfssIsRealAdmin || !pfmsMainDataReady) return;
   const player = players.find(item => item.id === playerId);
   if (!player) return;
-  if (!window.confirm('Spielerprofil "' + player.name + '" wirklich löschen? Die Datenbank verhindert die Löschung, solange noch Scoutingberichte auf den Spieler verweisen.')) return;
+  if (!window.confirm('Spielerprofil "' + pfssPlayerFullName(player) + '" wirklich löschen? Die Datenbank verhindert die Löschung, solange noch Scoutingberichte auf den Spieler verweisen.')) return;
 
   try {
     const { error } = await pfssSupabase
