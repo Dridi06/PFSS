@@ -577,3 +577,50 @@ assert.match(usernameLogin, /\},\s*429,\s*\{/);
 assert.match(usernameLogin, /"Retry-After"/);
 assert.match(usernameLogin, /Login service temporarily unavailable/);
 assert.doesNotMatch(usernameLogin, /x-forwarded-for|cf-connecting-ip|x-real-ip/i);
+
+// Protect personal notification privacy and the narrow read-state-only update grant.
+const notifications = (
+  await readFile(resolve(directory, "20261207_pfms_in_app_notifications.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(notifications, /alter table public\\.pfms_notifications enable row level security/);
+assert.match(notifications, /alter table public\\.pfms_notifications force row level security/);
+assert.match(notifications, /recipient_id = auth\\.uid\\(\\)/);
+assert.match(notifications, /grant select on public\\.pfms_notifications to authenticated/);
+assert.match(notifications, /grant update \\(is_read\\) on public\\.pfms_notifications to authenticated/);
+assert.doesNotMatch(notifications, /grant (?:insert|delete|update) on public\\.pfms_notifications to authenticated/);
+assert.match(notifications, /revoke all on table public\\.pfms_notifications from public, anon, authenticated/);
+assert.match(notifications, /revoke all on function public\\.pfms_notify_legacy_team_task_changes\\(\\) from public, anon, authenticated/);
+
+// Support tickets are owner-scoped, throttled transactionally, and admin-managed.
+const supportTickets = (
+  await readFile(resolve(directory, "20261129_pfms_support_tickets.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(supportTickets, /pg_advisory_xact_lock/);
+assert.match(supportTickets, /v_recent_count >= 10/);
+assert.match(supportTickets, /interval '24 hours'/);
+assert.match(supportTickets, /owner_id = auth\\.uid\\(\\)/);
+assert.match(supportTickets, /or public\\.pfms_is_admin\\(\\)/);
+assert.match(supportTickets, /grant update \\(status, admin_response\\) on public\\.pfms_support_tickets to authenticated/);
+
+// Private scout media must remain tied to the authenticated owner and their own player.
+const scoutIsolation = (
+  await readFile(resolve(directory, "20261209_pfss_scout_workspace_isolation_hardening.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(scoutIsolation, /alter table public\\.pfss_scout_media force row level security/);
+assert.match(scoutIsolation, /owner_id = auth\\.uid\\(\\)/);
+assert.match(scoutIsolation, /split_part\\(storage_path, '/', 1\\) = auth\\.uid\\(\\)::text/);
+assert.match(scoutIsolation, /p\\.owner_id = auth\\.uid\\(\\)/);
+
+// Privileged R2 connectivity checks require both a verified JWT and server-side admin status.
+const r2Check = (
+  await readFile(resolve(process.cwd(), "supabase/functions/r2-connection-check/index.ts"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(r2Check, /auth\\.getuser\\(\\)/);
+assert.match(r2Check, /rpc\\("pfms_is_admin"\\)/);
+assert.match(r2Check, /adminerror \\|\\| isadmin !== true/);
+assert.match(
+  (await readFile(resolve(process.cwd(), "supabase/config.toml"), "utf8"))
+    .replace(/\\s+/g, " ").toLowerCase(),
+  /\\[functions\\.r2-connection-check\\] verify_jwt = true/
+);
+
