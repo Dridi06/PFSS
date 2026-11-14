@@ -374,3 +374,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Dadurch kann ein verspäteter Request nach einem Mannschafts- oder Terminwechsel nicht mehr die Bedienelemente der neuen Ansicht verändern.
 - Vier Regressionstests schützen die Team-/Sitzungsbindung und die Button-Abschlussbehandlung.
 - Keine Datenbankmigration, keine Änderung an Daten oder Secrets und kein Deployment. Die Änderungen bleiben auf dem Feature-Branch.
+
+
+## Erweiterte Teamwechsel-Isolation für Trainingszyklen, Übungen und Kasse – 14.11.2026
+
+- Weitere asynchrone Schreibvorgänge wurden geprüft: Trainingszyklus anlegen, Wochenplanung bearbeiten, Zyklusstatus ändern, Übungskatalog bearbeiten, Trainingsstatus ändern und Mannschaftskassenbuchung anlegen.
+- Deren Abschlussbehandlung aktiviert Schaltflächen nur noch dann wieder, wenn Benutzerkonto und ursprünglich ausgewählte Mannschaft weiterhin übereinstimmen.
+- Sechs Regressionstests sichern die betroffenen Schreibwege. Serverseitige RPC-/RLS-Prüfungen bleiben weiterhin die maßgebliche Autorisierung.
+- Keine Datenbank-, Storage-, Secret- oder Live-Änderung; keine Bereitstellung. Feature-Branch bleibt isoliert.
