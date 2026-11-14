@@ -2526,6 +2526,8 @@ const PFMS_TEAM_PERMISSION_MODULES = {
 };
 
 async function openPfmsLegacyTeamPermissions(assignmentId) {
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const team = pfmsSelectedLegacyTeam;
   const assignment = pfmsSelectedTeamStaff.find(item => item.assignment_id === assignmentId);
   if (!team?.can_manage || !assignment) return;
@@ -2545,6 +2547,7 @@ async function openPfmsLegacyTeamPermissions(assignmentId) {
     const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_permissions', {
       p_assignment_id: assignmentId
     });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     if (error) throw error;
     const permissions = new Map((data || []).map(item => [item.module_key, item]));
     list.innerHTML = Object.entries(PFMS_TEAM_PERMISSION_MODULES).map(([key, label]) => {
@@ -2559,6 +2562,7 @@ async function openPfmsLegacyTeamPermissions(assignmentId) {
     }).join('');
     message.textContent = 'Lese- und Bearbeitungsrechte werden getrennt für jeden Bereich gespeichert.';
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS team permissions load failed:', error);
     message.textContent = 'Bereichsrechte konnten nicht geladen werden. Bitte die Rechte-Migration anwenden.';
     list.innerHTML = '';
@@ -2569,6 +2573,8 @@ async function openPfmsLegacyTeamPermissions(assignmentId) {
 
 async function savePfmsLegacyTeamPermissions(event) {
   event.preventDefault();
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const assignment = pfmsSelectedTeamPermissionAssignment;
   const list = document.getElementById('pfmsTeamPermissionsList');
   const message = document.getElementById('pfmsTeamPermissionsMessage');
@@ -2595,11 +2601,13 @@ async function savePfmsLegacyTeamPermissions(event) {
       p_assignment_id: assignment.assignment_id,
       p_permissions: permissions
     });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     if (error) throw error;
     message.textContent = 'Bereichsrechte wurden gespeichert.';
     toast('Team-Bereichsrechte wurden aktualisiert.');
     dialogClose('pfmsTeamPermissionsDialog');
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS team permissions save failed:', error);
     message.textContent = 'Berechtigungen konnten nicht gespeichert werden. Prüfe Trainerrechte und die Datenbankmigration.';
   } finally {
@@ -3342,6 +3350,8 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTeams = [];
   pfmsManageableLegacyOrganizations = [];
   pfmsSelectedLegacyTeam = null;
+  pfmsSelectedTeamStaff = [];
+  pfmsSelectedTeamPermissionAssignment = null;
   pfmsLegacyTeamRoster = [];
   pfmsLegacyTeamRosterCandidates = [];
   const rosterList = document.getElementById('pfmsTeamRosterList');
@@ -3350,6 +3360,7 @@ function resetPfmsAuthenticatedState() {
   if (rosterCount) rosterCount.textContent = '0 Spieler';
   document.getElementById('pfmsTeamDialog')?.close();
   document.getElementById('pfmsTeamStaffDialog')?.close();
+  document.getElementById('pfmsTeamPermissionsDialog')?.close();
   document.getElementById('pfmsSelectedTeamPanel')?.setAttribute('hidden', '');
   document.getElementById('pfmsTeamModules')?.setAttribute('hidden', '');
   renderPfmsLegacyTeamCards();
