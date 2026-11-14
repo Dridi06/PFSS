@@ -1891,6 +1891,8 @@ const pfssSupabase = window.supabase.createClient(
   PFSS_SUPABASE_KEY,
   {
     auth: {
+      // Passkeys werden über Supabase Auth (experimentelle WebAuthn-API) abgewickelt.
+      experimental: { passkey: true },
       // Die Anmeldung bleibt beim normalen Neuladen der Seite erhalten.
       persistSession: true,
       autoRefreshToken: true,
@@ -8049,6 +8051,36 @@ async function pfssLogout() {
   await pfssSupabase.auth.signOut();
   showAuthScreen();
 }
+
+document.getElementById('passkeyLoginButton')
+  ?.addEventListener('click', async () => {
+    const button = document.getElementById('passkeyLoginButton');
+    const message = document.getElementById('authMessage');
+    if (!button || !message) return;
+
+    if (!window.isSecureContext ||
+        !window.PublicKeyCredential ||
+        typeof pfssSupabase.auth.signInWithPasskey !== 'function') {
+      message.textContent = 'Passkey-Anmeldung ist in diesem Browser oder auf dieser Verbindung nicht verfügbar. Nutze bitte vorerst E-Mail/Benutzername und Passwort.';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Passkey-Anmeldung wird gestartet …';
+    try {
+      const { data, error } = await pfssSupabase.auth.signInWithPasskey();
+      if (error) throw error;
+      if (!data?.user) throw new Error('Passkey-Anmeldung lieferte kein Benutzerkonto.');
+      await checkPfssAccess(data.user);
+    } catch (error) {
+      console.warn('PFMS passkey sign-in failed:', error?.message || error);
+      message.textContent = error?.name === 'NotAllowedError'
+        ? 'Passkey-Anmeldung abgebrochen oder nicht bestätigt. Du kannst es erneut versuchen.'
+        : 'Passkey-Anmeldung nicht möglich. Prüfe, ob für dieses Konto bereits ein Passkey eingerichtet und Passkey-Login im PFMS-Testprojekt aktiviert ist.';
+    } finally {
+      button.disabled = false;
+    }
+  });
 
 document.getElementById('authForm')
   .addEventListener('submit', async event => {
