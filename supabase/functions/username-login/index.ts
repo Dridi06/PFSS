@@ -85,24 +85,39 @@ Deno.serve(async (req: Request) => {
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
 
+    const limiter = new Ratelimit({
+      redis: new Redis({ url: redisUrl, token: redisToken }),
+      limiter: Ratelimit.slidingWindow(5, "15 m"),
+      analytics: false,
+      prefix: "pfms:username-login",
+    });
+
+    const tooManyAttempts = (reset: number) => {
+      const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+      return json(
+        { error: "Too many login attempts. Please try again later." },
+        429,
+        { "Retry-After": String(retryAfter) },
+      );
+    };
+
+    // Only failed credentials consume the account-specific allowance.
+    const invalidCredentials = async () => {
+      try {
+        const failedAttempt = await limiter.limit(rateLimitIdentifier);
+        return failedAttempt.success
+          ? json({ error: "Invalid credentials" }, 400)
+          : tooManyAttempts(failedAttempt.reset);
+      } catch (rateLimitError) {
+        console.error("Username login failure counter failed:", rateLimitError);
+        return json({ error: "Login service temporarily unavailable" }, 503);
+      }
+    };
+
     try {
-      const limiter = new Ratelimit({
-        redis: new Redis({ url: redisUrl, token: redisToken }),
-        limiter: Ratelimit.slidingWindow(5, "15 m"),
-        analytics: false,
-        prefix: "pfms:username-login",
-      });
-      const limit = await limiter.limit(rateLimitIdentifier);
-      if (!limit.success) {
-        const retryAfter = Math.max(
-          1,
-          Math.ceil((limit.reset - Date.now()) / 1000),
-        );
-        return json(
-          { error: "Too many login attempts. Please try again later." },
-          429,
-          { "Retry-After": String(retryAfter) },
-        );
+      const remaining = await limiter.getRemaining(rateLimitIdentifier);
+      if (remaining.remaining <= 0) {
+        return tooManyAttempts(remaining.reset);
       }
     } catch (rateLimitError) {
       console.error("Username login rate-limit check failed:", rateLimitError);
@@ -136,14 +151,14 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (lookupError || !profile) {
-      return json({ error: "Invalid credentials" }, 400);
+      return await invalidCredentials();
     }
 
     const { data: userData, error: userError } =
       await adminClient.auth.admin.getUserById(profile.id);
 
     if (userError || !userData.user?.email) {
-      return json({ error: "Invalid credentials" }, 400);
+      return await invalidCredentials();
     }
 
     const { data: sessionData, error: signInError } = await createClient(
@@ -156,7 +171,7 @@ Deno.serve(async (req: Request) => {
     });
 
     if (signInError || !sessionData.session) {
-      return json({ error: "Invalid credentials" }, 400);
+      return await invalidCredentials();
     }
 
     return json({
