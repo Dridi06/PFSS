@@ -89,7 +89,7 @@ for (const view of navViews) {
 for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
   const value = match[1];
   if (/^(https?:|data:|mailto:|tel:|#|javascript:)/i.test(value)) continue;
-  const localPath = decodeURIComponent(value.split("?")[0]).replace(/^\.\//, "");
+  const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]).replace(/^\.\//, "");
   if (localPath) await fs.access(localPath);
 }
 
