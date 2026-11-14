@@ -417,9 +417,9 @@ assert.doesNotMatch(legacyEventTravel, /grant (?:insert|update|delete|all) on ta
 
 // The UI must use the permission-checked RPC interface for event operations.
 for (const rpc of [
-  "pfms_list_legacy_team_events",
-  "pfms_create_legacy_team_event",
-  "pfms_update_legacy_team_event",
+  "pfms_list_legacy_team_events_with_logistics",
+  "pfms_create_legacy_team_calendar_event",
+  "pfms_update_legacy_team_calendar_event",
   "pfms_delete_legacy_team_event",
   "pfms_list_legacy_team_event_participants",
   "pfms_list_legacy_team_event_player_options",
