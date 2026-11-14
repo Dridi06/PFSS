@@ -3714,6 +3714,397 @@ function pfmsTeamTime(value) {
   return String(value || '').slice(0, 5);
 }
 
+function pfmsTrainingExerciseCategoryLabel(category) {
+  return ({
+    warmup: 'Aufwärmen', technical: 'Technik', tactical: 'Taktik',
+    physical: 'Athletik', finishing: 'Abschluss', cooldown: 'Cooldown',
+    other: 'Sonstiges'
+  })[category] || category || 'Übung';
+}
+
+function resetPfmsLegacyTrainingExerciseForm() {
+  const form = document.getElementById('pfmsTeamExerciseForm');
+  if (!form) return;
+  form.reset();
+  pfmsEditingTrainingExerciseId = null;
+  const save = document.getElementById('pfmsTeamExerciseSave');
+  const cancel = document.getElementById('pfmsTeamExerciseCancelEdit');
+  if (save) save.textContent = 'Übung speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+function renderPfmsLegacyTeamExercises() {
+  const panel = document.getElementById('pfmsTeamExerciseLibraryPanel');
+  const form = document.getElementById('pfmsTeamExerciseForm');
+  const host = document.getElementById('pfmsTeamExerciseLibrary');
+  const message = document.getElementById('pfmsTeamExerciseMessage');
+  if (!panel || !host || !pfmsSelectedLegacyTeam) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('training') || {};
+  const canView = permission.can_view === true;
+  const canEdit = permission.can_edit === true;
+  panel.hidden = !canView;
+  if (form) form.hidden = !canEdit;
+  if (!canView) {
+    host.innerHTML = '';
+    return;
+  }
+
+  if (!pfmsLegacyTeamExercises.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Übungen gespeichert</b><p>' +
+      (canEdit ? 'Lege eine Übung an und verwende sie in deinen Trainingseinheiten.' : 'Für diese Mannschaft wurde noch kein Übungskatalog erstellt.') +
+      '</p></div>';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyTeamExercises.map(exercise => {
+    const players = exercise.max_players
+      ? exercise.min_players + '–' + exercise.max_players + ' Spieler'
+      : 'ab ' + exercise.min_players + ' Spieler';
+    const difficulty = ({beginner:'Einfach',intermediate:'Mittel',advanced:'Fortgeschritten'})[exercise.difficulty] || exercise.difficulty;
+    const actions = canEdit
+      ? '<div class="pfms-exercise-actions">' +
+          '<button type="button" class="btn btn-secondary" data-pfms-exercise-edit="' + escapeHtml(exercise.exercise_id) + '">Bearbeiten</button>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-exercise-delete="' + escapeHtml(exercise.exercise_id) + '">Entfernen</button>' +
+        '</div>' : '';
+    return '<article class="pfms-exercise-card" data-pfms-exercise-card="' + escapeHtml(exercise.exercise_id) + '">' +
+      '<div class="pfms-exercise-card-head"><div><span class="eyebrow">' + escapeHtml(pfmsTrainingExerciseCategoryLabel(exercise.category)) + '</span>' +
+      '<h4>' + escapeHtml(exercise.title) + '</h4></div><span class="module-status">' + escapeHtml(exercise.duration_minutes) + ' Min.</span></div>' +
+      '<div class="pfms-training-meta"><span>' + escapeHtml(players) + '</span><span>' + escapeHtml(difficulty) + '</span>' +
+      (exercise.pitch_size ? '<span>' + escapeHtml(exercise.pitch_size) + '</span>' : '') + '</div>' +
+      (exercise.equipment ? '<p><b>Material:</b> ' + escapeHtml(exercise.equipment) + '</p>' : '') +
+      (exercise.instructions ? '<details><summary>Ablauf anzeigen</summary><p>' + escapeHtml(exercise.instructions) + '</p></details>' : '') +
+      (exercise.coaching_points ? '<details><summary>Coachingpunkte anzeigen</summary><p>' + escapeHtml(exercise.coaching_points) + '</p></details>' : '') +
+      actions + '</article>';
+  }).join('');
+}
+
+async function loadPfmsLegacyTeamExercises(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const panel = document.getElementById('pfmsTeamExerciseLibraryPanel');
+  const host = document.getElementById('pfmsTeamExerciseLibrary');
+  const message = document.getElementById('pfmsTeamExerciseMessage');
+  const permission = pfmsSelectedTeamPermissions.get('training') || {};
+  if (!panel || !host || !permission.can_view || !teamId) {
+    if (panel) panel.hidden = true;
+    return false;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  message.textContent = 'Übungskatalog wird geladen …';
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_training_exercises', {
+      p_team_id: teamId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return false;
+    if (error) throw error;
+    pfmsLegacyTeamExercises = data || [];
+    renderPfmsLegacyTeamExercises();
+    message.textContent = pfmsLegacyTeamExercises.length + ' Übung(en) im Mannschaftskatalog.';
+    return true;
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return false;
+    console.error('PFMS team exercise library load failed:', error);
+    pfmsLegacyTeamExercises = [];
+    host.innerHTML = '<div class="empty-state">Der Übungskatalog konnte nicht geladen werden. Prüfe die Trainingsübungs-Migration und die Teamrechte.</div>';
+    message.textContent = 'Übungskatalog derzeit nicht verfügbar.';
+    return false;
+  }
+}
+
+function openPfmsLegacyTeamExercise(exercise) {
+  const form = document.getElementById('pfmsTeamExerciseForm');
+  if (!form || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+  resetPfmsLegacyTrainingExerciseForm();
+  pfmsEditingTrainingExerciseId = exercise?.exercise_id || null;
+  if (exercise) {
+    form.elements.title.value = exercise.title || '';
+    form.elements.category.value = exercise.category || 'technical';
+    form.elements.duration_minutes.value = exercise.duration_minutes || 15;
+    form.elements.min_players.value = exercise.min_players || 2;
+    form.elements.max_players.value = exercise.max_players ?? '';
+    form.elements.difficulty.value = exercise.difficulty || 'intermediate';
+    form.elements.pitch_size.value = exercise.pitch_size || '';
+    form.elements.equipment.value = exercise.equipment || '';
+    form.elements.setup.value = exercise.setup || '';
+    form.elements.instructions.value = exercise.instructions || '';
+    form.elements.coaching_points.value = exercise.coaching_points || '';
+  }
+  const save = document.getElementById('pfmsTeamExerciseSave');
+  const cancel = document.getElementById('pfmsTeamExerciseCancelEdit');
+  if (save) save.textContent = exercise ? 'Änderungen speichern' : 'Übung speichern';
+  if (cancel) cancel.hidden = !exercise;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.title.focus();
+}
+
+async function savePfmsLegacyTeamExercise(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamExerciseMessage');
+  const button = document.getElementById('pfmsTeamExerciseSave');
+  if (!team || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) {
+    message.textContent = 'Für den Übungskatalog fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const minPlayers = Number(data.min_players);
+  const maxPlayers = data.max_players === '' ? null : Number(data.max_players);
+  const duration = Number(data.duration_minutes);
+  if (!data.title?.trim() || !Number.isInteger(duration) || duration < 1 || duration > 180 ||
+      !Number.isInteger(minPlayers) || minPlayers < 1 || minPlayers > 40 ||
+      (maxPlayers !== null && (!Number.isInteger(maxPlayers) || maxPlayers < minPlayers || maxPlayers > 40))) {
+    message.textContent = 'Bitte Übungstitel, Dauer und Spielerzahl korrekt ausfüllen.';
+    return;
+  }
+
+  const payload = {
+    p_title: data.title.trim(),
+    p_category: data.category,
+    p_duration_minutes: duration,
+    p_min_players: minPlayers,
+    p_max_players: maxPlayers,
+    p_difficulty: data.difficulty,
+    p_pitch_size: data.pitch_size || null,
+    p_equipment: data.equipment || null,
+    p_setup: data.setup || null,
+    p_instructions: data.instructions || null,
+    p_coaching_points: data.coaching_points || null
+  };
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const teamId = team.team_id;
+  button.disabled = true;
+  message.textContent = 'Übung wird gespeichert …';
+  try {
+    const result = pfmsEditingTrainingExerciseId
+      ? await pfssSupabase.rpc('pfms_update_legacy_team_training_exercise', {
+          p_exercise_id: pfmsEditingTrainingExerciseId,
+          ...payload
+        })
+      : await pfssSupabase.rpc('pfms_create_legacy_team_training_exercise', {
+          p_team_id: teamId,
+          ...payload
+        });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (result.error) throw result.error;
+    resetPfmsLegacyTrainingExerciseForm();
+    await loadPfmsLegacyTeamExercises(teamId);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) {
+      toast('Übung wurde im Mannschaftskatalog gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team exercise save failed:', error);
+    message.textContent = 'Übung konnte nicht gespeichert werden. Prüfe deine Eingaben und Trainingsrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deletePfmsLegacyTeamExercise(exerciseId) {
+  const exercise = pfmsLegacyTeamExercises.find(item => item.exercise_id === exerciseId);
+  const team = pfmsSelectedLegacyTeam;
+  if (!exercise || !team || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+  if (!window.confirm('Übung "' + exercise.title + '" wirklich entfernen? Bereits verwendete Übungen sind durch die Datenbank geschützt.')) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_delete_legacy_team_training_exercise', {
+      p_exercise_id: exerciseId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamExercises(team.team_id);
+    toast('Übung wurde aus dem Katalog entfernt.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team exercise delete failed:', error);
+    document.getElementById('pfmsTeamExerciseMessage').textContent =
+      'Übung konnte nicht entfernt werden. Sie wird möglicherweise bereits in einem Trainingsplan verwendet.';
+  }
+}
+
+function renderPfmsLegacyTrainingSessionPlan() {
+  const panel = document.getElementById('pfmsTeamSessionPlanPanel');
+  const host = document.getElementById('pfmsTeamSessionPlanExercises');
+  const title = document.getElementById('pfmsTeamSessionPlanTitle');
+  const save = document.getElementById('pfmsTeamSessionPlanSave');
+  const total = document.getElementById('pfmsTeamSessionPlanTotal');
+  const session = pfmsSelectedTrainingPlanSession;
+  if (!panel || !host || !session) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('training')?.can_edit === true;
+  panel.hidden = false;
+  if (title) title.textContent = 'Übungsplan · ' + session.session_title;
+  if (save) save.hidden = !canEdit;
+
+  const planned = new Map(pfmsLegacySessionExercises.map(item => [item.exercise_id, item]));
+  const ordered = pfmsLegacyTeamExercises.slice().sort((left, right) => {
+    const leftOrder = planned.get(left.exercise_id)?.sort_order || 999;
+    const rightOrder = planned.get(right.exercise_id)?.sort_order || 999;
+    return leftOrder - rightOrder || String(left.title).localeCompare(String(right.title), 'de');
+  });
+
+  if (!ordered.length) {
+    host.innerHTML = '<div class="empty-state"><b>Keine Übungen im Katalog</b><p>Lege zuerst im Übungskatalog Übungen für diese Mannschaft an.</p></div>';
+    if (total) total.textContent = '0';
+    return;
+  }
+
+  host.innerHTML = ordered.map((exercise, index) => {
+    const current = planned.get(exercise.exercise_id);
+    const checked = !!current;
+    const duration = current?.planned_duration_minutes ?? exercise.duration_minutes;
+    const order = current?.sort_order ?? index + 1;
+    const notes = current?.notes || '';
+    return '<article class="pfms-session-plan-row" data-pfms-session-plan-row="' + escapeHtml(exercise.exercise_id) + '">' +
+      '<label class="pfms-plan-select"><input type="checkbox" data-pfms-plan-selected ' + (checked ? 'checked ' : '') + (canEdit ? '' : 'disabled ') + '><span>' +
+        '<b>' + escapeHtml(exercise.title) + '</b><small>' + escapeHtml(pfmsTrainingExerciseCategoryLabel(exercise.category)) + ' · Standard ' + escapeHtml(exercise.duration_minutes) + ' Min.</small></span></label>' +
+      '<label class="field">Reihenfolge<input type="number" min="1" max="30" value="' + escapeHtml(order) + '" data-pfms-plan-order ' + (canEdit && checked ? '' : 'disabled') + '></label>' +
+      '<label class="field">Dauer (Min.)<input type="number" min="1" max="180" value="' + escapeHtml(duration) + '" data-pfms-plan-duration ' + (canEdit && checked ? '' : 'disabled') + '></label>' +
+      '<label class="field full">Hinweis für diese Einheit<textarea rows="2" maxlength="2000" data-pfms-plan-notes ' + (canEdit && checked ? '' : 'disabled') + '>' + escapeHtml(notes) + '</textarea></label>' +
+      '</article>';
+  }).join('');
+  updatePfmsLegacyTrainingPlanTotal();
+}
+
+function updatePfmsLegacyTrainingPlanTotal() {
+  const host = document.getElementById('pfmsTeamSessionPlanExercises');
+  const total = document.getElementById('pfmsTeamSessionPlanTotal');
+  if (!host || !total) return;
+  const minutes = [...host.querySelectorAll('[data-pfms-plan-selected]:checked')]
+    .reduce((sum, checkbox) => {
+      const row = checkbox.closest('[data-pfms-session-plan-row]');
+      return sum + Number(row?.querySelector('[data-pfms-plan-duration]')?.value || 0);
+    }, 0);
+  total.textContent = String(minutes);
+}
+
+async function openPfmsLegacyTrainingPlan(sessionId) {
+  const session = pfmsLegacyTrainingSessions.find(item => item.session_id === sessionId);
+  const team = pfmsSelectedLegacyTeam;
+  const permission = pfmsSelectedTeamPermissions.get('training') || {};
+  const panel = document.getElementById('pfmsTeamSessionPlanPanel');
+  const host = document.getElementById('pfmsTeamSessionPlanExercises');
+  const message = document.getElementById('pfmsTeamSessionPlanMessage');
+  if (!session || !team || permission.can_view !== true) return;
+
+  pfmsSelectedTrainingPlanSession = session;
+  document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+  panel.hidden = false;
+  host.innerHTML = '';
+  message.textContent = 'Übungsplan wird geladen …';
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const teamId = team.team_id;
+  try {
+    if (!pfmsLegacyTeamExercises.length) await loadPfmsLegacyTeamExercises(teamId);
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_training_session_exercises', {
+      p_session_id: sessionId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTrainingPlanSession?.session_id !== sessionId) return;
+    if (error) throw error;
+    pfmsLegacySessionExercises = data || [];
+    renderPfmsLegacyTrainingSessionPlan();
+    message.textContent = pfmsLegacySessionExercises.length
+      ? pfmsLegacySessionExercises.length + ' Übung(en) im Trainingsplan.'
+      : 'Noch keine Übungen für diese Einheit eingeplant.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS training plan load failed:', error);
+    pfmsLegacySessionExercises = [];
+    host.innerHTML = '<div class="empty-state">Der Übungsplan konnte nicht geladen werden. Prüfe die Trainingsübungs-Migration.</div>';
+    message.textContent = 'Übungsplan derzeit nicht verfügbar.';
+  }
+}
+
+async function savePfmsLegacyTrainingSessionPlan() {
+  const session = pfmsSelectedTrainingPlanSession;
+  const team = pfmsSelectedLegacyTeam;
+  const host = document.getElementById('pfmsTeamSessionPlanExercises');
+  const message = document.getElementById('pfmsTeamSessionPlanMessage');
+  const button = document.getElementById('pfmsTeamSessionPlanSave');
+  if (!session || !team || !host || pfmsSelectedTeamPermissions.get('training')?.can_edit !== true) return;
+
+  const selectedRows = [...host.querySelectorAll('[data-pfms-session-plan-row]')]
+    .filter(row => row.querySelector('[data-pfms-plan-selected]')?.checked);
+  const items = selectedRows.map(row => ({
+    exercise_id: row.dataset.pfmsSessionPlanRow,
+    sort_order: Number(row.querySelector('[data-pfms-plan-order]')?.value),
+    planned_duration_minutes: Number(row.querySelector('[data-pfms-plan-duration]')?.value),
+    notes: row.querySelector('[data-pfms-plan-notes]')?.value?.trim() || null
+  })).sort((left, right) => left.sort_order - right.sort_order);
+
+  if (items.some((item, index) => !Number.isInteger(item.sort_order) || item.sort_order < 1 ||
+      item.sort_order > 30 || (index > 0 && item.sort_order === items[index - 1].sort_order) ||
+      !Number.isInteger(item.planned_duration_minutes) || item.planned_duration_minutes < 1 ||
+      item.planned_duration_minutes > 180 || (item.notes && item.notes.length > 2000))) {
+    message.textContent = 'Bitte prüfe Reihenfolge, Dauer und Hinweise aller ausgewählten Übungen.';
+    return;
+  }
+  if (items.reduce((sum, item) => sum + item.planned_duration_minutes, 0) > 480) {
+    message.textContent = 'Die gesamte Übungsplanung darf 480 Minuten nicht überschreiten.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const teamId = team.team_id;
+  const sessionId = session.session_id;
+  button.disabled = true;
+  message.textContent = 'Übungsplan wird gespeichert …';
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_save_legacy_training_session_exercises', {
+      p_session_id: sessionId,
+      p_items: items
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTrainingPlanSession?.session_id !== sessionId) return;
+    if (error) throw error;
+    await openPfmsLegacyTrainingPlan(sessionId);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedTrainingPlanSession?.session_id === sessionId) {
+      message.textContent = (data || 0) + ' Übung(en) wurden gespeichert.';
+      toast('Trainingsplan wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTrainingPlanSession?.session_id !== sessionId) return;
+    console.error('PFMS training plan save failed:', error);
+    message.textContent = 'Übungsplan konnte nicht gespeichert werden. Prüfe die Teamrechte und die Übungszuordnung.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function renderPfmsLegacyTeamTraining() {
   const host = document.getElementById('pfmsTeamTrainingList');
   const message = document.getElementById('pfmsTeamTrainingMessage');
@@ -3722,7 +4113,14 @@ function renderPfmsLegacyTeamTraining() {
   const trainingPermission = pfmsSelectedTeamPermissions.get('training') || {};
   const attendancePermission = pfmsSelectedTeamPermissions.get('attendance') || {};
   const canEditTraining = trainingPermission.can_edit === true;
+  const canViewTraining = trainingPermission.can_view === true;
   const canViewAttendance = attendancePermission.can_view === true;
+
+  const exercisePanel = document.getElementById('pfmsTeamExerciseLibraryPanel');
+  const exerciseForm = document.getElementById('pfmsTeamExerciseForm');
+  if (exercisePanel) exercisePanel.hidden = !canViewTraining;
+  if (exerciseForm) exerciseForm.hidden = !canEditTraining;
+  if (canViewTraining) renderPfmsLegacyTeamExercises();
 
   if (!pfmsLegacyTrainingSessions.length) {
     host.innerHTML = '<div class="empty-state"><b>Noch keine Trainingstermine vorhanden</b><p>' +
@@ -3742,6 +4140,10 @@ function renderPfmsLegacyTeamTraining() {
     const attendanceAction = canViewAttendance
       ? '<button type="button" class="btn btn-primary" data-pfms-open-attendance="' + escapeHtml(session.session_id) + '">Anwesenheit erfassen</button>'
       : '';
+    const planAction = canViewTraining
+      ? '<button type="button" class="btn btn-secondary" data-pfms-open-training-plan="' + escapeHtml(session.session_id) + '">' +
+        (canEditTraining ? 'Übungen planen' : 'Übungsplan ansehen') + '</button>'
+      : '';
     return '<article class="pfms-training-card" data-pfms-training-card="' + escapeHtml(session.session_id) + '">' +
       '<div class="pfms-training-card-head"><div><span class="eyebrow">' + escapeHtml(pfmsFormatTeamDate(session.session_date)) + '</span>' +
       '<h4>' + escapeHtml(session.session_title) + '</h4></div><span class="module-status">' + escapeHtml(status) + '</span></div>' +
@@ -3750,7 +4152,7 @@ function renderPfmsLegacyTeamTraining() {
       '<span>' + escapeHtml(session.location || 'Ort offen') + '</span>' +
       '<span>' + escapeHtml(session.focus || 'Kein Schwerpunkt') + '</span></div>' +
       (session.session_notes ? '<p>' + escapeHtml(session.session_notes) + '</p>' : '') +
-      '<div class="pfms-training-card-actions">' + attendanceAction + statusActions + '</div>' +
+      '<div class="pfms-training-card-actions">' + attendanceAction + planAction + statusActions + '</div>' +
       '</article>';
   }).join('');
   if (message) message.textContent = pfmsLegacyTrainingSessions.length + ' Trainingstermin(e) geladen.';
