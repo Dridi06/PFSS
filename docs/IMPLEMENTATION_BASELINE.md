@@ -1,4 +1,4 @@
-# PFSS – Implementierungs-Baseline und Arbeitsplan
+# PFMS – Implementierungs-Baseline und Arbeitsplan
 
 Stand: 14.11.2026
 Arbeitsbranch: feature/pfss-complete-platform-build
@@ -7,7 +7,7 @@ Produktionsumgebung: unverändert; kein Deployment durch diesen Arbeitsschritt.
 
 ## 1. Verbindliche Produktvorgaben
 
-Dieses Dokument setzt das PFSS-Gesamtkonzept Version 1.0 (13.11.2026) und die ergänzten Produktentscheidungen um:
+Dieses Dokument setzt das PFMS-Gesamtkonzept Version 1.0 (13.11.2026) und die ergänzten Produktentscheidungen um:
 - Bestehende Navigationsstruktur und Reihenfolge als Ausgangspunkt erhalten.
 - Premium-Markenbild: Schwarz, Anthrazit und Gold mit zurückhaltenden Fußball-/Stadiondetails.
 - Login und Registrierung professionell und responsiv überarbeiten.
@@ -25,7 +25,7 @@ Beim ersten Read-only-Inventar des GitHub-Repositories Dridi06/PFSS wurde festge
 - Es existieren mehrere SQL-Migrationen für Organisationen, Mitgliedschaften, Rollen-/Adminfunktionen, Einladungen und private Scout-Arbeitsbereiche.
 - app.js speichert Spieler und Berichte derzeit zusätzlich in localStorage unter pfss_players_v1 und pfss_reports_v1. Diese Daten sind damit noch kein verlässlicher, organisationsübergreifender Supabase-Datenbestand.
 - Der vorhandene Code enthält bereits Login per E-Mail oder Benutzername, Passwort-Reset, Registrierungsabläufe und mehrere vorbereitete Ansichten.
-- Im HTML sind noch uneinheitliche Produktbezeichnungen PFMS/PFSS vorhanden. Produktname, Seitentitel, Logo-Alttexte und sichtbare Texte müssen konsistent auf die freigegebene Marke gebracht werden.
+- Im HTML sind noch uneinheitliche Produktbezeichnungen PFMS/PFSS wurden im Bestand vorgefunden; die sichtbare Marke wird auf PFMS vereinheitlicht. Produktname, Seitentitel, Logo-Alttexte und sichtbare Texte müssen konsistent auf die freigegebene Marke gebracht werden.
 - Die bestehende Datenbankhistorie enthält parallel gewachsene Namensräume/Modelle. Vor neuen Fachmodulen ist das kanonische Datenmodell festzulegen.
 
 Diese Befunde sind eine erste Repository-Sichtung, keine vollständige Funktions-, Sicherheits- oder Datenbankabnahme.
