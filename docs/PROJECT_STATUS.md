@@ -244,6 +244,7 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 - Die Backup-Smoke-Tests prüfen jetzt den gemeinsam genutzten HMAC-Helfer statt veralteten Inline-Code. Zusätzlich ist die zuvor inkonsistente Passphrase-Umgebungsvariable im manuellen und geplanten Backup-Workflow vereinheitlicht.
 - Ein zusätzlicher ausführbarer Python-Test prüft den echten HMAC-Helper mit erfolgreichem Erstellen/Verifizieren, falscher Passphrase, manipuliertem Archiv und fehlendem Secret. Er läuft verpflichtend innerhalb von `npm test`.
 - Der Scout-Workspace verwirft veraltete asynchrone Ladevorgänge bei Kontowechsel; doppelte Request-Generation-Prüfungen wurden bereinigt.
+- Eine Quellcodeprüfung hatte doppelte ältere Scout-Medienhandler entdeckt, die die abgesicherten Upload-/Löschfunktionen überschrieben hätten. Die veralteten Duplikate wurden entfernt. Private Scout-Abfragen, Änderungen, Löschungen und globale Spielerübernahmen sind zusätzlich ausdrücklich auf `owner_id` und die aktuelle Sitzung begrenzt. Neue Smoke-Tests verhindern doppelte Handler/Funktionsdeklarationen und prüfen die Kontowechsel-Isolation; GitHub Actions auf Commit `08fa89d` waren erfolgreich.
 
 - `npm test` führt Syntaxprüfung, isolierten CI-Build, Projekt-Smoke-Tests, Build-/Asset-/CSP-Prüfungen, Accessibility-Prüfung, SQL-Migrationssyntaxprüfung und Funktionsrechte-Signaturprüfung aus.
 - Der Migrationstest prüft paarige PostgreSQL-Dollar-Quote-Begrenzer; der Funktionstest vergleicht deklarierte Funktionssignaturen mit `GRANT EXECUTE` und SECURITY-DEFINER-`REVOKE`.
