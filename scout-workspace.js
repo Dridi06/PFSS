@@ -287,6 +287,12 @@
   }
 
   async function importGlobalPlayer(globalPlayerId) {
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
+    if (!requestUserId) {
+      showMessage('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.', true);
+      return;
+    }
     const player = state.globalPlayers.find((item) => item.id === globalPlayerId);
     if (!player) return;
     if (state.players.some((item) => item.source_global_player_id === globalPlayerId)) {
@@ -308,11 +314,14 @@
         foot: player.foot || null,
         notes: null
       });
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       if (error) throw error;
       await loadData();
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       switchTo('database');
       notify('Spieler wurde in deinen privaten Scout-Bereich übernommen.');
     } catch (error) {
+      if (!isCurrentRequest(requestGeneration, requestUserId)) return;
       console.error('PFMS global player copy failed:', error);
       showMessage('Spieler konnte nicht übernommen werden. Bitte die globale Katalogmigration und die private Scout-Verknüpfung prüfen.', true);
     }
