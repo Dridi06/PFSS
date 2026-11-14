@@ -627,7 +627,7 @@
       </section>
 
       <section class="view" id="view-club-members">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-action="show-legacy-invitation">＋ Mitglied einladen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Mitglieder, Rollen und Status deiner Organisation verwalten. Die Beitragsabrechnung wird separat ergänzt.</p></div><button class="btn btn-primary" type="button" data-action="show-legacy-invitation">＋ Mitglied einladen</button></div>
         <section class="panel pfms-invitation-panel" id="pfmsLegacyInvitationPanel" hidden>
           <div class="panel-heading">
             <div>
@@ -676,21 +676,64 @@
             </div>
           </div>
         </section>
-        <div class="stats-grid">
-          <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder mit aktiver Mitgliedschaft</small></article>
-          <article class="stat-card"><div class="stat-top">PASSIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder ohne aktive Sportteilnahme</small></article>
-          <article class="stat-card"><div class="stat-top">OFFENE BEITRÄGE</div><strong>–</strong><small>Monatliche Beiträge mit Rückstand</small></article>
-          <article class="stat-card accent-stat"><div class="stat-top">BEITRÄGE BEZAHLT</div><strong>–</strong><small>Nach Zahlungseingang bestätigt</small></article>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERSUCHE</div><h3>Mitglieder finden</h3></div><span class="module-status">Datenbank folgt</span></div>
-          <div class="club-search-preview"><span>⌕</span><span>Suche nach Vorname, Nachname oder Geburtsdatum</span></div>
-          <div class="club-table-wrap"><table class="club-table"><thead><tr><th>Mitglied</th><th>Status</th><th>Monatsbeitrag</th><th>Offener Monat</th><th>Zahlungsstatus</th></tr></thead><tbody>
-            <tr><td>Beispielmitglied</td><td>Aktiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-open">Offen</span></td></tr>
-            <tr><td>Beispielmitglied</td><td>Passiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-paid">Bezahlt</span></td></tr>
-          </tbody></table></div>
-          <p class="club-footnote">Beispieldarstellung ohne echte Mitgliederdaten. Mitglieder sollen später ihre Zahlungen erfassen beziehungsweise einen Zahlungsvorgang melden können. Die endgültige Zahlungsbestätigung und Buchungslogik wird gesondert festgelegt.</p>
-        </div>
+        <section class="panel pfms-members-directory" id="pfmsLegacyMembersPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">ORGANISATIONSVERWALTUNG</div>
+              <h3>Mitglieder deiner Organisation</h3>
+              <p>Suche und verwalte Mitgliedschaften innerhalb deiner eigenen Organisationen.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" id="pfmsLegacyMembersRefresh">Aktualisieren</button>
+          </div>
+          <form id="pfmsLegacyMembersFilterForm" class="pfms-member-filter-form">
+            <label class="field">
+              Organisation
+              <select id="pfmsLegacyMembersOrganization" name="organization_id" required>
+                <option value="">Organisation wird geladen …</option>
+              </select>
+            </label>
+            <label class="field">
+              Mitglied suchen
+              <input id="pfmsLegacyMembersQuery" name="query" type="search" maxlength="120" placeholder="Name, E-Mail oder User-ID">
+            </label>
+            <label class="field">
+              Rolle
+              <select id="pfmsLegacyMembersRole" name="role">
+                <option value="">Alle Rollen</option>
+                <option value="owner">Besitzer</option>
+                <option value="club_admin">Vereinsleitung</option>
+                <option value="agency_admin">Agenturleitung</option>
+                <option value="scout">Scout</option>
+                <option value="trainer">Trainer</option>
+                <option value="co_trainer">Co-Trainer</option>
+                <option value="betreuer">Betreuer</option>
+                <option value="member">Mitglied</option>
+              </select>
+            </label>
+            <label class="field">
+              Status
+              <select id="pfmsLegacyMembersStatus" name="status">
+                <option value="">Alle Status</option>
+                <option value="active">Aktiv</option>
+                <option value="pending">Ausstehend</option>
+                <option value="suspended">Gesperrt</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit">Mitglieder suchen</button>
+          </form>
+          <div class="pfms-member-summary" id="pfmsLegacyMembersSummary" hidden>
+            <span><b id="pfmsLegacyMembersActiveCount">0</b> aktive</span>
+            <span><b id="pfmsLegacyMembersPendingCount">0</b> ausstehend</span>
+            <span><b id="pfmsLegacyMembersSuspendedCount">0</b> gesperrt</span>
+          </div>
+          <p class="admin-message" id="pfmsLegacyMembersMessage" role="status" aria-live="polite"></p>
+          <div class="pfms-member-results" id="pfmsLegacyMemberResults"></div>
+        </section>
+        <section class="panel pfms-membership-finance-note">
+          <div class="eyebrow">BEITRÄGE & ZAHLUNGEN</div>
+          <h3>Beitragsabrechnung folgt als eigener geschützter Bereich</h3>
+          <p>Es werden hier bewusst keine Beispieldaten oder Zahlungsbestätigungen angezeigt. Beitragssätze, offene Posten und Zahlungseingänge werden erst nach einem eigenen Datenmodell mit nachvollziehbarer Buchungs- und Berechtigungslogik aktiviert.</p>
+        </section>
       </section>
 
       <section class="view" id="view-club-admin">
