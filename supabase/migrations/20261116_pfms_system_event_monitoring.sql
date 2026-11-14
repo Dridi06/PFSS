@@ -52,14 +52,14 @@ drop policy if exists pfms_system_events_admin_select on public.pfms_system_even
 create policy pfms_system_events_admin_select
 on public.pfms_system_events
 for select to authenticated
-using (public.is_admin());
+using (public.pfms_is_admin());
 
 drop policy if exists pfms_system_events_admin_update on public.pfms_system_events;
 create policy pfms_system_events_admin_update
 on public.pfms_system_events
 for update to authenticated
-using (public.is_admin())
-with check (public.is_admin());
+using (public.pfms_is_admin())
+with check (public.pfms_is_admin());
 
 revoke all on table public.pfms_system_events from public, anon;
 grant select, insert, update on table public.pfms_system_events to authenticated;
