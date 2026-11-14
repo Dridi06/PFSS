@@ -412,8 +412,6 @@
     const requestUserId = window.pfssCurrentUserId;
     if (!requestUserId) return;
     state.loading = true;
-    const requestGeneration = state.generation;
-    const requestUserId = window.pfssCurrentUserId;
     showMessage('Deine privaten Scouting-Daten werden geladen …');
     try {
       const client = supabase();
@@ -422,7 +420,6 @@
         client.from(TABLES.reports).select('*').order('observation_date', { ascending: false }),
         client.from(TABLES.media).select('*').order('created_at', { ascending: false })
       ]);
-      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       const firstError = playersResult.error || reportsResult.error || mediaResult.error;
       if (firstError) throw firstError;
