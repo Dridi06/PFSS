@@ -194,6 +194,10 @@ assert.ok(html.includes('data-view="admin-members"') && app.includes("if (view =
 
 assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
 assert.ok(app.includes("data-pfms-club-nav") && app.includes("data-pfms-open-invitation"), "Club workspace navigation and invite actions are not wired");
+assert.ok(html.includes('id="pfmsClubScoutingOrganization"') && html.includes('id="pfmsClubScoutingResults"'), "Club scouting roster UI is missing");
+assert.ok(app.includes("async function loadPfmsClubScouts()") && app.includes("p_role: 'scout'") && app.includes("p_status: 'active'"), "Club scouting must list active scouts from the organization");
+assert.ok(app.includes("pfmsClubInviteScoutButton") && app.includes("roleSelect.value = 'scout'"), "Club scouting must provide a working scout invitation path");
+
 assert.ok(html.includes('id="pfmsLegacyMembersFilterForm"') && html.includes('id="pfmsLegacyMemberResults"'), "Organization membership directory UI is missing");
 assert.ok(app.includes("pfms_list_legacy_org_members_for_manager") && app.includes("pfms_update_legacy_org_membership_for_manager"), "Organization membership directory is not connected to its secure RPCs");
 assert.ok(legacyOrgMembershipManagementMigration.includes("public.can_manage_org(p_organization_id)") && legacyOrgMembershipManagementMigration.includes("public.can_manage_org(v_organization_id)"), "Organization membership RPCs must verify manager scope server-side");
