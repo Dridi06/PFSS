@@ -4662,6 +4662,12 @@ function setupPfmsLegacyTeamWorkspace() {
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
   });
   document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
+  document.getElementById('pfmsTeamFinanceForm')?.addEventListener('submit', savePfmsLegacyTeamFinanceEntry);
+  document.getElementById('pfmsTeamFinanceList')?.addEventListener('click', event => {
+    const voidButton = event.target.closest('[data-pfms-finance-void]');
+    if (voidButton) voidPfmsLegacyTeamFinanceEntry(voidButton.dataset.pfmsFinanceVoid);
+  });
+
   document.getElementById('pfmsTeamExerciseForm')?.addEventListener('submit', savePfmsLegacyTeamExercise);
   document.getElementById('pfmsTeamExerciseCancelEdit')?.addEventListener('click', resetPfmsLegacyTrainingExerciseForm);
   document.getElementById('pfmsTeamExerciseLibrary')?.addEventListener('click', event => {
@@ -4873,6 +4879,17 @@ function setupPfmsLegacyTeamWorkspace() {
       const trainingPanel = document.getElementById('pfmsTeamTrainingPanel');
       trainingPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamTraining(pfmsSelectedLegacyTeam.team_id);
+      return;
+    }
+    const showFinanceButton = event.target.closest('[data-pfms-show-finance]');
+    if (showFinanceButton) {
+      const financePanel = document.getElementById('pfmsTeamFinancePanel');
+      financePanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const financeForm = document.getElementById('pfmsTeamFinanceForm');
+      if (financeForm && !financeForm.elements.transaction_date.value) {
+        financeForm.elements.transaction_date.value = new Date().toISOString().slice(0, 10);
+      }
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamFinance(pfmsSelectedLegacyTeam.team_id);
       return;
     }
     const showAttendanceButton = event.target.closest('[data-pfms-show-attendance]');
