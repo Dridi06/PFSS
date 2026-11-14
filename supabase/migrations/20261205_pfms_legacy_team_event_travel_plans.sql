@@ -124,7 +124,7 @@ begin
   return query
   select
     tp.event_id, tp.id, tp.origin, tp.destination,
-    l.meeting_point, l.transport_mode, tp.meetup_at, tp.departure_at,
+    tp.meetup_at, tp.departure_at,
     tp.arrival_at, tp.return_departure_at, tp.transport_provider,
     tp.vehicle_label, tp.seat_capacity, tp.estimated_cost, tp.notes, tp.updated_at
   from public.pfms_legacy_team_event_travel_plans tp
