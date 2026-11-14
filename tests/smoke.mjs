@@ -91,7 +91,6 @@ const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy
 const teamEventParticipantsMigration = await read("supabase/migrations/20261204_pfms_legacy_team_event_participants.sql");
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
-const teamTasksMigration = await read("supabase/migrations/20261206_pfms_legacy_team_tasks.sql");
 
 
 const requiredFiles = [
