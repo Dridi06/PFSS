@@ -37,9 +37,23 @@ function readSupabaseBuildConfig() {
     throw new Error("PFSS_SUPABASE_URL and PFSS_SUPABASE_KEY are required for " + target + " builds.");
   }
 
-  const parsedUrl = new URL(supabaseUrl);
-  if (parsedUrl.protocol !== "https:" || !parsedUrl.hostname.endsWith(".supabase.co")) {
-    throw new Error("PFSS_SUPABASE_URL must be an HTTPS Supabase project URL.");
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(supabaseUrl);
+  } catch {
+    throw new Error("PFSS_SUPABASE_URL must be a valid HTTPS Supabase project URL.");
+  }
+  if (
+    parsedUrl.protocol !== "https:" ||
+    !/^[a-z0-9]{20}\.supabase\.co$/.test(parsedUrl.hostname) ||
+    parsedUrl.username ||
+    parsedUrl.password ||
+    parsedUrl.port ||
+    parsedUrl.pathname !== "/" ||
+    parsedUrl.search ||
+    parsedUrl.hash
+  ) {
+    throw new Error("PFSS_SUPABASE_URL must be the exact HTTPS origin of a Supabase project, without credentials, port, path, query or fragment.");
   }
 
   let keyIsPublic = supabaseKey.startsWith("sb_publishable_");
