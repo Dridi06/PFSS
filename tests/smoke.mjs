@@ -167,6 +167,14 @@ assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMi
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
 assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+$')"), "Main media path must be restricted to the user's main folder");
 assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect main media metadata");
+assert.ok(app.includes("const requestGeneration = pfmsAuthGeneration") && app.includes("const requestUserId = window.pfssCurrentUserId"), "Main media mutations must bind to the initiating account session");
+assert.ok(app.includes("if (!isCurrentMediaSession()) return;") && app.includes("owner_id: requestUserId"), "Main media uploads must stop after an account switch and retain the initiating owner ID");
+assert.ok(app.includes(".eq('owner_id', requestUserId)"), "Main media deletion must target only the initiating account");
+assert.ok(app.includes("pfmsMainMediaRequestId += 1") && app.includes("pfmsMainMediaOwnerId = ''"), "Main media cache must be invalidated on account reset");
+assert.ok(scout.includes("const isCurrentRequest = (generation, userId)") && scout.includes("requestGeneration !== state.generation"), "Scout async operations must use account generation guards");
+assert.ok(scout.includes("window.pfmsResetScoutWorkspace = function resetScoutWorkspaceForAccountChange()") && scout.includes("state.generation += 1"), "Scout private state must reset on account changes");
+assert.ok(scout.includes("if (!isCurrentRequest(requestGeneration, requestUserId)) return;"), "Scout mutations must not update the next account's UI");
+
 
 // Private Scout CRUD, global search/copy and private media.
 assert.ok(scout.includes("pfss_scout_players") && scout.includes("pfss_scout_reports") && scout.includes("pfss_scout_media"), "Scout workspace must use private Supabase tables");
