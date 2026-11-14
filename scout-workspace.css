@@ -192,3 +192,22 @@
   .pfms-team-task-actions{display:grid;grid-template-columns:1fr}
   .pfms-team-task-card{padding:13px}
 }
+
+
+/* Personal in-app notification inbox */
+.pfms-notification-nav{display:flex;align-items:center;gap:10px}
+.pfms-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#987239;color:#fff8e9;font-size:11px;font-weight:800;line-height:1}
+.pfms-notifications-list{display:grid;gap:12px}
+.pfms-notification-card{padding:16px;border:1px solid #4b402d;border-radius:12px;background:linear-gradient(150deg,#1b1c1a,#111312);box-shadow:0 10px 24px #0003}
+.pfms-notification-card.is-unread{border-color:#a98243;background:linear-gradient(145deg,#242017,#121311)}
+.pfms-notification-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pfms-notification-card h3{margin:5px 0 0;color:#f0dfbb;font:800 16px Manrope,sans-serif}
+.pfms-notification-card p{margin:10px 0;color:#ddd8cc;font-size:13px;line-height:1.55}
+.pfms-notification-unread{flex:0 0 auto;width:9px;height:9px;margin-top:8px;border-radius:50%;background:#d9ad61;box-shadow:0 0 0 4px #d9ad6122}
+.pfms-notification-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#a9a398;font-size:12px}
+.pfms-notification-meta button{border:0;background:none;color:#e5c88d;font:700 12px inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pfms-notification-card.is-read{opacity:.84}
+@media(max-width:640px){
+  .pfms-notification-card{padding:13px}
+  .pfms-notification-card-head{align-items:flex-start}
+}
