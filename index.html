@@ -592,28 +592,11 @@
         </div>
         <section class="admin-org-console" id="adminClubConsole" hidden>
           <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Verein finden</h3></div><span class="module-status">Verwaltung</span></div>
-            <div class="org-search-grid">
-              <label class="field">Vereinsname<input type="search" placeholder="Vereinsnamen eingeben"></label>
-              <label class="field">Vereins-User-ID<input type="text" placeholder="Vereins-ID eingeben"></label>
-              <button class="btn btn-primary" type="button" disabled>Suchen</button>
-            </div>
-            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
-          </div>
-          <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder des ausgewählten Vereins</h3></div><span class="module-status">Vorschau</span></div>
-            <div class="org-empty-state">Nach Auswahl eines Vereins werden hier dessen Präsident, Vorstand, Trainer, Scouts und weitere zugeordnete Mitglieder angezeigt.</div>
-            <div class="org-member-detail">
-              <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
-              <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
-                <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Mannschaften</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Mitglieder</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Finanzen</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              </div>
-              <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
+            <div class="panel-heading"><div><div class="eyebrow">PLATTFORMADMINISTRATION</div><h3>Organisationen und Mitgliedschaften</h3></div><span class="module-status">Live-Verwaltung</span></div>
+            <p>Die organisationsübergreifende Mitgliederverwaltung zeigt Vereine, Agenturen, Rollen und Mitgliedsstatus. Änderungen werden über serverseitig geschützte PFMS-Verwaltungsfunktionen gespeichert.</p>
+            <div class="pfms-club-organization-actions">
+              <button class="btn btn-primary" type="button" data-view="admin-members">Mitglieder und Organisationen verwalten</button>
+              <button class="btn btn-secondary" type="button" data-view="admin">Zur Plattformadministration</button>
             </div>
           </div>
         </section>
