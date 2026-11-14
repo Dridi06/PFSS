@@ -15,7 +15,8 @@ const requiredFiles = [
   "scout-workspace.css",
   "app.js",
   "scout-workspace.js",
-  "pfms-logo.svg"
+  "pfms-logo.svg",
+  "pfms-welcome.webp"
 ];
 
 for (const file of requiredFiles) {
@@ -37,6 +38,25 @@ for (const page of ["index.html", "rechtliches.html"]) {
     assert.ok(
       targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
       page + " references a path outside dist/: " + value
+    );
+    await access(targetPath);
+  }
+}
+
+
+for (const stylesheet of ["styles.css", "scout-workspace.css"]) {
+  const stylesheetPath = resolve(outputDirectory, stylesheet);
+  const source = await readFile(stylesheetPath, "utf8");
+
+  for (const match of source.matchAll(/url\\(\\s*(['"]?)(.*?)\\1\\s*\\)/gi)) {
+    const value = match[2].trim();
+    if (!value || /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
+
+    const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]);
+    const targetPath = resolve(dirname(stylesheetPath), localPath);
+    assert.ok(
+      targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
+      stylesheet + " references a path outside dist/: " + value
     );
     await access(targetPath);
   }
