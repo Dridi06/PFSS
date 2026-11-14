@@ -480,7 +480,6 @@ assert.ok(
   "Team event UI must include the independent events workspace and module navigation"
 );
 assert.ok(
-assert.ok(
   teamEventParticipantsMigration.includes("create table if not exists public.pfms_legacy_team_event_participants")
     && teamEventParticipantsMigration.includes("foreign key (event_id, team_id)")
     && teamEventParticipantsMigration.includes("foreign key (team_player_assignment_id, team_id)")
