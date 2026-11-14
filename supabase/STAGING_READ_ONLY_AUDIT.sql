@@ -28,7 +28,7 @@ target_tables AS (
         'pfms_legacy_team_training_exercises', 'pfms_legacy_training_session_exercises',
         'pfms_legacy_team_analysis', 'pfms_legacy_team_tasks', 'pfms_legacy_team_event_participants', 'pfms_legacy_team_event_logistics', 'pfms_legacy_team_event_travel_plans',
         'pfms_legacy_training_cycles', 'pfms_legacy_training_cycle_weeks',
-        'pfms_legacy_team_finance_entries', 'pfms_personal_tasks', 'pfms_support_tickets'
+        'pfms_legacy_team_finance_entries', 'pfms_personal_tasks', 'pfms_support_tickets', 'pfms_notifications'
       )
     )
 ),
