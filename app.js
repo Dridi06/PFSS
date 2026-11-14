@@ -16,6 +16,9 @@ let pfmsMainDataLoading = false;
 let pfmsMainDataError = '';
 let pfmsMainMediaLoading = false;
 let pfmsMainMediaLoadedAt = 0;
+let pfmsMainMediaOwnerId = '';
+let pfmsMainMediaRequestId = 0;
+let pfmsAuthGeneration = 0;
 let editingGlobalPlayerId = null;
 let editingMainReportId = null;
 
@@ -88,6 +91,8 @@ function updateMainDataStatus() {
 
 async function loadPfmsMainData() {
   if (!window.pfssCurrentUserId || pfmsMainDataLoading) return false;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   pfmsMainDataLoading = true;
   pfmsMainDataReady = false;
   pfmsMainDataError = '';
@@ -102,9 +107,11 @@ async function loadPfmsMainData() {
         .select('*')
         .order('observation_date', { ascending: false })
     ]);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
     if (playerResult.error) throw playerResult.error;
     if (reportResult.error) throw reportResult.error;
 
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
     players = (playerResult.data || []).map(mapPfmsPlayerRow);
     reports = (reportResult.data || []).map(mapPfmsReportRow);
     pfmsMainDataReady = true;
@@ -115,6 +122,7 @@ async function loadPfmsMainData() {
     renderReports();
     return true;
   } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
     console.error('PFMS main cloud data could not be loaded:', error);
     players = [];
     reports = [];
@@ -127,7 +135,7 @@ async function loadPfmsMainData() {
     renderReports();
     return false;
   } finally {
-    pfmsMainDataLoading = false;
+    if (requestGeneration === pfmsAuthGeneration) pfmsMainDataLoading = false;
   }
 }
 
@@ -792,20 +800,36 @@ function renderPfmsMainMedia() {
 async function loadPfmsMainMedia(force = false) {
   const host = document.getElementById('mediaGrid');
   const status = document.getElementById('mainMediaStatus');
+  const requestUserId = window.pfssCurrentUserId;
   if (!host) return false;
-  if (!window.pfssCurrentUserId) {
+  if (!requestUserId) {
+    mediaItems = [];
+    pfmsMainMediaOwnerId = '';
+    pfmsMainMediaLoadedAt = 0;
+    renderPfmsMainMedia();
     if (status) {
       status.hidden = false;
       status.textContent = 'Bitte melde dich an, um deine privaten Medien zu laden.';
     }
     return false;
   }
+
+  // Never reuse a previous account's private media cache after an account switch.
+  if (pfmsMainMediaOwnerId !== requestUserId) {
+    pfmsMainMediaRequestId += 1;
+    pfmsMainMediaOwnerId = requestUserId;
+    pfmsMainMediaLoadedAt = 0;
+    mediaItems = [];
+    renderPfmsMainMedia();
+  }
+
   if (pfmsMainMediaLoading) return false;
   if (!force && pfmsMainMediaLoadedAt &&
       Date.now() - pfmsMainMediaLoadedAt < 45 * 60 * 1000) {
     return true;
   }
 
+  const requestId = ++pfmsMainMediaRequestId;
   pfmsMainMediaLoading = true;
   if (status) {
     status.hidden = false;
@@ -819,7 +843,7 @@ async function loadPfmsMainMedia(force = false) {
     if (error) throw error;
 
     const rows = data || [];
-    mediaItems = await Promise.all(rows.map(async (item) => {
+    const signedItems = await Promise.all(rows.map(async (item) => {
       const signed = await pfssSupabase.storage
         .from(PFMS_MAIN_MEDIA_BUCKET)
         .createSignedUrl(item.storage_path, 3600);
@@ -829,6 +853,11 @@ async function loadPfmsMainMedia(force = false) {
       };
     }));
 
+    if (requestId !== pfmsMainMediaRequestId ||
+        requestUserId !== window.pfssCurrentUserId ||
+        requestUserId !== pfmsMainMediaOwnerId) return false;
+
+    mediaItems = signedItems;
     pfmsMainMediaLoadedAt = Date.now();
     renderPfmsMainMedia();
     if (status) {
@@ -837,6 +866,8 @@ async function loadPfmsMainMedia(force = false) {
     }
     return true;
   } catch (error) {
+    if (requestId !== pfmsMainMediaRequestId ||
+        requestUserId !== window.pfssCurrentUserId) return false;
     console.error('PFMS main media load failed:', error);
     mediaItems = [];
     pfmsMainMediaLoadedAt = 0;
@@ -847,10 +878,9 @@ async function loadPfmsMainMedia(force = false) {
     }
     return false;
   } finally {
-    pfmsMainMediaLoading = false;
+    if (requestId === pfmsMainMediaRequestId) pfmsMainMediaLoading = false;
   }
 }
-
 function safePfmsMediaFileName(value) {
   const cleaned = String(value || 'datei')
     .normalize('NFKD')
@@ -2147,10 +2177,36 @@ async function checkPfssAccess(user) {
   await showAuthenticatedApp(user, profile);
 }
 
+function resetPfmsAuthenticatedState() {
+  pfmsAuthGeneration += 1;
+  pfmsMainDataLoading = false;
+  pfmsMainDataReady = false;
+  pfmsMainDataError = '';
+  players = [];
+  reports = [];
+  mediaItems = [];
+  pfmsMainMediaLoading = false;
+  pfmsMainMediaLoadedAt = 0;
+  pfmsMainMediaOwnerId = '';
+  pfmsMainMediaRequestId += 1;
+  editingGlobalPlayerId = null;
+  editingMainReportId = null;
+  window.pfssCurrentUserId = null;
+  window.pfssCurrentRole = '';
+  window.pfssIsRealAdmin = false;
+  window.pfmsResetScoutWorkspace?.();
+  updateMainDataStatus();
+  renderDashboard();
+  renderPlayers();
+  renderReports();
+  renderPfmsMainMedia();
+}
+
 async function pfssLogout() {
   try {
     if (window.pfssCurrentUserId) sessionStorage.removeItem('pfms_welcome_session_' + window.pfssCurrentUserId);
   } catch (storageError) {}
+  resetPfmsAuthenticatedState();
   await pfssSupabase.auth.signOut();
   showAuthScreen();
 }
@@ -2644,6 +2700,7 @@ initializePfssAuth();
 // Bei Abmeldung Oberfläche schließen
 pfssSupabase.auth.onAuthStateChange(event => {
   if (event === 'SIGNED_OUT') {
+    resetPfmsAuthenticatedState();
     showAuthScreen();
   }
 
