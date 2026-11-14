@@ -95,7 +95,7 @@
     view.id = 'view-scout-workspace';
     view.className = 'view scout-shell';
     view.innerHTML = [
-      '<div class="scout-topline"><span class="scout-live-dot"></span> PERSÖNLICHER SCOUT-BEREICH <span class="scout-preview-tag">PRIVATER ARBEITSBEREICH</span></div>',
+      '<div class="scout-topline"><span class="scout-live-dot"></span> PERSÖNLICHER SCOUT-BEREICH <span class="scout-preview-tag">PRIVATER ARBEITSBEREICH</span><button type="button" class="scout-refresh-button" data-scout-action="refresh">↻ Aktualisieren</button></div>',
       '<header class="scout-hero"><div><p class="scout-kicker">PERFORMANCE · TALENT · ANALYSE</p><h1 id="scoutHeading">Dein Scouting. Dein Überblick.</h1><p class="scout-lead">Deine Spielerprofile, Beobachtungen und Medien – persönlich und sicher gespeichert.</p></div><div class="scout-hero-mark">PF<span>MS</span><small>FOOTBALL MANAGEMENT</small></div></header>',
       '<div class="scout-private-note">🔒 Private Daten: Spieler, Berichte und Medien sind deinem Benutzerkonto zugeordnet.</div>',
       '<div class="scout-section-tabs" id="scoutSectionTabs">' +
@@ -329,6 +329,7 @@
       await renderMedia();
       showMessage('Daten erfolgreich geladen und privat mit deinem Konto verknüpft.');
     } catch (error) {
+      state.hasLoaded = false;
       console.error('PFMS Scout Workspace load failed:', error);
       showMessage(
         'Der private Arbeitsbereich konnte nicht geladen werden. Bitte prüfe, ob die Scout-Workspace-Migration und der private Storage-Bucket in der Testdatenbank eingerichtet sind. ' +
@@ -599,6 +600,7 @@
       if (action) {
         if (action.dataset.scoutAction === 'new-player') openPlayerDialog(null);
         if (action.dataset.scoutAction === 'new-report') openReportDialog(null);
+        if (action.dataset.scoutAction === 'refresh') loadData();
         return;
       }
 
