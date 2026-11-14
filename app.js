@@ -5146,7 +5146,7 @@ async function savePfmsLegacyTeamTraining(event) {
   button.disabled = true;
   message.textContent = 'Trainingstermin wird gespeichert …';
   try {
-    const { error } = await pfssSupabase.rpc('pfms_create_legacy_team_training', {
+    const { data: sessionId, error } = await pfssSupabase.rpc('pfms_create_legacy_team_training', {
       p_team_id: team.team_id,
       p_title: data.title.trim(),
       p_session_date: data.session_date,
@@ -5160,12 +5160,33 @@ async function savePfmsLegacyTeamTraining(event) {
         requestUserId !== window.pfssCurrentUserId ||
         pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
     if (error) throw error;
+
+    let cycleAssignmentFailed = false;
+    if (data.cycle_week_id) {
+      const assignment = await pfssSupabase.rpc('pfms_assign_legacy_training_session_cycle_week', {
+        p_session_id: sessionId,
+        p_week_id: data.cycle_week_id
+      });
+      if (requestGeneration !== pfmsAuthGeneration ||
+          requestUserId !== window.pfssCurrentUserId ||
+          pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+      if (assignment.error) {
+        console.error('PFMS training cycle assignment failed after session creation:', assignment.error);
+        cycleAssignmentFailed = true;
+      }
+    }
+
     form.reset();
     await loadPfmsLegacyTeamTraining(team.team_id);
     if (requestGeneration === pfmsAuthGeneration &&
         requestUserId === window.pfssCurrentUserId &&
         pfmsSelectedLegacyTeam?.team_id === team.team_id) {
-      toast('Trainingstermin wurde gespeichert.');
+      if (cycleAssignmentFailed) {
+        message.textContent = 'Trainingstermin wurde gespeichert. Die Zykluszuordnung ist fehlgeschlagen; ordne den Termin nachträglich in der Wochenplanung zu.';
+        toast('Trainingstermin gespeichert – Zykluszuordnung bitte prüfen.');
+      } else {
+        toast('Trainingstermin wurde gespeichert.');
+      }
     }
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration ||
@@ -5567,6 +5588,39 @@ function setupPfmsLegacyTeamWorkspace() {
   document.getElementById('pfmsTeamRosterSearchForm')?.addEventListener('submit', event => {
     event.preventDefault();
     loadPfmsGlobalTeamPlayerCandidates(document.getElementById('pfmsTeamRosterSearch')?.value || '');
+  });
+  document.getElementById('pfmsTeamTrainingCycleForm')?.addEventListener('submit', savePfmsLegacyTrainingCycle);
+  document.getElementById('pfmsTeamTrainingCyclesList')?.addEventListener('submit', event => {
+    const weekForm = event.target.closest('[data-pfms-cycle-week-form]');
+    if (!weekForm) return;
+    event.preventDefault();
+    savePfmsLegacyTrainingCycleWeek(weekForm);
+  });
+  document.getElementById('pfmsTeamTrainingCyclesList')?.addEventListener('click', event => {
+    const statusButton = event.target.closest('[data-pfms-cycle-status-save]');
+    if (statusButton) {
+      updatePfmsLegacyTrainingCycleStatus(statusButton);
+      return;
+    }
+
+    const assignButton = event.target.closest('[data-pfms-cycle-session-assign]');
+    if (assignButton) {
+      const weekId = assignButton.dataset.pfmsCycleSessionAssign;
+      const select = assignButton.closest('[data-pfms-cycle-week]')?.querySelector('[data-pfms-cycle-session-select]');
+      if (select?.value) assignPfmsLegacyTrainingSessionToWeek(assignButton, weekId, select.value);
+      return;
+    }
+
+    const unassignButton = event.target.closest('[data-pfms-cycle-session-unassign]');
+    if (unassignButton) {
+      if (window.confirm('Die Zuordnung dieses Trainingstermins zum Trainingszyklus wirklich lösen?')) {
+        assignPfmsLegacyTrainingSessionToWeek(
+          unassignButton,
+          null,
+          unassignButton.dataset.pfmsCycleSessionUnassign
+        );
+      }
+    }
   });
   document.getElementById('pfmsTeamTrainingForm')?.addEventListener('submit', savePfmsLegacyTeamTraining);
   document.getElementById('pfmsTeamFinanceForm')?.addEventListener('submit', savePfmsLegacyTeamFinanceEntry);
