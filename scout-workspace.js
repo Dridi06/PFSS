@@ -26,7 +26,7 @@
     const view=document.createElement('section');view.id='view-scout-workspace';view.className='view scout-shell';
     view.innerHTML=`
       <div class="scout-topline"><span class="scout-live-dot"></span> PERSÖNLICHER SCOUT-BEREICH <span class="scout-preview-tag">DESIGNVORSCHAU</span></div>
-      <header class="scout-hero"><div><p class="scout-kicker">PERFORMANCE · TALENT · ANALYSE</p><h1 id="scoutHeading">Dein Scouting. Dein Überblick.</h1><p class="scout-lead">Alle Beobachtungen, Spielerprofile und Analysen an einem Ort.</p></div><div class="scout-hero-mark">PF<span>SS</span><small>SCOUTING</small></div></header>
+      <header class="scout-hero"><div><p class="scout-kicker">PERFORMANCE · TALENT · ANALYSE</p><h1 id="scoutHeading">Dein Scouting. Dein Überblick.</h1><p class="scout-lead">Alle Beobachtungen, Spielerprofile und Analysen an einem Ort.</p></div><div class="scout-hero-mark">PF<span>MS</span><small>SCOUTING</small></div></header>
       <div class="scout-private-note">🔒 Persönlicher Arbeitsbereich – die endgültige Datenanbindung folgt im nächsten Schritt.</div>
       <div class="scout-section-tabs" id="scoutSectionTabs">${sections.map(k=>'<button type="button" data-scout-section="'+k+'">'+labels[k]+'</button>').join('')}</div>
       <div id="scoutWorkspaceMessage" class="scout-workspace-message">Du siehst aktuell eine grafische Vorschau mit Beispieldaten.</div>
