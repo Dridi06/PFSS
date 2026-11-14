@@ -670,7 +670,7 @@ button,input,select,textarea{max-width:100%}
 #authScreen .pricing-intro>p{margin:0 0 15px;color:#bdb5a8;font-size:13px}
 #authScreen .trial-strip{display:inline-flex;align-items:center;gap:9px;padding:10px 16px;border:1px solid #8b6c37;border-radius:30px;background:linear-gradient(100deg,#302615,#1b1914);color:#e8d5aa;font-size:11px}
 #authScreen .trial-icon{color:#f5d27f;font-size:17px}
-#authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+#authScreen .pricing-grid{grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
 #authScreen .pricing-card{min-height:0;padding:19px 17px 17px;border:1px solid #59482e;border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#c49a4a16,transparent 45%),linear-gradient(155deg,#1c1d1d,#101214 75%);box-shadow:0 12px 28px #0004;transition:border-color .2s,transform .2s}
 #authScreen .pricing-card:hover{border-color:#b58c4a;transform:translateY(-2px)}
 #authScreen .pricing-card h3{margin:9px 0 6px;color:#f1dfb8;font-size:20px}
@@ -711,7 +711,7 @@ button,input,select,textarea{max-width:100%}
 }
 @media(min-width:900px){
  #authScreen .auth-card{padding:30px}
- #authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #authScreen .pricing-grid{grid-template-columns:minmax(0,1fr)}
 }
 
 
@@ -907,3 +907,610 @@ button,input,select,textarea{max-width:100%}
   .topbar .breadcrumb{flex:1 1 auto;min-width:0;margin:0}
   .topbar .topbar-right{flex:0 1 auto;min-width:0;margin-left:auto}
 }
+
+
+/* PFMS one-time platform owner bootstrap */
+.owner-bootstrap-card{
+  border-color:#b99a5b;
+  background:linear-gradient(145deg,#242018,#151513 72%);
+  box-shadow:inset 0 0 0 1px rgba(216,185,119,.09),0 12px 28px rgba(0,0,0,.16);
+}
+.owner-bootstrap-card .pricing-icon{color:#efcf84}
+.owner-bootstrap-card .pricing-label{color:#dfc17b}
+#ownerBootstrapSection{
+  width:min(100% - 28px,620px);
+  margin:22px auto;
+  padding:22px;
+  border:1px solid rgba(198,161,91,.5);
+  border-radius:15px;
+  background:linear-gradient(145deg,#201d17,#111315);
+  color:#eee8da;
+  box-shadow:0 16px 45px rgba(0,0,0,.25);
+}
+#ownerBootstrapSection[hidden]{display:none!important}
+#ownerBootstrapSection h2{margin:6px 0 10px;color:#e8cc91;font:800 20px Manrope,sans-serif}
+#ownerBootstrapSection>p{margin:0 0 17px;color:#bcb5a8;font-size:12px;line-height:1.6}
+#ownerBootstrapSection .field{display:grid;gap:7px;color:#d6cdbd;font-size:12px}
+#ownerBootstrapSection .field input{width:100%;min-width:0;padding:12px;border:1px solid rgba(198,161,91,.3);border-radius:9px;background:#191c1e;color:#f5f0e5}
+#ownerBootstrapSection .auth-message{min-height:18px;margin:10px 0;color:#d9c38d;font-size:12px}
+#ownerBootstrapSection .btn{width:100%}
+@media(max-width:600px){#ownerBootstrapSection{width:calc(100% - 24px);padding:17px}}
+
+
+/* PFMS global administrator member directory */
+#pfmsAdminMembersResults{display:grid;gap:12px}
+.pfms-global-member-card{min-width:0}
+.pfms-global-member-card .admin-user-info{min-width:0;overflow-wrap:anywhere}
+.pfms-global-member-card .admin-user-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.pfms-global-member-card .admin-user-controls label{min-width:170px;flex:1}
+.pfms-global-member-card .admin-message{min-height:18px}
+@media(max-width:640px){
+  .pfms-global-member-card .admin-user-controls{display:grid;grid-template-columns:1fr}
+  .pfms-global-member-card .admin-user-controls label{min-width:0}
+  .pfms-global-member-card [data-save-global-membership]{width:100%}
+}
+
+.page-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+.player-card-actions{display:flex;gap:7px;margin-top:11px}
+.player-card-actions button{border:1px solid rgba(198,161,91,.28);border-radius:7px;padding:6px 9px;background:#17191b;color:#d6bd83;font-size:10px;cursor:pointer}
+.player-card-actions button:hover{background:rgba(198,161,91,.12)}
+@media(max-width:600px){.page-heading-actions{width:100%;justify-content:stretch}.page-heading-actions .btn{flex:1}}
+
+
+/* PFMS administrator system event review */
+#pfmsAdminErrorsResults{display:grid;gap:12px}
+.pfms-system-event-card{min-width:0}
+.pfms-system-event-card .admin-user-info{min-width:0;overflow-wrap:anywhere}
+.pfms-system-event-card .admin-user-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.pfms-system-event-card .admin-user-controls label{min-width:180px;flex:1}
+.pfms-system-event-details{margin-top:9px;color:#c4b27d;font-size:11px}
+.pfms-system-event-details summary{cursor:pointer}
+.pfms-system-event-details pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border-radius:8px;background:#101214;color:#b9bdc0;font-size:10px}
+@media(max-width:640px){
+  .pfms-system-event-card .admin-user-controls{display:grid;grid-template-columns:1fr}
+  .pfms-system-event-card .admin-user-controls label{min-width:0}
+  .pfms-system-event-card [data-save-event-status]{width:100%}
+}
+
+/* Main scouting report permissions and actions */
+.report-card-content{flex:1;min-width:0}
+.report-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.report-card-actions button{border:1px solid #5a4930;border-radius:7px;padding:7px 10px;background:#191b1d;color:#d7bd82;font:600 10px 'DM Sans';cursor:pointer}
+.report-card-actions button:hover{background:#2a251d;border-color:#a98a50}
+.report-card-actions button:focus-visible{outline:2px solid #d9bd7b;outline-offset:2px}
+
+
+/* PFMS private cloud media library */
+.pfms-cloud-media-card{min-width:0;display:flex;flex-direction:column}
+.pfms-cloud-media-card .media-card-caption{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.pfms-cloud-media-card .media-card-caption b{font-size:11px;overflow-wrap:anywhere;color:var(--ink)}
+.pfms-cloud-media-card .media-card-caption small{font-size:9px;color:var(--muted)}
+.pfms-cloud-media-card .media-card-caption button{font-size:10px;padding:8px 11px;min-height:34px}
+.media-unavailable{height:145px;display:grid;place-items:center;text-align:center;padding:15px;background:var(--surface);color:var(--muted);font-size:11px}
+#mainMediaStatus{margin-top:-8px}
+@media(max-width:640px){
+  .pfms-cloud-media-card .media-card-caption button{width:100%}
+}
+
+
+/* PFMS one-time organization invitations */
+.pfms-invitation-panel{
+  margin:0 0 22px;
+  border:1px solid rgba(198,161,91,.3);
+  background:linear-gradient(145deg,rgba(32,29,23,.92),rgba(20,22,24,.98));
+}
+.pfms-invitation-panel[hidden]{display:none!important}
+.pfms-invitation-panel .panel-heading{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+}
+.pfms-invitation-panel .panel-heading h3{margin:4px 0 6px;color:#ead3a0}
+.pfms-invitation-panel .panel-heading p{margin:0;color:#aaa69d;font-size:12px;line-height:1.5}
+.pfms-invitation-form{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;
+  margin-top:19px;
+}
+.pfms-invitation-form .field{display:grid;gap:7px;min-width:0;color:#c8c1b4;font-size:12px}
+.pfms-invitation-form select{
+  box-sizing:border-box;width:100%;min-width:0;height:42px;padding:0 11px;
+  border:1px solid rgba(198,161,91,.28);border-radius:8px;
+  background:#191c1e;color:#f1ede4;font:inherit;
+}
+.pfms-invitation-form .btn{min-height:42px}
+#pfmsLegacyInvitationMessage{min-height:18px;margin:13px 0 0;color:#cdb77f;font-size:12px}
+.pfms-invitation-result{
+  margin-top:15px;padding:15px;border:1px solid rgba(198,161,91,.25);
+  border-radius:10px;background:rgba(198,161,91,.07);
+}
+.pfms-invitation-result[hidden]{display:none!important}
+.pfms-invitation-result p{margin:7px 0 12px;color:#aaa69d;font-size:12px;line-height:1.5}
+.pfms-invitation-copy-row{display:flex;gap:9px;min-width:0}
+.pfms-invitation-copy-row input{
+  flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid rgba(198,161,91,.22);
+  border-radius:8px;background:#131618;color:#e7d7b3;font-size:11px;
+}
+@media(max-width:760px){
+  .pfms-invitation-form{grid-template-columns:1fr}
+  .pfms-invitation-form .btn{width:100%}
+  .pfms-invitation-copy-row{flex-direction:column}
+  .pfms-invitation-copy-row .btn{width:100%}
+}
+
+
+/* PFMS real organization membership directory */
+.pfms-members-directory{margin-top:20px}
+.pfms-members-directory[hidden]{display:none!important}
+.pfms-member-filter-form{
+  display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(180px,1.5fr) repeat(2,minmax(140px,1fr)) auto;
+  gap:11px;align-items:end;margin:18px 0 14px
+}
+.pfms-member-filter-form .field{display:grid;gap:7px;min-width:0;color:#c8c1b4;font-size:11px}
+.pfms-member-filter-form input,.pfms-member-filter-form select,
+.pfms-org-member-card .admin-user-controls select{
+  box-sizing:border-box;width:100%;min-width:0;height:40px;padding:0 10px;
+  border:1px solid rgba(198,161,91,.24);border-radius:8px;
+  background:#191c1e;color:#f0eee8;font:inherit
+}
+.pfms-member-summary{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+.pfms-member-summary[hidden]{display:none!important}
+.pfms-member-summary span{
+  padding:7px 10px;border:1px solid rgba(198,161,91,.19);border-radius:8px;
+  background:rgba(198,161,91,.06);color:#cfc7b8;font-size:11px
+}
+.pfms-member-summary b{color:#e7c77f}
+.pfms-member-results{display:grid;gap:10px}
+.pfms-org-member-card{align-items:center}
+.pfms-org-member-card .admin-user-controls{min-width:min(100%,330px)}
+.pfms-org-member-card .admin-user-controls label{display:grid;gap:5px;color:#aaa497;font-size:10px}
+.pfms-org-member-card .admin-user-controls .btn{margin-top:5px}
+.pfms-org-member-card .admin-message{flex-basis:100%;margin:0}
+.pfms-membership-finance-note{margin-top:18px;border:1px solid rgba(198,161,91,.18)}
+.pfms-membership-finance-note h3{margin:5px 0;color:#e1c78f}
+.pfms-membership-finance-note p{max-width:850px;color:#aaa69d;font-size:12px;line-height:1.6}
+@media(max-width:1000px){.pfms-member-filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .pfms-member-filter-form{grid-template-columns:1fr}
+  .pfms-member-filter-form .btn{width:100%}
+  .pfms-org-member-card{align-items:stretch}
+  .pfms-org-member-card .admin-user-controls{min-width:0;width:100%;grid-template-columns:1fr}
+}
+
+/* PFMS legacy club team management */
+.pfms-team-card{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pfms-team-card h3{margin:0;color:#f1e9d8;font-size:20px}
+.pfms-team-meta{display:grid;gap:5px;color:#aaa69d;font-size:11px}
+.pfms-team-meta span{overflow-wrap:anywhere}
+.pfms-team-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto;padding-top:6px}
+.pfms-team-actions .btn{min-height:36px;padding:8px 11px;font-size:11px}
+#pfmsTeamsMessage,#pfmsMyTeamsMessage{min-height:20px;margin:10px 0;color:#cbb77e;font-size:12px}
+#pfmsTeamDialog,#pfmsTeamStaffDialog{width:min(760px,calc(100% - 24px));max-height:90vh;overflow:auto}
+#pfmsTeamDialog .modal-actions,#pfmsTeamStaffDialog .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:19px}
+#pfmsTeamStaffCandidate{width:100%}
+#pfmsTeamStaffList{display:grid;gap:9px;max-height:320px;overflow:auto;margin-top:12px}
+#pfmsSelectedTeamPanel{margin-top:18px}
+#pfmsSelectedTeamStaff{display:grid;gap:9px}
+#pfmsTeamModules{margin-top:18px}
+#pfmsTeamModules[hidden],#pfmsSelectedTeamPanel[hidden]{display:none!important}
+@media(max-width:650px){
+  .pfms-team-actions{display:grid;grid-template-columns:1fr}
+  .pfms-team-actions .btn{width:100%}
+  #pfmsTeamDialog .modal-actions,#pfmsTeamStaffDialog .modal-actions{flex-direction:column-reverse}
+  #pfmsTeamDialog .modal-actions .btn,#pfmsTeamStaffDialog .modal-actions .btn{width:100%}
+}
+
+/* PFMS per-team module permissions */
+.pfms-team-staff-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.pfms-team-staff-actions .btn{padding:7px 10px;font-size:10px}
+.pfms-team-permissions-list{display:grid;gap:8px;max-height:55vh;overflow:auto;margin:15px 0}
+.pfms-team-permission-row{
+  display:grid;grid-template-columns:minmax(0,1fr) 105px 130px;align-items:center;gap:12px;
+  padding:12px 13px;border:1px solid rgba(198,161,91,.2);border-radius:9px;background:#171a1c;
+}
+.pfms-team-permission-row>b{color:#e8dfcc;font-size:12px}
+.pfms-team-permission-row label{display:flex;align-items:center;gap:7px;color:#c7c0b4;font-size:11px;white-space:nowrap}
+.pfms-team-permission-row input{accent-color:#c7a15b}
+.pfms-team-permission-row input:disabled+span{opacity:.45}
+#pfmsTeamPermissionsMessage{min-height:19px}
+@media(max-width:560px){
+  .pfms-team-permission-row{grid-template-columns:minmax(0,1fr) 1fr 1fr;gap:7px;padding:10px}
+  .pfms-team-permission-row>b{grid-column:1/-1}
+  .pfms-team-permission-row label{font-size:10px}
+}
+
+
+/* PFMS persistent team roster */
+.pfms-team-roster-panel{margin-top:20px;padding:18px;border:1px solid rgba(198,161,91,.24);border-radius:13px;background:linear-gradient(145deg,#191c1e,#141617)}
+.pfms-team-roster-panel .panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.pfms-team-roster-panel .panel-heading h3{margin:4px 0;color:#e7d5a8}
+.pfms-team-roster-panel .panel-heading p{margin:0;color:#aaa69d;font-size:11px;line-height:1.5}
+.pfms-team-roster-search,.pfms-team-roster-add{display:grid;grid-template-columns:minmax(190px,1fr) auto;gap:10px;align-items:end;margin:13px 0}
+.pfms-team-roster-add{grid-template-columns:minmax(220px,1.5fr) minmax(110px,.5fr) minmax(180px,1fr) auto;padding:13px;border:1px solid rgba(198,161,91,.18);border-radius:10px;background:rgba(198,161,91,.04)}
+.pfms-team-roster-search[hidden],.pfms-team-roster-add[hidden]{display:none!important}
+.pfms-team-roster-search .field,.pfms-team-roster-add .field{display:grid;gap:6px;min-width:0;color:#c5bdaf;font-size:11px}
+.pfms-team-roster-search input,.pfms-team-roster-search select,.pfms-team-roster-add input,.pfms-team-roster-add select{
+  box-sizing:border-box;width:100%;min-width:0;height:39px;padding:0 10px;
+  border:1px solid rgba(198,161,91,.22);border-radius:8px;background:#191c1e;color:#f0eee8;font:inherit
+}
+.pfms-team-roster-add .btn{height:39px;white-space:nowrap}
+.pfms-team-roster-list{display:grid;gap:9px;margin-top:12px}
+.pfms-roster-card{display:grid;grid-template-columns:44px minmax(150px,1fr) minmax(360px,1.5fr);gap:12px;align-items:center;padding:12px;border:1px solid rgba(198,161,91,.16);border-radius:10px;background:#171a1c}
+.pfms-roster-number{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(198,161,91,.35);border-radius:9px;background:rgba(198,161,91,.08);color:#e5c97e;font-weight:800;font-size:16px}
+.pfms-roster-player-info{display:grid;gap:4px;min-width:0}
+.pfms-roster-player-info b{overflow-wrap:anywhere;color:#eee;font-size:12px}
+.pfms-roster-player-info small{overflow-wrap:anywhere;color:#9b9b98;font-size:10px}
+.pfms-roster-edit-controls{display:grid;grid-template-columns:65px minmax(120px,1fr) minmax(110px,1fr) auto auto;gap:7px;align-items:end}
+.pfms-roster-edit-controls label{display:grid;gap:4px;color:#aaa69d;font-size:9px}
+.pfms-roster-edit-controls input,.pfms-roster-edit-controls select{box-sizing:border-box;width:100%;min-width:0;height:34px;padding:0 7px;border:1px solid rgba(198,161,91,.18);border-radius:7px;background:#111416;color:#eee;font-size:10px}
+.pfms-roster-edit-controls .btn{min-height:34px;padding:0 8px;font-size:10px}
+.pfms-roster-tags{display:flex;gap:7px;flex-wrap:wrap;color:#aaa69d;font-size:10px}
+@media(max-width:1000px){
+  .pfms-team-roster-add{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pfms-roster-card{grid-template-columns:42px minmax(130px,1fr)}
+  .pfms-roster-edit-controls{grid-column:1/-1;grid-template-columns:70px repeat(2,minmax(100px,1fr))}
+  .pfms-roster-edit-controls .btn{width:100%}
+}
+@media(max-width:600px){
+  .pfms-team-roster-search,.pfms-team-roster-add{grid-template-columns:1fr}
+  .pfms-team-roster-search .btn,.pfms-team-roster-add .btn{width:100%}
+  .pfms-roster-card{grid-template-columns:38px minmax(0,1fr)}
+  .pfms-roster-edit-controls{grid-template-columns:1fr 1fr}
+  .pfms-roster-edit-controls label:first-child{grid-column:1}
+  .pfms-roster-edit-controls .btn{min-height:38px}
+}
+
+/* PFMS team training and attendance */
+.pfms-team-training-panel{margin-top:18px}
+.pfms-training-form{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+  padding:15px;margin:14px 0;border:1px solid rgba(198,161,91,.2);
+  border-radius:11px;background:#171a1c;
+}
+.pfms-training-form .field{display:grid;gap:6px;min-width:0;color:#c9c2b6;font-size:11px}
+.pfms-training-form .field input,.pfms-training-form .field textarea{
+  box-sizing:border-box;width:100%;min-width:0;padding:10px 11px;
+  border:1px solid rgba(198,161,91,.23);border-radius:8px;
+  background:#111416;color:#f1ede4;font:inherit
+}
+.pfms-training-form .field.full{grid-column:1/-1}
+.pfms-training-form button{justify-self:start}
+.pfms-training-list{display:grid;gap:11px;margin-top:12px}
+.pfms-training-card{padding:15px;border:1px solid rgba(198,161,91,.2);border-radius:11px;background:#171a1c}
+.pfms-training-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pfms-training-card-head h4{margin:4px 0 0;color:#f0e8d8;font-size:15px}
+.pfms-training-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;color:#aaa69d;font-size:11px}
+.pfms-training-card>p{margin:10px 0 0;color:#bcb6a9;font-size:12px;white-space:pre-wrap}
+.pfms-training-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.pfms-training-actions{display:flex;flex-wrap:wrap;gap:7px}
+.pfms-training-card-actions .btn,.pfms-training-actions .btn{min-height:34px;padding:7px 10px;font-size:10px}
+.pfms-attendance-panel{margin-top:18px;padding-top:15px;border-top:1px solid rgba(198,161,91,.2)}
+.pfms-attendance-list{display:grid;gap:8px;margin-top:12px}
+.pfms-attendance-row{
+  display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(130px,.8fr) minmax(120px,1fr) auto;
+  align-items:end;gap:10px;padding:11px;border:1px solid rgba(198,161,91,.16);
+  border-radius:9px;background:#171a1c
+}
+.pfms-attendance-player{display:grid;gap:4px;align-self:center;min-width:0}
+.pfms-attendance-player b{color:#eee7d9;font-size:12px;overflow-wrap:anywhere}
+.pfms-attendance-player small{color:#9d9a92;font-size:10px}
+.pfms-attendance-row .field{display:grid;gap:5px;min-width:0;color:#bdb7ab;font-size:10px}
+.pfms-attendance-row select,.pfms-attendance-row input{
+  box-sizing:border-box;width:100%;min-width:0;height:36px;padding:0 8px;
+  border:1px solid rgba(198,161,91,.22);border-radius:7px;
+  background:#111416;color:#eee8dc;font:inherit;font-size:11px
+}
+.pfms-attendance-row .btn{min-height:36px;padding:7px 10px;font-size:10px}
+@media(max-width:760px){
+  .pfms-training-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pfms-attendance-row{grid-template-columns:1fr 1fr}
+  .pfms-attendance-player{grid-column:1/-1}
+  .pfms-attendance-row .btn{width:100%}
+}
+@media(max-width:480px){
+  .pfms-training-form{grid-template-columns:1fr}
+  .pfms-training-form .field.full{grid-column:auto}
+  .pfms-training-card-head{flex-direction:column}
+  .pfms-training-card-actions{display:grid;grid-template-columns:1fr}
+  .pfms-training-card-actions .btn{width:100%}
+  .pfms-attendance-row{grid-template-columns:1fr}
+  .pfms-attendance-player{grid-column:auto}
+}
+
+
+/* PFMS team calendar */
+.pfms-calendar-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px;margin:14px 0 18px;border:1px solid rgba(198,161,91,.22);border-radius:13px;background:rgba(19,22,24,.72)}
+.pfms-calendar-form[hidden]{display:none!important}
+.pfms-calendar-form .field{display:grid;gap:6px;color:#c9c5bc;font-size:12px}
+.pfms-calendar-form .field input,.pfms-calendar-form .field select,.pfms-calendar-form .field textarea{box-sizing:border-box;width:100%;min-width:0;padding:10px 11px;border:1px solid rgba(198,161,91,.22);border-radius:8px;background:#1c2022;color:#eee;font:inherit}
+.pfms-calendar-form .field.full,.pfms-calendar-form-actions{grid-column:1/-1}
+.pfms-calendar-form-actions{display:flex;gap:9px;flex-wrap:wrap}
+.pfms-calendar-list{display:grid;gap:10px;margin-top:14px}
+.pfms-calendar-card{padding:15px;border:1px solid rgba(198,161,91,.2);border-radius:12px;background:linear-gradient(135deg,#1c1f21,#17191b)}
+.pfms-calendar-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pfms-calendar-card-head h4{margin:4px 0 0;color:#f0eee8;font-size:15px}
+.pfms-calendar-card-head .eyebrow{font-size:10px;color:#cbb579}
+.pfms-calendar-meta{display:flex;flex-wrap:wrap;gap:8px 15px;margin-top:11px;color:#a7a8a7;font-size:11px}
+.pfms-calendar-card p{margin:10px 0 0;color:#b9b9b6;font-size:12px;white-space:pre-wrap}
+.pfms-calendar-card-actions,.pfms-calendar-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+@media(max-width:760px){.pfms-calendar-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.pfms-calendar-form{grid-template-columns:1fr;padding:12px}.pfms-calendar-card-head{flex-direction:column}.pfms-calendar-form-actions{flex-direction:column}.pfms-calendar-form-actions .btn{width:100%}}
+
+/* PFMS team matches and matchday lineups */
+.pfms-match-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px;margin:14px 0 18px;border:1px solid rgba(198,161,91,.22);border-radius:13px;background:rgba(19,22,24,.72)}
+.pfms-match-form[hidden]{display:none!important}
+.pfms-match-form .field{display:grid;gap:6px;color:#c9c5bc;font-size:12px}
+.pfms-match-form .field input,.pfms-match-form .field select,.pfms-match-form .field textarea{box-sizing:border-box;width:100%;min-width:0;padding:10px 11px;border:1px solid rgba(198,161,91,.22);border-radius:8px;background:#1c2022;color:#eee;font:inherit}
+.pfms-match-form .field.full,.pfms-match-form-actions{grid-column:1/-1}
+.pfms-match-form-actions{display:flex;gap:9px;flex-wrap:wrap}
+.pfms-match-list{display:grid;gap:10px;margin-top:14px}
+.pfms-match-card{padding:15px;border:1px solid rgba(198,161,91,.2);border-radius:12px;background:linear-gradient(135deg,#1c1f21,#17191b)}
+.pfms-match-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pfms-match-card-head h4{margin:4px 0 2px;color:#f0eee8;font-size:16px}
+.pfms-match-card-head small{color:#a7a8a7;font-size:11px}
+.pfms-match-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:11px;color:#a7a8a7;font-size:11px}
+.pfms-match-meta strong{color:#e0c17a;font-size:14px}
+.pfms-match-card p{margin:10px 0 0;color:#b9b9b6;font-size:12px;white-space:pre-wrap}
+.pfms-match-card-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.pfms-match-lineup-panel{margin-top:18px;padding:15px;border:1px solid rgba(198,161,91,.25);border-radius:13px;background:#15181a}
+.pfms-match-lineup-panel[hidden]{display:none!important}
+.pfms-match-lineup-list{display:grid;gap:8px;margin-bottom:14px}
+.pfms-match-lineup-row{display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(4,minmax(85px,1fr));align-items:center;gap:9px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:#1b1e20}
+.pfms-match-lineup-player{display:flex;align-items:center;gap:9px;color:#eee;font-size:12px}
+.pfms-match-lineup-player b{display:block}
+.pfms-match-lineup-player small{display:block;margin-top:3px;color:#939594;font-size:10px}
+.pfms-match-lineup-row label:not(.pfms-match-lineup-player){display:grid;gap:4px;color:#aaa;font-size:10px}
+.pfms-match-lineup-row input[type="number"],.pfms-match-lineup-row select{width:100%;min-width:0;padding:7px;border:1px solid rgba(198,161,91,.2);border-radius:7px;background:#171a1c;color:#eee;font:inherit;font-size:11px}
+.pfms-match-captain{display:flex!important;align-items:center;gap:6px}
+@media(max-width:760px){.pfms-match-form{grid-template-columns:repeat(2,minmax(0,1fr))}.pfms-match-lineup-row{grid-template-columns:1fr 1fr}.pfms-match-lineup-player{grid-column:1/-1}}
+@media(max-width:520px){.pfms-match-form{grid-template-columns:1fr;padding:12px}.pfms-match-form-actions{flex-direction:column}.pfms-match-form-actions .btn{width:100%}.pfms-match-card-head{flex-direction:column}}
+
+
+/* PFMS team exercise library and per-session training plan */
+.pfms-exercise-form{margin:14px 0 18px;padding:16px;border:1px solid rgba(194,160,94,.2);border-radius:13px;background:rgba(255,255,255,.018)}
+.pfms-exercise-form-actions{display:flex;flex-wrap:wrap;gap:9px;grid-column:1/-1}
+.pfms-exercise-library{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-exercise-card{min-width:0;padding:15px;border:1px solid rgba(194,160,94,.18);border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012))}
+.pfms-exercise-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pfms-exercise-card h4{margin:3px 0 8px;color:#f2eee5;font-size:14px}
+.pfms-exercise-card p{color:#b9b5ac;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.pfms-exercise-card details{margin-top:8px;color:#c6b27f;font-size:11px}
+.pfms-exercise-card details summary{cursor:pointer}
+.pfms-exercise-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pfms-training-plan-panel{margin-top:18px;padding:16px;border:1px solid rgba(194,160,94,.24);border-radius:14px;background:rgba(194,160,94,.035)}
+.pfms-session-plan-list{display:grid;gap:10px;margin-top:12px}
+.pfms-session-plan-row{display:grid;grid-template-columns:minmax(190px,1.5fr) repeat(2,minmax(90px,.45fr));gap:12px;align-items:end;padding:13px;border:1px solid rgba(194,160,94,.16);border-radius:11px;background:rgba(0,0,0,.13)}
+.pfms-plan-select{display:flex;align-items:flex-start;gap:10px;min-width:0;padding-bottom:8px;cursor:pointer}
+.pfms-plan-select input{margin-top:3px;accent-color:#c5a15e}
+.pfms-plan-select span{display:grid;gap:4px;min-width:0}
+.pfms-plan-select b{color:#eee9dc;font-size:12px;overflow-wrap:anywhere}
+.pfms-plan-select small{color:#a9a49a;font-size:10px}
+.pfms-session-plan-row .field{display:grid;gap:5px;color:#c7c1b4;font-size:10px}
+.pfms-session-plan-row input[type=number],.pfms-session-plan-row textarea{box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid rgba(194,160,94,.23);border-radius:7px;background:#181b1d;color:#f2eee5;font:inherit}
+.pfms-session-plan-row textarea{resize:vertical}
+.pfms-session-plan-row .field.full{grid-column:1/-1}
+.pfms-session-plan-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(194,160,94,.15)}
+.pfms-session-plan-footer strong{color:#ddc17f;font-size:12px}
+.pfms-exercise-library[hidden],.pfms-training-plan-panel[hidden],.pfms-exercise-form[hidden]{display:none!important}
+@media(max-width:760px){
+  .pfms-exercise-library{grid-template-columns:1fr}
+  .pfms-session-plan-row{grid-template-columns:minmax(0,1fr) repeat(2,minmax(72px,.4fr));gap:8px;padding:10px}
+  .pfms-plan-select{grid-column:1/-1;padding-bottom:0}
+}
+@media(max-width:460px){
+  .pfms-session-plan-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pfms-session-plan-row .pfms-plan-select,.pfms-session-plan-row .field.full{grid-column:1/-1}
+  .pfms-session-plan-footer{align-items:stretch}
+  .pfms-session-plan-footer .btn{width:100%}
+}
+
+
+/* PFMS team finance ledger */
+.pfms-finance-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+.pfms-finance-kpis article{min-width:0;padding:13px;border:1px solid rgba(194,160,94,.2);border-radius:11px;background:rgba(255,255,255,.025)}
+.pfms-finance-kpis article span{display:block;color:#a9a49a;font-size:9px;letter-spacing:.9px;font-weight:700}
+.pfms-finance-kpis article strong{display:block;margin-top:7px;color:#e7d09a;font-size:clamp(15px,2vw,21px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pfms-finance-form{margin:14px 0 18px;padding:16px;border:1px solid rgba(194,160,94,.2);border-radius:13px;background:rgba(255,255,255,.018)}
+.pfms-finance-form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:13px}
+.pfms-finance-form-grid .field{display:grid;gap:6px;min-width:0;color:#c7c1b4;font-size:11px}
+.pfms-finance-form-grid .field.full{grid-column:1/-1}
+.pfms-finance-form-grid input,.pfms-finance-form-grid select{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid rgba(194,160,94,.23);border-radius:8px;background:#181b1d;color:#f2eee5;font:inherit}
+.pfms-finance-list-wrap{overflow-x:auto}
+.pfms-finance-list{display:grid;gap:8px;min-width:0}
+.pfms-finance-entry{display:grid;grid-template-columns:minmax(95px,.55fr) minmax(160px,1.6fr) minmax(110px,.65fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid rgba(194,160,94,.15);border-radius:10px;background:rgba(255,255,255,.018)}
+.pfms-finance-entry-date,.pfms-finance-entry-description{display:grid;gap:4px;min-width:0}
+.pfms-finance-entry-date b,.pfms-finance-entry-description b{color:#eee9dc;font-size:12px;overflow-wrap:anywhere}
+.pfms-finance-entry-date small,.pfms-finance-entry-description small{color:#a9a49a;font-size:10px;overflow-wrap:anywhere}
+.pfms-finance-entry>strong{font-size:13px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pfms-finance-entry .is-income{color:#79c69a}
+.pfms-finance-entry .is-expense{color:#e2a18d}
+.pfms-finance-entry.is-voided{opacity:.62}
+.pfms-finance-entry.is-voided .pfms-finance-entry-description b{text-decoration:line-through}
+.pfms-finance-entry button{white-space:nowrap}
+#pfmsTeamFinancePanel[hidden],#pfmsTeamFinanceForm[hidden]{display:none!important}
+@media(max-width:800px){.pfms-finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pfms-finance-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+  .pfms-finance-entry{grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .pfms-finance-entry-date{grid-column:1/-1;display:flex;justify-content:space-between}
+  .pfms-finance-entry-description{grid-column:1}
+  .pfms-finance-entry>strong{grid-column:2;grid-row:2}
+  .pfms-finance-entry button{grid-column:1/-1;width:100%}
+  .pfms-finance-form-grid{grid-template-columns:1fr}
+  .pfms-finance-form-grid .field.full{grid-column:1}
+}
+
+.pfms-club-organization-card{border:1px solid rgba(198,161,91,.22);background:linear-gradient(145deg,#1b1e20,#151719);display:flex;flex-direction:column;gap:12px}
+.pfms-club-organization-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted,#a4a4a4);font-size:12px}
+.pfms-club-organization-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.pfms-club-organization-actions .btn{min-height:38px}
+@media(max-width:620px){.pfms-club-organization-actions{display:grid;grid-template-columns:1fr}.pfms-club-organization-actions .btn{width:100%}}
+
+#pfmsClubScoutingPanel .admin-user-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#pfmsClubScoutingPanel .admin-user-main{display:flex;flex-direction:column;gap:4px}
+#pfmsClubScoutingPanel .admin-user-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.pfms-personal-task-list{display:grid;gap:10px;margin-top:12px}
+.pfms-personal-task-card{border:1px solid rgba(198,161,91,.18);background:rgba(255,255,255,.025);border-radius:12px;padding:14px;display:grid;gap:10px}
+.pfms-personal-task-card.is-done{opacity:.72}
+.pfms-personal-task-head,.pfms-personal-task-meta,.pfms-personal-task-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-personal-task-head strong{color:#f2ead9}
+.pfms-personal-task-meta{font-size:12px;color:var(--muted,#aaa)}
+.pfms-personal-task-actions select{min-width:150px}
+.task-overdue{color:#e58a7b!important;font-weight:700}
+.priority-high{color:#e5a18e!important}.priority-low{color:#a7b49a!important}
+@media(max-width:620px){.pfms-personal-task-actions{display:grid;grid-template-columns:1fr}.pfms-personal-task-actions select,.pfms-personal-task-actions button{width:100%}}
+
+.pfms-support-ticket-list{display:grid;gap:12px;margin-top:12px}
+.pfms-support-ticket-card{border:1px solid rgba(198,161,91,.2);background:rgba(255,255,255,.025);border-radius:12px;padding:14px;display:grid;gap:10px}
+.pfms-support-ticket-head,.pfms-support-ticket-meta,.pfms-support-ticket-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-support-ticket-meta{font-size:11px;color:var(--muted,#aaa)}
+.pfms-support-response{border-left:2px solid #c6a15b;padding:8px 12px;background:rgba(198,161,91,.06)}
+.pfms-support-response p{margin:6px 0 0}
+.pfms-support-ticket-actions select{min-width:150px}
+@media(max-width:620px){.pfms-support-ticket-actions{display:grid;grid-template-columns:1fr}.pfms-support-ticket-actions select,.pfms-support-ticket-actions button{width:100%}}
+
+
+/* PFMS team training cycles and weekly microcycle planning */
+.pfms-training-cycle-section{margin:18px 0 22px;padding:18px;border:1px solid rgba(198,161,91,.24);border-radius:16px;background:linear-gradient(145deg,rgba(198,161,91,.075),rgba(255,255,255,.018));display:grid;gap:14px}
+.pfms-training-cycle-section>.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.pfms-training-cycle-section .panel-heading h3{margin:5px 0}
+.pfms-training-cycle-section .panel-heading p{margin:5px 0 0;color:var(--muted,#aaa);font-size:13px}
+.pfms-training-cycle-form{margin:0}
+.pfms-training-cycles-list{display:grid;gap:14px}
+.pfms-training-cycle-card{padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(10,11,12,.42);display:grid;gap:14px}
+.pfms-training-cycle-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.pfms-training-cycle-head h4{margin:5px 0 0;color:#f1e8d6;font-size:17px}
+.pfms-cycle-focus{margin:0;color:#d6c5a3;font-size:13px}
+.pfms-cycle-status-actions{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.pfms-cycle-status-actions .field{min-width:170px;max-width:240px;margin:0}
+.pfms-cycle-weeks{display:grid;gap:9px}
+.pfms-cycle-week{border:1px solid rgba(255,255,255,.09);border-radius:11px;background:rgba(255,255,255,.025);overflow:hidden}
+.pfms-cycle-week>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px 12px;padding:12px 14px;color:#eee}
+.pfms-cycle-week>summary::-webkit-details-marker{display:none}
+.pfms-cycle-week>summary::after{content:"＋";grid-column:3;grid-row:1/3;color:#c6a15b;justify-self:end}
+.pfms-cycle-week[open]>summary::after{content:"−"}
+.pfms-cycle-week>summary span:first-child{font-weight:750;color:#e5c98e}
+.pfms-cycle-week>summary span:nth-child(2){font-size:12px;color:var(--muted,#aaa)}
+.pfms-cycle-week>summary small{grid-column:1/3;font-size:12px;color:#b8b0a2}
+.pfms-cycle-week-body{padding:14px;border-top:1px solid rgba(255,255,255,.07);display:grid;gap:12px}
+.pfms-cycle-week-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-cycle-week-form .field{min-width:0;margin:0}
+.pfms-cycle-week-form .field.full,.pfms-cycle-week-form button{grid-column:1/-1}
+.pfms-cycle-week-readonly{display:grid;gap:7px;color:var(--muted,#b5b5b5);font-size:13px}
+.pfms-cycle-week-readonly p{margin:0}
+.pfms-cycle-linked-sessions{display:grid;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.pfms-cycle-linked-sessions>b{font-size:12px;color:#d8c18f}
+.pfms-cycle-linked-session{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px}
+.pfms-inline-action{border:0;background:transparent;color:#d7b974;text-decoration:underline;cursor:pointer;padding:4px}
+.pfms-cycle-no-sessions{margin:0;font-size:12px;color:var(--muted,#999)}
+.pfms-cycle-assign-session{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
+.pfms-cycle-assign-session .field{min-width:0;margin:0}
+@media(max-width:640px){
+  .pfms-training-cycle-section{padding:13px}
+  .pfms-training-cycle-card{padding:12px}
+  .pfms-cycle-week-form{grid-template-columns:1fr}
+  .pfms-cycle-week-form .field.full,.pfms-cycle-week-form button{grid-column:auto}
+  .pfms-cycle-assign-session{grid-template-columns:1fr}
+  .pfms-cycle-assign-session button{width:100%}
+  .pfms-cycle-status-actions{display:grid;grid-template-columns:1fr}
+  .pfms-cycle-status-actions .field{min-width:0;max-width:none}
+}
+
+
+/* PFMS team tactical and video analysis */
+.pfms-team-analysis-panel{display:grid;gap:16px}
+.pfms-analysis-form{padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(255,255,255,.025);margin-bottom:14px}
+.pfms-analysis-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-analysis-form-grid .field{min-width:0;margin:0}
+.pfms-analysis-form-grid .field.full{grid-column:1/-1}
+.pfms-analysis-form .field-hint{display:block;margin-top:5px;color:var(--muted,#aaa);font-size:11px;line-height:1.45}
+.pfms-analysis-form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pfms-team-analysis-list{display:grid;gap:12px}
+.pfms-team-analysis-card{display:grid;gap:12px;padding:16px;border:1px solid rgba(198,161,91,.2);border-radius:14px;background:linear-gradient(145deg,rgba(198,161,91,.055),rgba(255,255,255,.02))}
+.pfms-team-analysis-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pfms-team-analysis-card-head h4{margin:5px 0 0;color:#f1e8d6;font-size:16px}
+.pfms-analysis-meta{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;color:var(--muted,#aaa);font-size:12px}
+.pfms-analysis-summary{margin:0;color:#eee;line-height:1.6;white-space:pre-wrap}
+.pfms-analysis-detail{padding:10px 12px;border-left:2px solid rgba(198,161,91,.75);background:rgba(198,161,91,.055);border-radius:0 8px 8px 0}
+.pfms-analysis-detail b{color:#dfc58e;font-size:12px}
+.pfms-analysis-detail p{margin:5px 0 0;color:#d5d0c5;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.pfms-analysis-video{display:flex;align-items:center;gap:8px}
+.pfms-analysis-video-link{color:#e1c27f;font-weight:650;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.pfms-analysis-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
+@media(max-width:640px){
+  .pfms-analysis-form{padding:12px}
+  .pfms-analysis-form-grid{grid-template-columns:1fr}
+  .pfms-analysis-form-grid .field.full{grid-column:auto}
+  .pfms-analysis-form-actions,.pfms-analysis-actions{display:grid;grid-template-columns:1fr}
+  .pfms-analysis-form-actions .btn,.pfms-analysis-actions .btn{width:100%}
+  .pfms-team-analysis-card{padding:13px}
+}
+
+
+/* PFMS team events – shared calendar-backed event workspace */
+.pfms-team-events-panel{display:grid;gap:16px}
+.pfms-event-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(255,255,255,.025);margin-bottom:14px}
+.pfms-event-form .field{min-width:0;margin:0}
+.pfms-event-form .field.full,.pfms-event-form .pfms-event-form-actions{grid-column:1/-1}
+.pfms-event-form-actions{display:flex;gap:10px;flex-wrap:wrap}
+.pfms-team-events-list{display:grid;gap:12px}
+.pfms-team-event-card{display:grid;gap:11px;padding:16px;border:1px solid rgba(198,161,91,.2);border-radius:14px;background:linear-gradient(145deg,rgba(198,161,91,.055),rgba(255,255,255,.02))}
+.pfms-team-event-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pfms-team-event-card-head h4{margin:5px 0 0;color:#f1e8d6;font-size:16px}
+.pfms-team-event-meta{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;color:var(--muted,#aaa);font-size:12px}
+.pfms-team-event-notes{margin:0;color:#d5d0c5;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.pfms-team-event-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:3px}
+@media(max-width:640px){
+  .pfms-event-form{grid-template-columns:1fr;padding:12px}
+  .pfms-event-form .field.full,.pfms-event-form .pfms-event-form-actions{grid-column:auto}
+  .pfms-event-form-actions,.pfms-team-event-actions{display:grid;grid-template-columns:1fr}
+  .pfms-event-form-actions .btn,.pfms-team-event-actions .btn{width:100%}
+  .pfms-team-event-card{padding:13px}
+}
+
+
+/* PFMS team event RSVP and attendance list */
+.pfms-event-participants{display:grid;gap:9px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.pfms-event-participants>b{font-size:12px;color:#dec38a}
+.pfms-event-participant-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,190px) auto;align-items:center;gap:9px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.025)}
+.pfms-event-participant-name{font-size:12px;color:#eee;overflow-wrap:anywhere}
+.pfms-event-participant-row select{min-width:0;margin:0}
+.pfms-event-participant-add{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;padding-top:5px}
+.pfms-event-participant-add .field{min-width:0;margin:0}
+.pfms-event-participant-add .btn{white-space:nowrap}
+@media(max-width:640px){
+  .pfms-event-participant-row{grid-template-columns:minmax(0,1fr);gap:7px}
+  .pfms-event-participant-row .pfms-inline-action{text-align:left;justify-self:start}
+  .pfms-event-participant-add{grid-template-columns:1fr}
+  .pfms-event-participant-add .btn{width:100%}
+}
+
+
+/* PFMS event transport and logistics summary */
+.pfms-event-logistics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;padding:12px;border:1px solid rgba(198,161,91,.14);border-radius:10px;background:rgba(198,161,91,.04);font-size:12px;color:#d8d0c2}
+.pfms-event-logistics b{color:#e5c98e}
+.pfms-event-logistics p{grid-column:1/-1;margin:0;color:var(--muted,#aaa);white-space:pre-wrap;line-height:1.5}
+@media(max-width:640px){
+  .pfms-event-logistics{grid-template-columns:1fr}
+  .pfms-event-logistics p{grid-column:auto}
+}
+
+
+/* PFMS live Trainer & Betreuer directory */
+.pfms-staff-directory-card{display:flex;flex-direction:column;gap:13px;min-width:0;padding:17px;border:1px solid rgba(198,161,91,.22);border-radius:13px;background:linear-gradient(145deg,#202122,#141617)}
+.pfms-staff-directory-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pfms-staff-directory-head h3{margin:0;color:#f1e9d8;font-size:18px}
+.pfms-staff-directory-head p{margin:6px 0 0;color:#a9a397;font-size:11px}
+.pfms-staff-directory-members{display:grid;gap:8px}
+.pfms-staff-directory-member{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.025)}
+.pfms-staff-avatar{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(198,161,91,.28);border-radius:50%;background:rgba(198,161,91,.1);color:#e1c27d;font-size:10px;font-weight:800}
+.pfms-staff-directory-person{display:grid;gap:3px;min-width:0}
+.pfms-staff-directory-person b{overflow-wrap:anywhere;color:#eee5d6;font-size:11px}
+.pfms-staff-directory-person small{overflow-wrap:anywhere;color:#8e8a81;font-size:9px}
+.pfms-staff-permissions-guide{margin-top:16px}
+@media(max-width:600px){
+  .pfms-staff-directory-card{padding:13px}
+  .pfms-staff-directory-member{grid-template-columns:32px minmax(0,1fr);gap:8px}
+  .pfms-staff-directory-member>.module-status{grid-column:2;justify-self:start}
+}
+
+.pfms-staff-role-status{display:flex;flex-wrap:wrap;align-items:center;gap:5px;justify-content:flex-end}
+.pfms-staff-status.is-active{border-color:rgba(95,166,125,.35);color:#9fd3ad}
+.pfms-staff-status.is-inactive{border-color:rgba(207,133,91,.35);color:#e2b18c;background:rgba(207,133,91,.08)}

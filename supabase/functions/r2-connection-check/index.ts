@@ -1,21 +1,51 @@
 import { AwsClient } from "npm:aws4fetch@1.0.20";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-};
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsForRequest } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
+  const cors = corsForRequest(req, "GET, POST, OPTIONS");
+  const json = (body: Record<string, unknown>, status = 200) =>
+    Response.json(body, { status, headers: { ...cors.headers, "Cache-Control": "no-store" } });
+
+  if (!cors.allowed) {
+    return json({ ok: false, message: "Origin not allowed." }, 403);
+  }
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: cors.headers });
   }
 
   if (req.method !== "GET" && req.method !== "POST") {
-    return Response.json({ ok: false, message: "Method not allowed" }, {
-      status: 405,
-      headers: corsHeaders,
-    });
+    return json({ ok: false, message: "Method not allowed" }, 405);
+  }
+
+  // This endpoint checks a privileged storage integration. CORS is not
+  // authentication: require a verified user JWT and a server-side admin role.
+  const authorization = req.headers.get("authorization") || "";
+  if (!/^Bearer\s+\S+$/i.test(authorization)) {
+    return json({ ok: false, message: "Authentication required." }, 401);
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
+  const publishableKey = publishableKeys.default;
+  if (!supabaseUrl || !publishableKey) {
+    console.error("R2 check is missing Supabase runtime configuration.");
+    return json({ ok: false, message: "R2 connection check is unavailable." }, 503);
+  }
+
+  const userClient = createClient(supabaseUrl, publishableKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  const { data: userData, error: userError } = await userClient.auth.getUser();
+  if (userError || !userData.user) {
+    return json({ ok: false, message: "Authentication required." }, 401);
+  }
+
+  const { data: isAdmin, error: adminError } = await userClient.rpc("pfms_is_admin");
+  if (adminError || isAdmin !== true) {
+    return json({ ok: false, message: "Administrator access required." }, 403);
   }
 
   try {
@@ -34,19 +64,19 @@ Deno.serve(async (req) => {
     ].filter(([, value]) => !value).map(([key]) => key);
 
     if (missing.length) {
-      return Response.json({
+      return json({
         ok: false,
         message: "Required Supabase secrets are missing.",
         missing,
-      }, { status: 500, headers: corsHeaders });
+      }, 500);
     }
 
-    const expectedEndpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+    const expectedEndpoint = "https://" + accountId + ".r2.cloudflarestorage.com";
     if (endpoint !== expectedEndpoint) {
-      return Response.json({
+      return json({
         ok: false,
         message: "R2_ENDPOINT does not match the Cloudflare account endpoint.",
-      }, { status: 500, headers: corsHeaders });
+      }, 500);
     }
 
     const client = new AwsClient({
@@ -56,7 +86,7 @@ Deno.serve(async (req) => {
       region: "auto",
     });
 
-    const url = new URL(`${endpoint}/${encodeURIComponent(bucket!)}`);
+    const url = new URL(endpoint + "/" + encodeURIComponent(bucket!));
     url.searchParams.set("list-type", "2");
     url.searchParams.set("max-keys", "1");
 
@@ -67,25 +97,25 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       // Do not return provider response bodies or credential-related details.
-      return Response.json({
+      return json({
         ok: false,
         message: response.status === 403
           ? "Cloudflare rejected the credentials or bucket permissions (HTTP 403)."
           : response.status === 404
           ? "The R2 bucket or endpoint was not found (HTTP 404)."
-          : `Cloudflare R2 returned HTTP ${response.status}.`,
-      }, { status: 502, headers: corsHeaders });
+          : "Cloudflare R2 returned HTTP " + response.status + ".",
+      }, 502);
     }
 
-    return Response.json({
+    return json({
       ok: true,
       message: "Supabase can reach the R2 bucket and list its contents.",
-      bucket: bucket,
-    }, { headers: corsHeaders });
+      bucket,
+    });
   } catch (_error) {
-    return Response.json({
+    return json({
       ok: false,
       message: "The R2 connection test failed. Check the Edge Function logs.",
-    }, { status: 500, headers: corsHeaders });
+    }, 500);
   }
 });

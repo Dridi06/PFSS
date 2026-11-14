@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090a0c">
-  <meta name="description" content="PFMS – Professional Football Management System">
-  <title>PFMS | Professional Football Management System</title>
-  <link rel="stylesheet" href="styles.css?v=pfms-search-20261112-1">\n  <link rel="stylesheet" href="scout-workspace.css?v=pfss-scout-20261112-1">
+  <meta name="description" content="PFMS – Professionell Football Management System">
+  <title>PFMS | Professionell Football Management System</title>
+  <link rel="stylesheet" href="styles.css?v=pfms-staff-status-hsts-20261114-4">
+  <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=pfss-search-20261112-1" defer></script>\n  <script src="scout-workspace.js?v=pfss-scout-20261112-1" defer></script>
+  <script src="pfms-config.js" defer></script>
+  <script src="app.js?v=pfms-csv-export-20261114-1" defer></script>
+  <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
 
@@ -16,7 +19,7 @@
     <section class="auth-card">
       <div class="auth-brand">
         <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="PFMS">
-        <div class="auth-brand-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
+        <div class="auth-brand-name">PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</div>
       </div>
       <div class="auth-tagline">Die perfekte Lösung für Vereine, Agenturen und Scouts</div>
 
@@ -35,7 +38,7 @@
           <span class="pricing-kicker">DEIN SPIEL. DEINE DATEN. DEIN PFMS.</span>
           <h2>Finde den passenden PFMS-Zugang.</h2>
           <p>Starte mit dem Paket, das zu deiner Arbeit im Fußball passt.</p>
-          <div class="trial-strip"><span class="trial-icon">✦</span><span><strong>30 Tage kostenlos testen</strong> – für Verein, Agentur und Einzelscout.</span></div>
+          <div class="trial-strip"><span class="trial-icon">✦</span><span><strong>Tarifvorschau</strong> – kostenpflichtige Zugänge sind noch nicht buchbar.</span></div>
         </div>
         <div class="registration-choice-grid pricing-grid">
           <article class="registration-choice-card pricing-card member-card">
@@ -63,12 +66,12 @@
               <li>✓ Scouting und Spielerübersichten</li>
               <li>✓ Einladungen für Mitglieder und Mitarbeiter</li>
             </ul>
-            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="trial-callout">TARIFENTWURF · NOCH NICHT BUCHBAR</div>
             <div class="pricing-options" data-pricing="club">
-              <button type="button" class="price-option active" data-plan="monthly" data-price="club">Monatlich <b>99,99 €</b><small>pro Monat</small></button>
-              <button type="button" class="price-option" data-plan="yearly" data-price="club">Jährlich <b>1.099,99 €</b><small>pro Jahr · 99,89 € sparen</small><em>SPARANGEBOT</em></button>
+              <button type="button" class="price-option active" aria-pressed="true" data-plan="monthly" data-price="club">Monatlich <b>99,99 €</b><small>pro Monat</small></button>
+              <button type="button" class="price-option" aria-pressed="false" data-plan="yearly" data-price="club">Jährlich <b>1.099,99 €</b><small>pro Jahr · 99,89 € sparen</small><em>SPARANGEBOT</em></button>
             </div>
-            <button type="button" class="btn btn-primary choice-select" data-registration-choice="club">30 Tage kostenlos starten</button>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="club">Tarif unverbindlich ansehen</button>
           </article>
 
           <article class="registration-choice-card pricing-card">
@@ -81,12 +84,27 @@
               <li>✓ Spieler und Scouting-Aktivitäten verwalten</li>
               <li>✓ Organisationsbasierte Zusammenarbeit</li>
             </ul>
-            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="trial-callout">TARIFENTWURF · NOCH NICHT BUCHBAR</div>
             <div class="pricing-options" data-pricing="agency">
               <button type="button" class="price-option active" data-plan="monthly" data-price="agency">Monatlich <b>79,99 €</b><small>pro Monat</small></button>
               <button type="button" class="price-option" data-plan="yearly" data-price="agency">Jährlich <b>739,99 €</b><small>pro Jahr · 219,89 € sparen</small><em>BESTER PREIS</em></button>
             </div>
-            <button type="button" class="btn btn-primary choice-select" data-registration-choice="agency">30 Tage kostenlos starten</button>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="agency">Tarif unverbindlich ansehen</button>
+          </article>
+
+
+          <article class="registration-choice-card pricing-card owner-bootstrap-card">
+            <div class="pricing-card-head"><span class="pricing-icon">♛</span><span class="pricing-label">ERSTEINRICHTUNG</span></div>
+            <h3>PFMS-Plattforminhaber</h3>
+            <p class="pricing-subtitle">Einmaliger, geschützter Besitzerzugang für die erstmalige Inbetriebnahme der gesamten Plattform.</p>
+            <ul class="pricing-features">
+              <li>✓ Zentrale Plattformadministration</li>
+              <li>✓ Verwaltung aller Vereine und Agenturen</li>
+              <li>✓ Vergabe von Administratorrechten</li>
+              <li>✓ Nur mit einmaligem Inhabercode aktivierbar</li>
+            </ul>
+            <div class="member-invite-note">Dieser Zugang ist ausschließlich für die erstmalige PFMS-Inhaberschaft vorgesehen.</div>
+            <button type="button" class="btn btn-secondary choice-select" data-registration-choice="owner_bootstrap">Inhaberzugang einrichten</button>
           </article>
 
           <article class="registration-choice-card pricing-card solo-scout-card">
@@ -100,15 +118,15 @@
               <li>✓ Eigene Scouting-Berichte erstellen und bearbeiten</li>
               <li class="feature-restriction">– Keine Änderung globaler Spielerdaten</li>
             </ul>
-            <div class="trial-callout">30 TAGE KOSTENLOS TESTEN</div>
+            <div class="trial-callout">TARIFENTWURF · NOCH NICHT BUCHBAR</div>
             <div class="pricing-options" data-pricing="scout">
               <button type="button" class="price-option active" data-plan="monthly" data-price="scout">Monatlich <b>50,00 €</b><small>pro Monat</small></button>
               <button type="button" class="price-option" data-plan="yearly" data-price="scout">Jährlich <b>500,00 €</b><small>pro Jahr · 100,00 € sparen</small><em>SPARANGEBOT</em></button>
             </div>
-            <button type="button" class="btn btn-primary choice-select" data-registration-choice="scout">30 Tage kostenlos starten</button>
+            <button type="button" class="btn btn-primary choice-select" data-registration-choice="scout">Tarif unverbindlich ansehen</button>
           </article>
         </div>
-        <p class="pricing-draft-note">Preisgestaltung als aktueller Entwurf. Die tatsächliche Buchung und Zahlungsabwicklung werden erst nach Einrichtung des Abrechnungssystems aktiviert. Preise und Umsatzsteuer-Ausweisung sind vor Veröffentlichung final festzulegen.</p>
+        <p class="pricing-draft-note">Alle Preise sind unverbindliche Entwürfe und nicht buchbar. Eine Testphase ist noch nicht aktiviert. Es kommt weder ein Vertrag noch eine Zahlung zustande. Vor Veröffentlichung müssen Preise, Umsatzsteuer, Anbieter, Vertragsbedingungen und Kündigungsprozess festgelegt und geprüft werden.</p>
         <p id="choiceInfoText" class="choice-info-text" hidden></p>
       </section>
 
@@ -163,17 +181,17 @@
             <div class="order-summary-top"><span class="pricing-label">DEINE BESTELLÜBERSICHT</span><span class="order-secure">✦ PFMS PREMIUM</span></div>
             <h3 id="orderPlanName">Verein</h3>
             <div class="order-price-line"><strong id="orderPrice">99,99 €</strong><span id="orderPeriod">pro Monat</span></div>
-            <div class="order-detail-row"><span>Ausgewähltes Abo</span><b id="orderPlanDetail">Verein · monatlich</b></div>
-            <div class="order-detail-row"><span>Testphase</span><b>30 Tage kostenlos</b></div>
-            <div class="order-detail-row"><span>Heute fällig</span><b>0,00 €</b></div>
-            <p class="order-trial-note">Während der 30-tägigen Testphase erfolgt keine Abbuchung. Die Zahlung wird erst nach Einrichtung der echten Zahlungsabwicklung aktiviert.</p>
-            <div class="payment-preview-title">Zahlungsart für dein Abo</div>
+            <div class="order-detail-row"><span>Ausgewählter Tarifentwurf</span><b id="orderPlanDetail">Verein · monatlich</b></div>
+            <div class="order-detail-row"><span>Testphase</span><b>Noch nicht aktiviert</b></div>
+            <div class="order-detail-row"><span>Zahlung</span><b>Kein Checkout verfügbar</b></div>
+            <p class="order-trial-note">Dies ist nur eine unverbindliche Tarifvorschau. Es wird kein Vertrag abgeschlossen, keine Testphase gestartet und keine automatische Abbuchung eingerichtet. Vor einer späteren Buchung werden Preis, Laufzeit, Testbedingungen und Kündigung ausdrücklich angezeigt.</p>
+            <div class="payment-preview-title">Vorgesehene Zahlungsarten · noch nicht verbunden</div>
             <div class="payment-methods" aria-label="Vorgesehene Zahlungsmethoden">
-              <div class="payment-method"><span class="payment-symbol">P</span><b>PayPal</b></div>
-              <div class="payment-method"><span class="payment-symbol"></span><b>Apple Pay</b></div>
-              <div class="payment-method"><span class="payment-symbol">▰</span><b>Kreditkarte</b></div>
+              <div class="payment-method"><span class="payment-symbol">P</span><b>PayPal · Vorschau</b></div>
+              <div class="payment-method"><span class="payment-symbol"></span><b>Apple Pay · Vorschau</b></div>
+              <div class="payment-method"><span class="payment-symbol">▰</span><b>Kreditkarte · Vorschau</b></div>
             </div>
-            <p class="payment-preview-note">Zahlungsarten werden hier zunächst als Vorschau angezeigt. Es wird noch keine Zahlung ausgelöst.</p>
+            <p class="payment-preview-note">Keine Zahlungsdaten werden erhoben. Es gibt keinen Checkout, keine Abbuchung und keinen automatischen Vertragsbeginn.</p>
           </section>
           <section id="memberFreeSummary" class="order-summary member-order-summary" hidden>
             <span class="pricing-label">KOSTENLOSER MITGLIEDSZUGANG</span>
@@ -227,7 +245,7 @@
       <div class="auth-brand">
         <span class="brand-mark">P</span>
         <div>
-          <strong class="brand-full-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</strong>
+          <strong class="brand-full-name">PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</strong>
           <small class="brand-abbreviation">PFMS</small>
         </div>
       </div>
@@ -237,11 +255,23 @@
       <p id="pendingText" class="auth-intro">
         Dein Konto wurde angelegt. Der Zugang wird nach Prüfung freigeschaltet.
       </p>
+      <section id="ownerBootstrapSection" class="owner-bootstrap-panel" hidden>
+        <div class="eyebrow">EINMALIGE ERSTEINRICHTUNG</div>
+        <h2>PFMS-Plattforminhaberschaft aktivieren</h2>
+        <p>Nur solange noch kein Plattforminhaber hinterlegt ist. Zur Aktivierung wird ein separater, sicher verwahrter Einmalcode benötigt.</p>
+        <form id="ownerBootstrapForm">
+          <label class="field">Einmaliger Inhabercode
+            <input id="ownerBootstrapToken" type="password" minlength="40" maxlength="512" autocomplete="off" required>
+          </label>
+          <p id="ownerBootstrapMessage" class="auth-message" role="status" aria-live="polite"></p>
+          <button class="btn btn-primary" id="ownerBootstrapButton" type="submit">Plattforminhaberschaft aktivieren</button>
+        </form>
+      </section>
       <button class="btn btn-secondary" id="logoutPending" type="button">
         Abmelden
       </button>
     </section>
-    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 PFSS</span></footer>
+    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 PFMS</span></footer>
   </main>
 
   <section id="welcomeSequence" class="welcome-sequence hidden" aria-live="polite">
@@ -250,16 +280,16 @@
       <div class="welcome-line"></div>
       <div class="welcome-title">WILLKOMMEN BEI PFMS</div>
       <div id="welcomeUser" class="welcome-user">Willkommen!</div>
-      <div class="welcome-subtitle">Professional Football Management System</div>
+      <div class="welcome-subtitle">Professionell Football Management System</div>
     </div>
   </section>
 
   <div id="appShell" class="app-shell hidden">
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#" aria-label="PFMS Startseite">
-        <img class="pfms-logo sidebar-logo" src="pfms-logo.svg" alt="PFMS – Professional Football Management System">
+        <img class="pfms-logo sidebar-logo" src="pfms-logo.svg" alt="PFMS – Professionell Football Management System">
         <span class="sidebar-brand-line" aria-hidden="true"></span>
-        <span class="sidebar-brand-name">PROFESSIONAL FOOTBALL<br>MANAGEMENT SYSTEM</span>
+        <span class="sidebar-brand-name">PROFESSIONELL FOOTBALL<br>MANAGEMENT SYSTEM</span>
       </a>
 
       <div class="workspace-label">WORKSPACE</div>
@@ -301,6 +331,16 @@
         <button class="nav-item" data-view="media">
           <span class="nav-icon">▧</span>Medien
         </button>
+        <button class="nav-item" data-view="tasks">
+          <span class="nav-icon">☑</span><span class="nav-label">Meine Aufgaben</span>
+        </button>
+        <button class="nav-item pfms-notification-nav" type="button" data-view="notifications">
+          <span class="nav-icon">♧</span><span class="nav-label">Mitteilungen</span>
+          <span class="pfms-notification-count" data-pfms-notification-count hidden></span>
+        </button>
+        <button class="nav-item" data-view="support">
+          <span class="nav-icon">✉</span>Hilfe & Support
+        </button>
         <div class="admin-nav-section" id="adminNavSection" hidden>
           <div class="nav-section-label admin-section-title">ADMINISTRATOR</div>
           <button class="nav-item admin-nav-item" data-view="clubs"><span class="nav-icon">⌂</span>Vereine</button>
@@ -310,6 +350,7 @@
           <button class="nav-item admin-nav-item" data-view="players"><span class="nav-icon">⚽</span>Spielerdatenbank</button>
           <button class="nav-item admin-nav-item" data-view="admin-errors"><span class="nav-icon">!</span>Fehler</button>
           <button class="nav-item admin-nav-item" data-view="admin-inbox"><span class="nav-icon">✉</span>Postfach</button>
+          <button class="nav-item admin-nav-item pfms-notification-nav" data-view="notifications" type="button"><span class="nav-icon">♧</span>Mitteilungen <span class="pfms-notification-count" data-pfms-notification-count hidden></span></button>
           <button class="nav-item admin-nav-item" data-view="admin-payments"><span class="nav-icon">€</span>Zahlungen</button>
           <button class="nav-item admin-nav-item" data-view="admin"><span class="nav-icon">⚙</span>Admin-Einstellungen</button>
           <button class="nav-item admin-nav-item" data-view="backup"><span class="nav-icon">⇧</span>Datensicherung</button>
@@ -331,7 +372,7 @@
             <span class="user-presence-dot" id="userPresenceDot" aria-label="Benutzer online"></span>
           </div>
           <span>
-            <b id="accountEmail">PFSS Nutzer</b>
+            <b id="accountEmail">PFMS Nutzer</b>
             <small id="profileRole">Mitglied</small>
           </span>
         </div>
@@ -346,7 +387,7 @@
       <header class="topbar">
         <button class="mobile-menu" id="menuToggle" type="button" aria-label="Menü öffnen" aria-controls="sidebar" aria-expanded="false">☰</button>
         <div class="breadcrumb">
-          <span>PFSS</span>
+          <span>PFMS</span>
           <i>/</i>
           <b id="pageTitle">Dashboard</b>
         </div>
@@ -376,7 +417,7 @@
 
       <section class="view active" id="view-dashboard">
         <section class="first-login-intro" id="firstLoginIntro" hidden>
-          <div class="eyebrow">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
+          <div class="eyebrow">PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</div>
           <h2>Herzlich Willkommen bei PFMS!</h2>
           <p>Schön, dass du dabei bist. PFMS ist deine zentrale Plattform für die professionelle Organisation und Verwaltung des Fußballs – vom Spieler- und Kadermanagement über Scouting und Leistungsberichte bis hin zur Zusammenarbeit von Vereinen, Trainern, Scouts und Agenturen.</p>
           <div class="first-login-features">
@@ -387,22 +428,24 @@
           <p class="first-login-closing">Dein Arbeitsplatz für einen modernen, datenbasierten und vernetzten Fußball.</p>
         </section>
         <div class="returning-welcome" id="returningWelcome" hidden>Willkommen zurück!</div>
-        <div class="dashboard-brand"><img class="pfms-logo dashboard-logo" src="pfms-logo.svg" alt="PFMS – Professional Football Management System"><span>PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</span></div>
+        <div class="dashboard-brand"><img class="pfms-logo dashboard-logo" src="pfms-logo.svg" alt="PFMS – Professionell Football Management System"><span>PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</span></div>
         <div class="page-heading">
           <div>
             <div class="eyebrow">ÜBERSICHT</div>
             <h1>Dashboard</h1>
-            <p>Willkommen bei deinem Professional Football Scouting System.</p>
+            <p>Willkommen bei deinem Professionell Football Management System.</p>
             
           </div>
-          <button class="btn btn-primary" data-action="new-player">
-            ＋ Spieler hinzufügen
-          </button>
+          <div class="page-heading-actions">
+            <button class="btn btn-primary" data-action="new-player">
+              ＋ Spieler hinzufügen
+            </button>
+          </div>
         </div>
 
         <div class="hero-panel">
           <div class="hero-copy">
-            <span class="hero-tag">PROFESSIONAL FOOTBALL SCOUTING</span>
+            <span class="hero-tag">PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</span>
             <h2>Entdecke Potenziale.<br><em>Bewerte Leistung.</em></h2>
             <p>
               Alle wichtigen Scouting-Informationen an einem Ort –
@@ -523,11 +566,20 @@
             <h1>Spieler</h1>
             <p>Verwalte Profile, Positionen und Spielerinformationen.</p>
           </div>
-          <button class="btn btn-primary" data-action="new-player">
-            ＋ Spieler hinzufügen
-          </button>
+          <div class="page-heading-actions">
+            <button class="btn btn-secondary" id="importLegacyDataButton" type="button" hidden>
+              Lokale Alt-Daten importieren
+            </button>
+            <button class="btn btn-secondary" id="exportPlayersCsvButton" type="button">
+              CSV exportieren
+            </button>
+            <button class="btn btn-primary" data-action="new-player" id="addGlobalPlayerButton">
+              ＋ Spieler hinzufügen
+            </button>
+          </div>
         </div>
 
+        <div id="mainPlayerDataStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <form id="playerSearchForm" class="panel pfss-search-form">
           <div class="panel-heading"><div><div class="eyebrow">SPIELERDATENBANK</div><h3>Spieler gezielt suchen</h3></div></div>
           <div class="pfss-search-fields">
@@ -550,159 +602,575 @@
       </section>
 
       <section class="view" id="view-clubs">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · STARTSEITE</div><h1>Vereinsübersicht</h1><p>Zentrale Übersicht für Präsident, Vorstand, Jugendleitung und sportliche Leitung.</p></div><span class="module-status">Platzhalter · Funktionen folgen</span></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSWORKSPACE · ORGANISATIONEN</div><h1>Vereinsübersicht</h1><p>Verwalte deine freigegebenen Vereine und Agenturen, Mitgliedschaften und Mannschaften an einem Ort.</p></div><span class="module-status">Live-Daten</span></div>
+        <div id="pfmsClubWorkspaceStatus" class="notice" role="status" aria-live="polite">Deine Organisationen werden geladen …</div>
+        <div id="pfmsClubOrganizationsGrid" class="club-role-grid">
+          <div class="empty-state"><b>Organisationen werden geladen …</b><p>Die Übersicht wird mit deinem PFMS-Konto abgeglichen.</p></div>
+        </div>
         <section class="admin-org-console" id="adminClubConsole" hidden>
           <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Verein finden</h3></div><span class="module-status">Verwaltung</span></div>
-            <div class="org-search-grid">
-              <label class="field">Vereinsname<input type="search" placeholder="Vereinsnamen eingeben"></label>
-              <label class="field">Vereins-User-ID<input type="text" placeholder="Vereins-ID eingeben"></label>
-              <button class="btn btn-primary" type="button" disabled>Suchen</button>
-            </div>
-            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
-          </div>
-          <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder des ausgewählten Vereins</h3></div><span class="module-status">Vorschau</span></div>
-            <div class="org-empty-state">Nach Auswahl eines Vereins werden hier dessen Präsident, Vorstand, Trainer, Scouts und weitere zugeordnete Mitglieder angezeigt.</div>
-            <div class="org-member-detail">
-              <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
-              <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
-                <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Mannschaften</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Mitglieder</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
-                <b>Finanzen</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              </div>
-              <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
+            <div class="panel-heading"><div><div class="eyebrow">PLATTFORMADMINISTRATION</div><h3>Organisationen und Mitgliedschaften</h3></div><span class="module-status">Live-Verwaltung</span></div>
+            <p>Die organisationsübergreifende Mitgliederverwaltung zeigt Vereine, Agenturen, Rollen und Mitgliedsstatus. Änderungen werden über serverseitig geschützte PFMS-Verwaltungsfunktionen gespeichert.</p>
+            <div class="pfms-club-organization-actions">
+              <button class="btn btn-primary" type="button" data-view="admin-members">Mitglieder und Organisationen verwalten</button>
+              <button class="btn btn-secondary" type="button" data-view="admin">Zur Plattformadministration</button>
             </div>
           </div>
         </section>
         <div class="club-hero panel">
-          <div><div class="eyebrow">VEREINSREGISTER</div><h2>Willkommen im Vereinsbereich</h2><p>Nach der Vereinsregistrierung werden hier Vereinsdaten, Zuständigkeiten und freigeschaltete Bereiche zusammengeführt.</p></div>
+          <div><div class="eyebrow">VEREINSREGISTER</div><h2>Willkommen im Vereinsbereich</h2><p>Hier siehst du die Organisationen, für die dein Konto Verwaltungsrechte besitzt. Von hier erreichst du Mitgliederverwaltung, Mannschaften und Einladungen.</p></div>
           <div class="club-hero-mark">PFMS</div>
         </div>
-        <div class="club-role-grid">
-          <article class="module-card module-feature"><span class="module-symbol">♛</span><div class="eyebrow">VEREINSLEITUNG</div><h3>Präsident</h3><p>Übergeordnete Vereinsverwaltung und Vereinsrechte.</p><span class="module-status">Alle Vereinsbereiche</span></article>
-          <article class="module-card"><span class="module-symbol">▤</span><div class="eyebrow">VORSTAND</div><h3>Vorstand</h3><p>Verwaltungsaufgaben und zugewiesene Vereinsrechte.</p></article>
-          <article class="module-card"><span class="module-symbol">♧</span><div class="eyebrow">JUGEND</div><h3>Jugendleitung</h3><p>Verantwortung für die freigegebenen Jugendmannschaften.</p></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">SPORTLICHE LEITUNG</div><h3>Sportliche Leitung</h3><p>Zuständigkeit für den festgelegten Bereich, zum Beispiel Herren oder Jugend.</p></article>
-        </div>
-        <div class="notice club-placeholder-note"><span>ⓘ</span><p><b>Konfigurierbar:</b> Bei der Vereinsregistrierung werden Vereinsart, Leitungsfunktionen und Zuständigkeiten erfasst. Die endgültigen Rechte werden später durch den Hauptadministrator beziehungsweise den berechtigten Vereinsverantwortlichen eingerichtet.</p></div>
+
       </section>
 
       <section class="view" id="view-club-members">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Aktive und passive Mitglieder, Beitragsübersicht und Zahlungsstatus.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitgliederverwaltung">＋ Mitglied aufnehmen</button></div>
-        <div class="stats-grid">
-          <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder mit aktiver Mitgliedschaft</small></article>
-          <article class="stat-card"><div class="stat-top">PASSIVE MITGLIEDER</div><strong>–</strong><small>Mitglieder ohne aktive Sportteilnahme</small></article>
-          <article class="stat-card"><div class="stat-top">OFFENE BEITRÄGE</div><strong>–</strong><small>Monatliche Beiträge mit Rückstand</small></article>
-          <article class="stat-card accent-stat"><div class="stat-top">BEITRÄGE BEZAHLT</div><strong>–</strong><small>Nach Zahlungseingang bestätigt</small></article>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERSUCHE</div><h3>Mitglieder finden</h3></div><span class="module-status">Datenbank folgt</span></div>
-          <div class="club-search-preview"><span>⌕</span><span>Suche nach Vorname, Nachname oder Geburtsdatum</span></div>
-          <div class="club-table-wrap"><table class="club-table"><thead><tr><th>Mitglied</th><th>Status</th><th>Monatsbeitrag</th><th>Offener Monat</th><th>Zahlungsstatus</th></tr></thead><tbody>
-            <tr><td>Beispielmitglied</td><td>Aktiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-open">Offen</span></td></tr>
-            <tr><td>Beispielmitglied</td><td>Passiv</td><td>– €</td><td>–</td><td><span class="payment-state payment-paid">Bezahlt</span></td></tr>
-          </tbody></table></div>
-          <p class="club-footnote">Beispieldarstellung ohne echte Mitgliederdaten. Mitglieder sollen später ihre Zahlungen erfassen beziehungsweise einen Zahlungsvorgang melden können. Die endgültige Zahlungsbestätigung und Buchungslogik wird gesondert festgelegt.</p>
-        </div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Mitgliedschaften</h1><p>Mitglieder, Rollen und Status deiner Organisation verwalten. Die Beitragsabrechnung wird separat ergänzt.</p></div><button class="btn btn-primary" type="button" data-action="show-legacy-invitation">＋ Mitglied einladen</button></div>
+        <section class="panel pfms-invitation-panel" id="pfmsLegacyInvitationPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">SICHERE EINLADUNG</div>
+              <h3>Mitglied in den Verein einladen</h3>
+              <p>Erzeuge einen einmaligen Link für eine Organisation, die du verwalten darfst.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" data-action="hide-legacy-invitation">Schließen</button>
+          </div>
+          <form id="pfmsLegacyInvitationForm" class="pfms-invitation-form">
+            <label class="field">
+              Verein / Organisation
+              <select id="pfmsLegacyInvitationOrganization" name="organization_id" required>
+                <option value="">Organisation wird geladen …</option>
+              </select>
+            </label>
+            <label class="field">
+              Einzuladende Rolle
+              <select name="role" required>
+                <option value="scout">Scout</option>
+                <option value="trainer">Trainer</option>
+                <option value="co_trainer">Co-Trainer</option>
+                <option value="betreuer">Betreuer</option>
+                <option value="member">Mitglied</option>
+              </select>
+            </label>
+            <label class="field">
+              Gültigkeit
+              <select name="expires_in_days" required>
+                <option value="1">1 Tag</option>
+                <option value="3">3 Tage</option>
+                <option value="7" selected>7 Tage</option>
+                <option value="14">14 Tage</option>
+                <option value="30">30 Tage</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit" id="pfmsLegacyInvitationSubmit">Einladungslink erstellen</button>
+          </form>
+          <p class="admin-message" id="pfmsLegacyInvitationMessage" role="status" aria-live="polite"></p>
+          <div class="pfms-invitation-result" id="pfmsLegacyInvitationResult" hidden>
+            <div class="eyebrow">EINMALIGER LINK</div>
+            <p>Der Einladungslink wurde erstellt. Teile ihn nur mit der vorgesehenen Person. Der Rohcode wird nicht erneut von der Datenbank ausgegeben.</p>
+            <div class="pfms-invitation-copy-row">
+              <input id="pfmsLegacyInvitationUrl" type="text" readonly aria-label="Einladungslink">
+              <button class="btn btn-secondary" type="button" id="pfmsLegacyInvitationCopy">Link kopieren</button>
+            </div>
+          </div>
+        </section>
+        <section class="panel pfms-members-directory" id="pfmsLegacyMembersPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">ORGANISATIONSVERWALTUNG</div>
+              <h3>Mitglieder deiner Organisation</h3>
+              <p>Suche und verwalte Mitgliedschaften innerhalb deiner eigenen Organisationen.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" id="pfmsLegacyMembersRefresh">Aktualisieren</button>
+          </div>
+          <form id="pfmsLegacyMembersFilterForm" class="pfms-member-filter-form">
+            <label class="field">
+              Organisation
+              <select id="pfmsLegacyMembersOrganization" name="organization_id" required>
+                <option value="">Organisation wird geladen …</option>
+              </select>
+            </label>
+            <label class="field">
+              Mitglied suchen
+              <input id="pfmsLegacyMembersQuery" name="query" type="search" maxlength="120" placeholder="Name, E-Mail oder User-ID">
+            </label>
+            <label class="field">
+              Rolle
+              <select id="pfmsLegacyMembersRole" name="role">
+                <option value="">Alle Rollen</option>
+                <option value="owner">Besitzer</option>
+                <option value="club_admin">Vereinsleitung</option>
+                <option value="agency_admin">Agenturleitung</option>
+                <option value="scout">Scout</option>
+                <option value="trainer">Trainer</option>
+                <option value="co_trainer">Co-Trainer</option>
+                <option value="betreuer">Betreuer</option>
+                <option value="member">Mitglied</option>
+              </select>
+            </label>
+            <label class="field">
+              Status
+              <select id="pfmsLegacyMembersStatus" name="status">
+                <option value="">Alle Status</option>
+                <option value="active">Aktiv</option>
+                <option value="pending">Ausstehend</option>
+                <option value="suspended">Gesperrt</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit">Mitglieder suchen</button>
+          </form>
+          <div class="pfms-member-summary" id="pfmsLegacyMembersSummary" hidden>
+            <span><b id="pfmsLegacyMembersActiveCount">0</b> aktive</span>
+            <span><b id="pfmsLegacyMembersPendingCount">0</b> ausstehend</span>
+            <span><b id="pfmsLegacyMembersSuspendedCount">0</b> gesperrt</span>
+          </div>
+          <p class="admin-message" id="pfmsLegacyMembersMessage" role="status" aria-live="polite"></p>
+          <div class="pfms-member-results" id="pfmsLegacyMemberResults"></div>
+        </section>
+        <section class="panel pfms-membership-finance-note">
+          <div class="eyebrow">BEITRÄGE & ZAHLUNGEN</div>
+          <h3>Beitragsabrechnung folgt als eigener geschützter Bereich</h3>
+          <p>Es werden hier bewusst keine Beispieldaten oder Zahlungsbestätigungen angezeigt. Beitragssätze, offene Posten und Zahlungseingänge werden erst nach einem eigenen Datenmodell mit nachvollziehbarer Buchungs- und Berechtigungslogik aktiviert.</p>
+        </section>
       </section>
 
       <section class="view" id="view-club-admin">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Verwaltung & Rechte</h1><p>Leitungsfunktionen, Zuständigkeiten und individuelle Berechtigungen.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Rechteverwaltung">＋ Verantwortlichen zuordnen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Verwaltung & Rechte</h1><p>Organisationsmitglieder, Mannschaften und teambezogene Berechtigungen zentral erreichen.</p></div><span class="module-status">Verwaltungszugänge</span></div>
         <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">♛</span><h3>Präsident</h3><p>Vereinsweite Verwaltungsrechte für alle Vereinsbereiche.</p><span class="module-status">Vollzugriff im Verein</span></article>
-          <article class="module-card"><span class="module-symbol">▤</span><h3>Vorstand</h3><p>Vereinsverwaltung gemäß der vom Verein festgelegten Zuständigkeit.</p></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Jugendleitung</h3><p>Verwaltung und Übersicht der zugewiesenen Jugendmannschaften.</p></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>Sportliche Leitung</h3><p>Verwaltung der zugewiesenen sportlichen Abteilung, beispielsweise Herren.</p></article>
-          <article class="module-card module-wide"><div class="eyebrow">RECHTE NACH ZUSTÄNDIGKEIT</div><h3>Rollen und Zugriffsrechte individuell festlegen</h3><p>Trainer, Co-Trainer und Betreuer erhalten keine pauschalen Vereinsrechte. Ihre Berechtigungen werden später je Mannschaft und Funktionsbereich vergeben und können angepasst oder widerrufen werden.</p><div class="permission-preview"><span>Mannschaften <b>Lesen / Verwalten</b></span><span>Mitgliedschaften <b>Lesen / Verwalten</b></span><span>Beitragsübersicht <b>Lesen / Erfassen</b></span><span>Scouting-Abteilung <b>Separat geregelt</b></span></div></article>
+          <article class="module-card module-feature"><span class="module-symbol">♛</span><div class="eyebrow">MITGLIEDSCHAFTEN</div><h3>Mitglieder und Rollen</h3><p>Verwalte aktive, ausstehende und gesperrte Mitgliedschaften sowie die Organisationsrollen.</p><button class="btn btn-primary" type="button" data-view="club-members">Mitgliederverwaltung öffnen</button></article>
+          <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">MANNSCHAFTEN</div><h3>Teams und Staff</h3><p>Lege Mannschaften an, verwalte Trainerteams und ordne aktive Vereinsmitglieder zu.</p><button class="btn btn-secondary" type="button" data-view="teams">Mannschaften öffnen</button></article>
+          <article class="module-card"><span class="module-symbol">▤</span><div class="eyebrow">TEAMRECHTE</div><h3>Modulberechtigungen</h3><p>Die Teamverwaltung enthält neun getrennte Rechtebereiche: Kader, Training, Anwesenheit, Finanzen, Veranstaltungen, Kalender, Spiele, Taktik/Analyse und Teamaufgaben.</p><button class="btn btn-secondary" type="button" data-view="team-workspace">Teamrechte öffnen</button></article>
         </div>
+        <div class="notice"><span>ⓘ</span><p><b>Abgrenzung:</b> Organisationsweite frei definierbare Rollen- und Rechteprofile sind noch nicht vollständig umgesetzt. Die oben verlinkten Mitgliedschafts- und Teamrechte sind getrennte, bereits angebundene Verwaltungsbereiche.</p></div>
       </section>
 
       <section class="view" id="view-club-scouting">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Eigene Scouting-Struktur des Vereins und angebundene Scout-Profile.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scouting-Abteilung">＋ Scout zuordnen</button></div>
-        <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scouting-Team</h3><p>Scouts des Vereins, Zuständigkeiten, Beobachtungsgebiete und interne Organisation.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">⌕</span><h3>Spielersuche</h3><p>Später mit privater und globaler PFMS-Spielerdatenbank sowie zulässigen externen Datenquellen.</p></article>
-          <article class="module-card"><span class="module-symbol">▤</span><h3>Scouting-Berichte</h3><p>Eigene Beobachtungen, Bewertungen und freigegebene Berichte getrennt verwalten.</p></article>
-          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Freigaben für Spieler und Berichte werden bewusst und nachvollziehbar gesteuert.</p></article>
-        </div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Aktive Scouts deiner verwalteten Organisationen und deren Mitgliedschaftsstatus.</p></div><button class="btn btn-primary" type="button" id="pfmsClubInviteScoutButton">＋ Scout einladen</button></div>
+        <section class="panel" id="pfmsClubScoutingPanel">
+          <div class="panel-heading"><div><div class="eyebrow">SCOUTING-TEAM</div><h3>Scouts der Organisation</h3></div><span class="module-status">Live-Mitgliedschaften</span></div>
+          <div class="pfss-search-fields">
+            <label class="field">Verein / Organisation<select id="pfmsClubScoutingOrganization"><option value="">Organisationen werden geladen …</option></select></label>
+            <label class="field">Suche<input id="pfmsClubScoutingQuery" type="search" placeholder="Name, Benutzername oder E-Mail"></label>
+          </div>
+          <p class="admin-message" id="pfmsClubScoutingMessage" role="status" aria-live="polite">Scouts werden geladen …</p>
+          <div id="pfmsClubScoutingResults" class="admin-user-list"></div>
+        </section>
       </section>
 
       <section class="view" id="view-teams">
-        <div class="page-heading"><div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Von Herren bis Minis: Der Verein legt seine Mannschaften und deren Anzahl selbst fest.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mannschaftskonfiguration">＋ Mannschaft anlegen</button></div>
-        <div class="notice"><span>ⓘ</span><p><b>Vereinskonfiguration:</b> Die Anzahl und Bezeichnungen der Mannschaften werden vom Vorstand festgelegt und nach der Registrierung eingerichtet. Jede Mannschaft erhält dieselbe Grundstruktur.</p></div>
-        <div class="team-category-grid">
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>1. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>2. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><h3>3. Herren</h3><p>Senioren · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Seniorinnen</h3><p>Frauen · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">A1</span><h3>A1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">A2</span><h3>A2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">B1</span><h3>B1</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">B2</span><h3>B2</h3><p>Jugend · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card"><span class="module-symbol">♙</span><h3>Minis</h3><p>Nachwuchs · Mannschaftsbereich</p><span class="module-status">Beispiel-Platzhalter</span></article>
-          <article class="module-card module-wide"><div class="eyebrow">EINHEITLICHER MANNSCHAFTSBEREICH</div><h3>Jede Mannschaft erhält dieselbe Grundstruktur</h3><p>Beim Öffnen einer Mannschaft erscheint ein eigenes Dashboard mit Trainer, Co-Trainer, Betreuer, Spielerkader und weiteren Modulen.</p><div class="permission-preview"><span>Trainerteam <b>Zuordnen</b></span><span>Spielerkader <b>Verwalten</b></span><span>Training & Spiele <b>Organisieren</b></span><span>Weitere Funktionen <b>Konfigurierbar</b></span></div></article>
-        </div>
-      </section>
-
+  <div class="page-heading">
+    <div><div class="eyebrow">SPORTLICHER BEREICH</div><h1>Mannschaften</h1><p>Konfiguriere die Mannschaften deines Vereins und ordne Trainerteams zu.</p></div>
+    <button class="btn btn-primary" id="pfmsAddTeamButton" type="button" hidden>＋ Mannschaft anlegen</button>
+  </div>
+  <div class="notice"><span>ⓘ</span><p><b>Vereinsstruktur:</b> Mannschaften gehören immer zu einem konkreten Verein und einer Saison. Trainer, Co-Trainer und Betreuer können nur aus aktiven Mitgliedern dieser Organisation zugewiesen werden.</p></div>
+  <p id="pfmsTeamsMessage" class="admin-message" role="status" aria-live="polite">Mannschaften werden geladen …</p>
+  <div id="pfmsTeamGrid" class="team-category-grid"></div>
+</section>
+      
       <section class="view" id="view-staff">
-        <div class="page-heading"><div><div class="eyebrow">TEAMORGANISATION</div><h1>Trainer & Betreuer</h1><p>Trainer, Co-Trainer und Betreuer mit getrennten Bereichsrechten.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Mitarbeiter">＋ Person zuordnen</button></div>
-        <div class="module-grid">
-          <article class="module-card"><span class="module-symbol">♙</span><h3>Trainer</h3><p>Teamverantwortung, Kaderübersicht und sportliche Organisation.</p></article>
-          <article class="module-card"><span class="module-symbol">♧</span><h3>Co-Trainer</h3><p>Individuelle Rechte je Bereich: lesen oder bearbeiten.</p></article>
-          <article class="module-card"><span class="module-symbol">＋</span><h3>Betreuer</h3><p>Organisatorische Aufgaben und gezielte Zugriffsrechte.</p></article>
-          <article class="module-card module-wide"><div class="eyebrow">BERECHTIGUNGSPRINZIP</div><h3>Rechte pro Bereich statt pauschaler Adminrechte</h3><p>Der verantwortliche Trainer kann Co-Trainern und Betreuern für einzelne Bereiche Leserechte oder Bearbeitungsrechte geben. Diese Freigaben bleiben auf das jeweilige Team begrenzt und können widerrufen werden.</p><div class="permission-preview"><span>Spielerkader <b>Lesen / Bearbeiten</b></span><span>Training <b>Lesen / Bearbeiten</b></span><span>Spiele <b>Lesen / Bearbeiten</b></span><span>Mannschaftskasse <b>Lesen / Bearbeiten</b></span></div></article>
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">TEAMORGANISATION</div>
+            <h1>Trainer & Betreuer</h1>
+            <p>Übersicht deiner Mannschaften, Trainer, Co-Trainer und Betreuer. Teamrechte bleiben immer auf die jeweilige Mannschaft begrenzt.</p>
+          </div>
+          <div class="page-heading-actions">
+            <button class="btn btn-secondary" id="pfmsStaffRefreshButton" type="button">↻ Aktualisieren</button>
+            <button class="btn btn-primary" type="button" data-view="teams">Mannschaften verwalten</button>
+          </div>
         </div>
+        <div class="notice">
+          <span>ⓘ</span>
+          <p><b>Gezielte Teamrechte:</b> Verantwortliche Trainer und berechtigte Vereinsleitungen können Personen aus den aktiven Vereinsmitgliedern zuordnen und pro Bereich Lese- oder Bearbeitungsrechte vergeben. Die Berechtigungen gelten ausschließlich für die jeweilige Mannschaft.</p>
+        </div>
+        <p id="pfmsStaffMessage" class="admin-message" role="status" aria-live="polite">Trainerteams werden geladen …</p>
+        <div id="pfmsStaffDirectory" class="team-category-grid" aria-live="polite"></div>
+        <section class="module-card module-wide pfms-staff-permissions-guide">
+          <div class="eyebrow">BERECHTIGUNGSPRINZIP</div>
+          <h3>Rechte pro Bereich statt pauschaler Adminrechte</h3>
+          <p>Die acht getrennten Bereiche sind Spielerkader, Training, Anwesenheit, Mannschaftskasse, Veranstaltungen, Mannschaftskalender, Spiele und Analyse. Bearbeitungsrechte setzen die jeweiligen Leserechte voraus und können jederzeit widerrufen werden.</p>
+          <div class="permission-preview">
+            <span>Spielerkader <b>Lesen / Bearbeiten</b></span>
+            <span>Training & Anwesenheit <b>Lesen / Bearbeiten</b></span>
+            <span>Spiele & Kalender <b>Lesen / Bearbeiten</b></span>
+            <span>Mannschaftskasse <b>Lesen / Bearbeiten</b></span>
+          </div>
+        </section>
       </section>
 
       <section class="view" id="view-scouts">
-        <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Scout-Profile, Beobachtungsgebiete und kontrollierte Berichtsfreigaben.</p></div><button class="btn btn-primary" type="button" data-skeleton-action="Scout">＋ Scout einladen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">SCOUTING-NETZWERK</div><h1>Scouts</h1><p>Verwalte Scout-Mitgliedschaften und nutze den privaten Scout-Arbeitsbereich mit globaler Spielersuche.</p></div><button class="btn btn-primary" type="button" data-view="club-scouting">Scouts der Organisation verwalten</button></div>
         <section class="admin-org-console" id="adminScoutConsole" hidden>
           <div class="panel">
-            <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Einzelscout finden</h3></div><span class="module-status">Verwaltung</span></div>
-            <div class="org-search-grid">
-              <label class="field">Scout-Name<input type="search" placeholder="Vor- oder Nachname eingeben"></label>
-              <label class="field">Scout-User-ID<input type="text" placeholder="Scout-ID eingeben"></label>
-              <button class="btn btn-primary" type="button" disabled>Suchen</button>
-            </div>
-            <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
+            <div class="panel-heading"><div><div class="eyebrow">PLATTFORMADMINISTRATION</div><h3>Scout-Konten und Organisationsrollen</h3></div><span class="module-status">Live-Verwaltung</span></div>
+            <p>Scout-Konten und ihre Organisationszuordnungen werden über die organisationsübergreifende Mitgliederverwaltung gesucht und geprüft.</p>
+            <button class="btn btn-primary" type="button" data-view="admin-members">Scout-Konten verwalten</button>
           </div>
-          <div class="panel"><div class="panel-heading"><div><div class="eyebrow">SCOUT-PROFIL</div><h3>Persönliche Berechtigungen</h3></div></div><div class="org-empty-state">Nach Auswahl eines Scouts werden dessen User-ID, Status und sämtliche individuellen Rechte angezeigt.</div></div>
         </section>
         <div class="module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Scout-Profile</h3><p>Scouts können Spieler und Statistiken erfassen, beobachten und Berichte erstellen.</p><span class="module-status">Oberflächen-Gerüst</span></article>
-          <article class="module-card"><span class="module-symbol">◉</span><h3>Private Datenbereiche</h3><p>Eigene Scouting-Daten und private Notizen bleiben zunächst nur für den jeweiligen Scout sichtbar.</p></article>
-          <article class="module-card"><span class="module-symbol">⇄</span><h3>Freigaben</h3><p>Berichte können gezielt und freiwillig mit ausgewählten Vereinen geteilt und wieder entzogen werden.</p></article>
+          <article class="module-card module-feature"><span class="module-symbol">◎</span><div class="eyebrow">SCOUTING</div><h3>Privater Scout-Arbeitsbereich</h3><p>Eigene Spielerprofile, Beobachtungen, Berichte und Medien werden getrennt vom globalen PFMS-Katalog gespeichert.</p></article>
+          <article class="module-card"><span class="module-symbol">⌕</span><h3>Globale Spielersuche</h3><p>Freigegebene globale Spielerprofile können gefiltert und in den privaten Scout-Bereich übernommen werden.</p></article>
+          <article class="module-card"><span class="module-symbol">⇄</span><h3>Organisationszuordnung</h3><p>Vereine und Agenturen verwalten aktive Scouts über ihre Mitgliedschaften und Einladungslinks.</p><button class="btn btn-secondary" type="button" data-view="club-scouting">Scout-Zuordnungen öffnen</button></article>
         </div>
       </section>
 
       <section class="view" id="view-team-workspace">
-        <div class="page-heading">
+  <div class="page-heading">
+    <div><div class="eyebrow">MANNSCHAFTSBEREICH · TRAINER / CO-TRAINER / BETREUER</div><h1>Meine Mannschaften</h1><p>Die Mannschaften, denen du aktuell zugeordnet bist.</p></div>
+  </div>
+  <div class="team-workspace-note"><b>Persönlicher Mannschaftsbereich</b><span>Du siehst ausschließlich Mannschaften, für die du eine aktive Teamzuordnung oder entsprechende Vereinsrechte besitzt.</span></div>
+  <p id="pfmsMyTeamsMessage" class="admin-message" role="status" aria-live="polite">Deine Mannschaften werden geladen …</p>
+  <div id="pfmsMyTeamsGrid" class="team-category-grid"></div>
+  <section class="panel" id="pfmsSelectedTeamPanel" hidden>
+    <div class="panel-heading"><div><div class="eyebrow">MANNSCHAFT</div><h2 id="pfmsSelectedTeamTitle"></h2><p id="pfmsSelectedTeamMeta"></p></div><button class="btn btn-secondary" type="button" id="pfmsCloseSelectedTeam">Schließen</button></div>
+    <div id="pfmsSelectedTeamStaff" class="admin-user-list"></div>
+    <p id="pfmsTeamPermissionNotice" class="notice" role="status" aria-live="polite" hidden></p>
+    <section class="pfms-team-roster-panel" id="pfmsTeamRosterPanel">
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">MANNSCHAFTSKADER</div>
+          <h3>Spielerkader</h3>
+          <p>Die Kaderzuordnung verwendet zentrale PFMS-Spielerprofile. Das globale Spielerprofil bleibt unverändert.</p>
+        </div>
+        <span class="module-status" id="pfmsTeamRosterCount">0 Spieler</span>
+      </div>
+      <form id="pfmsTeamRosterSearchForm" class="pfms-team-roster-search" hidden>
+        <label class="field">Globalen Spieler suchen
+          <input id="pfmsTeamRosterSearch" name="query" type="search" maxlength="120" placeholder="Vorname, Nachname oder Verein">
+        </label>
+        <button class="btn btn-secondary" type="submit">Spieler suchen</button>
+      </form>
+      <form id="pfmsTeamRosterForm" class="pfms-team-roster-add" hidden>
+        <label class="field">Spieler aus der PFMS-Datenbank
+          <select id="pfmsTeamRosterCandidate" name="player_id" required>
+            <option value="">Zuerst Spieler suchen …</option>
+          </select>
+        </label>
+        <label class="field">Trikotnummer
+          <input id="pfmsTeamRosterJersey" name="jersey_number" type="number" min="1" max="99" placeholder="1–99">
+        </label>
+        <label class="field">Kaderposition (optional)
+          <select id="pfmsTeamRosterPosition" name="position_override">
+            <option value="">Stammposition übernehmen</option>
+            <option value="Torwart">Torwart</option>
+            <option value="Abwehr">Abwehr</option>
+            <option value="Mittelfeld">Mittelfeld</option>
+            <option value="Sturm">Sturm</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit" id="pfmsTeamRosterAddButton">Spieler zum Kader hinzufügen</button>
+      </form>
+      <p id="pfmsTeamRosterMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamRosterList" class="pfms-team-roster-list"></div>
+    </section>
+
+    <section class="panel pfms-team-calendar-panel" id="pfmsTeamCalendarPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">MANNSCHAFTSORGANISATION</div>
+          <h3>Mannschaftskalender</h3>
+          <p>Plane Besprechungen, Turniere, Spiele und weitere Termine für diese Mannschaft.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamCalendarForm" class="pfms-calendar-form" hidden>
+        <input type="hidden" name="event_id">
+        <input type="hidden" name="status" value="planned">
+        <label class="field">Bezeichnung<input name="title" maxlength="140" required placeholder="z. B. Elternabend oder Auswärtsspiel"></label>
+        <label class="field">Terminart<select name="event_type" required>
+          <option value="match">Spiel</option><option value="meeting">Besprechung</option>
+          <option value="tournament">Turnier</option><option value="event">Veranstaltung</option>
+          <option value="other">Sonstiges</option>
+        </select></label>
+        <label class="field">Datum<input name="event_date" type="date" required></label>
+        <label class="field">Beginn<input name="starts_at" type="time" required></label>
+        <label class="field">Ende<input name="ends_at" type="time"></label>
+        <label class="field">Ort<input name="location" maxlength="160" placeholder="Spielort / Treffpunkt"></label>
+        <label class="field full">Notizen<textarea name="notes" rows="2" maxlength="4000"></textarea></label>
+        <div class="pfms-calendar-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamCalendarSave">Termin speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamCalendarCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamCalendarMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamCalendarList" class="pfms-calendar-list"></div>
+    </section>
+
+    <section class="panel pfms-team-matches-panel" id="pfmsTeamMatchesPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">SPIELBETRIEB</div>
+          <h3>Spiele & Aufstellungen</h3>
+          <p>Erfasse Spielansetzungen, Ergebnisse und die Besetzung deiner Mannschaft.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamMatchForm" class="pfms-match-form" hidden>
+        <input type="hidden" name="match_id">
+        <label class="field">Gegner<input name="opponent" maxlength="140" required placeholder="Name des Gegners"></label>
+        <label class="field">Wettbewerb<input name="competition" maxlength="140" placeholder="Liga / Pokal / Freundschaftsspiel"></label>
+        <label class="field">Spielort<select name="home_away"><option value="home">Heimspiel</option><option value="away">Auswärtsspiel</option></select></label>
+        <label class="field">Datum<input name="match_date" type="date" required></label>
+        <label class="field">Anstoß<input name="kickoff" type="time" required></label>
+        <label class="field">Spielstätte<input name="venue" maxlength="180" placeholder="Sportanlage"></label>
+        <label class="field">Status<select name="status"><option value="scheduled">Geplant</option><option value="completed">Abgeschlossen</option><option value="postponed">Verlegt</option><option value="cancelled">Abgesagt</option></select></label>
+        <label class="field">Eigene Tore<input name="team_goals" type="number" min="0" max="30" placeholder="–"></label>
+        <label class="field">Gegner-Tore<input name="opponent_goals" type="number" min="0" max="30" placeholder="–"></label>
+        <label class="field full">Spielnotizen<textarea name="match_notes" rows="2" maxlength="6000"></textarea></label>
+        <div class="pfms-match-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamMatchSave">Spiel speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamMatchCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamMatchesMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamMatchesList" class="pfms-match-list"></div>
+
+      <section class="pfms-match-lineup-panel" id="pfmsTeamMatchLineupPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">SPIELTAGSKADER</div><h3 id="pfmsTeamMatchLineupTitle">Aufstellung</h3><p>Wähle Spieler aus dem Mannschaftskader und ordne Startelf, Ersatzbank, Position und Kapitän zu.</p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseMatchLineup">Schließen</button>
+        </div>
+        <p id="pfmsTeamMatchLineupMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamMatchLineupList" class="pfms-match-lineup-list"></div>
+        <button class="btn btn-primary" type="button" id="pfmsTeamMatchLineupSave" hidden>Aufstellung speichern</button>
+      </section>
+    </section>
+
+    <section class="panel pfms-team-analysis-panel" id="pfmsTeamAnalysisPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">SPORTLICHE ENTWICKLUNG</div>
+          <h3>Taktik & Videoanalyse</h3>
+          <p>Halte taktische Beobachtungen, Spielphasen, Videoquellen und konkrete Trainingsmaßnahmen mannschaftsbezogen fest.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamAnalysisForm" class="pfms-analysis-form" hidden>
+        <input type="hidden" name="analysis_id">
+        <div class="pfms-analysis-form-grid">
+          <label class="field">Titel<input name="title" maxlength="140" required placeholder="z. B. Pressing im hohen Block"></label>
+          <label class="field">Analyseart<select name="analysis_type" required><option value="tactical">Taktische Auswertung</option><option value="video">Videoanalyse</option></select></label>
+          <label class="field">Spielbezug<select name="match_id" id="pfmsTeamAnalysisMatch"><option value="">Ohne konkretes Spiel</option></select></label>
+          <label class="field">Spielphase / Schwerpunkt<select name="phase" required>
+            <option value="general">Allgemein</option><option value="pre_match">Spielvorbereitung</option>
+            <option value="build_up">Spielaufbau</option><option value="pressing">Pressing</option>
+            <option value="transition">Umschalten</option><option value="defending">Defensivverhalten</option>
+            <option value="set_piece">Standards</option><option value="individual">Individualverhalten</option>
+          </select></label>
+          <label class="field">Beobachtungsdatum<input name="observation_date" type="date" required></label>
+          <label class="field">Status<select name="status"><option value="draft">Entwurf</option><option value="reviewed">Besprochen</option><option value="archived">Archiviert</option></select></label>
+          <label class="field full">HTTPS-Videoquelle<input name="video_url" type="url" maxlength="1000" placeholder="https://…"><span class="field-hint">Optional bei Taktiknotizen, erforderlich bei Videoanalyse. Es wird nur ein Link gespeichert, kein Video eingebettet.</span></label>
+          <label class="field">Zeitmarke in Sekunden<input name="video_timestamp_seconds" type="number" min="0" max="86400" step="1" placeholder="z. B. 325"></label>
+          <label class="field full">Zusammenfassung / Beobachtung<textarea name="summary" rows="3" maxlength="10000" required placeholder="Was ist im Spiel oder in der Videoanalyse aufgefallen?"></textarea></label>
+          <label class="field full">Stärken<textarea name="strengths" rows="2" maxlength="3000" placeholder="Was hat die Mannschaft gut gelöst?"></textarea></label>
+          <label class="field full">Verbesserungspunkte<textarea name="improvements" rows="2" maxlength="3000" placeholder="Welche Abläufe müssen wir verbessern?"></textarea></label>
+          <label class="field full">Konkrete Maßnahmen<textarea name="action_items" rows="2" maxlength="3000" placeholder="Welche Inhalte werden im Training umgesetzt?"></textarea></label>
+        </div>
+        <div class="pfms-analysis-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamAnalysisSave">Analyse speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamAnalysisCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamAnalysisMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamAnalysisList" class="pfms-team-analysis-list"></div>
+    </section>
+
+    <section class="panel pfms-team-events-panel" id="pfmsTeamEventsPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TEAMORGANISATION · EVENTS</div>
+          <h3>Veranstaltungen & Turniere</h3>
+          <p>Organisiere Turniere, Mannschaftstage, Auswärtsfahrten und weitere Teamveranstaltungen. Diese Liste nutzt dieselbe Kalenderdatenbasis, bleibt aber über eigene Veranstaltungsrechte begrenzt.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamEventForm" class="pfms-event-form" hidden>
+        <input type="hidden" name="event_id">
+        <label class="field">Bezeichnung<input name="title" maxlength="140" required placeholder="z. B. Sommerturnier U17"></label>
+        <label class="field">Art<select name="event_type" required><option value="event">Veranstaltung</option><option value="tournament">Turnier</option></select></label>
+        <label class="field">Datum<input name="event_date" type="date" required></label>
+        <label class="field">Beginn<input name="starts_at" type="time" required></label>
+        <label class="field">Ende<input name="ends_at" type="time"></label>
+        <label class="field">Veranstaltungsort<input name="location" maxlength="160" placeholder="Sportanlage / Veranstaltungsort"></label>
+        <label class="field">Treffpunkt<input name="meeting_point" maxlength="180" placeholder="z. B. Haupteingang, Parkplatz oder Bahnhof"></label>
+        <label class="field">Anmeldeschluss<input name="registration_deadline" type="date"></label>
+        <label class="field">Transportart<select name="transport_mode"><option value="none">Keine besondere Organisation</option><option value="bus">Mannschaftsbus</option><option value="carpool">Fahrgemeinschaften</option><option value="public_transport">Öffentliche Verkehrsmittel</option><option value="own_transport">Eigene Anreise</option></select></label>
+        <label class="field">Kosten pro Person (€)<input name="fee_per_person" type="number" min="0" max="10000" step="0.01" value="0"></label>
+        <label class="field">Maximale Teilnehmerzahl<input name="capacity" type="number" min="1" max="200" placeholder="Ohne Begrenzung"></label>
+        <label class="field">Status<select name="status"><option value="planned">Geplant</option><option value="completed">Abgeschlossen</option><option value="cancelled">Abgesagt</option></select></label>
+        <label class="field full">Transport- und Anreisehinweise<textarea name="transport_notes" rows="2" maxlength="3000" placeholder="Abfahrtszeit, Treffpunkt, Fahrgemeinschaften, Rückfahrt und notwendige Ausrüstung"></textarea></label>
+        <label class="field full">Informationen / Hinweise<textarea name="notes" rows="3" maxlength="4000" placeholder="Ablauf, Material und organisatorische Hinweise"></textarea></label>
+        <div class="pfms-event-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamEventSave">Veranstaltung speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamEventCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamEventsMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamEventsList" class="pfms-team-events-list"></div>
+    </section>
+
+    <section class="panel pfms-team-tasks-panel" id="pfmsTeamTasksPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TEAMORGANISATION</div>
+          <h3>Gemeinsame Teamaufgaben</h3>
+          <p>Verteile Aufgaben an aktive Trainer, Co-Trainer und Betreuer. Private persönliche Aufgaben bleiben davon getrennt.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamTaskForm" class="pfms-team-task-form" hidden>
+        <input type="hidden" name="task_id">
+        <div class="pfms-team-task-form-grid">
+          <label class="field">Aufgabe<input name="title" maxlength="160" required placeholder="z. B. Trikots für das Turnier organisieren"></label>
+          <label class="field">Verantwortlich<select name="assigned_to" id="pfmsTeamTaskAssignee"><option value="">Noch nicht zugewiesen</option></select></label>
+          <label class="field">Fällig am<input name="due_date" type="date"></label>
+          <label class="field">Priorität<select name="priority"><option value="normal">Normal</option><option value="high">Hoch</option><option value="low">Niedrig</option></select></label>
+          <label class="field">Status<select name="status"><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="done">Erledigt</option><option value="cancelled">Abgebrochen</option></select></label>
+          <label class="field full">Beschreibung<textarea name="description" rows="2" maxlength="3000" placeholder="Hinweise und Details zur Aufgabe"></textarea></label>
+        </div>
+        <div class="pfms-team-task-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamTaskSave">Teamaufgabe speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamTaskCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamTasksMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamTasksList" class="pfms-team-task-list"></div>
+    </section>
+
+    <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TRAININGSBETRIEB</div>
+          <h3>Trainingstermine</h3>
+          <p>Plane Einheiten und öffne für jeden Termin die zugehörige Anwesenheitsliste.</p>
+        </div>
+      </div>
+      <section class="pfms-training-cycle-section" id="pfmsTeamTrainingCyclesPanel" hidden>
+        <div class="panel-heading">
           <div>
-            <div class="eyebrow">MANNSCHAFTSBEREICH · TRAINER / CO-TRAINER / BETREUER</div>
-            <h1>Meine Mannschaft</h1>
-            <p>Alle organisatorischen und sportlichen Aufgaben rund um das eigene Team – als geplante Modulübersicht.</p>
+            <div class="eyebrow">PERIODISIERUNG · WOCHENPLANUNG</div>
+            <h3>Trainingszyklen</h3>
+            <p>Plane einen Trainingsblock mit automatisch angelegten Wochen, individuellen Zielen und Belastungssteuerung.</p>
           </div>
+          <span class="module-status">1–52 Wochen</span>
         </div>
-        <div class="team-workspace-note">
-          <b>Persönlicher Mannschaftsbereich</b>
-          <span>Später sieht jede berechtigte Person hier ausschließlich die ihr zugewiesene Mannschaft.</span>
+        <form id="pfmsTeamTrainingCycleForm" class="pfms-training-form pfms-training-cycle-form" hidden>
+          <label class="field">Zyklusname<input name="title" maxlength="140" required placeholder="z. B. Vorbereitungsphase Sommer"></label>
+          <label class="field">Gesamtschwerpunkt<input name="focus" maxlength="160" placeholder="z. B. Ausdauer, Pressing und Spielaufbau"></label>
+          <label class="field">Startdatum<input name="start_date" type="date" required></label>
+          <label class="field">Enddatum<input name="end_date" type="date" required></label>
+          <label class="field full">Rahmenziele / Hinweise<textarea name="notes" rows="2" maxlength="4000" placeholder="Ziele und Leitlinien des gesamten Trainingsblocks"></textarea></label>
+          <button class="btn btn-primary" type="submit" id="pfmsTeamTrainingCycleSave">Trainingszyklus erstellen</button>
+        </form>
+        <p id="pfmsTeamTrainingCyclesMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamTrainingCyclesList" class="pfms-training-cycles-list"></div>
+      </section>
+      <form id="pfmsTeamTrainingForm" class="pfms-training-form" hidden>
+        <label class="field">Titel<input name="title" maxlength="140" required placeholder="z. B. Athletik und Passspiel"></label>
+        <label class="field">Datum<input name="session_date" type="date" required></label>
+        <label class="field">Beginn<input name="starts_at" type="time" required></label>
+        <label class="field">Ende<input name="ends_at" type="time"></label>
+        <label class="field">Ort<input name="location" maxlength="160" placeholder="Sportplatz / Halle"></label>
+        <label class="field">Schwerpunkt<input name="focus" maxlength="160" placeholder="z. B. Umschaltspiel"></label>
+        <label class="field full">Notizen<textarea name="notes" rows="2" maxlength="4000"></textarea></label>
+        <label class="field full">Trainingszyklus / Trainingswoche<select id="pfmsTeamTrainingCycleWeek" name="cycle_week_id"><option value="">Ohne Zykluszuordnung</option></select></label>
+        <button class="btn btn-primary" type="submit" id="pfmsTeamTrainingSave">Trainingstermin speichern</button>
+      </form>
+      <p id="pfmsTeamTrainingMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamTrainingList" class="pfms-training-list"></div>
+
+      <section class="pfms-training-library" id="pfmsTeamExerciseLibraryPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">ÜBUNGSKATALOG</div><h3>Übungen dieser Mannschaft</h3>
+            <p>Lege Übungen einmal an und verwende sie in mehreren Trainingseinheiten.</p></div>
         </div>
-        <div class="module-grid team-module-grid">
-          <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Spielerprofile, Positionen, Jahrgänge, Kontaktdaten und Mannschaftszugehörigkeit.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung, Schwerpunkte und Trainingsinhalte.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit, Fehlzeiten und Trainingsbeteiligung.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">€</span><div class="eyebrow">FINANZEN</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben, Beiträge, Zahlungsübersicht und nachvollziehbare Kassenbewegungen.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">⌂</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Trainingslager</h3><p>Teilnehmer, Unterkünfte, Kosten, Anreise, Einverständnisse und Ablaufplanung.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere, Veranstaltungen und Erinnerungen.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung, Auswechslungen und Ergebnisse.</p><span class="module-status">Geplant</span></article>
-          <article class="module-card module-feature"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse, Videoauswertung und individuelle Entwicklung.</p><span class="module-status">Geplant</span></article>
+        <form id="pfmsTeamExerciseForm" class="pfms-training-form pfms-exercise-form" hidden>
+          <label class="field">Übungsname<input name="title" maxlength="140" required placeholder="z. B. Rondo 5 gegen 2"></label>
+          <label class="field">Kategorie<select name="category" required>
+            <option value="warmup">Aufwärmen</option><option value="technical" selected>Technik</option>
+            <option value="tactical">Taktik</option><option value="physical">Athletik</option>
+            <option value="finishing">Abschluss</option><option value="cooldown">Cooldown</option>
+            <option value="other">Sonstiges</option></select></label>
+          <label class="field">Dauer in Minuten<input name="duration_minutes" type="number" min="1" max="180" value="15" required></label>
+          <label class="field">Spieler mindestens<input name="min_players" type="number" min="1" max="40" value="2" required></label>
+          <label class="field">Spieler maximal<input name="max_players" type="number" min="1" max="40" placeholder="Optional"></label>
+          <label class="field">Schwierigkeitsgrad<select name="difficulty"><option value="beginner">Einfach</option><option value="intermediate" selected>Mittel</option><option value="advanced">Fortgeschritten</option></select></label>
+          <label class="field">Feldgröße<input name="pitch_size" maxlength="100" placeholder="z. B. 20 × 25 m"></label>
+          <label class="field">Material<input name="equipment" maxlength="1500" placeholder="Bälle, Hütchen, Leibchen …"></label>
+          <label class="field full">Aufbau<textarea name="setup" rows="2" maxlength="4000" placeholder="Feldaufteilung und Organisation"></textarea></label>
+          <label class="field full">Ablauf und Regeln<textarea name="instructions" rows="3" maxlength="8000" placeholder="So wird die Übung durchgeführt …"></textarea></label>
+          <label class="field full">Coachingpunkte<textarea name="coaching_points" rows="2" maxlength="5000" placeholder="Worauf sollen die Trainer achten?"></textarea></label>
+          <div class="pfms-exercise-form-actions">
+            <button class="btn btn-primary" type="submit" id="pfmsTeamExerciseSave">Übung speichern</button>
+            <button class="btn btn-secondary" type="button" id="pfmsTeamExerciseCancelEdit" hidden>Bearbeitung abbrechen</button>
+          </div>
+        </form>
+        <p id="pfmsTeamExerciseMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamExerciseLibrary" class="pfms-exercise-library"></div>
+      </section>
+
+      <section class="pfms-training-plan-panel" id="pfmsTeamSessionPlanPanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">TRAININGSPLAN</div><h3 id="pfmsTeamSessionPlanTitle">Übungsplan</h3>
+            <p>Stelle die Reihenfolge und Dauer der Übungen für diese Einheit zusammen.</p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseSessionPlan">Schließen</button>
+        </div>
+        <p id="pfmsTeamSessionPlanMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamSessionPlanExercises" class="pfms-session-plan-list"></div>
+        <div class="pfms-session-plan-footer">
+          <strong>Gesamtdauer: <span id="pfmsTeamSessionPlanTotal">0</span> Minuten</strong>
+          <button class="btn btn-primary" type="button" id="pfmsTeamSessionPlanSave" hidden>Übungsplan speichern</button>
         </div>
       </section>
 
+      <section class="pfms-attendance-panel" id="pfmsTeamAttendancePanel" hidden>
+        <div class="panel-heading">
+          <div><div class="eyebrow">TEAMORGANISATION</div><h3 id="pfmsTeamAttendanceTitle">Anwesenheit</h3><p id="pfmsTeamAttendanceMeta"></p></div>
+          <button class="btn btn-secondary" type="button" id="pfmsCloseAttendance">Schließen</button>
+        </div>
+        <p id="pfmsTeamAttendanceMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <div id="pfmsTeamAttendanceList" class="pfms-attendance-list"></div>
+      </section>
+    </section>
+  </section>
+  <section class="panel pfms-team-finance-panel" id="pfmsTeamFinancePanel" hidden>
+    <div class="panel-heading">
+      <div><div class="eyebrow">TEAMORGANISATION · FINANZEN</div><h3>Mannschaftskasse</h3><p>Alle Beträge in Euro. Buchungen bleiben nachvollziehbar; Korrekturen erfolgen über eine begründete Stornierung.</p></div>
+    </div>
+    <div class="pfms-finance-kpis">
+      <article><span>EINNAHMEN</span><strong id="pfmsTeamFinanceIncome">0,00 €</strong></article>
+      <article><span>AUSGABEN</span><strong id="pfmsTeamFinanceExpenses">0,00 €</strong></article>
+      <article><span>AKTUELLER KASSENSTAND</span><strong id="pfmsTeamFinanceBalance">0,00 €</strong></article>
+      <article><span>BUCHUNGEN</span><strong id="pfmsTeamFinanceCount">0</strong></article>
+    </div>
+    <form id="pfmsTeamFinanceForm" class="pfms-finance-form" hidden>
+      <div class="eyebrow">NEUE BUCHUNG</div>
+      <div class="pfms-finance-form-grid">
+        <label class="field">Datum<input type="date" name="transaction_date" required></label>
+        <label class="field">Buchungstyp<select name="entry_type" required><option value="income">Einnahme</option><option value="expense">Ausgabe</option></select></label>
+        <label class="field">Kategorie<select name="category" required>
+          <option value="team_contribution">Teambeitrag</option><option value="membership">Mitgliedsbeitrag</option>
+          <option value="donation">Spende</option><option value="tournament">Turnier</option>
+          <option value="equipment">Ausrüstung</option><option value="travel">Fahrt / Reise</option>
+          <option value="facility">Platz / Halle</option><option value="referee">Schiedsrichter</option>
+          <option value="other">Sonstiges</option></select></label>
+        <label class="field">Betrag (EUR)<input type="number" name="amount" min="0.01" max="1000000" step="0.01" required placeholder="0,00"></label>
+        <label class="field full">Beschreibung<input type="text" name="description" maxlength="300" required placeholder="z. B. Bälle für die Mannschaft"></label>
+        <label class="field full">Beleg-/Referenznummer (optional)<input type="text" name="external_reference" maxlength="100" placeholder="Keine Bank- oder Kontodaten eintragen"></label>
+      </div>
+      <button class="btn btn-primary" id="pfmsTeamFinanceSave" type="submit">Buchung speichern</button>
+    </form>
+    <p id="pfmsTeamFinanceMessage" class="admin-message" role="status" aria-live="polite"></p>
+    <div class="pfms-finance-list-wrap"><div id="pfmsTeamFinanceList" class="pfms-finance-list"></div></div>
+  </section>
+
+  <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
+    <article class="module-card module-feature" data-pfms-team-module="squad"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="training"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung und Einheiten je Mannschaft.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-training>Trainingstermine öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung pro Einheit.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-attendance>Trainingsanwesenheit öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Besprechungen, Turniere, Spieltermine und Veranstaltungen.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-calendar>Kalender öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-matches>Spiele öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Schwerpunkte, Gegneranalyse und Videoauswertung.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-analysis>Analyse öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben und nachvollziehbare Buchungshistorie in Euro.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-finance>Kasse öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-events>Veranstaltungen öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="tasks"><span class="module-symbol">☑</span><div class="eyebrow">TEAMORGANISATION</div><h3>Teamaufgaben</h3><p>Aufgaben an Trainer und Betreuer verteilen, Fristen verfolgen und Erledigung dokumentieren.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-tasks>Aufgaben öffnen</button></article>
+  </div></section>
+      
       <section class="view" id="view-reports">
         <div class="page-heading">
           <div>
@@ -710,10 +1178,16 @@
             <h1>Scouting-Berichte</h1>
             <p>Halte Beobachtungen und Leistungsbewertungen fest.</p>
           </div>
-          <button class="btn btn-primary" data-action="new-report">
-            ＋ Bericht erstellen
-          </button>
+          <div class="page-heading-actions">
+            <button class="btn btn-secondary" id="exportReportsCsvButton" type="button">
+              CSV exportieren
+            </button>
+            <button class="btn btn-primary" data-action="new-report">
+              ＋ Bericht erstellen
+            </button>
+          </div>
         </div>
+        <div id="mainReportDataStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <div id="reportList" class="report-list"></div>
       </section>
 
@@ -735,12 +1209,37 @@
         <div class="notice">
           <span>ⓘ</span>
           <p>
-            <b>Hinweis:</b> Die aktuelle Version zeigt Medien vorerst lokal an.
-            Der Cloud-Upload wird in einem späteren Schritt angebunden.
+            <b>Private Medienbibliothek:</b> Fotos und Videos werden in einem privaten Cloud-Speicher abgelegt.
+            Nur du kannst deine Dateien über zeitlich begrenzte Abruflinks ansehen und verwalten.
           </p>
         </div>
-
+        <div id="mainMediaStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <div id="mediaGrid" class="media-grid"></div>
+      </section>
+
+      <section class="view" id="view-tasks">
+        <div class="page-heading"><div><div class="eyebrow">PERSÖNLICHER WORKSPACE</div><h1>Meine Aufgaben</h1><p>Behalte persönliche Aufgaben, Fristen und Prioritäten im Blick. Deine Aufgaben sind privat und nur für dein Konto sichtbar.</p></div><span class="module-status">Privat</span></div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">NEUE AUFGABE</div><h3>Aufgabe erfassen</h3></div></div>
+            <form id="pfmsPersonalTaskForm" class="form-grid">
+              <label class="field">Titel<input name="title" type="text" maxlength="160" required placeholder="Was ist zu erledigen?"></label>
+              <label class="field">Fällig am<input name="due_date" type="date"></label>
+              <label class="field">Priorität<select name="priority"><option value="normal">Normal</option><option value="high">Hoch</option><option value="low">Niedrig</option></select></label>
+              <label class="field">Beschreibung<textarea name="description" rows="3" maxlength="3000" placeholder="Zusätzliche Hinweise …"></textarea></label>
+              <button class="btn btn-primary" type="submit" id="pfmsPersonalTaskSubmit">Aufgabe speichern</button>
+            </form>
+            <p class="admin-message" id="pfmsPersonalTaskFormMessage" role="status" aria-live="polite"></p>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">AUFGABENÜBERSICHT</div><h3>Deine Liste</h3></div><button class="btn btn-secondary" type="button" id="pfmsPersonalTaskRefresh">Aktualisieren</button></div>
+            <div class="pfss-search-fields">
+              <label class="field">Status<select id="pfmsPersonalTaskStatus"><option value="">Alle Aufgaben</option><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="done">Erledigt</option></select></label>
+            </div>
+            <p class="admin-message" id="pfmsPersonalTaskListMessage" role="status" aria-live="polite">Aufgaben werden geladen …</p>
+            <div id="pfmsPersonalTaskList" class="pfms-personal-task-list"></div>
+          </section>
+        </div>
       </section>
 
       <section class="view" id="view-admin">
@@ -775,67 +1274,125 @@
       </section>
 
       <section class="view" id="view-agencies">
-        <section class="admin-org-console" id="adminAgencyConsole" hidden></section><div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturkonten, Zuständigkeiten und Freigaben zentral verwalten.</p></div></div>
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturmitgliedschaften, Leitungsrollen und Freigabestatus zentral verwalten.</p></div></div>
         <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">ADMINISTRATIVE SUCHE</div><h3>Agentur finden</h3></div><span class="module-status">Verwaltung</span></div>
-          <div class="org-search-grid">
-            <label class="field">Agenturname<input type="search" placeholder="Agenturnamen eingeben"></label>
-            <label class="field">Agentur-User-ID<input type="text" placeholder="Agentur-ID eingeben"></label>
-            <button class="btn btn-primary" type="button" disabled>Suchen</button>
-          </div>
-          <p class="admin-message">Die Live-Suche wird nach Anbindung der Organisationsdatenbank aktiviert.</p>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSPROFIL</div><h3>Mitglieder der ausgewählten Agentur</h3></div><span class="module-status">Vorschau</span></div>
-          <div class="org-empty-state">Nach Auswahl einer Agentur erscheinen hier Agenturleitung, Scouts und weitere zugeordnete Mitglieder.</div>
-          <div class="org-member-detail">
-            <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERPROFIL</div><h3>Rechte eines Mitglieds</h3></div></div>
-            <div class="org-permission-grid"><span>Bereich</span><span>Lesen</span><span>Erstellen</span><span>Bearbeiten</span><span>Löschen</span>
-              <b>Spielerdatenbank</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Scouting-Berichte</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Spielerprofile</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Medien</b><span>○</span><span>○</span><span>○</span><span>○</span>
-              <b>Vertragsverwaltung</b><span>○</span><span>○</span><span>○</span><span>○</span>
-            </div>
-            <p class="admin-message">Die Rechte werden nach Auswahl eines Mitglieds geladen. Änderungen sind in dieser Vorschau noch nicht aktiv.</p>
-          </div>
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSÜBERGREIFENDE VERWALTUNG</div><h3>Agenturen und Mitglieder</h3></div><span class="module-status">Live-Daten</span></div>
+          <p>Die zentrale Mitgliederverwaltung kann nach Agenturtyp filtern und zeigt Agenturleitung, Scouts, Rollen und Mitgliedsstatus. Änderungen werden serverseitig geprüft.</p>
+          <button class="btn btn-primary" type="button" data-view="admin-members">Agenturen und Mitgliedschaften verwalten</button>
         </div>
       </section>
+
       <section class="view" id="view-admin-members">
         <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Mitglieder</h1><p>Mitgliederkonten, Einladungen und Organisationszuordnungen verwalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Mitgliederverwaltung</h3><p>Hier werden Mitglieder, Einladungsstatus und die zugehörige Organisation zusammengeführt.</p></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSÜBERGREIFENDE VERWALTUNG</div><h3>Mitgliedschaften und Zuständigkeiten</h3></div></div>
+          <form id="pfmsAdminMembersFilterForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Suche<input id="pfmsAdminMembersQuery" type="search" placeholder="Name, E-Mail, User-ID oder Organisation"></label>
+              <label class="field">Organisationstyp<select id="pfmsAdminMembersOrgType"><option value="">Alle Organisationen</option><option value="club">Verein</option><option value="agency">Agentur</option><option value="scout_workspace">Scout-Arbeitsbereich</option></select></label>
+              <label class="field">Mitgliedsrolle<select id="pfmsAdminMembersRole"><option value="">Alle Rollen</option><option value="owner">Besitzer</option><option value="club_admin">Vereinsleitung</option><option value="agency_admin">Agenturleitung</option><option value="scout">Scout</option><option value="trainer">Trainer</option><option value="co_trainer">Co-Trainer</option><option value="betreuer">Betreuer</option><option value="member">Mitglied</option></select></label>
+              <label class="field">Mitgliedsstatus<select id="pfmsAdminMembersStatus"><option value="">Alle Status</option><option value="pending">Ausstehend</option><option value="active">Aktiv</option><option value="suspended">Gesperrt</option></select></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          </form>
+          <p id="pfmsAdminMembersMessage" class="admin-message" role="status" aria-live="polite">Mitglieder werden geladen …</p>
+          <div id="pfmsAdminMembersResults" class="admin-user-list"></div>
+        </div>
       </section>
       <section class="view" id="view-admin-errors">
-        <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Technische Fehler und gemeldete Probleme zentral prüfen.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Fehlerprotokoll</h3><p>Die Fehlerübersicht wird vorbereitet. Eine automatische Protokollierung ist noch nicht angebunden.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">SYSTEMÜBERWACHUNG</div><h1>Fehler</h1><p>Erfasste technische Frontend-Fehler prüfen, filtern und bearbeiten.</p></div></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">SYSTEMEREIGNISSE</div><h3>Fehlerprotokoll</h3></div><span class="module-status">Administrator</span></div>
+          <form id="pfmsAdminErrorsFilterForm" class="pfss-search-form">
+            <div class="pfss-search-fields">
+              <label class="field">Suche<input id="pfmsAdminErrorsQuery" type="search" placeholder="Fehlermeldung oder Pfad"></label>
+              <label class="field">Schweregrad<select id="pfmsAdminErrorsSeverity"><option value="">Alle Schweregrade</option><option value="warning">Warnung</option><option value="error">Fehler</option><option value="critical">Kritisch</option></select></label>
+              <label class="field">Bearbeitungsstatus<select id="pfmsAdminErrorsStatus"><option value="">Alle Status</option><option value="open">Offen</option><option value="in_review">In Prüfung</option><option value="resolved">Erledigt</option></select></label>
+            </div>
+            <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
+          </form>
+          <p id="pfmsAdminErrorsMessage" class="admin-message" role="status" aria-live="polite">Fehlerprotokoll wird geladen …</p>
+          <div id="pfmsAdminErrorsResults" class="admin-user-list"></div>
+        </div>
       </section>
+      <section class="view" id="view-notifications">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">SYSTEMMITTEILUNGEN</div>
+            <h1>Mitteilungen</h1>
+            <p>Persönliche Hinweise zu Teamaufgaben und wichtigen Änderungen in deinen Arbeitsbereichen.</p>
+          </div>
+          <button class="btn btn-secondary" type="button" id="pfmsNotificationsMarkAllRead">Alle als gelesen markieren</button>
+        </div>
+        <div id="pfmsNotificationsMessage" class="notice" role="status" aria-live="polite"></div>
+        <div id="pfmsNotificationsList" class="pfms-notifications-list"></div>
+      </section>
+
+      <section class="view" id="view-support">
+        <div class="page-heading"><div><div class="eyebrow">PFMS SERVICE</div><h1>Hilfe & Support</h1><p>Erstelle eine Supportanfrage und verfolge den Bearbeitungsstatus deiner eigenen Anfragen.</p></div><span class="module-status">Vertraulich</span></div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">NEUE ANFRAGE</div><h3>Support kontaktieren</h3></div></div>
+            <form id="pfmsSupportTicketForm" class="form-grid">
+              <label class="field">Betreff<input name="subject" type="text" minlength="4" maxlength="160" required placeholder="Worum geht es?"></label>
+              <label class="field">Bereich<select name="category"><option value="account">Konto & Anmeldung</option><option value="organization">Verein / Organisation</option><option value="scouting">Scouting & Spieler</option><option value="technical">Technisches Problem</option><option value="billing">Abrechnung</option><option value="other">Sonstiges</option></select></label>
+              <label class="field">Nachricht<textarea name="message" rows="6" minlength="10" maxlength="5000" required placeholder="Beschreibe dein Anliegen möglichst genau …"></textarea></label>
+              <button class="btn btn-primary" type="submit" id="pfmsSupportTicketSubmit">Anfrage senden</button>
+            </form>
+            <p class="admin-message" id="pfmsSupportTicketFormMessage" role="status" aria-live="polite"></p>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">MEINE ANFRAGEN</div><h3>Bearbeitungsstand</h3></div><button class="btn btn-secondary" type="button" id="pfmsSupportTicketRefresh">Aktualisieren</button></div>
+            <p class="admin-message" id="pfmsSupportTicketListMessage" role="status" aria-live="polite">Anfragen werden geladen …</p>
+            <div id="pfmsSupportTicketList" class="pfms-support-ticket-list"></div>
+          </section>
+        </div>
+      </section>
+
       <section class="view" id="view-admin-inbox">
-        <div class="page-heading"><div><div class="eyebrow">KOMMUNIKATION</div><h1>Postfach</h1><p>Systemnachrichten und Kontaktanfragen verwalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Administratives Postfach</h3><p>Hier wird später die zentrale Nachrichten- und Supportübersicht angezeigt.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION · SERVICE</div><h1>Support-Postfach</h1><p>Supportanfragen aller PFMS-Konten prüfen, beantworten und abschließen.</p></div><span class="module-status">Administrator</span></div>
+        <div class="panel admin-panel">
+          <div class="panel-heading"><div><div class="eyebrow">TICKETVERWALTUNG</div><h3>Eingegangene Anfragen</h3></div><button class="btn btn-secondary" type="button" id="pfmsAdminSupportRefresh">Aktualisieren</button></div>
+          <div class="pfss-search-fields">
+            <label class="field">Status<select id="pfmsAdminSupportStatus"><option value="">Alle Anfragen</option><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="resolved">Erledigt</option></select></label>
+          </div>
+          <p class="admin-message" id="pfmsAdminSupportMessage" role="status" aria-live="polite">Supportanfragen werden geladen …</p>
+          <div id="pfmsAdminSupportList" class="pfms-support-ticket-list"></div>
+        </div>
       </section>
       <section class="view" id="view-admin-payments">
-        <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Zahlungen</h1><p>Abonnements, Zahlungseingänge und offene Vorgänge im Blick behalten.</p></div></div>
-        <div class="panel admin-placeholder"><h3>Zahlungsverwaltung</h3><p>Die Zahlungsübersicht wird vorbereitet. Es ist noch kein Zahlungsanbieter angebunden.</p></div>
+        <div class="page-heading"><div><div class="eyebrow">ABRECHNUNG</div><h1>Abonnements & Zahlungen</h1><p>Vorbereitung der PFMS-Tarife, Testphase und späteren Zahlungsabwicklung.</p></div><span class="module-status">Noch nicht aktiviert</span></div>
+        <section class="panel">
+          <div class="panel-heading"><div><div class="eyebrow">ZAHLUNGSPROVIDER</div><h3>Keine Abbuchungen aktiv</h3></div><span class="module-status">Sicher deaktiviert</span></div>
+          <p>PFMS löst derzeit keine Zahlungen aus. Es ist noch kein Zahlungsanbieter verbunden und es werden keine Zahlungsdaten verarbeitet.</p>
+          <div class="notice"><span>ⓘ</span><p><b>Vor einer Aktivierung erforderlich:</b> Anbieter und Gebührenmodell festlegen, Test- und Live-Schlüssel sicher hinterlegen, signierte Webhooks einrichten, Tarif-/Preis-IDs konfigurieren und Kündigung, Erstattung, Rechnungen sowie steuerliche Anforderungen prüfen.</p></div>
+          <div class="module-grid">
+            <article class="module-card"><div class="eyebrow">1 · ANBIETER</div><h3>Provider auswählen</h3><p>Die Zahlungsintegration wird erst nach einer bewussten Anbieterentscheidung ergänzt.</p></article>
+            <article class="module-card"><div class="eyebrow">2 · TESTBETRIEB</div><h3>Testzahlungen</h3><p>Checkout, Webhooks, fehlgeschlagene Zahlungen, Kündigungen und Erstattungen in einer isolierten Testumgebung prüfen.</p></article>
+            <article class="module-card"><div class="eyebrow">3 · FREIGABE</div><h3>Live-Abrechnung</h3><p>Erst nach rechtlicher Prüfung und ausdrücklicher Produktionsfreigabe aktivieren.</p></article>
+          </div>
+          <button class="btn btn-secondary" type="button" data-view="admin-members">Organisationen und Tarife vorbereiten</button>
+        </section>
       </section>
       <section class="view" id="view-backup">
         <div class="page-heading">
           <div>
             <div class="eyebrow">ADMINISTRATION · SYSTEMSICHERUNG</div>
             <h1>Datensicherung</h1>
-            <p>Erstelle eine Sicherung deiner PFSS-Spieler und Scouting-Berichte oder stelle sie aus einer vorhandenen Backup-Datei wieder her.</p>
+            <p>Erstelle eine Sicherung deiner PFMS-Spieler und Scouting-Berichte oder stelle sie aus einer vorhandenen Backup-Datei wieder her.</p>
           </div>
         </div>
         <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
           <article class="panel">
             <div class="eyebrow">EXPORT</div>
             <h3>Daten sichern</h3>
-            <p>Speichert Spieler und Scouting-Berichte als PFSS-Backup-Datei auf deinem Gerät.</p>
+            <p>Speichert Spieler und Scouting-Berichte als PFMS-Backup-Datei auf deinem Gerät.</p>
             <button class="btn btn-primary" type="button" id="exportBackupButton">↓ Daten sichern</button>
           </article>
           <article class="panel">
             <div class="eyebrow">IMPORT</div>
             <h3>Backup importieren</h3>
-            <p>Stellt Spieler und Scouting-Berichte aus einer vorhandenen PFSS-Backup-Datei wieder her.</p>
+            <p>Stellt Spieler und Scouting-Berichte aus einer vorhandenen PFMS-Backup-Datei wieder her.</p>
             <button class="btn btn-secondary" type="button" id="importBackupButton">↑ Backup importieren</button>
             <input id="backupFileInput" type="file" accept="application/json,.json" hidden>
           </article>
@@ -846,7 +1403,49 @@
         </div>
       </section>
 
-      <footer class="footer"><span>© 2026 PFSS · Professional Football Scouting System</span><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav></footer>
+      <dialog id="pfmsTeamDialog" class="modal">
+  <form id="pfmsTeamForm" method="dialog">
+    <div class="modal-head"><div><div class="eyebrow">MANNSCHAFTSKONFIGURATION</div><h2 id="pfmsTeamDialogTitle">Mannschaft anlegen</h2></div><button type="button" class="close-button" data-close="pfmsTeamDialog">×</button></div>
+    <div class="form-grid">
+      <label class="field full">Verein<select name="organization_id" id="pfmsTeamOrganization" required></select></label>
+      <label class="field full">Mannschaftsname<input name="team_name" maxlength="100" placeholder="z. B. 1. Herren" required></label>
+      <label class="field">Altersbereich<select name="age_group" required><option>Herren</option><option>Frauen</option><option>Senioren</option><option>U19</option><option>U18</option><option>U17</option><option>U16</option><option>U15</option><option>U14</option><option>U13</option><option>U12</option><option>U11</option><option>U10</option><option>U9</option><option>U8</option><option>U7</option><option>Minis</option><option>Sonstige</option></select></label>
+      <label class="field">Geschlecht<select name="gender" required><option>Herren</option><option>Frauen</option><option>Gemischt</option></select></label>
+      <label class="field">Saison<input name="season" maxlength="20" placeholder="2026/2027" required></label>
+      <label class="field">Liga / Staffel<input name="division" maxlength="100" placeholder="Optional"></label>
+      <label class="field" id="pfmsTeamStatusField" hidden>Status<select name="status"><option value="active">Aktiv</option><option value="archived">Archiviert</option></select></label>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="pfmsTeamDialog">Abbrechen</button><button class="btn btn-primary" type="submit" id="pfmsTeamSaveButton">Mannschaft speichern</button></div>
+    <p id="pfmsTeamFormMessage" class="admin-message" role="status" aria-live="polite"></p>
+  </form>
+</dialog>
+<dialog id="pfmsTeamStaffDialog" class="modal">
+  <form id="pfmsTeamStaffForm" method="dialog">
+    <div class="modal-head"><div><div class="eyebrow">TRAINERTEAM</div><h2 id="pfmsTeamStaffTitle">Trainer zuordnen</h2></div><button type="button" class="close-button" data-close="pfmsTeamStaffDialog">×</button></div>
+    <p class="admin-message" id="pfmsTeamStaffMessage" role="status" aria-live="polite"></p>
+    <div class="form-grid">
+      <label class="field full">Aktives Vereinsmitglied<select id="pfmsTeamStaffCandidate" name="user_id" required></select></label>
+      <p class="field full">Die Rolle wird aus der aktiven Mitgliedschaft im Verein übernommen. Es können nur Trainer, Co-Trainer und Betreuer zugewiesen werden.</p>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="pfmsTeamStaffDialog">Schließen</button><button class="btn btn-primary" type="submit" id="pfmsTeamStaffSaveButton">Person zuordnen</button></div>
+    <h3>Aktuelle Zuordnungen</h3><div id="pfmsTeamStaffList" class="admin-user-list"></div>
+  </form>
+</dialog>
+<dialog id="pfmsTeamPermissionsDialog" class="modal">
+  <form id="pfmsTeamPermissionsForm" method="dialog">
+    <div class="modal-head">
+      <div><div class="eyebrow">INDIVIDUELLE ZUGRIFFSRECHTE</div><h2 id="pfmsTeamPermissionsTitle">Bereichsrechte</h2></div>
+      <button type="button" class="close-button" data-close="pfmsTeamPermissionsDialog">×</button>
+    </div>
+    <p class="admin-message" id="pfmsTeamPermissionsMessage" role="status" aria-live="polite">Berechtigungen werden geladen …</p>
+    <div id="pfmsTeamPermissionsList" class="pfms-team-permissions-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" type="button" data-close="pfmsTeamPermissionsDialog">Abbrechen</button>
+      <button class="btn btn-primary" type="submit" id="pfmsTeamPermissionsSave">Berechtigungen speichern</button>
+    </div>
+  </form>
+</dialog>
+<footer class="footer"><span>© 2026 PFMS · Professionell Football Management System</span><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav></footer>
     </main>
   </div>
 
@@ -1002,7 +1601,7 @@
 
     <dialog id="legalInfoDialog" class="legal-info-dialog" aria-labelledby="legalInfoTitle">
     <div class="legal-info-head">
-      <div><div class="eyebrow">PFSS · RECHTLICHE INFORMATIONEN</div><h2 id="legalInfoTitle">Rechtliche Informationen</h2></div>
+      <div><div class="eyebrow">PFMS · RECHTLICHE INFORMATIONEN</div><h2 id="legalInfoTitle">Rechtliche Informationen</h2></div>
       <button type="button" class="legal-info-close" id="closeLegalInfo" aria-label="Fenster schließen">×</button>
     </div>
     <iframe id="legalInfoFrame" title="Rechtliche Informationen" src="about:blank"></iframe>

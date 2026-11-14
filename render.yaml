@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: pfms-staging-static
+    runtime: static
+    branch: feature/pfss-complete-platform-build
+    buildCommand: npm run check:syntax && npm run build && npm run test:dist
+    staticPublishPath: ./dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PFMS_BUILD_TARGET
+        value: staging
+      - key: PFMS_STAGING_PROJECT_REF
+        sync: false
+      - key: PFSS_SUPABASE_URL
+        sync: false
+      - key: PFSS_SUPABASE_KEY
+        sync: false
+    headers:
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; worker-src 'self' blob:; upgrade-insecure-requests"
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
