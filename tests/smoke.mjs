@@ -429,6 +429,43 @@ assert.ok(
   stagingAudit.includes("'pfms_legacy_team_analysis'"),
   "Staging audit must inventory tactical and video analysis"
 );
+assert.ok(
+  teamAnalysisMigration.includes("revoke all on table public.pfms_legacy_team_analysis")
+    && teamAnalysisMigration.includes("grant select on table public.pfms_legacy_team_analysis to authenticated")
+    && teamAnalysisMigration.includes("create policy pfms_legacy_team_analysis_select")
+    && teamAnalysisMigration.includes("analysis', 'view'"),
+  "Tactical/video analysis records must be read-only through RLS and scoped to the analysis permission"
+);
+assert.ok(
+  app.includes("async function loadPfmsLegacyTeamAnalysis")
+    && app.includes("async function savePfmsLegacyTeamAnalysis")
+    && app.includes("async function deletePfmsLegacyTeamAnalysis")
+    && app.includes("pfms_list_legacy_team_analysis_matches")
+    && app.includes("pfms_create_legacy_team_analysis")
+    && app.includes("pfms_update_legacy_team_analysis")
+    && app.includes("pfms_delete_legacy_team_analysis"),
+  "Tactical/video analysis frontend must connect list, create, update and delete workflows"
+);
+assert.ok(
+  app.includes("url.protocol === 'https:'")
+    && app.includes("target=\"_blank\" rel=\"noopener noreferrer\"")
+    && app.includes("resetPfmsLegacyTeamAnalysisState()"),
+  "Video references must be HTTPS-only, opened without opener access, and cleared on team/account changes"
+);
+assert.ok(
+  html.includes('id="pfmsTeamAnalysisPanel"')
+    && html.includes('id="pfmsTeamAnalysisForm"')
+    && html.includes('id="pfmsTeamAnalysisList"')
+    && html.includes('data-pfms-show-analysis'),
+  "Tactical/video analysis panel, form, list and workspace navigation must exist"
+);
+assert.ok(
+  mainStyles.includes(".pfms-team-analysis-card")
+    && mainStyles.includes(".pfms-analysis-form-grid")
+    && mainStyles.includes("@media(max-width:640px)"),
+  "Tactical/video analysis forms and cards must have responsive styles"
+);
+
 
 assert.ok(
   legacyTeamTrainingMigration.includes("force row level security") &&
