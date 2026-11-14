@@ -3732,6 +3732,27 @@ function renderPfmsLegacyTeamEvents() {
           '<button type="button" class="btn btn-secondary" data-pfms-event-participant-add="' +
           escapeHtml(item.event_id) + '"' + (playerOptions ? '' : ' disabled') + '>Spieler anmelden</button></div>'
       : '';
+    const transportLabels = {
+      none: 'Keine besondere Transportplanung',
+      bus: 'Mannschaftsbus',
+      carpool: 'Fahrgemeinschaften',
+      public_transport: 'Öffentliche Verkehrsmittel',
+      own_transport: 'Eigene Anreise'
+    };
+    const logisticsItems = [
+      item.meeting_point ? '<span><b>Treffpunkt:</b> ' + escapeHtml(item.meeting_point) + '</span>' : '',
+      item.registration_deadline ? '<span><b>Anmeldeschluss:</b> ' + escapeHtml(pfmsFormatTeamDate(item.registration_deadline)) + '</span>' : '',
+      item.transport_mode && item.transport_mode !== 'none'
+        ? '<span><b>Anreise:</b> ' + escapeHtml(transportLabels[item.transport_mode] || item.transport_mode) + '</span>' : '',
+      Number(item.fee_per_person) > 0
+        ? '<span><b>Kosten pro Person:</b> ' + escapeHtml(Number(item.fee_per_person).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })) + '</span>' : '',
+      item.capacity
+        ? '<span><b>Kapazität:</b> ' + escapeHtml(String(item.participants_count || 0) + ' / ' + String(item.capacity)) + '</span>' : ''
+    ].filter(Boolean);
+    const logisticsMarkup = logisticsItems.length || item.transport_notes
+      ? '<div class="pfms-event-logistics">' + logisticsItems.join('') +
+        (item.transport_notes ? '<p>' + escapeHtml(item.transport_notes) + '</p>' : '') + '</div>'
+      : '';
 
     return '<article class="pfms-team-event-card" data-pfms-team-event-card="' + escapeHtml(item.event_id) + '">' +
       '<div class="pfms-team-event-card-head"><div><span class="eyebrow">' +
@@ -3743,7 +3764,7 @@ function renderPfmsLegacyTeamEvents() {
         '<span>' + escapeHtml(item.location || 'Ort noch offen') + '</span>' +
       '</div>' +
       (item.event_notes ? '<p class="pfms-team-event-notes">' + escapeHtml(item.event_notes) + '</p>' : '') +
-      participantList + participantControls +
+      logisticsMarkup + participantList + participantControls +
       (canEdit
         ? '<div class="pfms-team-event-actions"><button type="button" class="btn btn-secondary" data-pfms-event-edit="' +
             escapeHtml(item.event_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-event-delete="' +
@@ -3781,7 +3802,7 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
 
   try {
     const [eventResult, participantResult, playerResult] = await Promise.all([
-      pfssSupabase.rpc('pfms_list_legacy_team_events', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_events_with_logistics', { p_team_id: teamId }),
       pfssSupabase.rpc('pfms_list_legacy_team_event_participants', { p_team_id: teamId }),
       pfssSupabase.rpc('pfms_list_legacy_team_event_player_options', { p_team_id: teamId })
     ]);
@@ -3823,6 +3844,12 @@ function openPfmsLegacyTeamEvent(record = null) {
   form.elements.location.value = record?.location || '';
   form.elements.notes.value = record?.event_notes || '';
   form.elements.status.value = record?.event_status || 'planned';
+  form.elements.meeting_point.value = record?.meeting_point || '';
+  form.elements.registration_deadline.value = record?.registration_deadline || '';
+  form.elements.transport_mode.value = record?.transport_mode || 'none';
+  form.elements.transport_notes.value = record?.transport_notes || '';
+  form.elements.fee_per_person.value = record?.fee_per_person ?? 0;
+  form.elements.capacity.value = record?.capacity ?? '';
   const save = document.getElementById('pfmsTeamEventSave');
   const cancel = document.getElementById('pfmsTeamEventCancelEdit');
   if (save) save.textContent = record ? 'Änderungen speichern' : 'Veranstaltung speichern';
@@ -3857,29 +3884,36 @@ async function savePfmsLegacyTeamEvent(event) {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const isEditing = Boolean(pfmsEditingTeamEventId);
+  const feePerPerson = data.fee_per_person === '' ? 0 : Number(data.fee_per_person);
+  const capacity = data.capacity === '' ? null : Number(data.capacity);
+  if (!Number.isFinite(feePerPerson) || feePerPerson < 0 || feePerPerson > 10000 ||
+      (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 200))) {
+    if (message) message.textContent = 'Bitte Kosten (0 bis 10.000 €) und Kapazität (1 bis 200) prüfen.';
+    return;
+  }
   const args = {
+    p_event_id: isEditing ? pfmsEditingTeamEventId : null,
+    p_team_id: team.team_id,
     p_title: title,
     p_event_type: data.event_type,
     p_event_date: data.event_date,
     p_starts_at: data.starts_at,
     p_ends_at: data.ends_at || null,
     p_location: String(data.location || '').trim() || null,
-    p_notes: String(data.notes || '').trim() || null
+    p_notes: String(data.notes || '').trim() || null,
+    p_status: data.status || 'planned',
+    p_meeting_point: String(data.meeting_point || '').trim() || null,
+    p_registration_deadline: data.registration_deadline || null,
+    p_transport_mode: data.transport_mode || 'none',
+    p_transport_notes: String(data.transport_notes || '').trim() || null,
+    p_fee_per_person: feePerPerson,
+    p_capacity: capacity
   };
   button.disabled = true;
   if (message) message.textContent = 'Veranstaltung wird gespeichert …';
 
   try {
-    const result = isEditing
-      ? await pfssSupabase.rpc('pfms_update_legacy_team_event', {
-          p_event_id: pfmsEditingTeamEventId,
-          ...args,
-          p_status: data.status
-        })
-      : await pfssSupabase.rpc('pfms_create_legacy_team_event', {
-          p_team_id: team.team_id,
-          ...args
-        });
+    const result = await pfssSupabase.rpc('pfms_save_legacy_team_event', args);
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
         pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
