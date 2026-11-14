@@ -101,6 +101,7 @@ function_rows AS (
            'returns', pg_get_function_result(p.oid),
            'security_definer', p.prosecdef,
            'volatility', p.provolatile,
+           'configuration', p.proconfig,
            'definition', pg_get_functiondef(p.oid)
          ) AS details
   FROM pg_proc p
