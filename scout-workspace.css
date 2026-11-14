@@ -205,7 +205,7 @@
 .pfms-notification-card p{margin:10px 0;color:#ddd8cc;font-size:13px;line-height:1.55}
 .pfms-notification-unread{flex:0 0 auto;width:9px;height:9px;margin-top:8px;border-radius:50%;background:#d9ad61;box-shadow:0 0 0 4px #d9ad6122}
 .pfms-notification-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#a9a398;font-size:12px}
-.pfms-notification-meta button{border:0;background:none;color:#e5c88d;font:700 12px inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pfms-notification-meta button{border:0;background:none;color:#e5c88d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .pfms-notification-card.is-read{opacity:.84}
 @media(max-width:640px){
   .pfms-notification-card{padding:13px}
