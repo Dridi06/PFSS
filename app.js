@@ -4192,7 +4192,9 @@ async function savePfmsLegacyTeamEventTravelPlan(event) {
     console.error('PFMS event travel plan save failed:', error);
     if (message) message.textContent = 'Fahrtplan konnte nicht gespeichert werden. Prüfe Zeiten, Fahrzeugdaten und Event-Rechte.';
   } finally {
-    if (submit) submit.disabled = false;
+    if (submit && requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) submit.disabled = false;
   }
 }
 
