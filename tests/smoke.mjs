@@ -191,6 +191,8 @@ assert.ok(html.includes('id="pfmsTeamTasksPanel"') && html.includes('id="pfmsTea
 
 assert.ok(
   inAppNotificationsMigration.includes("public.pfms_notifications")
+    && inAppNotificationsMigration.includes("enable row level security")
+    && inAppNotificationsMigration.includes("force row level security")
     && inAppNotificationsMigration.includes("recipient_id = auth.uid()")
     && inAppNotificationsMigration.includes("grant select on table public.pfms_notifications to authenticated")
     && inAppNotificationsMigration.includes("grant update (is_read) on table public.pfms_notifications to authenticated")
