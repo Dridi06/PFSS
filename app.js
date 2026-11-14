@@ -4556,7 +4556,8 @@ async function savePfmsLegacyTeamTask(event) {
           p_description: args.p_description,
           p_assigned_to: args.p_assigned_to,
           p_due_date: args.p_due_date,
-          p_priority: args.p_priority
+          p_priority: args.p_priority,
+          p_status: args.p_status
         });
 
     if (requestGeneration !== pfmsAuthGeneration ||
@@ -7026,6 +7027,18 @@ function setupPfmsLegacyTeamWorkspace() {
     if (event.target.matches('[data-pfms-plan-duration]')) updatePfmsLegacyTrainingPlanTotal();
   });
 
+  document.getElementById('pfmsTeamTaskForm')?.addEventListener('submit', savePfmsLegacyTeamTask);
+  document.getElementById('pfmsTeamTaskCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamTaskForm);
+  document.getElementById('pfmsTeamTasksList')?.addEventListener('click', event => {
+    const editButton = event.target.closest('[data-pfms-team-task-edit]');
+    if (editButton) {
+      const task = pfmsLegacyTeamTasks.find(item => item.task_id === editButton.dataset.pfmsTeamTaskEdit);
+      if (task) openPfmsLegacyTeamTask(task);
+      return;
+    }
+    const deleteButton = event.target.closest('[data-pfms-team-task-delete]');
+    if (deleteButton) deletePfmsLegacyTeamTask(deleteButton.dataset.pfmsTeamTaskDelete);
+  });
   document.getElementById('pfmsTeamEventForm')?.addEventListener('submit', savePfmsLegacyTeamEvent);
   document.getElementById('pfmsTeamEventCancelEdit')?.addEventListener('click', resetPfmsLegacyTeamEventForm);
   document.getElementById('pfmsTeamEventsList')?.addEventListener('click', event => {
@@ -7252,6 +7265,13 @@ function setupPfmsLegacyTeamWorkspace() {
       const analysisPanel = document.getElementById('pfmsTeamAnalysisPanel');
       analysisPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamAnalysis(pfmsSelectedLegacyTeam.team_id);
+      return;
+    }
+    const showTasksButton = event.target.closest('[data-pfms-show-tasks]');
+    if (showTasksButton) {
+      const tasksPanel = document.getElementById('pfmsTeamTasksPanel');
+      tasksPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (pfmsSelectedLegacyTeam) loadPfmsLegacyTeamTasks(pfmsSelectedLegacyTeam.team_id);
       return;
     }
     const showEventsButton = event.target.closest('[data-pfms-show-events]');
