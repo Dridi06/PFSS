@@ -40,6 +40,7 @@ const [
   legacyTeamFinanceMigration,
   personalTasksMigration,
   supportTicketsMigration,
+  teamTasksMigration,
   backupWorkflow,
   backupRunbook
 ] = await Promise.all([
@@ -77,6 +78,7 @@ const [
   read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
   read("supabase/migrations/20261128_pfms_personal_tasks.sql"),
   read("supabase/migrations/20261129_pfms_support_tickets.sql"),
+  read("supabase/migrations/20261206_pfms_legacy_team_tasks.sql"),
   read(".github/workflows/pfss-database-backup.yml"),
   read("docs/BACKUP_RESTORE.md")
 ]);
@@ -126,6 +128,7 @@ const requiredFiles = [
   "supabase/migrations/20261117_pfms_main_media_library.sql",
   "supabase/migrations/20261128_pfms_personal_tasks.sql",
   "supabase/migrations/20261129_pfms_support_tickets.sql",
+  "supabase/migrations/20261206_pfms_legacy_team_tasks.sql",
   "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
   "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
@@ -173,6 +176,16 @@ assert.ok(backupWorkflow.includes("openssl enc -d -aes-256-cbc -pbkdf2 -iter 600
 assert.ok(backupWorkflow.includes("aws s3api head-object"), "Backup workflow must verify the uploaded encrypted object");
 assert.ok(backupRunbook.includes("neue, isolierte Testdatenbank") && backupRunbook.includes("RESTORE_DATABASE_URL"), "Backup restore documentation must limit restore to an isolated test database");
 assert.ok(backupRunbook.includes("pg_restore --list") && backupRunbook.includes("Storage-Objekte"), "Backup restore runbook must include archive validation and explain separate Storage recovery");
+assert.ok(teamTasksMigration.includes("public.pfms_legacy_team_tasks") && teamTasksMigration.includes("force row level security"), "Team task table must enforce RLS");
+assert.ok(teamTasksMigration.includes("public.pfms_has_legacy_team_permission") && teamTasksMigration.includes("'tasks', 'edit'"), "Team task writes must require team-scoped task edit permission");
+assert.ok(teamTasksMigration.includes("references public.pfms_legacy_team_staff(team_id, user_id)"), "Team task assignees must belong to the same team");
+assert.ok(teamTasksMigration.includes("p_status text default 'open'") && teamTasksMigration.includes("completed_at"), "Team task creation must persist an initial status and completion timestamp");
+assert.ok(teamTasksMigration.includes("grant execute on function public.pfms_create_legacy_team_task(uuid, text, text, uuid, date, text, text) to authenticated"), "Team task create grant must match the seven-argument function signature");
+assert.ok(!/grant execute on function public\.pfms_create_legacy_team_task\(uuid, text, text, uuid, date, text\)\s+to authenticated/i.test(teamTasksMigration), "Legacy six-argument task creation grant must not remain");
+assert.ok(app.includes("async function savePfmsLegacyTeamTask") && app.includes("p_status: args.p_status"), "Team task form must send the selected initial status to Supabase");
+assert.ok(app.includes("pfms_update_legacy_team_task") && app.includes("pfms_delete_legacy_team_task") && app.includes("loadPfmsLegacyTeamTasks"), "Team task update, delete and reload workflows must be connected");
+assert.ok(html.includes('id="pfmsTeamTasksPanel"') && html.includes('id="pfmsTeamTaskForm"') && html.includes('id="pfmsTeamTasksList"'), "Team task UI must be present in the team workspace");
+
 assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--clean`"), "Restore guide must prohibit destructive clean restore flags");
 
 assert.ok(html.includes("PFMS – Professionell Football Management System"), "PFMS brand is missing");
