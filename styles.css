@@ -955,3 +955,19 @@ button,input,select,textarea{max-width:100%}
 .player-card-actions button{border:1px solid rgba(198,161,91,.28);border-radius:7px;padding:6px 9px;background:#17191b;color:#d6bd83;font-size:10px;cursor:pointer}
 .player-card-actions button:hover{background:rgba(198,161,91,.12)}
 @media(max-width:600px){.page-heading-actions{width:100%;justify-content:stretch}.page-heading-actions .btn{flex:1}}
+
+
+/* PFMS administrator system event review */
+#pfmsAdminErrorsResults{display:grid;gap:12px}
+.pfms-system-event-card{min-width:0}
+.pfms-system-event-card .admin-user-info{min-width:0;overflow-wrap:anywhere}
+.pfms-system-event-card .admin-user-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.pfms-system-event-card .admin-user-controls label{min-width:180px;flex:1}
+.pfms-system-event-details{margin-top:9px;color:#c4b27d;font-size:11px}
+.pfms-system-event-details summary{cursor:pointer}
+.pfms-system-event-details pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border-radius:8px;background:#101214;color:#b9bdc0;font-size:10px}
+@media(max-width:640px){
+  .pfms-system-event-card .admin-user-controls{display:grid;grid-template-columns:1fr}
+  .pfms-system-event-card .admin-user-controls label{min-width:0}
+  .pfms-system-event-card [data-save-event-status]{width:100%}
+}
