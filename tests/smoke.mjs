@@ -1324,6 +1324,14 @@ assert.ok(scout.includes("pfss_scout_players") && scout.includes("pfss_scout_rep
 assert.ok(scout.includes(".storage.from(BUCKET).upload") && scout.includes("createSignedUrl") && scout.includes(".storage.from(BUCKET).remove"), "Scout workspace media CRUD is incomplete");
 assert.ok(scout.includes("data-scout-edit-player") && scout.includes("data-scout-delete-player") && scout.includes("data-scout-edit-report") && scout.includes("data-scout-delete-report"), "Scout CRUD controls are incomplete");
 assert.ok(!/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout), "Scout workspace must not ship preview data");
+for (const [fileName, source] of [["app.js", app], ["scout-workspace.js", scout]]) {
+  const declarations = [...source.matchAll(/(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(match => match[1]);
+  const counts = new Map();
+  for (const name of declarations) counts.set(name, (counts.get(name) || 0) + 1);
+  const duplicates = [...counts].filter(([, count]) => count > 1).map(([name]) => name);
+  assert.deepEqual(duplicates, [], fileName + " must not contain duplicate function declarations");
+}
+
 assert.ok(scout.includes("'global-search'") && scout.includes("pfms_global_players") && scout.includes("data-scout-copy-global") && scout.includes("source_global_player_id"), "Scout global search/copy workflow is missing");
 assert.ok(scout.includes("isCurrentRequest(requestGeneration, requestUserId)"), "Scout global player import must stop safely on account changes");
 assert.equal((scout.match(/async function uploadFiles\(files\)/g) || []).length, 1, "Scout workspace must have exactly one media upload handler");
