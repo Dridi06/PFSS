@@ -744,6 +744,40 @@ with checks as (
     ), false),
     'Zugeordnete Trainingseinheiten bleiben innerhalb des Datumsbereichs ihrer Team-Mikrozykluswoche; Trigger ist aktiv und nicht direkt aufrufbar'
 
+  union all
+  select
+    'match_lineup_same_team_integrity',
+    coalesce((
+      select l.relrowsecurity and l.relforcerowsecurity
+        and exists (
+          select 1 from pg_catalog.pg_attribute a
+          where a.attrelid = l.oid and a.attname = 'team_id'
+            and a.attnotnull and not a.attisdropped
+        )
+        and exists (
+          select 1 from pg_catalog.pg_constraint c
+          where c.conrelid = l.oid
+            and c.conname = 'pfms_legacy_match_lineup_match_team_fk'
+            and c.contype = 'f'
+        )
+        and exists (
+          select 1 from pg_catalog.pg_constraint c
+          where c.conrelid = l.oid
+            and c.conname = 'pfms_legacy_match_lineup_roster_team_fk'
+            and c.contype = 'f'
+        )
+        and exists (
+          select 1 from pg_catalog.pg_trigger t
+          where t.tgrelid = l.oid
+            and t.tgname = 'pfms_legacy_match_lineup_set_team'
+            and t.tgenabled in ('O','A')
+            and not t.tgisinternal
+        )
+      from pg_catalog.pg_class l
+      where l.oid = pg_catalog.to_regclass('public.pfms_legacy_team_match_lineup')
+    ), false),
+    'Jede Aufstellungszeile ist per zusammengesetztem Fremdschlüssel an das Team des Spiels und des Kaderdatensatzes gebunden'
+
 )
 select check_name, passed, details
 from checks
