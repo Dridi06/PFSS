@@ -2989,7 +2989,12 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyTrainingSessions = [];
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
+  document.getElementById('pfmsTeamTrainingPanel').hidden = true;
   document.getElementById('pfmsTeamAttendancePanel').hidden = true;
+  const trainingList = document.getElementById('pfmsTeamTrainingList');
+  if (trainingList) trainingList.innerHTML = '';
+  const attendanceList = document.getElementById('pfmsTeamAttendanceList');
+  if (attendanceList) attendanceList.innerHTML = '';
   const panel = document.getElementById('pfmsSelectedTeamPanel');
   const title = document.getElementById('pfmsSelectedTeamTitle');
   const meta = document.getElementById('pfmsSelectedTeamMeta');
@@ -3762,6 +3767,15 @@ function resetPfmsAuthenticatedState() {
   pfmsSelectedTeamPermissions = new Map();
   pfmsLegacyTeamRoster = [];
   pfmsLegacyTeamRosterCandidates = [];
+  pfmsLegacyTrainingSessions = [];
+  pfmsSelectedTrainingSession = null;
+  pfmsLegacyTrainingAttendance = [];
+  document.getElementById('pfmsTeamTrainingPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfmsTeamAttendancePanel')?.setAttribute('hidden', '');
+  const trainingList = document.getElementById('pfmsTeamTrainingList');
+  if (trainingList) trainingList.innerHTML = '';
+  const attendanceList = document.getElementById('pfmsTeamAttendanceList');
+  if (attendanceList) attendanceList.innerHTML = '';
   const rosterList = document.getElementById('pfmsTeamRosterList');
   if (rosterList) rosterList.innerHTML = '';
   const rosterCount = document.getElementById('pfmsTeamRosterCount');
