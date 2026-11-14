@@ -1391,6 +1391,44 @@ assert.ok(
   app.includes("requestGeneration !== pfmsAuthGeneration"),
   "Match and lineup state must clear and reject stale team/account responses"
 );
+const attendanceSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyTrainingAttendance"),
+  app.indexOf("const PFMS_TEAM_FINANCE_CATEGORIES")
+);
+assert.ok(
+  attendanceSaver.includes("pfmsSelectedLegacyTeam?.team_id !== teamId") &&
+  attendanceSaver.includes("pfmsSelectedTrainingSession?.session_id !== sessionId") &&
+  attendanceSaver.includes("button.disabled = false"),
+  "Attendance saves must bind errors and button cleanup to the original team and session"
+);
+const trainingPlanSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyTrainingSessionPlan"),
+  app.indexOf("async function loadPfmsLegacyTrainingCycles")
+);
+assert.ok(
+  trainingPlanSaver.includes("pfmsSelectedLegacyTeam?.team_id === teamId") &&
+  trainingPlanSaver.includes("pfmsSelectedTrainingPlanSession?.session_id === sessionId") &&
+  trainingPlanSaver.includes("button.disabled = false"),
+  "Training plan save completion must remain scoped to the original team and session"
+);
+const matchSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyTeamMatch"),
+  app.indexOf("function renderPfmsLegacyTeamMatchLineup")
+);
+assert.ok(
+  matchSaver.includes("pfmsSelectedLegacyTeam?.team_id === teamId") &&
+  matchSaver.includes("button.disabled = false"),
+  "Match save completion and button cleanup must remain scoped to the original team"
+);
+const calendarSaver = app.slice(
+  app.indexOf("async function savePfmsLegacyCalendarEvent"),
+  app.indexOf("async function updatePfmsLegacyCalendarEventStatus")
+);
+assert.ok(
+  calendarSaver.includes("pfmsSelectedLegacyTeam?.team_id === teamId") &&
+  calendarSaver.includes("button.disabled = false"),
+  "Calendar save completion and button cleanup must remain scoped to the original team"
+);
 const teamWorkspaceAccessLoader = app.slice(
   app.indexOf("async function openPfmsLegacyTeamWorkspace"),
   app.indexOf("const PFMS_TEAM_MATCH_STATUSES")
