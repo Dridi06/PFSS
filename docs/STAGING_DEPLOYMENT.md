@@ -75,6 +75,8 @@ Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattforma
 ### In-App-Mitteilungen
 - Eine neue Zuweisung einer Teamaufgabe erzeugt eine Mitteilung nur beim Empfänger; Selbstzuweisungen erzeugen keine eigene Mitteilung.
 - Beim Abschließen einer Aufgabe erhalten Ersteller und zugewiesene Person (außer dem ausführenden Konto) jeweils eine eigene Mitteilung.
+- Wenn ein Administrator eine Antwort zu einem Support-Ticket speichert, erhält nur der Ticketinhaber eine Mitteilung mit direktem Weg zum eigenen Ticket. Wird ein Ticket ohne neue Antwort auf erledigt gesetzt, erhält ebenfalls nur der Ticketinhaber eine Mitteilung.
+- Ein anderes Benutzerkonto darf weder die Support-Mitteilung noch das zugehörige Ticket lesen. Der Support-Trigger darf von Browserrollen nicht direkt ausgeführt werden.
 - Mitteilungen werden nur im persönlichen In-App-Posteingang dieses Kontos angezeigt. Ein anderes Konto darf die Datensätze weder lesen noch verändern.
 - Browserkonten dürfen Mitteilungen nicht einfügen oder löschen. Sie dürfen ausschließlich das eigene `is_read`-Feld ändern; `read_at` wird serverseitig gesetzt.
 - Abmeldung/Kontowechsel leert den lokalen Benachrichtigungszustand und die Badge-Zahl. Die Seitenleiste zeigt nach Anmeldung die Zahl ungelesener Mitteilungen.
