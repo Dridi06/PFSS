@@ -48,8 +48,8 @@ for (const stylesheet of ["styles.css", "scout-workspace.css"]) {
   const stylesheetPath = resolve(outputDirectory, stylesheet);
   const source = await readFile(stylesheetPath, "utf8");
 
-  for (const match of source.matchAll(/url\\(\\s*(['"]?)(.*?)\\1\\s*\\)/gi)) {
-    const value = match[2].trim();
+  for (const match of source.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
+    const value = match[1].trim();
     if (!value || /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
 
     const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]);
