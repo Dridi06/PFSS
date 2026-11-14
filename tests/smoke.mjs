@@ -396,6 +396,18 @@ assert.ok(
   "Match and lineup tables must use forced RLS and deny direct client writes"
 );
 assert.ok(
+  legacyTeamMatchesMigration.includes("grant execute on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text,text,smallint,smallint) to authenticated") &&
+  !legacyTeamMatchesMigration.includes("grant execute on function public.pfms_create_legacy_team_match(uuid,text,text,text,date,time,text,text) to authenticated"),
+  "Create-match RPC execute grant must match the current function signature"
+);
+assert.ok(
+  legacyTeamMatchesMigration.includes("unique (match_id, sort_order)") &&
+  legacyTeamMatchesMigration.includes("where is_captain") &&
+  legacyTeamMatchesMigration.includes("jsonb_typeof(p_lineup) is distinct from 'array'"),
+  "Match lineup must enforce unique ordering, one captain and safe array validation"
+);
+
+assert.ok(
   html.includes('id="pfmsTeamMatchesPanel"') &&
   html.includes('id="pfmsTeamMatchForm"') &&
   html.includes('id="pfmsTeamMatchesList"') &&
