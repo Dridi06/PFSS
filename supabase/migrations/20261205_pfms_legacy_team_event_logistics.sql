@@ -312,6 +312,74 @@ begin
 end;
 $$;
 
+create or replace function public.pfms_update_legacy_team_event_participant(
+  p_participant_id uuid,
+  p_status text,
+  p_note text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_team_id uuid;
+  v_event_id uuid;
+  v_event_type text;
+  v_capacity integer;
+  v_participant_count bigint;
+begin
+  select ep.team_id, ep.event_id
+    into v_team_id, v_event_id
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id
+  for update;
+
+  if not found then
+    raise exception 'Event participant not found' using errcode = 'P0002';
+  end if;
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to update event participant' using errcode = '42501';
+  end if;
+  if p_status not in ('invited','confirmed','declined','attended','absent')
+     or (p_note is not null and pg_catalog.length(p_note) > 1000) then
+    raise exception 'Invalid event participant data' using errcode = '22023';
+  end if;
+
+  select e.event_type, l.capacity
+    into v_event_type, v_capacity
+  from public.pfms_legacy_team_calendar_events e
+  left join public.pfms_legacy_team_event_logistics l
+    on l.event_id = e.id and l.team_id = e.team_id
+  where e.id = v_event_id and e.team_id = v_team_id
+  for update of e;
+
+  if not found or v_event_type not in ('tournament','event') then
+    raise exception 'Event participant does not belong to an event entry'
+      using errcode = '42501';
+  end if;
+
+  if p_status in ('invited','confirmed','attended') then
+    select pg_catalog.count(*) into v_participant_count
+    from public.pfms_legacy_team_event_participants ep
+    where ep.event_id = v_event_id
+      and ep.team_id = v_team_id
+      and ep.id <> p_participant_id
+      and ep.status in ('invited','confirmed','attended');
+
+    if v_capacity is not null and v_participant_count >= v_capacity then
+      raise exception 'Team event is at capacity' using errcode = '23514';
+    end if;
+  end if;
+
+  update public.pfms_legacy_team_event_participants
+  set status = p_status,
+      note = nullif(pg_catalog.btrim(coalesce(p_note, '')), ''),
+      updated_at = pg_catalog.now()
+  where id = p_participant_id;
+end;
+$;
+
 revoke all on function public.pfms_list_legacy_team_events_with_logistics(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_events_with_logistics(uuid) to authenticated;
 revoke all on function public.pfms_save_legacy_team_event(uuid, uuid, text, text, date, time, time, text, text, text, text, date, text, text, numeric, integer) from public, anon;
