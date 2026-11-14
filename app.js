@@ -5615,7 +5615,10 @@ async function openPfmsLegacyTeamMatchLineup(matchId) {
       ? pfmsLegacyMatchLineup.length + ' Spieler in der Aufstellung.'
       : 'Noch keine Aufstellung gespeichert. Wähle Spieler aus dem Kader.';
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id ||
+        pfmsSelectedTeamMatch?.match_id !== matchId) return;
     console.error('PFMS match lineup load failed:', error);
     pfmsLegacyMatchCandidates = [];
     pfmsLegacyMatchLineup = [];
@@ -6265,7 +6268,8 @@ async function openPfmsLegacyTrainingPlan(sessionId) {
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
-        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+        pfmsSelectedLegacyTeam?.team_id !== teamId ||
+        pfmsSelectedTrainingPlanSession?.session_id !== sessionId) return;
     console.error('PFMS training plan load failed:', error);
     pfmsLegacySessionExercises = [];
     host.innerHTML = '<div class="empty-state">Der Übungsplan konnte nicht geladen werden. Prüfe die Trainingsübungs-Migration.</div>';
@@ -6930,7 +6934,10 @@ async function openPfmsLegacyTrainingAttendance(sessionId) {
       ? pfmsLegacyTrainingAttendance.length + ' Spieler in der Anwesenheitsliste.'
       : 'Für diese Einheit sind keine Spieler im Kader vorhanden.';
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id ||
+        pfmsSelectedTrainingSession?.session_id !== sessionId) return;
     console.error('PFMS attendance load failed:', error);
     pfmsLegacyTrainingAttendance = [];
     host.innerHTML = '<div class="empty-state">Anwesenheitsliste konnte nicht geladen werden. Prüfe die Bereichsrechte.</div>';
