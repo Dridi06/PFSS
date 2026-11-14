@@ -73,7 +73,7 @@ Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturle
 | Authentifizierung | Reload erhält die Sitzung; Passwort-Wiederherstellung | nicht freigegebenes Konto erreicht keinen Workspace |
 | Owner-Bootstrap | genau ein vorgesehener Owner kann den Claim abschließen | zweiter Claim und falsches Geheimnis werden abgewiesen |
 | Organisationen | berechtigte Leitung sieht nur verwaltbare Organisationen | fremde Organisation kann nicht gelesen oder geändert werden |
-| Mitglieder/Einladungen | gültiger Einmal-Link wird einmal eingelöst | abgelaufener oder wiederverwendeter Link wird abgewiesen |
+| Mitglieder/Einladungen | aktiver Verein: gültiger Einmal-Link wird einmal eingelöst | Verein nach Ausstellung sperren: Einlösung muss scheitern; abgelaufener oder wiederverwendeter Link wird ebenfalls abgewiesen |
 | Globaler Spielerkatalog | freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
 | Scout-Arbeitsbereich | Scout verwaltet eigene Spieler, Berichte und Medien | Scout A kann keine privaten Daten von Scout B lesen |
 | Hauptmedien | Upload, signierter Abruf und Löschen | fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
