@@ -2081,10 +2081,18 @@ function applyAdminPreviewMode(mode) {
 }
 
 async function showAuthenticatedApp(user, profile) {
+  const requestedUserId = user.id;
+  if (window.pfssCurrentUserId !== requestedUserId) {
+    resetPfmsAuthenticatedState();
+  }
+  const authGeneration = pfmsAuthGeneration;
+  window.pfssCurrentUserId = requestedUserId;
+  window.pfssCurrentRole = profile.role;
   window.scrollTo(0, 0);
   const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
   const username = profile.username || user.email || 'PFMS Nutzer';
   const isAdmin = role === 'admin' || role === 'administrator';
+  window.pfssIsRealAdmin = isAdmin;
   const adminClubConsole = document.getElementById('adminClubConsole');
   const adminScoutConsole = document.getElementById('adminScoutConsole');
   if (adminClubConsole) adminClubConsole.hidden = !isAdmin;
@@ -2097,6 +2105,7 @@ async function showAuthenticatedApp(user, profile) {
   } catch (teamAccessError) {
     console.warn('PFMS team membership lookup unavailable:', teamAccessError?.message || teamAccessError);
   }
+  if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
   const isTeam = hasAssignedTeam || ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
   const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
   const normalStartView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
@@ -2134,17 +2143,13 @@ async function showAuthenticatedApp(user, profile) {
   document.querySelectorAll('.sidebar [data-view]').forEach(item => {
     if (!item.classList.contains('admin-nav-item')) item.hidden = isAdmin;
   });
-  if (window.pfssCurrentUserId && window.pfssCurrentUserId !== user.id) {
-    resetPfmsAuthenticatedState();
-  }
-  window.pfssCurrentUserId = user.id;
-  window.pfssCurrentRole = profile.role;
-  window.pfssIsRealAdmin = isAdmin;
   window.pfssPreviewMode = 'admin';
   setupPfmsLegacyTeamWorkspace();
   await loadPfmsMainData();
+  if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
   void loadPfmsLegacyTeams();
   await loadPfmsMainMedia();
+  if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
   const previewSwitch = document.getElementById('adminPreviewSwitch');
   const previewSelect = document.getElementById('adminPreviewMode');
   if (previewSwitch) previewSwitch.hidden = !isAdmin;
