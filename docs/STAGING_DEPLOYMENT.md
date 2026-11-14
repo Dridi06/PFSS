@@ -242,3 +242,11 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Positivtest: Ein aktiver Teammitarbeiter mit aktiver Organisationsmitgliedschaft und übereinstimmender Rolle kann als Aufgabenempfänger ausgewählt werden.
 - Negativtests: Eine weiterhin aktive Team-Personalzuordnung darf nicht ausreichen, wenn die Organisationsmitgliedschaft entzogen/gesperrt, die Rolle geändert oder die Organisation gesperrt wurde. Erstellung und Änderung einer Aufgabe müssen die Zuweisung in allen diesen Fällen serverseitig ablehnen.
 - Auch bei einem Wechsel der Mitgliedschaft zwischen Formularanzeige und Speichern muss die Datenbankprüfung maßgeblich sein. Ergebnisse mit zwei Testkonten dokumentieren.
+
+
+### Trainingszyklen: Datumsintegrität von Trainingseinheiten
+
+- Read-only-Abnahme: `training_cycle_session_date_integrity` muss `passed = true` melden.
+- Positivtest: Eine Trainingseinheit innerhalb des Start-/Enddatums ihrer zugeordneten Mikrozykluswoche muss gespeichert werden können.
+- Negativtests: Nach Zuordnung darf das Datum nicht vor den Wochenbeginn oder nach das Wochenende verschoben werden. Eine Zuordnung zu einer Woche eines anderen Teams muss ebenfalls scheitern.
+- Die Tests über die regulären Trainings-RPCs mit zwei Team-Testkonten ausführen und Ergebnisse protokollieren. Noch nicht in Produktion oder auf einer realen Staging-Datenbank angewendet.
