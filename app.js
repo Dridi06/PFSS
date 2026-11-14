@@ -1946,26 +1946,30 @@ const PFMS_MEMBERSHIP_STATUSES = {
 };
 
 let pfmsLegacyInvitationBound = false;
+let pfmsLegacyMemberDirectoryBound = false;
 let pfmsLegacyInvitationOrganizations = [];
 
 async function loadPfmsLegacyInvitationOrganizations() {
   const panel = document.getElementById('pfmsLegacyInvitationPanel');
   const form = document.getElementById('pfmsLegacyInvitationForm');
-  const select = document.getElementById('pfmsLegacyInvitationOrganization');
+  const inviteSelect = document.getElementById('pfmsLegacyInvitationOrganization');
   const message = document.getElementById('pfmsLegacyInvitationMessage');
   const result = document.getElementById('pfmsLegacyInvitationResult');
-  if (!panel || !form || !select || !message) return;
+  const membersPanel = document.getElementById('pfmsLegacyMembersPanel');
+  const memberSelect = document.getElementById('pfmsLegacyMembersOrganization');
+  const membersMessage = document.getElementById('pfmsLegacyMembersMessage');
+  if (!panel || !form || !inviteSelect || !message || !membersPanel || !memberSelect) return;
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
-  panel.hidden = false;
   form.hidden = true;
   result.hidden = true;
-  select.innerHTML = '<option value="">Organisationen werden geladen …</option>';
-  message.textContent = 'Deine verwaltbaren Organisationen werden geprüft …';
+  inviteSelect.innerHTML = '<option value="">Organisationen werden geladen …</option>';
+  if (requestUserId) message.textContent = 'Deine verwaltbaren Organisationen werden geprüft …';
 
   if (!requestUserId) {
     panel.hidden = true;
+    membersPanel.hidden = true;
     return;
   }
 
@@ -1975,31 +1979,169 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (error) throw error;
 
     pfmsLegacyInvitationOrganizations = data || [];
-    const eligible = pfmsLegacyInvitationOrganizations.filter(org =>
+    const organizations = pfmsLegacyInvitationOrganizations;
+    const inviteEligible = organizations.filter(org =>
       ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
     );
 
-    if (!eligible.length) {
-      select.innerHTML = '<option value="">Keine freigegebene Organisation vorhanden</option>';
-      message.textContent = pfmsLegacyInvitationOrganizations.length
-        ? 'Deine Organisation ist noch nicht freigegeben. Einladungen können erst nach Freigabe erstellt werden.'
+    if (inviteEligible.length) {
+      inviteSelect.innerHTML = inviteEligible.map(org =>
+        '<option value="' + escapeHtml(org.organization_id) + '">' +
+          escapeHtml(org.organization_name) + ' · ' +
+          escapeHtml(org.organization_type === 'agency' ? 'Agentur' : 'Verein') +
+        '</option>'
+      ).join('');
+      form.hidden = false;
+      message.textContent = inviteEligible.length + ' Organisation(en) mit Einladungsrecht verfügbar.';
+    } else {
+      inviteSelect.innerHTML = '<option value="">Keine freigegebene Organisation vorhanden</option>';
+      form.hidden = true;
+      message.textContent = organizations.length
+        ? 'Deine Organisation ist noch nicht freigegeben. Einladungen sind erst nach Freigabe möglich.'
         : 'Für dieses Konto ist keine Organisation mit Einladungsrechten hinterlegt.';
+    }
+
+    membersPanel.hidden = organizations.length === 0;
+    if (membersMessage) {
+      membersMessage.textContent = organizations.length
+        ? 'Wähle eine Organisation, um ihre Mitgliedschaften zu verwalten.'
+        : 'Für dieses Konto sind keine verwaltbaren Organisationen hinterlegt.';
+    }
+    if (!organizations.length) {
+      memberSelect.innerHTML = '<option value="">Keine Organisation verfügbar</option>';
       return;
     }
 
-    select.innerHTML = eligible.map(org =>
+    const previousSelection = memberSelect.value;
+    memberSelect.innerHTML = organizations.map(org =>
       '<option value="' + escapeHtml(org.organization_id) + '">' +
         escapeHtml(org.organization_name) + ' · ' +
         escapeHtml(org.organization_type === 'agency' ? 'Agentur' : 'Verein') +
+        ' (' + escapeHtml(org.organization_status) + ')' +
       '</option>'
     ).join('');
-    form.hidden = false;
-    message.textContent = eligible.length + ' Organisation(en) mit Einladungsrecht verfügbar.';
+    if (organizations.some(org => org.organization_id === previousSelection)) {
+      memberSelect.value = previousSelection;
+    }
+    await loadPfmsLegacyOrganizationMembers();
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS legacy invitation organizations:', error);
-    select.innerHTML = '<option value="">Nicht verfügbar</option>';
+    inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
     message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
+    membersPanel.hidden = true;
+  }
+}
+
+async function loadPfmsLegacyOrganizationMembers() {
+  const panel = document.getElementById('pfmsLegacyMembersPanel');
+  const form = document.getElementById('pfmsLegacyMembersFilterForm');
+  const select = document.getElementById('pfmsLegacyMembersOrganization');
+  const message = document.getElementById('pfmsLegacyMembersMessage');
+  const results = document.getElementById('pfmsLegacyMemberResults');
+  const summary = document.getElementById('pfmsLegacyMembersSummary');
+  if (!panel || !form || !select || !message || !results) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const organizationId = select.value;
+  if (!requestUserId || !organizationId) {
+    results.innerHTML = '';
+    if (summary) summary.hidden = true;
+    return;
+  }
+
+  const query = document.getElementById('pfmsLegacyMembersQuery')?.value.trim() || '';
+  const role = document.getElementById('pfmsLegacyMembersRole')?.value || null;
+  const status = document.getElementById('pfmsLegacyMembersStatus')?.value || null;
+  message.textContent = 'Mitglieder werden geladen …';
+  results.innerHTML = '';
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_org_members_for_manager', {
+      p_organization_id: organizationId,
+      p_query: query,
+      p_status: status,
+      p_role: role
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (error) throw error;
+
+    const members = data || [];
+    const activeCount = members.filter(member => member.membership_status === 'active').length;
+    const pendingCount = members.filter(member => member.membership_status === 'pending').length;
+    const suspendedCount = members.filter(member => member.membership_status === 'suspended').length;
+    if (summary) {
+      summary.hidden = false;
+      document.getElementById('pfmsLegacyMembersActiveCount').textContent = String(activeCount);
+      document.getElementById('pfmsLegacyMembersPendingCount').textContent = String(pendingCount);
+      document.getElementById('pfmsLegacyMembersSuspendedCount').textContent = String(suspendedCount);
+    }
+    message.textContent = members.length
+      ? members.length + ' Mitgliedschaft(en) gefunden.'
+      : 'Keine passenden Mitgliedschaften gefunden.';
+
+    if (!members.length) {
+      results.innerHTML = '<div class="empty-state"><b>Keine Mitglieder gefunden</b><p>Ändere die Suchkriterien oder prüfe, ob die Organisation bereits Mitglieder hat.</p></div>';
+      return;
+    }
+
+    const roleLabels = {
+      owner: 'Besitzer',
+      club_admin: 'Vereinsleitung',
+      agency_admin: 'Agenturleitung',
+      scout: 'Scout',
+      trainer: 'Trainer',
+      co_trainer: 'Co-Trainer',
+      betreuer: 'Betreuer',
+      member: 'Mitglied'
+    };
+    const statusLabels = { pending: 'Ausstehend', active: 'Aktiv', suspended: 'Gesperrt' };
+    const operationalRoles = ['scout','trainer','co_trainer','betreuer','member'];
+
+    results.innerHTML = members.map(member => {
+      const isLeadership = ['owner','club_admin','agency_admin'].includes(member.member_role);
+      const canEdit = window.pfssIsRealAdmin || !isLeadership;
+      const availableRoles = window.pfssIsRealAdmin
+        ? Object.entries(roleLabels)
+        : operationalRoles.map(key => [key, roleLabels[key]]);
+      const roleControl = canEdit
+        ? '<select data-legacy-member-role>' + availableRoles.map(([value, label]) =>
+            '<option value="' + escapeHtml(value) + '"' +
+            (member.member_role === value ? ' selected' : '') + '>' + escapeHtml(label) + '</option>'
+          ).join('') + '</select>'
+        : '<span class="tag">' + escapeHtml(roleLabels[member.member_role] || member.member_role) + '</span>';
+      const statusControl = canEdit
+        ? '<select data-legacy-member-status>' + Object.entries(statusLabels).map(([value, label]) =>
+            '<option value="' + escapeHtml(value) + '"' +
+            (member.membership_status === value ? ' selected' : '') + '>' + escapeHtml(label) + '</option>'
+          ).join('') + '</select>'
+        : '<span class="tag">' + escapeHtml(statusLabels[member.membership_status] || member.membership_status) + '</span>';
+      const displayName = member.full_name || member.username || member.email || 'Mitglied';
+
+      return '<article class="admin-user-card pfms-org-member-card" data-legacy-membership-id="' +
+        escapeHtml(member.membership_id) + '">' +
+        '<div class="admin-user-info">' +
+          '<b>' + escapeHtml(displayName) + '</b>' +
+          '<small>' + escapeHtml(member.email || member.user_id) + '</small>' +
+          '<small>User-ID: ' + escapeHtml(member.user_id) + '</small>' +
+          '<span class="tag">' + escapeHtml(roleLabels[member.member_role] || member.member_role) +
+          ' · ' + escapeHtml(statusLabels[member.membership_status] || member.membership_status) + '</span>' +
+        '</div>' +
+        '<div class="admin-user-controls">' +
+          '<label>Rolle' + roleControl + '</label>' +
+          '<label>Status' + statusControl + '</label>' +
+          (canEdit ? '<button type="button" class="btn btn-secondary" data-save-legacy-membership>Änderungen speichern</button>' : '<small>Leitungsrechte sind hier geschützt.</small>') +
+        '</div>' +
+        '<p class="admin-message" data-legacy-member-message role="status" aria-live="polite"></p>' +
+      '</article>';
+    }).join('');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS legacy organization member directory:', error);
+    message.textContent = 'Mitglieder konnten nicht geladen werden. Prüfe Staging-Migration, Organisationsrechte und Datenbankverbindung.';
+    if (summary) summary.hidden = true;
+    results.innerHTML = '';
   }
 }
 
@@ -2059,23 +2201,71 @@ async function createPfmsLegacyInvitation(event) {
 function setupPfmsLegacyInvitationWorkspace() {
   const form = document.getElementById('pfmsLegacyInvitationForm');
   const copyButton = document.getElementById('pfmsLegacyInvitationCopy');
-  if (!form || pfmsLegacyInvitationBound) return;
-  form.addEventListener('submit', createPfmsLegacyInvitation);
-  copyButton?.addEventListener('click', async () => {
-    const url = document.getElementById('pfmsLegacyInvitationUrl')?.value || '';
-    if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
-      const message = document.getElementById('pfmsLegacyInvitationMessage');
-      if (message) message.textContent = 'Einladungslink wurde in die Zwischenablage kopiert.';
-    } catch (error) {
-      window.prompt('Einladungslink kopieren:', url);
-    }
-  });
-  pfmsLegacyInvitationBound = true;
+  if (form && !pfmsLegacyInvitationBound) {
+    form.addEventListener('submit', createPfmsLegacyInvitation);
+    copyButton?.addEventListener('click', async () => {
+      const url = document.getElementById('pfmsLegacyInvitationUrl')?.value || '';
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        const message = document.getElementById('pfmsLegacyInvitationMessage');
+        if (message) message.textContent = 'Einladungslink wurde in die Zwischenablage kopiert.';
+      } catch (error) {
+        window.prompt('Einladungslink kopieren:', url);
+      }
+    });
+    pfmsLegacyInvitationBound = true;
+  }
+
+  const membersForm = document.getElementById('pfmsLegacyMembersFilterForm');
+  const memberSelect = document.getElementById('pfmsLegacyMembersOrganization');
+  const refreshButton = document.getElementById('pfmsLegacyMembersRefresh');
+  const results = document.getElementById('pfmsLegacyMemberResults');
+  if (membersForm && !pfmsLegacyMemberDirectoryBound) {
+    membersForm.addEventListener('submit', event => {
+      event.preventDefault();
+      loadPfmsLegacyOrganizationMembers();
+    });
+    memberSelect?.addEventListener('change', loadPfmsLegacyOrganizationMembers);
+    refreshButton?.addEventListener('click', loadPfmsLegacyOrganizationMembers);
+    results?.addEventListener('click', async event => {
+      const button = event.target.closest('[data-save-legacy-membership]');
+      if (!button) return;
+      const card = button.closest('[data-legacy-membership-id]');
+      if (!card) return;
+
+      const requestUserId = window.pfssCurrentUserId;
+      const requestGeneration = pfmsAuthGeneration;
+      const feedback = card.querySelector('[data-legacy-member-message]');
+      const role = card.querySelector('[data-legacy-member-role]')?.value;
+      const status = card.querySelector('[data-legacy-member-status]')?.value;
+      if (!role || !status || !requestUserId) return;
+
+      button.disabled = true;
+      feedback.textContent = 'Änderungen werden gespeichert …';
+      try {
+        const rpcName = window.pfssIsRealAdmin
+          ? 'pfms_admin_update_legacy_membership'
+          : 'pfms_update_legacy_org_membership_for_manager';
+        const args = window.pfssIsRealAdmin
+          ? { p_membership_id: card.dataset.legacyMembershipId, p_role: role, p_status: status }
+          : { p_membership_id: card.dataset.legacyMembershipId, p_role: role, p_status: status };
+        const { error } = await pfssSupabase.rpc(rpcName, args);
+        if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+        if (error) throw error;
+        feedback.textContent = 'Änderungen gespeichert.';
+        await loadPfmsLegacyOrganizationMembers();
+      } catch (error) {
+        if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+        console.error('PFMS legacy membership update:', error);
+        feedback.textContent = 'Änderungen konnten nicht gespeichert werden. Prüfe Rolle, Status und Berechtigung.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+    pfmsLegacyMemberDirectoryBound = true;
+  }
 }
-
-
 async function loadPfmsAdminMembers() {
   const message = document.getElementById('pfmsAdminMembersMessage');
   const results = document.getElementById('pfmsAdminMembersResults');
