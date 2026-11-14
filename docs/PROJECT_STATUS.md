@@ -22,7 +22,7 @@ Die bisher im Browser fest eingetragene Supabase-URL und der Publishable Key wur
 
 ### Username-Login: Redis-Rate-Limit ergänzt – 14.11.2026
 
-- Die Edge Function verwendet Upstash Redis mit einem atomaren gleitenden Fenster: maximal 5 fehlgeschlagene Versuche je normalisiertem Benutzernamen pro 15 Minuten; erfolgreiche Anmeldungen verbrauchen kein Kontingent. Überschreitungen erhalten HTTP 429 mit `Retry-After`. Die Zählerprüfung und Erhöhung sind getrennte Redis-Aufrufe; parallel bereits laufende Requests können das Limit kurzfristig überschreiten.
+- Die Edge Function verwendet Upstash Redis mit einem atomaren gleitenden Fenster: maximal 5 fehlgeschlagene Versuche je normalisiertem Benutzernamen pro 15 Minuten; erfolgreiche Anmeldungen und interne Supabase-/Datenbankfehler verbrauchen kein Kontingent. Überschreitungen erhalten HTTP 429 mit `Retry-After`. Die Zählerprüfung und Erhöhung sind getrennte Redis-Aufrufe; parallel bereits laufende Requests können das Limit kurzfristig überschreiten.
 - Redis-Schlüssel verwenden HMAC-SHA-256 mit dem separaten Secret `PFMS_RATE_LIMIT_HMAC_KEY`; Benutzernamen werden nicht im Klartext als Redis-Schlüssel gespeichert.
 - Redis-/HMAC-Konfiguration fehlt oder Redis ist nicht erreichbar: Login wird fail-closed mit HTTP 503 abgewiesen. Es gibt keinen ungeschützten Fallback.
 - Es wird bewusst keine IP-Identität aus ungeprüften Forwarding-Headern abgeleitet. Der Schutz ist ein kontobezogenes Passwortversuchs-Limit, noch kein vollständiger IP-/Bot-Schutz gegen verteilte Versuche über viele Benutzernamen.
