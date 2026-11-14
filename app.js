@@ -2998,6 +2998,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyMatches = [];
   pfmsEditingMatchId = null;
   pfmsSelectedTeamMatch = null;
+  resetPfmsLegacyTeamMatchForm();
   pfmsLegacyMatchCandidates = [];
   pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
@@ -3426,6 +3427,12 @@ async function savePfmsLegacyTeamMatchLineup() {
         requestUserId !== window.pfssCurrentUserId ||
         pfmsSelectedTeamMatch?.match_id !== match.match_id) return;
     if (error) throw error;
+    const teamId = pfmsSelectedLegacyTeam?.team_id;
+    if (!teamId) return;
+    await loadPfmsLegacyTeamMatches(teamId);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedTeamMatch?.match_id !== match.match_id) return;
     await openPfmsLegacyTeamMatchLineup(match.match_id);
     if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
       toast('Spielaufstellung wurde gespeichert.');
