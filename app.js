@@ -15,6 +15,7 @@ let pfmsMainDataReady = false;
 let pfmsMainDataLoading = false;
 let pfmsMainDataError = '';
 let editingGlobalPlayerId = null;
+let editingMainReportId = null;
 
 function read(key, fallback) {
   try {
@@ -262,12 +263,38 @@ function openGlobalPlayerDialog(player = null) {
   document.getElementById('playerDialog').showModal();
 }
 
+function openMainReportDialog(report = null) {
+  const form = document.getElementById('reportForm');
+  if (!form) return;
+  editingMainReportId = report?.id || null;
+  form.reset();
+  populatePlayerSelect();
+
+  if (report) {
+    form.elements.playerId.value = report.playerId || '';
+    form.elements.date.value = report.date || '';
+    form.elements.rating.value = report.rating ?? '';
+    form.elements.notes.value = report.notes || '';
+  } else {
+    form.elements.date.value = new Date().toISOString().slice(0, 10);
+  }
+
+  const heading = document.querySelector('#reportDialog .modal-head h2');
+  if (heading) heading.textContent = report ? 'Scouting-Bericht bearbeiten' : 'Scouting-Bericht erstellen';
+  const submitButton = form.querySelector('[type="submit"]');
+  if (submitButton) submitButton.textContent = report ? 'Änderungen speichern' : 'Bericht speichern';
+  document.getElementById('reportDialog').showModal();
+}
+
 function openDialog(id) {
   if (id === 'playerDialog') {
     openGlobalPlayerDialog();
     return;
   }
-  if (id === 'reportDialog') populatePlayerSelect();
+  if (id === 'reportDialog') {
+    openMainReportDialog();
+    return;
+  }
   document.getElementById(id).showModal();
 }
 function closeDialog(id) {
@@ -412,16 +439,21 @@ function renderReports() {
     return;
   }
 
-  host.innerHTML = reports.slice().reverse().map(r => {
-    const p = players.find(x => x.id === r.playerId);
-
+  host.innerHTML = reports.slice().reverse().map(report => {
+    const player = players.find(item => item.id === report.playerId);
+    const canManage = window.pfssIsRealAdmin || report.authorId === window.pfssCurrentUserId;
     return `
       <article class="report-card">
-        <div class="rating-bubble">${escapeHtml(r.rating)}</div>
-        <div>
-          <h3>${escapeHtml(p?.name || 'Unbekannter Spieler')}</h3>
-          <small>${escapeHtml(r.date || 'Ohne Datum')} · Scouting-Bewertung</small>
-          <p>${escapeHtml(r.notes)}</p>
+        <div class="rating-bubble">${escapeHtml(report.rating)}</div>
+        <div class="report-card-content">
+          <h3>${escapeHtml(player?.name || 'Unbekannter Spieler')}</h3>
+          <small>${escapeHtml(report.date || 'Ohne Datum')} · Scouting-Bewertung</small>
+          <p>${escapeHtml(report.notes)}</p>
+          ${canManage ? `
+            <div class="report-card-actions">
+              <button type="button" data-main-report-edit="${escapeHtml(report.id)}">Bearbeiten</button>
+              <button type="button" data-main-report-delete="${escapeHtml(report.id)}">Löschen</button>
+            </div>` : ''}
         </div>
       </article>`;
   }).join('');
@@ -529,33 +561,71 @@ async function saveReport(form) {
     return;
   }
 
+  const payload = {
+    player_id: playerId,
+    observation_date: data.date || new Date().toISOString().slice(0, 10),
+    overall_rating: rating,
+    notes
+  };
+  if (!editingMainReportId) payload.author_id = window.pfssCurrentUserId;
+
   const button = form.querySelector('[type="submit"]');
   button.disabled = true;
   try {
-    const { data: saved, error } = await pfssSupabase
-      .from('pfms_main_scouting_reports')
-      .insert({
-        player_id: playerId,
-        author_id: window.pfssCurrentUserId,
-        observation_date: data.date || new Date().toISOString().slice(0, 10),
-        overall_rating: rating,
-        notes
-      })
-      .select('*')
-      .single();
-    if (error) throw error;
+    const query = pfssSupabase.from('pfms_main_scouting_reports');
+    const result = editingMainReportId
+      ? await query.update(payload).eq('id', editingMainReportId).select('*').single()
+      : await query.insert(payload).select('*').single();
+    if (result.error) throw result.error;
 
-    reports.push(mapPfmsReportRow(saved));
+    const savedReport = mapPfmsReportRow(result.data);
+    if (editingMainReportId) {
+      reports = reports.map(report => report.id === editingMainReportId ? savedReport : report);
+    } else {
+      reports.push(savedReport);
+    }
+    editingMainReportId = null;
     form.reset();
     closeDialog('reportDialog');
+    const heading = document.querySelector('#reportDialog .modal-head h2');
+    if (heading) heading.textContent = 'Scouting-Bericht erstellen';
+    if (button) button.textContent = 'Bericht speichern';
     renderDashboard();
     renderReports();
     toast('Scouting-Bericht wurde sicher in der Cloud gespeichert.');
   } catch (error) {
-    console.error('PFMS scouting report insert failed:', error);
-    toast('Bericht konnte nicht gespeichert werden. Bitte Datenbankmigration und Kontostatus prüfen.');
+    console.error('PFMS scouting report save failed:', error);
+    toast('Bericht konnte nicht gespeichert werden. Prüfe deine Berechtigung und die Datenbankverbindung.');
   } finally {
     button.disabled = false;
+  }
+}
+
+async function deleteMainReport(reportId) {
+  if (!pfmsMainDataReady) return;
+  const report = reports.find(item => item.id === reportId);
+  if (!report) return;
+
+  const canManage = window.pfssIsRealAdmin || report.authorId === window.pfssCurrentUserId;
+  if (!canManage) {
+    toast('Du darfst nur deine eigenen Scouting-Berichte verwalten.');
+    return;
+  }
+  if (!window.confirm('Diesen Scouting-Bericht wirklich löschen?')) return;
+
+  try {
+    const { error } = await pfssSupabase
+      .from('pfms_main_scouting_reports')
+      .delete()
+      .eq('id', reportId);
+    if (error) throw error;
+    reports = reports.filter(item => item.id !== reportId);
+    renderDashboard();
+    renderReports();
+    toast('Scouting-Bericht wurde gelöscht.');
+  } catch (error) {
+    console.error('PFMS scouting report deletion failed:', error);
+    toast('Bericht konnte nicht gelöscht werden. Prüfe deine Berechtigung und die Datenbankverbindung.');
   }
 }
 
@@ -748,6 +818,21 @@ document.addEventListener('click', event => {
   const deleteGlobalPlayerButton = event.target.closest('[data-global-player-delete]');
   if (deleteGlobalPlayerButton) {
     deleteGlobalPlayer(deleteGlobalPlayerButton.dataset.globalPlayerDelete);
+    return;
+  }
+
+  const editMainReportButton = event.target.closest('[data-main-report-edit]');
+  if (editMainReportButton) {
+    const report = reports.find(item => item.id === editMainReportButton.dataset.mainReportEdit);
+    if (report && (window.pfssIsRealAdmin || report.authorId === window.pfssCurrentUserId)) {
+      openMainReportDialog(report);
+    }
+    return;
+  }
+
+  const deleteMainReportButton = event.target.closest('[data-main-report-delete]');
+  if (deleteMainReportButton) {
+    deleteMainReport(deleteMainReportButton.dataset.mainReportDelete);
     return;
   }
 
