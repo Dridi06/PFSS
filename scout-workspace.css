@@ -102,3 +102,7 @@
 .scout-refresh-button{margin-left:auto;border:1px solid rgba(198,161,91,.3);border-radius:8px;padding:7px 10px;background:#17191b;color:#d7b873;font-size:10px;letter-spacing:.5px;cursor:pointer}
 .scout-refresh-button:hover{background:rgba(198,161,91,.12)}
 @media(max-width:600px){.scout-refresh-button{margin-left:0}}
+
+.scout-global-player-card{border-color:rgba(198,161,91,.35);background:linear-gradient(135deg,#1c1f21,#17191b)}
+.scout-global-player-card .scout-rating{color:#d9bc79;background:rgba(198,161,91,.1);border:1px solid rgba(198,161,91,.24)}
+.scout-global-player-card .scout-card-actions button:disabled{opacity:.55;cursor:default}
