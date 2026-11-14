@@ -180,6 +180,24 @@ assert.ok(backupWorkflow.includes("openssl enc -d -aes-256-cbc -pbkdf2 -iter 600
 assert.ok(backupWorkflow.includes("aws s3api head-object"), "Backup workflow must verify the uploaded encrypted object");
 assert.ok(backupRunbook.includes("neue, isolierte Testdatenbank") && backupRunbook.includes("RESTORE_DATABASE_URL"), "Backup restore documentation must limit restore to an isolated test database");
 assert.ok(backupRunbook.includes("pg_restore --list") && backupRunbook.includes("Storage-Objekte"), "Backup restore runbook must include archive validation and explain separate Storage recovery");
+assert.ok(
+  backupWorkflow.includes("hmac.new(key, digestmod=hashlib.sha256)")
+    && backupWorkflow.includes("hmac.compare_digest(digest.hexdigest(), expected)")
+    && backupWorkflow.includes("BACKUP_FILE.hmac")
+    && backupWorkflow.includes("Backup HMAC verification failed"),
+  "Database backups must authenticate the encrypted archive and refuse tampered ciphertext"
+);
+assert.ok(
+  backupWorkflow.indexOf("hmac.compare_digest") < backupWorkflow.indexOf("openssl enc -d")
+    && backupRunbook.indexOf("hmac.compare_digest") < backupRunbook.indexOf("openssl enc -d"),
+  "Backup HMAC must be verified before decryption in both CI and the restore runbook"
+);
+assert.ok(
+  backupWorkflow.includes('key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()')
+    && backupRunbook.includes('key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()'),
+  "Backup creation and restore must derive the same domain-separated HMAC key"
+);
+
 assert.ok(teamTasksMigration.includes("public.pfms_legacy_team_tasks") && teamTasksMigration.includes("force row level security"), "Team task table must enforce RLS");
 assert.ok(teamTasksMigration.includes("public.pfms_has_legacy_team_permission") && teamTasksMigration.includes("'tasks', 'edit'"), "Team task writes must require team-scoped task edit permission");
 assert.ok(teamTasksMigration.includes("references public.pfms_legacy_team_staff(team_id, user_id)"), "Team task assignees must belong to the same team");
