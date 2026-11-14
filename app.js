@@ -4419,6 +4419,233 @@ async function savePfmsLegacyTrainingAttendance(button) {
   }
 }
 
+const PFMS_TEAM_FINANCE_CATEGORIES = {
+  membership: 'Mitgliedsbeitrag',
+  team_contribution: 'Teambeitrag',
+  donation: 'Spende',
+  tournament: 'Turnier',
+  equipment: 'Ausrüstung',
+  travel: 'Fahrt / Reise',
+  facility: 'Platz / Halle',
+  referee: 'Schiedsrichter',
+  other: 'Sonstiges'
+};
+
+function pfmsTeamMoney(value) {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(Number(value) || 0);
+}
+
+function renderPfmsLegacyTeamFinance() {
+  const panel = document.getElementById('pfmsTeamFinancePanel');
+  const form = document.getElementById('pfmsTeamFinanceForm');
+  const host = document.getElementById('pfmsTeamFinanceList');
+  const message = document.getElementById('pfmsTeamFinanceMessage');
+  const permission = pfmsSelectedTeamPermissions.get('finance') || {};
+  const canView = permission.can_view === true;
+  const canEdit = permission.can_edit === true;
+  if (!panel || !host) return;
+
+  panel.hidden = !canView;
+  if (form) form.hidden = !canEdit;
+  if (!canView) {
+    host.innerHTML = '';
+    return;
+  }
+
+  const summary = pfmsLegacyTeamFinanceSummary || {};
+  const income = Number(summary.total_income || 0);
+  const expenses = Number(summary.total_expenses || 0);
+  const balance = Number(summary.current_balance || 0);
+  document.getElementById('pfmsTeamFinanceIncome').textContent = pfmsTeamMoney(income);
+  document.getElementById('pfmsTeamFinanceExpenses').textContent = pfmsTeamMoney(expenses);
+  document.getElementById('pfmsTeamFinanceBalance').textContent = pfmsTeamMoney(balance);
+  document.getElementById('pfmsTeamFinanceCount').textContent =
+    String(summary.posted_entries || 0) + ' aktiv · ' + String(summary.voided_entries || 0) + ' storniert';
+
+  if (!pfmsLegacyTeamFinanceEntries.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Kassenbuchungen vorhanden</b><p>' +
+      (canEdit ? 'Erfasse die erste Einnahme oder Ausgabe für diese Mannschaft.' : 'Für diese Mannschaft wurden noch keine Buchungen erfasst.') +
+      '</p></div>';
+    if (message && !message.textContent) message.textContent = 'Kassenübersicht geladen.';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyTeamFinanceEntries.map(entry => {
+    const voided = entry.entry_status === 'voided';
+    const sign = entry.entry_type === 'income' ? '+' : '−';
+    const category = PFMS_TEAM_FINANCE_CATEGORIES[entry.category] || entry.category;
+    const amountClass = entry.entry_type === 'income' ? 'is-income' : 'is-expense';
+    const action = canEdit && !voided
+      ? '<button type="button" class="btn btn-secondary" data-pfms-finance-void="' +
+        escapeHtml(entry.entry_id) + '">Stornieren</button>' : '';
+    return '<article class="pfms-finance-entry ' + (voided ? 'is-voided' : '') + '">' +
+      '<div class="pfms-finance-entry-date"><b>' + escapeHtml(pfmsFormatTeamDate(entry.transaction_date)) + '</b>' +
+      '<small>' + escapeHtml(category) + '</small></div>' +
+      '<div class="pfms-finance-entry-description"><b>' + escapeHtml(entry.description) + '</b>' +
+      '<small>' + escapeHtml(entry.external_reference || 'Keine Referenz') +
+      ' · ' + (voided ? 'Storniert' : 'Gebucht') + '</small>' +
+      (voided && entry.void_reason ? '<small>Grund: ' + escapeHtml(entry.void_reason) + '</small>' : '') +
+      '</div>' +
+      '<strong class="' + amountClass + '">' + sign + escapeHtml(pfmsTeamMoney(entry.amount)) + '</strong>' +
+      action + '</article>';
+  }).join('');
+  if (message && !message.textContent) message.textContent =
+    'Die letzten ' + pfmsLegacyTeamFinanceEntries.length + ' Buchungen werden angezeigt.';
+}
+
+async function loadPfmsLegacyTeamFinance(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const panel = document.getElementById('pfmsTeamFinancePanel');
+  const host = document.getElementById('pfmsTeamFinanceList');
+  const message = document.getElementById('pfmsTeamFinanceMessage');
+  const permission = pfmsSelectedTeamPermissions.get('finance') || {};
+  if (!panel || !host || permission.can_view !== true || !teamId) {
+    if (panel) panel.hidden = true;
+    return false;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  host.innerHTML = '';
+  message.textContent = 'Mannschaftskasse wird geladen …';
+
+  try {
+    const [entriesResult, summaryResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_finance', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_get_legacy_team_finance_summary', { p_team_id: teamId })
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return false;
+    if (entriesResult.error) throw entriesResult.error;
+    if (summaryResult.error) throw summaryResult.error;
+
+    pfmsLegacyTeamFinanceEntries = entriesResult.data || [];
+    pfmsLegacyTeamFinanceSummary = summaryResult.data?.[0] || null;
+    renderPfmsLegacyTeamFinance();
+    message.textContent = 'Kassenübersicht geladen. Es werden bis zu 200 aktuelle Buchungen angezeigt; der Kassenstand berücksichtigt alle aktiven Buchungen.';
+    return true;
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return false;
+    console.error('PFMS team finance load failed:', error);
+    pfmsLegacyTeamFinanceEntries = [];
+    pfmsLegacyTeamFinanceSummary = null;
+    host.innerHTML = '<div class="empty-state">Die Mannschaftskasse konnte nicht geladen werden. Prüfe die Kassenmigration und die finance-Bereichsrechte.</div>';
+    message.textContent = 'Kassenübersicht derzeit nicht verfügbar.';
+    return false;
+  }
+}
+
+async function savePfmsLegacyTeamFinanceEntry(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamFinanceMessage');
+  const button = document.getElementById('pfmsTeamFinanceSave');
+  if (!team || pfmsSelectedTeamPermissions.get('finance')?.can_edit !== true) {
+    message.textContent = 'Für die Mannschaftskasse fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const amount = Number(data.amount);
+  const cents = Math.round(amount * 100);
+  if (!data.transaction_date ||
+      !['income','expense'].includes(data.entry_type) ||
+      !Object.prototype.hasOwnProperty.call(PFMS_TEAM_FINANCE_CATEGORIES, data.category) ||
+      !data.description?.trim() ||
+      !Number.isFinite(amount) || amount <= 0 || amount > 1000000 ||
+      Math.abs(amount * 100 - cents) > 0.000001) {
+    message.textContent = 'Bitte Datum, Buchungstyp, Kategorie, Beschreibung und einen gültigen Betrag in Euro eingeben.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const teamId = team.team_id;
+  button.disabled = true;
+  message.textContent = 'Buchung wird gespeichert …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_create_legacy_team_finance_entry', {
+      p_team_id: teamId,
+      p_transaction_date: data.transaction_date,
+      p_entry_type: data.entry_type,
+      p_category: data.category,
+      p_description: data.description.trim(),
+      p_amount: cents / 100,
+      p_external_reference: data.external_reference?.trim() || null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    form.reset();
+    form.elements.transaction_date.value = new Date().toISOString().slice(0, 10);
+    await loadPfmsLegacyTeamFinance(teamId);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) {
+      message.textContent = 'Buchung wurde gespeichert. Die Kassenübersicht wurde aktualisiert.';
+      toast('Kassenbuchung wurde gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team finance entry save failed:', error);
+    message.textContent = 'Buchung konnte nicht gespeichert werden. Prüfe Datum, Betrag und finance-Bearbeitungsrechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function voidPfmsLegacyTeamFinanceEntry(entryId) {
+  const entry = pfmsLegacyTeamFinanceEntries.find(item => item.entry_id === entryId);
+  const team = pfmsSelectedLegacyTeam;
+  if (!entry || !team || entry.entry_status !== 'posted' ||
+      pfmsSelectedTeamPermissions.get('finance')?.can_edit !== true) return;
+
+  const reason = window.prompt('Bitte gib den Grund für die Stornierung an:');
+  if (reason === null) return;
+  if (!reason.trim() || reason.trim().length > 400) {
+    document.getElementById('pfmsTeamFinanceMessage').textContent =
+      'Für eine Stornierung ist ein Grund mit 1 bis 400 Zeichen erforderlich.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const teamId = team.team_id;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_void_legacy_team_finance_entry', {
+      p_entry_id: entryId,
+      p_void_reason: reason.trim()
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamFinance(teamId);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === teamId) {
+      toast('Buchung wurde mit Begründung storniert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team finance entry void failed:', error);
+    document.getElementById('pfmsTeamFinanceMessage').textContent =
+      'Buchung konnte nicht storniert werden. Prüfe den Grund und die finance-Bearbeitungsrechte.';
+  }
+}
+
 function setupPfmsLegacyTeamWorkspace() {
   if (pfmsLegacyTeamsBound) return;
   const teamForm = document.getElementById('pfmsTeamForm');
