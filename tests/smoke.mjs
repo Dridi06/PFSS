@@ -199,6 +199,8 @@ assert.ok(html.includes('data-view="club-members"') && html.includes('data-view=
 
 assert.ok(app.includes("async function loadPfmsClubScouts()") && app.includes("p_role: 'scout'") && app.includes("p_status: 'active'"), "Club scouting must list active scouts from the organization");
 assert.ok(app.includes("pfmsClubInviteScoutButton") && app.includes("roleSelect.value = 'scout'"), "Club scouting must provide a working scout invitation path");
+assert.ok(app.includes("pfmsLegacyInvitationOrganizations = [];") && app.includes("clubScoutingResults.replaceChildren()"), "Organization data must be cleared on account reset");
+
 
 assert.ok(html.includes('id="pfmsLegacyMembersFilterForm"') && html.includes('id="pfmsLegacyMemberResults"'), "Organization membership directory UI is missing");
 assert.ok(app.includes("pfms_list_legacy_org_members_for_manager") && app.includes("pfms_update_legacy_org_membership_for_manager"), "Organization membership directory is not connected to its secure RPCs");
