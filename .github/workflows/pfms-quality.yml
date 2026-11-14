@@ -49,4 +49,3 @@ jobs:
           deno check --node-modules-dir=auto supabase/functions/username-login/index.ts
           deno check --node-modules-dir=auto supabase/functions/r2-connection-check/index.ts
           deno check --node-modules-dir=auto supabase/functions/pfms-owner-bootstrap/index.ts
-          deno check --node-modules-dir=auto supabase/functions/pfms-owner-bootstrap/index.ts
