@@ -12,7 +12,7 @@ Produktionsfreigabe: **nicht erteilt**
 
 PFMS ist noch kein vollständig integriertes Fußballmanagementsystem. Der Bestand besteht aus einem umfangreichen statischen Frontend, Supabase-Authentifizierung, mehreren vorhandenen SQL-Migrationen und teilweise bereits angebundenen Verwaltungsfunktionen. Viele fachliche Module sind bisher nur Oberflächen oder Teilfunktionen.
 
-Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichnissen. Seitdem wurden eine Node-Projektkonfiguration, Smoke-Tests und ein GitHub-Actions-Workflow ergänzt. Eine Render-Service-Konfiguration ist weiterhin nicht im Repository abgelegt; der konkrete Render-Service-Typ muss im Render-Konto verifiziert werden.
+Die erste Repository-Aufnahme umfasste 33 Einträge einschließlich Verzeichnissen. Seitdem wurden eine Node-Projektkonfiguration, Smoke-Tests und ein GitHub-Actions-Workflow ergänzt. Eine Render-Blueprint-Konfiguration für einen getrennten Static-Site-Stagingdienst ist jetzt im Repository ergänzt. Sie wurde noch nicht im Render-Konto angewendet; der tatsächliche Servicetyp des bestehenden Testdiensts muss weiterhin verifiziert werden.
 
 ## 2. Vorhandene Bausteine
 
@@ -66,8 +66,8 @@ Vorhandene Migrationen betreffen:
 | Fehlerüberwachung | Frontend-Fehler werden nach Redaktion sensibler Werte kontobezogen protokolliert; Adminansicht kann filtern und Status setzen | Migration in Staging anwenden, Fehler-Ingest, RLS, Statusänderungen und Aufbewahrung testen |
 | Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
 | Backup | Workflow im Repository | Secrets prüfen, Backup ausführen und Restore-Probe dokumentieren |
-| Render | Service-Konfiguration nicht verifiziert | Service-Typ prüfen, Test-Build, Health-Check und Browser-Test |
-| Qualitätssicherung | `npm test`, GitHub Actions, Deno-Typprüfung aller drei Edge Functions sowie statische Checks für Owner, Mitglieder, Scout, Fehlertelemetrie, Teamspiele und Trainingsübungen | Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
+| Render | `render.yaml` definiert `pfms-staging-static` auf dem Feature-Branch; noch nicht im Render-Konto angewendet | Bestehenden Testdiensttyp/Branch prüfen, Blueprint kontrolliert anwenden, Build-Logs und Browser-Test abnehmen |
+| Qualitätssicherung | `npm test` prüft Syntax, Projekt-Smoke-Tests sowie den erzeugten Static-Site-Build; GitHub Actions typprüft alle drei Edge Functions | CI-Lauf für den aktuellen Branch-Head nach den neuesten Änderungen nachweisen; Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
 
 ## 3a. Umgesetzter Team-Betrieb
 
@@ -147,9 +147,10 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `supabase/migrations/20261115_pfms_global_player_catalogue.sql` verbindet den Haupt-Spielerkatalog und Haupt-Scoutingberichte mit Supabase. Der Import lokaler Alt-Daten erfordert ausdrücklich eine Administratorbestätigung; die Quelldaten werden erst nach erfolgreichem Import entfernt. Die Migration ist noch nicht in Staging ausgeführt.
 - `supabase/migrations/20261116_pfms_system_event_monitoring.sql`, die Client-Fehlertelemetrie und `view-admin-errors` ergänzen eine RLS-geschützte Fehlerübersicht mit Statuspflege. Der Logger redigiert Tokens/E-Mail-Adressen, speichert keine Stack-Traces und ist auf fünf Ereignisse pro Minute begrenzt. Staging-Migration und Laufzeittest stehen noch aus.
 - Die Qualitätsprüfung prüft nun zusätzlich die Owner-Registrierungs- und Admin-Mitgliederfunktionen; Deno typprüft alle drei Edge Functions (Benutzername-Login, R2-Verbindung, Owner-Bootstrap).
-- `package.json` enthält `npm test` und `npm run check:syntax`. Die Smoke-Tests prüfen nun auch den Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
+- `package.json` enthält `npm test`, `npm run check:syntax` und `npm run build`. Der Static-Site-Build erstellt ausschließlich die sieben benötigten Browserdateien in `dist/`; `tests/build-smoke.mjs` prüft lokale Asset-Referenzen und schließt interne Repository-Dateien aus. Die bestehenden Smoke-Tests prüfen zusätzlich Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik, globale Spielersuche, private Medien, Team-/Trainings-/Spielmodule, Organisationsübersicht und Fehlertelemetrie.
-- `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
+- `.github/workflows/pfms-quality.yml` führt die Projekt- und Build-Tests sowie die Deno-Typprüfung bei Push/PR aus.
+- `render.yaml` definiert den isolierten Render-Staging-Static-Site-Dienst `pfms-staging-static` auf `feature/pfss-complete-platform-build`, veröffentlicht nur `dist/` und begrenzt automatische Deployments auf bestandene Checks. Die Blueprint-Konfiguration wurde noch nicht mit dem Render-Konto synchronisiert.
 - Der GitHub-Actions-Lauf `43600769629` auf Commit `139b90b...` war erfolgreich: Frontend-Syntax-/Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Weitere Änderungen am Club-Workspace befinden sich in einem neuen CI-Lauf. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
