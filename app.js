@@ -3311,6 +3311,297 @@ async function removePfmsLegacyTeamStaff(assignmentId) {
   }
 }
 
+const PFMS_TEAM_ANALYSIS_PHASE_LABELS = {
+  pre_match: 'Spielvorbereitung',
+  build_up: 'Spielaufbau',
+  pressing: 'Pressing',
+  transition: 'Umschalten',
+  defending: 'Defensivverhalten',
+  set_piece: 'Standards',
+  individual: 'Individualverhalten',
+  general: 'Allgemein'
+};
+
+const PFMS_TEAM_ANALYSIS_STATUS_LABELS = {
+  draft: 'Entwurf',
+  reviewed: 'Besprochen',
+  archived: 'Archiviert'
+};
+
+function pfmsSafeAnalysisVideoUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    return url.protocol === 'https:' && url.hostname ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function pfmsFormatVideoTimestamp(seconds) {
+  const value = Number(seconds);
+  if (!Number.isInteger(value) || value < 0 || value > 86400) return '';
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
+  const remainder = value % 60;
+  return hours
+    ? String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(remainder).padStart(2, '0')
+    : String(minutes).padStart(2, '0') + ':' + String(remainder).padStart(2, '0');
+}
+
+function renderPfmsLegacyTeamAnalysis() {
+  const host = document.getElementById('pfmsTeamAnalysisList');
+  const message = document.getElementById('pfmsTeamAnalysisMessage');
+  if (!host) return;
+
+  const canEdit = pfmsSelectedTeamPermissions.get('analysis')?.can_edit === true;
+  if (!pfmsLegacyTeamAnalysis.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Analysen vorhanden</b><p>' +
+      (canEdit ? 'Lege eine taktische Auswertung oder Videoanalyse für deine Mannschaft an.' : 'Für diese Mannschaft liegen noch keine Analysen vor.') +
+      '</p></div>';
+    return;
+  }
+
+  host.innerHTML = pfmsLegacyTeamAnalysis.map(item => {
+    const videoUrl = pfmsSafeAnalysisVideoUrl(item.video_url);
+    const videoLink = videoUrl
+      ? '<a class="pfms-analysis-video-link" href="' + escapeHtml(videoUrl) + '" target="_blank" rel="noopener noreferrer">Videoquelle öffnen' +
+        (item.video_timestamp_seconds == null ? '' : ' · ' + escapeHtml(pfmsFormatVideoTimestamp(item.video_timestamp_seconds))) +
+        '</a>'
+      : '';
+    const typeLabel = item.analysis_type === 'video' ? 'Videoanalyse' : 'Taktische Auswertung';
+    const matchLabel = item.match_opponent
+      ? escapeHtml(item.match_opponent) + (item.match_date ? ' · ' + escapeHtml(pfmsFormatTeamDate(item.match_date)) : '')
+      : 'Ohne Spielzuordnung';
+    return '<article class="pfms-team-analysis-card" data-pfms-analysis-card="' + escapeHtml(item.analysis_id) + '">' +
+      '<div class="pfms-team-analysis-card-head"><div><span class="eyebrow">' +
+        escapeHtml(typeLabel) + ' · ' + escapeHtml(pfmsFormatTeamDate(item.observation_date)) +
+        '</span><h4>' + escapeHtml(item.analysis_title) + '</h4></div>' +
+        '<span class="module-status">' + escapeHtml(PFMS_TEAM_ANALYSIS_STATUS_LABELS[item.analysis_status] || item.analysis_status) + '</span></div>' +
+      '<div class="pfms-analysis-meta"><span>' + escapeHtml(PFMS_TEAM_ANALYSIS_PHASE_LABELS[item.phase] || item.phase) +
+        '</span><span>' + matchLabel + '</span></div>' +
+      '<p class="pfms-analysis-summary">' + escapeHtml(item.summary) + '</p>' +
+      (item.strengths ? '<div class="pfms-analysis-detail"><b>Stärken</b><p>' + escapeHtml(item.strengths) + '</p></div>' : '') +
+      (item.improvements ? '<div class="pfms-analysis-detail"><b>Verbesserungspunkte</b><p>' + escapeHtml(item.improvements) + '</p></div>' : '') +
+      (item.action_items ? '<div class="pfms-analysis-detail"><b>Maßnahmen</b><p>' + escapeHtml(item.action_items) + '</p></div>' : '') +
+      (videoLink ? '<div class="pfms-analysis-video">' + videoLink + '</div>' : '') +
+      (canEdit
+        ? '<div class="pfms-analysis-actions"><button type="button" class="btn btn-secondary" data-pfms-analysis-edit="' +
+            escapeHtml(item.analysis_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-analysis-delete="' +
+            escapeHtml(item.analysis_id) + '">Löschen</button></div>'
+        : '') +
+      '</article>';
+  }).join('');
+
+  if (message) message.textContent = pfmsLegacyTeamAnalysis.length + ' Analyse(n) geladen.';
+}
+
+async function loadPfmsLegacyTeamAnalysis(teamId = pfmsSelectedLegacyTeam?.team_id) {
+  const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
+  const panel = document.getElementById('pfmsTeamAnalysisPanel');
+  const form = document.getElementById('pfmsTeamAnalysisForm');
+  const host = document.getElementById('pfmsTeamAnalysisList');
+  const message = document.getElementById('pfmsTeamAnalysisMessage');
+  const matchSelect = document.getElementById('pfmsTeamAnalysisMatch');
+  if (!team || !panel || !form || !host || !message || !matchSelect) return;
+
+  const permission = pfmsSelectedTeamPermissions.get('analysis') || {};
+  if (permission.can_view !== true) {
+    resetPfmsLegacyTeamAnalysisState();
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  panel.hidden = false;
+  form.hidden = permission.can_edit !== true;
+  message.textContent = 'Taktik- und Videoanalysen werden geladen …';
+  host.replaceChildren();
+
+  try {
+    const [analysisResult, matchesResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_analysis', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_analysis_matches', { p_team_id: teamId })
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (analysisResult.error) throw analysisResult.error;
+    if (matchesResult.error) throw matchesResult.error;
+
+    pfmsLegacyTeamAnalysis = analysisResult.data || [];
+    pfmsLegacyTeamAnalysisMatches = matchesResult.data || [];
+    const selectedMatch = matchSelect.value;
+    matchSelect.innerHTML = '<option value="">Ohne konkretes Spiel</option>' +
+      pfmsLegacyTeamAnalysisMatches.map(match =>
+        '<option value="' + escapeHtml(match.match_id) + '">' +
+          escapeHtml(pfmsFormatTeamDate(match.match_date) + ' · ' + match.opponent +
+            (match.home_away === 'away' ? ' · Auswärts' : ' · Heim')) +
+        '</option>'
+      ).join('');
+    if (selectedMatch && pfmsLegacyTeamAnalysisMatches.some(match => match.match_id === selectedMatch)) {
+      matchSelect.value = selectedMatch;
+    }
+    renderPfmsLegacyTeamAnalysis();
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    console.error('PFMS team analysis load failed:', error);
+    pfmsLegacyTeamAnalysis = [];
+    pfmsLegacyTeamAnalysisMatches = [];
+    host.innerHTML = '<div class="empty-state">Taktik- und Videoanalysen konnten nicht geladen werden. Prüfe die Analyse-Migration und Bereichsrechte.</div>';
+    message.textContent = 'Analysebereich derzeit nicht verfügbar.';
+  }
+}
+
+function resetPfmsLegacyTeamAnalysisForm() {
+  const form = document.getElementById('pfmsTeamAnalysisForm');
+  if (!form) return;
+  pfmsEditingTeamAnalysisId = null;
+  form.reset();
+  form.elements.analysis_id.value = '';
+  form.elements.observation_date.value = new Date().toISOString().slice(0, 10);
+  const save = document.getElementById('pfmsTeamAnalysisSave');
+  const cancel = document.getElementById('pfmsTeamAnalysisCancelEdit');
+  if (save) save.textContent = 'Analyse speichern';
+  if (cancel) cancel.hidden = true;
+}
+
+function openPfmsLegacyTeamAnalysis(record = null) {
+  const form = document.getElementById('pfmsTeamAnalysisForm');
+  if (!form || pfmsSelectedTeamPermissions.get('analysis')?.can_edit !== true) return;
+  resetPfmsLegacyTeamAnalysisForm();
+  pfmsEditingTeamAnalysisId = record?.analysis_id || null;
+  form.elements.analysis_id.value = pfmsEditingTeamAnalysisId || '';
+  form.elements.title.value = record?.analysis_title || '';
+  form.elements.analysis_type.value = record?.analysis_type || 'tactical';
+  form.elements.match_id.value = record?.match_id || '';
+  form.elements.phase.value = record?.phase || 'general';
+  form.elements.observation_date.value = record?.observation_date || new Date().toISOString().slice(0, 10);
+  form.elements.status.value = record?.analysis_status || 'draft';
+  form.elements.video_url.value = record?.video_url || '';
+  form.elements.video_timestamp_seconds.value = record?.video_timestamp_seconds ?? '';
+  form.elements.summary.value = record?.summary || '';
+  form.elements.strengths.value = record?.strengths || '';
+  form.elements.improvements.value = record?.improvements || '';
+  form.elements.action_items.value = record?.action_items || '';
+  const save = document.getElementById('pfmsTeamAnalysisSave');
+  const cancel = document.getElementById('pfmsTeamAnalysisCancelEdit');
+  if (save) save.textContent = record ? 'Änderungen speichern' : 'Analyse speichern';
+  if (cancel) cancel.hidden = !record;
+  form.hidden = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.elements.title.focus();
+}
+
+async function savePfmsLegacyTeamAnalysis(event) {
+  event.preventDefault();
+  const team = pfmsSelectedLegacyTeam;
+  const form = event.currentTarget;
+  const message = document.getElementById('pfmsTeamAnalysisMessage');
+  const button = document.getElementById('pfmsTeamAnalysisSave');
+  if (!team || pfmsSelectedTeamPermissions.get('analysis')?.can_edit !== true) {
+    if (message) message.textContent = 'Für Taktik- und Videoanalysen fehlen dir die Bearbeitungsrechte.';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const videoUrl = data.video_url?.trim() || null;
+  const timestamp = data.video_timestamp_seconds === '' ? null : Number(data.video_timestamp_seconds);
+  if (!data.title?.trim() || data.title.trim().length < 3 ||
+      !data.observation_date || !data.summary?.trim() ||
+      !['tactical','video'].includes(data.analysis_type) ||
+      (data.analysis_type === 'video' && !videoUrl) ||
+      (videoUrl && !pfmsSafeAnalysisVideoUrl(videoUrl)) ||
+      (timestamp !== null && (!Number.isInteger(timestamp) || timestamp < 0 || timestamp > 86400))) {
+    if (message) message.textContent = 'Bitte Titel, Art, Datum und Zusammenfassung prüfen. Videoquellen müssen HTTPS-Adressen sein; die Zeitmarke muss zwischen 0 und 86.400 Sekunden liegen.';
+    return;
+  }
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const isEditing = Boolean(pfmsEditingTeamAnalysisId);
+  button.disabled = true;
+  if (message) message.textContent = 'Analyse wird gespeichert …';
+
+  const args = {
+    p_title: data.title.trim(),
+    p_analysis_type: data.analysis_type,
+    p_phase: data.phase,
+    p_observation_date: data.observation_date,
+    p_summary: data.summary.trim(),
+    p_match_id: data.match_id || null,
+    p_video_url: videoUrl,
+    p_video_timestamp_seconds: timestamp,
+    p_strengths: data.strengths || null,
+    p_improvements: data.improvements || null,
+    p_action_items: data.action_items || null
+  };
+
+  try {
+    const result = isEditing
+      ? await pfssSupabase.rpc('pfms_update_legacy_team_analysis', {
+          p_analysis_id: pfmsEditingTeamAnalysisId,
+          ...args,
+          p_status: data.status
+        })
+      : await pfssSupabase.rpc('pfms_create_legacy_team_analysis', {
+          p_team_id: team.team_id,
+          ...args
+        });
+
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (result.error) throw result.error;
+
+    resetPfmsLegacyTeamAnalysisForm();
+    await loadPfmsLegacyTeamAnalysis(team.team_id);
+    if (requestGeneration === pfmsAuthGeneration &&
+        requestUserId === window.pfssCurrentUserId &&
+        pfmsSelectedLegacyTeam?.team_id === team.team_id) {
+      if (message) message.textContent = isEditing ? 'Analyse wurde aktualisiert.' : 'Analyse wurde gespeichert.';
+      toast(isEditing ? 'Analyse aktualisiert.' : 'Analyse gespeichert.');
+    }
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team analysis save failed:', error);
+    if (message) message.textContent = 'Analyse konnte nicht gespeichert werden. Prüfe Videoquelle, Spielzuordnung und Analyse-Rechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deletePfmsLegacyTeamAnalysis(analysisId) {
+  const team = pfmsSelectedLegacyTeam;
+  const record = pfmsLegacyTeamAnalysis.find(item => item.analysis_id === analysisId);
+  if (!team || !record || pfmsSelectedTeamPermissions.get('analysis')?.can_edit !== true) return;
+  if (!window.confirm('Diese Analyse wirklich löschen?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_delete_legacy_team_analysis', {
+      p_analysis_id: analysisId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamAnalysis(team.team_id);
+    toast('Analyse wurde gelöscht.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS team analysis delete failed:', error);
+    const message = document.getElementById('pfmsTeamAnalysisMessage');
+    if (message) message.textContent = 'Analyse konnte nicht gelöscht werden. Prüfe die Analyse-Rechte.';
+  }
+}
+
 function applyPfmsLegacyTeamModulePermissions() {
   const grid = document.getElementById('pfmsTeamModules');
   const notice = document.getElementById('pfmsTeamPermissionNotice');
