@@ -35,7 +35,8 @@ const [
   legacyTeamMatchesMigration,
   legacyTeamTrainingExercisesMigration,
   legacyTeamFinanceMigration,
-  personalTasksMigration
+  personalTasksMigration,
+  supportTicketsMigration
 ] = await Promise.all([
   read("index.html"),
   read("app.js"),
@@ -68,7 +69,8 @@ const [
   read("supabase/migrations/20261125_pfms_legacy_team_matches.sql"),
   read("supabase/migrations/20261126_pfms_legacy_training_exercises.sql"),
   read("supabase/migrations/20261127_pfms_legacy_team_finance.sql"),
-  read("supabase/migrations/20261128_pfms_personal_tasks.sql")
+  read("supabase/migrations/20261128_pfms_personal_tasks.sql"),
+  read("supabase/migrations/20261129_pfms_support_tickets.sql")
 ]);
 
 const requiredFiles = [
@@ -92,6 +94,7 @@ const requiredFiles = [
   "supabase/migrations/20261117_pfms_system_event_hardening.sql",
   "supabase/migrations/20261117_pfms_main_media_library.sql",
   "supabase/migrations/20261128_pfms_personal_tasks.sql",
+  "supabase/migrations/20261129_pfms_support_tickets.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -198,6 +201,11 @@ assert.ok(html.includes('data-view="admin-members"') && app.includes("if (view =
 assert.ok(app.includes("function renderPfmsClubWorkspace()") && app.includes("pfms_list_my_manageable_legacy_organizations"), "Club workspace must load the caller's manageable organizations");
 assert.ok(html.includes('id="view-tasks"') && html.includes('id="pfmsPersonalTaskForm"') && html.includes('id="pfmsPersonalTaskList"'), "Personal task center UI is incomplete");
 assert.ok(app.includes("async function loadPfmsPersonalTasks()") && app.includes("async function savePfmsPersonalTask(event)") && app.includes("async function updatePfmsPersonalTaskStatus") && app.includes("async function deletePfmsPersonalTask"), "Personal task CRUD is incomplete");
+assert.ok(html.includes('id="view-support"') && html.includes('id="pfmsSupportTicketForm"') && html.includes('id="view-admin-inbox"'), "User support and admin inbox UI is incomplete");
+assert.ok(app.includes("async function createPfmsSupportTicket") && app.includes("async function loadPfmsAdminSupportTickets") && app.includes("async function savePfmsAdminSupportTicket"), "Support ticket submission and admin workflow are incomplete");
+assert.ok(supportTicketsMigration.includes("force row level security") && supportTicketsMigration.includes("owner_id = auth.uid()") && supportTicketsMigration.includes("public.pfms_is_admin()"), "Support inbox must use private owner/admin ticket policies");
+assert.ok(supportTicketsMigration.includes("grant update (status, admin_response)") && supportTicketsMigration.includes("pfms_support_tickets_insert_own"), "Support tickets must restrict users to submission and admins to response/status updates");
+
 assert.ok(personalTasksMigration.includes("force row level security") && personalTasksMigration.includes("owner_id = auth.uid()") && personalTasksMigration.includes("pfms_current_user_is_approved()"), "Personal tasks must enforce approved owner-only access");
 assert.ok(stagingAudit.includes("'pfms_personal_tasks'"), "Staging schema audit must inspect personal task data");
 assert.ok(app.includes(".eq('owner_id', requestUserId)") && app.includes("pfmsPersonalTasks = [];"), "Personal task reads and mutations must remain account-scoped");
