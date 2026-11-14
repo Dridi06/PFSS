@@ -184,11 +184,11 @@ begin
   end if;
 
   if pg_catalog.length(pg_catalog.btrim(coalesce(p_title,''))) not between 1 and 140
-     or p_category not in ('warmup','technical','tactical','physical','finishing','cooldown','other')
-     or p_duration_minutes not between 1 and 180
-     or p_min_players not between 1 and 40
+     or p_category is null or p_category not in ('warmup','technical','tactical','physical','finishing','cooldown','other')
+     or p_duration_minutes is null or p_duration_minutes not between 1 and 180
+     or p_min_players is null or p_min_players not between 1 and 40
      or (p_max_players is not null and (p_max_players not between 1 and 40 or p_max_players < p_min_players))
-     or p_difficulty not in ('beginner','intermediate','advanced')
+     or p_difficulty is null or p_difficulty not in ('beginner','intermediate','advanced')
      or (p_pitch_size is not null and pg_catalog.length(p_pitch_size) > 100)
      or (p_equipment is not null and pg_catalog.length(p_equipment) > 1500)
      or (p_setup is not null and pg_catalog.length(p_setup) > 4000)
@@ -367,8 +367,8 @@ declare
   v_exercise_id uuid;
   v_order integer;
   v_duration integer;
-  v_count integer;
-  v_total_duration integer;
+  v_count integer := 0;
+  v_total_duration integer := 0;
   v_notes text;
 begin
   select team_id into v_team_id
@@ -384,45 +384,21 @@ begin
   end if;
 
   if pg_catalog.jsonb_typeof(p_items) is distinct from 'array' then
-    raise exception 'Training plan items must be a JSON array' using errcode = '22023';
+    raise exception 'Training plan must be a JSON array' using errcode = '22023';
   end if;
-
   if pg_catalog.jsonb_array_length(p_items) > 30 then
     raise exception 'Training plan must contain at most 30 exercises' using errcode = '22023';
   end if;
 
-  select pg_catalog.count(*),
-         coalesce(sum((value ->> 'planned_duration_minutes')::integer), 0)
-  into v_count, v_total_duration
-  from pg_catalog.jsonb_array_elements(p_items);
-
-  if v_total_duration > 480 then
-    raise exception 'Training plan cannot exceed 480 minutes' using errcode = '22023';
-  end if;
-
-  if (
-    select pg_catalog.count(distinct value ->> 'exercise_id')
-    from pg_catalog.jsonb_array_elements(p_items)
-  ) <> v_count then
-    raise exception 'An exercise may only appear once in a training plan' using errcode = '22023';
-  end if;
-
-  if (
-    select pg_catalog.count(distinct value ->> 'sort_order')
-    from pg_catalog.jsonb_array_elements(p_items)
-  ) <> v_count then
-    raise exception 'Training plan order must be unique' using errcode = '22023';
-  end if;
-
+  -- Validate every submitted row before deleting the existing plan.
   for v_item in
     select value from pg_catalog.jsonb_array_elements(p_items)
   loop
     if pg_catalog.jsonb_typeof(v_item) is distinct from 'object'
-       or nullif(v_item ->> 'exercise_id','') is null
-       or nullif(v_item ->> 'sort_order','') is null
-       or (v_item ->> 'sort_order') !~ '^[0-9]+$'
-       or nullif(v_item ->> 'planned_duration_minutes','') is null
-       or (v_item ->> 'planned_duration_minutes') !~ '^[0-9]+$' then
+       or pg_catalog.jsonb_typeof(v_item -> 'exercise_id') is distinct from 'string'
+       or pg_catalog.jsonb_typeof(v_item -> 'sort_order') is distinct from 'number'
+       or pg_catalog.jsonb_typeof(v_item -> 'planned_duration_minutes') is distinct from 'number'
+       or pg_catalog.jsonb_typeof(v_item -> 'notes') not in ('string','null') then
       raise exception 'Invalid training plan entry' using errcode = '22023';
     end if;
 
@@ -443,7 +419,28 @@ begin
     ) then
       raise exception 'Every exercise must belong to the selected team' using errcode = '42501';
     end if;
+
+    v_count := v_count + 1;
+    v_total_duration := v_total_duration + v_duration;
   end loop;
+
+  if v_total_duration > 480 then
+    raise exception 'Training plan cannot exceed 480 minutes' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'exercise_id')::uuid)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'An exercise may only appear once in a training plan' using errcode = '22023';
+  end if;
+
+  if (
+    select pg_catalog.count(distinct (value ->> 'sort_order')::integer)
+    from pg_catalog.jsonb_array_elements(p_items)
+  ) <> v_count then
+    raise exception 'Training plan order must be unique' using errcode = '22023';
+  end if;
 
   delete from public.pfms_legacy_training_session_exercises
   where session_id = p_session_id and team_id = v_team_id;
