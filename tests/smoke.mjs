@@ -13,6 +13,7 @@ const ownerMigration = await read("supabase/migrations/20261115_pfms_platform_ow
 const ownerGuardMigration = await read("supabase/migrations/20261116_pfms_owner_bootstrap_registration_guard.sql");
 const stagingAudit = await read("supabase/STAGING_READ_ONLY_AUDIT.sql");
 const ownerGuide = await read("docs/OWNER_BOOTSTRAP.md");
+const adminMembersMigration = await read("supabase/migrations/20261115_admin_global_member_directory.sql");
 
 const supabaseConfig = await read("supabase/config.toml");
 
@@ -25,7 +26,8 @@ const requiredFiles = [
   "pfms-logo.svg",
   "rechtliches.html",
   "supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql",
-  "supabase/functions/pfms-owner-bootstrap/index.ts"
+  "supabase/functions/pfms-owner-bootstrap/index.ts",
+  "supabase/migrations/20261115_admin_global_member_directory.sql"
 ];
 
 for (const path of requiredFiles) {
@@ -93,6 +95,11 @@ assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstra
 assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("userData.user.id") && !/payload[^;]*p_user_id/s.test(ownerBootstrap), "Owner bootstrap must derive identity from verified JWT, not request body");
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("auth.role()") && ownerMigration.includes("'service_role'"), "Owner migration must enforce a single server-side owner claim");
 assert.ok(supabaseConfig.includes("[functions.pfms-owner-bootstrap]") && supabaseConfig.includes("verify_jwt = true"), "Owner bootstrap must require JWT verification");
+assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
+assert.ok(app.includes("function loadPfmsAdminMembers()") && app.includes("pfms_admin_list_legacy_members"), "Admin member directory is not connected to its database RPC");
+assert.ok(app.includes("pfms_admin_update_legacy_membership"), "Admin member role/status updates are not connected");
+assert.ok(adminMembersMigration.includes("security definer") && adminMembersMigration.includes("public.is_admin()"), "Global membership directory must enforce server-side administrator authorization");
+assert.ok(adminMembersMigration.includes("revoke all on function public.pfms_admin_list_legacy_members") && adminMembersMigration.includes("grant execute on function public.pfms_admin_list_legacy_members"), "Global membership directory RPC grants are incomplete");
 
 assert.match(app, /persistSession:\s*true/, "Supabase session persistence must stay enabled");
 assert.match(app, /shouldShowWelcome\s*=\s*showIntro\s*\|\|\s*showReturningGreeting/, "Welcome animation must be conditional");
