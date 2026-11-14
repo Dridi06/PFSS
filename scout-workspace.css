@@ -60,3 +60,41 @@
 .scout-video-placeholder h3{color:#eee;margin:14px 0 4px}.scout-video-placeholder p{color:#929292;font-size:12px}.scout-play{display:grid;place-items:center;width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#dfc47f,#9d773b);color:#16120b;font-size:25px;padding-left:4px}
 @media(max-width:900px){.scout-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.scout-overview-grid{grid-template-columns:1fr}.scout-quick-panel{align-items:flex-start;flex-direction:column}.scout-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.scout-hero{padding:23px 20px;min-height:160px}.scout-hero-mark{font-size:40px;padding:0 2px}.scout-hero h1{font-size:26px}.scout-lead{max-width:240px;font-size:12px}.scout-kpi-grid{gap:8px}.scout-kpi{padding:13px;min-height:110px}.scout-kpi strong{font-size:26px}.scout-kpi>span{font-size:8px}.scout-form-grid,.scout-data-grid,.scout-placeholder-grid{grid-template-columns:1fr}.scout-quick-actions{display:grid;grid-template-columns:1fr;width:100%}.scout-page-head{align-items:flex-start;flex-direction:column}.scout-panel{padding:14px}.scout-section-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.scout-section-tabs button{width:100%}}
+
+
+/* PFMS data-backed Scout Workspace */
+.scout-workspace-nav[hidden]{display:none!important}
+.scout-workspace-message{padding:10px 13px;border:1px solid rgba(198,161,91,.2);border-radius:9px;background:rgba(198,161,91,.06);color:#c9b783}
+.scout-workspace-message[hidden]{display:none}
+.scout-workspace-message.is-error{border-color:rgba(221,104,104,.4);background:rgba(160,45,45,.12);color:#f0aaaa}
+.scout-card-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.scout-card-actions button,.scout-media-caption button{border:1px solid rgba(198,161,91,.24);border-radius:7px;padding:6px 9px;background:#1b1e20;color:#d5b979;font-size:10px;cursor:pointer}
+.scout-card-actions button:hover,.scout-media-caption button:hover{background:rgba(198,161,91,.13)}
+.scout-dialog{width:min(720px,calc(100% - 28px));max-height:90vh;overflow:auto;padding:0;border:1px solid rgba(198,161,91,.42);border-radius:17px;background:#121416;color:#eee;box-shadow:0 25px 80px rgba(0,0,0,.55)}
+.scout-dialog::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(4px)}
+.scout-dialog-form{padding:23px}
+.scout-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}
+.scout-dialog-head h2{margin:0;color:#f0eee8;font-size:22px}
+.scout-dialog-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#202326;color:#ddd;font-size:23px;line-height:1;cursor:pointer}
+.scout-dialog .scout-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.scout-dialog .field{display:flex;flex-direction:column;gap:7px;color:#c9c5bc;font-size:12px}
+.scout-dialog .field input,.scout-dialog .field select,.scout-dialog .field textarea{box-sizing:border-box;width:100%;min-width:0;padding:11px 12px;border:1px solid rgba(198,161,91,.23);border-radius:8px;background:#1c2022;color:#f0eee8;font:inherit}
+.scout-dialog .field textarea{resize:vertical}
+.scout-dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}
+.scout-upload-button{cursor:pointer}
+.scout-upload-hint{margin:-7px 0 16px;color:#929292;font-size:11px}
+.scout-media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.scout-media-card{overflow:hidden;border:1px solid rgba(198,161,91,.2);border-radius:13px;background:#17191b}
+.scout-media-card img,.scout-media-card video{display:block;width:100%;height:190px;object-fit:cover;background:#090a0c}
+.scout-media-caption{display:grid;gap:5px;padding:11px}
+.scout-media-caption>span{overflow-wrap:anywhere;color:#eee;font-size:11px;font-weight:700}
+.scout-media-caption small{color:#8f9091;font-size:10px}
+.scout-media-caption button{justify-self:start;margin-top:3px}
+.scout-media-error{display:grid;place-items:center;height:190px;padding:14px;color:#e3b5a6;text-align:center;background:#211817;font-size:11px}
+@media(max-width:700px){
+  .scout-dialog-form{padding:16px}
+  .scout-dialog .scout-form-grid,.scout-media-grid{grid-template-columns:1fr}
+  .scout-media-card img,.scout-media-card video{height:220px}
+  .scout-dialog-actions{flex-direction:column-reverse}
+  .scout-dialog-actions .btn{width:100%}
+}
