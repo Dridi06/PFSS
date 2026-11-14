@@ -745,7 +745,10 @@ if (knownGaps.length) {
   console.log("\nKnown unfinished areas (tracked, not hidden):");
   for (const gap of knownGaps) console.log("- " + gap);
 }
-"),
+assert.ok(
+  legacyTeamTrainingExercisesMigration.includes("sort_order") &&
+  legacyTeamTrainingExercisesMigration.includes("planned_duration_minutes") &&
+  legacyTeamTrainingExercisesMigration.includes("!~"),
   "Training plan RPC must reject fractional or malformed order and duration values"
 );
 assert.ok(
