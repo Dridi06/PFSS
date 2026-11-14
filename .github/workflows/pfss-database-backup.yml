@@ -65,13 +65,13 @@ jobs:
           import sys
 
           passphrase = os.environ["BACKUP_ENCRYPTION_PASSPHRASE"].encode()
-          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1\\x00" + passphrase).digest()
+          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()
           digest = hmac.new(key, digestmod=hashlib.sha256)
           with open(sys.argv[1], "rb") as source:
               for chunk in iter(lambda: source.read(1024 * 1024), b""):
                   digest.update(chunk)
           with open(sys.argv[1] + ".hmac", "w", encoding="ascii") as manifest:
-              manifest.write(digest.hexdigest() + "\\n")
+              manifest.write(digest.hexdigest() + "\n")
           PY
 
           # Verify the HMAC before decrypting and parsing the archive.
@@ -82,7 +82,7 @@ jobs:
           import sys
 
           passphrase = os.environ["BACKUP_ENCRYPTION_PASSPHRASE"].encode()
-          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1\\x00" + passphrase).digest()
+          key = hashlib.sha256(b"PFSS-R2-BACKUP-HMAC-v1:" + passphrase).digest()
           digest = hmac.new(key, digestmod=hashlib.sha256)
           with open(sys.argv[1], "rb") as source:
               for chunk in iter(lambda: source.read(1024 * 1024), b""):
