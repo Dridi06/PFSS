@@ -2070,11 +2070,7 @@ function setupPfmsAdminErrors() {
       try {
         const { error } = await pfssSupabase
           .from('pfms_system_events')
-          .update({
-            status,
-            resolved_at: status === 'resolved' ? new Date().toISOString() : null,
-            resolved_by: status === 'resolved' ? window.pfssCurrentUserId : null
-          })
+          .update({ status })
           .eq('id', card.dataset.eventId);
         if (error) throw error;
         message.textContent = 'Status gespeichert.';
