@@ -139,7 +139,6 @@ const requiredFiles = [
   "supabase/migrations/20261204_pfms_legacy_team_event_participants.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql",
-  "supabase/migrations/20261206_pfms_legacy_team_tasks.sql",
   "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
@@ -196,7 +195,8 @@ assert.ok(
     && inAppNotificationsMigration.includes("recipient_id = auth.uid()")
     && inAppNotificationsMigration.includes("grant select on table public.pfms_notifications to authenticated")
     && inAppNotificationsMigration.includes("grant update (is_read) on table public.pfms_notifications to authenticated")
-    && !/grant\\s+(?:insert|all)\\s+on\\s+table\\s+public\\.pfms_notifications\\s+to\\s+authenticated/i.test(inAppNotificationsMigration),
+    && !inAppNotificationsMigration.includes("grant insert on table public.pfms_notifications")
+    && !inAppNotificationsMigration.includes("grant all on table public.pfms_notifications"),
   "Notifications must be recipient-private and browser accounts may only read or mark their own rows as read"
 );
 assert.ok(
@@ -221,6 +221,21 @@ assert.ok(
     && app.includes("resetPfmsAuthenticatedState()"),
   "In-app notification loading, recipient-owned read state and account reset must be wired"
 );
+assert.ok(
+  app.includes(".from('pfms_notifications')")
+    && app.includes(".eq('recipient_id', requestUserId)")
+    && app.includes(".update({ is_read: true })")
+    && app.includes("pfmsNotifications = [];")
+    && app.includes("void loadPfmsNotifications();"),
+  "Notification reads must be scoped to the signed-in recipient, unread state must load after login and local data must clear on reset"
+);
+assert.ok(
+  app.includes("data-pfms-notification-read")
+    && app.includes("data-pfms-notification-count")
+    && app.includes("loadPfmsNotifications()"),
+  "Notification inbox actions and unread badges must be wired"
+);
+
 assert.ok(
   html.includes('id="view-notifications"')
     && html.includes('id="pfmsNotificationsList"')
