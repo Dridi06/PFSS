@@ -453,9 +453,8 @@ assert.ok(
   app.includes("async function loadPfmsLegacyTeamEvents")
     && app.includes("async function savePfmsLegacyTeamEvent")
     && app.includes("async function deletePfmsLegacyTeamEvent")
-    && app.includes("pfms_list_legacy_team_events")
-    && app.includes("pfms_create_legacy_team_event")
-    && app.includes("pfms_update_legacy_team_event")
+    && app.includes("pfms_list_legacy_team_events_with_logistics")
+    && app.includes("pfms_save_legacy_team_event")
     && app.includes("pfms_delete_legacy_team_event"),
   "Team event frontend must connect list, create, update and delete workflows"
 );
