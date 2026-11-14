@@ -22,7 +22,7 @@ Passwörter und URLs nicht in Befehlszeilen, Chat, GitHub-Dateien oder Shell-Ver
 
 ## 2. Verschlüsseltes Backup und Integritätsmanifest herunterladen und prüfen
 
-Jedes verschlüsselte Backup besitzt eine separate `.hmac`-Datei. Der HMAC-SHA-256-Schlüssel wird mit dem Kontextpräfix `PFSS-R2-BACKUP-HMAC-v1:` aus derselben hochentropischen Backup-Passphrase abgeleitet. Die HMAC-Prüfung muss vor der Entschlüsselung erfolgreich sein. Ein fehlendes oder abweichendes Manifest ist ein Abbruchgrund.
+Jedes verschlüsselte Backup besitzt eine separate `.hmac`-Datei. Der HMAC-SHA-256-Schlüssel wird mit der festen Domain `PFSS-R2-BACKUP-HMAC-v1` aus derselben hochentropischen Backup-Passphrase abgeleitet. Die HMAC-Prüfung muss vor der Entschlüsselung erfolgreich sein. Ein fehlendes oder abweichendes Manifest ist ein Abbruchgrund.
 
 Den konkreten Dateinamen aus dem R2-Backup-Verzeichnis einsetzen:
 
