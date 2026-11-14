@@ -64,7 +64,9 @@ Ergebnisse sichern und insbesondere prüfen:
 - Security-Definer-Funktionen besitzen einen festen `search_path` und passende Grants.
 - Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
 
-## 5. Funktionale Abnahme mit getrennten Testkonten
+## 5. Funktionale Abnahme
+**Eventrechte (Migration `20261203_pfms_legacy_team_events.sql`):** Mit einem `events.view`-Konto muss die Eventliste Turniere/Veranstaltungen zeigen, aber Spiele und Besprechungen verbergen. Ein Konto ohne `events.view` darf die Liste nicht laden. Ohne `events.edit` müssen Anlegen, Bearbeiten und Löschen serverseitig abgewiesen werden. Versuche außerdem, per RPC einen teamfremden Eintrag zu ändern oder einen Kalendereintrag vom Typ `match`/`meeting` über die Event-RPCs zu verändern/löschen; beides muss scheitern. Ein `calendar.view`-Konto darf weiterhin den vollständigen Kalender sehen.
+ mit getrennten Testkonten
 
 Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer/Co-Trainer/Betreuer und normales Mitglied. Keine Produktivkonten verwenden.
 
@@ -77,7 +79,7 @@ Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturle
 | Globaler Spielerkatalog | freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
 | Scout-Arbeitsbereich | Scout verwaltet eigene Spieler, Berichte und Medien | Scout A kann keine privaten Daten von Scout B lesen |
 | Hauptmedien | Upload, signierter Abruf und Löschen | fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
-| Mannschaften | Rollenrechte für Kader, Training, Anwesenheit, Kalender, Spiele, Finanzen und Analyse; Trainingszyklen mit automatisch erzeugten Wochen und Belastungsstufen; Taktik-/Videoanalyse mit Spielbezug und Zeitmarke | Ohne `training.edit` keine Zyklus-/Wochenänderungen; ohne `analysis.edit` keine Analyseänderungen; teamfremde Spiele und Datenzugriffe werden serverseitig abgewiesen; Videoanalyse ohne HTTPS-Quelle scheitert |
+| Mannschaften | Rollenrechte für Kader, Training, Anwesenheit, Kalender, Spiele, Finanzen, Analyse und Events; Trainingszyklen mit automatisch erzeugten Wochen und Belastungsstufen; Taktik-/Videoanalyse mit Spielbezug und Zeitmarke; getrennte Eventansicht auf gemeinsamer Kalenderdatenbasis | Ohne `training.edit` keine Zyklus-/Wochenänderungen; ohne `analysis.edit` keine Analyseänderungen; ohne `events.view` keine Eventliste; `events.view` zeigt nur Turniere/Events, nicht Spiel- oder Besprechungstermine; teamfremde Spiele/Events werden serverseitig abgewiesen; Videoanalyse ohne HTTPS-Quelle scheitert |
 | Persönliche Aufgaben | Anlegen, Statuswechsel, Löschen | fremdes Konto sieht keine Aufgaben |
 | Support | Nutzer erstellt Ticket und sieht eigene Antwort | Nutzer sieht keine fremden Tickets; nur Admin antwortet |
 | Backup | R2-Backup und isolierter Restore | Restore überschreibt niemals Produktionsdaten |
