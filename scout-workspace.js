@@ -412,6 +412,8 @@
     const requestUserId = window.pfssCurrentUserId;
     if (!requestUserId) return;
     state.loading = true;
+    const requestGeneration = state.generation;
+    const requestUserId = window.pfssCurrentUserId;
     showMessage('Deine privaten Scouting-Daten werden geladen …');
     try {
       const client = supabase();
@@ -421,6 +423,7 @@
         client.from(TABLES.media).select('*').order('created_at', { ascending: false })
       ]);
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       const firstError = playersResult.error || reportsResult.error || mediaResult.error;
       if (firstError) throw firstError;
       state.players = playersResult.data || [];
@@ -429,6 +432,7 @@
       const globalResult = await client.from('pfms_global_players')
         .select('id,name,surname,birth,nationality,position,club,foot,height')
         .order('surname', { ascending: true, nullsFirst: false });
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.globalPlayersAvailable = !globalResult.error;
       state.globalPlayers = globalResult.data || [];
@@ -443,6 +447,7 @@
         ? 'Private Daten geladen. Die globale Spielersuche benötigt noch die PFMS-Katalogmigration.'
         : 'Private Daten und globale Spielersuche erfolgreich geladen.');
     } catch (error) {
+      if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       if (requestGeneration !== state.generation || requestUserId !== window.pfssCurrentUserId) return;
       state.hasLoaded = false;
       console.error('PFMS Scout Workspace load failed:', error);
