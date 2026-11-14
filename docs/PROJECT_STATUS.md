@@ -240,8 +240,9 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 
 ## 9. Qualitätssicherung – Stand 14.11.2026
 
-- Der zuletzt abgeschlossene GitHub-Actions-Lauf auf Commit `cf23adfbd41c3b4f9066b98aebfdd1a78ce30c8b` war in beiden Jobs erfolgreich: Node-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-Prüfungen sowie Deno-Typprüfung aller drei Edge Functions.
+- Der zuletzt abgeschlossene GitHub-Actions-Lauf auf Commit `38948cc109ab684eeabb37c465008944a3f3d4bc` war in beiden Jobs erfolgreich: Node-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-Prüfungen sowie Deno-Typprüfung aller drei Edge Functions.
 - Die Backup-Smoke-Tests prüfen jetzt den gemeinsam genutzten HMAC-Helfer statt veralteten Inline-Code. Zusätzlich ist die zuvor inkonsistente Passphrase-Umgebungsvariable im manuellen und geplanten Backup-Workflow vereinheitlicht.
+- Ein zusätzlicher ausführbarer Python-Test prüft den echten HMAC-Helper mit erfolgreichem Erstellen/Verifizieren, falscher Passphrase, manipuliertem Archiv und fehlendem Secret. Er läuft verpflichtend innerhalb von `npm test`.
 - Der Scout-Workspace verwirft veraltete asynchrone Ladevorgänge bei Kontowechsel; doppelte Request-Generation-Prüfungen wurden bereinigt.
 
 - `npm test` führt Syntaxprüfung, isolierten CI-Build, Projekt-Smoke-Tests, Build-/Asset-/CSP-Prüfungen, Accessibility-Prüfung, SQL-Migrationssyntaxprüfung und Funktionsrechte-Signaturprüfung aus.
