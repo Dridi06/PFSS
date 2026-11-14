@@ -20,6 +20,7 @@ const legacyAdminCompatMigration = await read("supabase/migrations/20261116_pfms
 const supabaseConfig = await read("supabase/config.toml");
 const globalCatalogueMigration = await read("supabase/migrations/20261115_pfms_global_player_catalogue.sql");
 const systemEventsMigration = await read("supabase/migrations/20261116_pfms_system_event_monitoring.sql");
+const systemEventsHardeningMigration = await read("supabase/migrations/20261117_pfms_system_event_hardening.sql");
 
 const requiredFiles = [
   "index.html",
@@ -114,8 +115,15 @@ assert.ok(globalCatalogueMigration.includes("public.pfms_is_admin()") && globalC
 assert.ok(globalCatalogueMigration.includes("enable row level security") && globalCatalogueMigration.includes("pfms_main_scouting_reports"), "Main cloud catalogue must have RLS and persistent reports");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy local backups must use a bounded transactional cloud import");
 assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.includes("'pfms_main_scouting_reports'"), "Read-only audit must inspect main catalogue tables");
-assert.ok(systemEventsMigration.includes("force row level security") && systemEventsMigration.includes("public.is_admin()"), "System events must be protected by forced RLS and admin review policies");
+assert.ok(systemEventsMigration.includes("force row level security") && systemEventsMigration.includes("public.pfms_is_admin()"), "System events must be protected by forced RLS and PFMS admin review policies");
 assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && systemEventsMigration.includes("pfms_system_events_admin_select"), "System events must separate user inserts from administrator reads");
+assert.ok(systemEventsHardeningMigration.includes("revoke update on table public.pfms_system_events"), "System event table-wide updates must be revoked");
+assert.ok(systemEventsHardeningMigration.includes("grant update (status, resolved_at, resolved_by)"), "Only event workflow fields may be updated");
+assert.ok(systemEventsHardeningMigration.includes("System event evidence is immutable"), "System event evidence must be immutable after insert");
+assert.ok(systemEventsHardeningMigration.includes("Sensitive values are not allowed in system event logs"), "Database must reject common secret/token patterns");
+assert.ok(systemEventsHardeningMigration.includes("new.resolved_by := auth.uid()"), "Resolved events must be attributed to the authenticated administrator");
+assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
+
 assert.ok(!systemEventsMigration.includes("grant select, insert, update, delete on table public.pfms_system_events"), "System events must not grant delete access");
 assert.ok(html.includes('id="pfmsAdminErrorsFilterForm"') && html.includes('id="pfmsAdminErrorsResults"'), "Admin error log interface is missing");
 assert.ok(app.includes("function pfmsSanitizeLogValue") && app.includes("setupPfmsClientErrorLogging()"), "Client error logging with redaction is missing");
