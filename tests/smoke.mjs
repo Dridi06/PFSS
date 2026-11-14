@@ -112,7 +112,10 @@ assert.ok(app.includes("authorId === window.pfssCurrentUserId") && app.includes(
 assert.ok(html.includes('id="mainMediaStatus"') && html.includes('id="mediaGrid"'), "Main media library UI is missing");
 assert.ok(!html.includes("Cloud-Upload wird in einem späteren Schritt angebunden"), "Main media UI must not advertise local-only storage");
 assert.ok(app.includes("function loadPfmsMainMedia") && app.includes("function renderPfmsMainMedia"), "Main media cloud load/render functions are missing");
-assert.ok(app.includes("storage.from(PFMS_MAIN_MEDIA_BUCKET).upload") && app.includes("createSignedUrl") && app.includes("data-main-media-delete"), "Main media must upload, privately display and delete files");
+assert.ok(app.includes("PFMS_MAIN_MEDIA_BUCKET") && app.includes(".upload(storagePath, file"), "Main media must upload files to the private bucket");
+assert.ok(app.includes("createSignedUrl") && app.includes("data-main-media-delete") && app.includes("deleteMainMedia"), "Main media must privately display and delete files");
+assert.ok(app.includes("await loadPfmsMainMedia();") && app.includes("view === 'media'"), "Main media must load at authentication and when its view opens");
+assert.ok(!app.includes("document.querySelectorAll('input[type=file]:not(#mediaInput)')"), "Unrelated file inputs such as backups must not be routed into media uploads");
 assert.ok(app.includes("PFMS_MAIN_MEDIA_MAX_SIZE") && app.includes("PFMS_MAIN_MEDIA_ALLOWED_TYPES"), "Main media uploads must enforce size and MIME allowlists");
 assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMigration.includes("owner_id = auth.uid()"), "Main media metadata must be protected by forced owner-scoped RLS");
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
