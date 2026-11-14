@@ -46,7 +46,7 @@ create table if not exists public.pfms_legacy_team_analysis (
       video_url is null
       or (
         length(video_url) <= 1000
-        and video_url ~ '^https://[^[:space:]]+$'
+        and video_url ~ '^https://[[:alnum:]]([[:alnum:].-]*[[:alnum:]])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$'
       )
     ),
   constraint pfms_legacy_team_analysis_video_required_check
@@ -239,7 +239,7 @@ begin
      or p_status is null or p_status not in ('draft','reviewed','archived')
      or (p_video_url is not null and (
        pg_catalog.length(p_video_url) > 1000
-       or p_video_url !~ '^https://[^[:space:]]+$'
+       or p_video_url !~ '^https://[[:alnum:]]([[:alnum:].-]*[[:alnum:]])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$'
      ))
      or (p_analysis_type = 'video' and p_video_url is null)
      or (p_video_timestamp_seconds is not null and (
@@ -331,7 +331,7 @@ begin
      or p_status is null or p_status not in ('draft','reviewed','archived')
      or (p_video_url is not null and (
        pg_catalog.length(p_video_url) > 1000
-       or p_video_url !~ '^https://[^[:space:]]+$'
+       or p_video_url !~ '^https://[[:alnum:]]([[:alnum:].-]*[[:alnum:]])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$'
      ))
      or (p_analysis_type = 'video' and p_video_url is null)
      or (p_video_timestamp_seconds is not null and (
