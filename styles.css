@@ -711,7 +711,7 @@ button,input,select,textarea{max-width:100%}
 }
 @media(min-width:900px){
  #authScreen .auth-card{padding:30px}
- #authScreen .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #authScreen .pricing-grid{grid-template-columns:minmax(0,1fr)}
 }
 
 
