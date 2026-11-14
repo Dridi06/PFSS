@@ -77,7 +77,7 @@ await mkdir(outputDirectory, { recursive: true });
 
 await writeFile(
   resolve(outputDirectory, "pfms-config.js"),
-  "window.PFMS_CONFIG = Object.freeze(" + JSON.stringify(runtimeConfig) + ");\\n",
+  "window.PFMS_CONFIG = Object.freeze(" + JSON.stringify(runtimeConfig) + ");\n",
   "utf8"
 );
 
