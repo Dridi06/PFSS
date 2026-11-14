@@ -84,6 +84,9 @@ Mindestens folgende Konten verwenden: Plattformadministrator, Vereins-/Agenturle
 Jeden Test mit Konto, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler dokumentieren.
 
 ## 6. Frontend und Render-Staging
+**Verbindliche Supabase-Zielprüfung vor dem Deployment:** Das Frontend verwendet derzeit eine fest eingetragene Supabase-Projekt-URL samt Publishable Key in `app.js`; `supabase/config.toml` führt dieselbe Projekt-Referenz. Branch- und Render-Trennung allein isolieren die Datenbank daher nicht. Im Supabase-Dashboard muss vor dem ersten Staging-Deploy bestätigt werden, dass diese Referenz das dedizierte Staging-Projekt ist. Zeigt sie auf Produktion, muss zuerst eine getrennte Build-Konfiguration für die Staging-URL und den Staging-Publishable-Key umgesetzt werden. Niemals einen Service-Role-/Secret-Key in das Frontend übernehmen.
+
+
 
 ### Reproduzierbarer Static-Site-Build
 
