@@ -34,7 +34,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = ''
-as $
+as $$
 declare
   v_recent_count integer;
 begin
@@ -57,7 +57,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.pfms_enforce_support_ticket_rate_limit() from public, anon, authenticated;
 drop trigger if exists pfms_support_tickets_rate_limit on public.pfms_support_tickets;
