@@ -1951,6 +1951,7 @@ let pfmsManageableLegacyOrganizations = [];
 let pfmsSelectedLegacyTeam = null;
 let pfmsSelectedTeamStaff = [];
 let pfmsSelectedTeamPermissionAssignment = null;
+let pfmsSelectedTeamPermissions = new Map();
 let pfmsEditingLegacyTeamId = null;
 let pfmsLegacyTeamRoster = [];
 let pfmsLegacyTeamRosterCandidates = [];
@@ -2678,11 +2679,39 @@ async function removePfmsLegacyTeamStaff(assignmentId) {
   }
 }
 
+function applyPfmsLegacyTeamModulePermissions() {
+  const grid = document.getElementById('pfmsTeamModules');
+  const notice = document.getElementById('pfmsTeamPermissionNotice');
+  if (!grid) return;
+
+  let visibleCount = 0;
+  grid.querySelectorAll('[data-pfms-team-module]').forEach(card => {
+    const key = card.dataset.pfmsTeamModule;
+    const permission = pfmsSelectedTeamPermissions.get(key);
+    const canView = permission?.can_view === true;
+    card.hidden = !canView;
+    if (canView) {
+      visibleCount += 1;
+      const status = card.querySelector('.module-status');
+      if (status && !status.textContent.includes('Angebunden')) {
+        status.dataset.permissionLabel = permission.can_edit ? 'Bearbeiten' : 'Nur Lesen';
+      }
+    }
+  });
+
+  if (notice) {
+    notice.hidden = visibleCount > 0;
+    notice.textContent = visibleCount
+      ? ''
+      : 'Für diese Mannschaft wurden dir noch keine Bereichs-Leserechte zugewiesen. Bitte wende dich an den verantwortlichen Trainer.';
+  }
+}
+
 async function loadPfmsGlobalTeamPlayerCandidates(query = '') {
   const team = pfmsSelectedLegacyTeam;
   const select = document.getElementById('pfmsTeamRosterCandidate');
   const message = document.getElementById('pfmsTeamRosterMessage');
-  if (!team || !team.can_manage || !select) return;
+  if (!team || pfmsSelectedTeamPermissions.get('squad')?.can_edit !== true || !select) return;
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
@@ -2748,7 +2777,7 @@ function renderPfmsLegacyTeamRoster() {
     const fullName = [player.player_name, player.player_surname].filter(Boolean).join(' ') || 'Unbekannter Spieler';
     const year = player.birth ? String(player.birth).slice(0, 4) : 'Jahrgang –';
     const currentPosition = player.squad_position || player.preferred_position || '';
-    const controls = team.can_manage
+    const controls = pfmsSelectedTeamPermissions.get('squad')?.can_edit === true
       ? '<div class="pfms-roster-edit-controls">' +
           '<label>Nr.<input type="number" min="1" max="99" data-roster-jersey value="' + escapeHtml(player.jersey_number ?? '') + '" placeholder="–"></label>' +
           '<label>Position<select data-roster-position><option value="">Stammposition</option>' +
@@ -2782,12 +2811,24 @@ async function loadPfmsLegacyTeamRoster(teamId = pfmsSelectedLegacyTeam?.team_id
   const searchForm = document.getElementById('pfmsTeamRosterSearchForm');
   const message = document.getElementById('pfmsTeamRosterMessage');
   if (!team || !host || !form || !searchForm || !message) return;
+  const squadPermission = pfmsSelectedTeamPermissions.get('squad') || {};
+  const canViewSquad = squadPermission.can_view === true;
+  const canEditSquad = squadPermission.can_edit === true;
+  const rosterPanel = document.getElementById('pfmsTeamRosterPanel');
+  if (rosterPanel) rosterPanel.hidden = !canViewSquad;
+  if (!canViewSquad) {
+    form.hidden = true;
+    searchForm.hidden = true;
+    message.textContent = 'Du hast für den Spielerkader keine Leseberechtigung.';
+    host.innerHTML = '';
+    return;
+  }
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   if (!requestUserId) return;
-  form.hidden = !team.can_manage;
-  searchForm.hidden = !team.can_manage;
+  form.hidden = !canEditSquad;
+  searchForm.hidden = !canEditSquad;
   message.textContent = 'Spielerkader wird geladen …';
   host.innerHTML = '';
 
@@ -2823,8 +2864,8 @@ async function addPfmsLegacyTeamPlayer(event) {
   const team = pfmsSelectedLegacyTeam;
   const form = event.currentTarget;
   const message = document.getElementById('pfmsTeamRosterMessage');
-  if (!team?.can_manage) {
-    message.textContent = 'Für diese Mannschaft fehlen dir die Verwaltungsrechte.';
+  if (pfmsSelectedTeamPermissions.get('squad')?.can_edit !== true) {
+    message.textContent = 'Für den Spielerkader fehlen dir Bearbeitungsrechte.';
     return;
   }
 
@@ -2873,7 +2914,7 @@ async function updatePfmsLegacyTeamPlayer(button) {
   const card = button.closest('[data-pfms-roster-assignment]');
   const team = pfmsSelectedLegacyTeam;
   const message = document.getElementById('pfmsTeamRosterMessage');
-  if (!card || !team?.can_manage) return;
+  if (!card || pfmsSelectedTeamPermissions.get('squad')?.can_edit !== true) return;
 
   const jerseyValue = card.querySelector('[data-roster-jersey]')?.value ?? '';
   const jerseyNumber = jerseyValue === '' ? null : Number(jerseyValue);
@@ -2909,7 +2950,7 @@ async function updatePfmsLegacyTeamPlayer(button) {
 async function removePfmsLegacyTeamPlayer(button) {
   const card = button.closest('[data-pfms-roster-assignment]');
   const team = pfmsSelectedLegacyTeam;
-  if (!card || !team?.can_manage) return;
+  if (!card || pfmsSelectedTeamPermissions.get('squad')?.can_edit !== true) return;
   const label = card.querySelector('.pfms-roster-player-info b')?.textContent || 'diesen Spieler';
   if (!window.confirm(label + ' aus dem Mannschaftskader entfernen? Das globale PFMS-Spielerprofil bleibt erhalten.')) return;
 
@@ -2939,39 +2980,65 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const team = pfmsLegacyTeams.find(item => item.team_id === teamId);
-  if (!team) return;
+  if (!team || !requestUserId) return;
   pfmsSelectedLegacyTeam = team;
+  pfmsSelectedTeamPermissions = new Map();
   const panel = document.getElementById('pfmsSelectedTeamPanel');
   const title = document.getElementById('pfmsSelectedTeamTitle');
   const meta = document.getElementById('pfmsSelectedTeamMeta');
   const staffHost = document.getElementById('pfmsSelectedTeamStaff');
   const modules = document.getElementById('pfmsTeamModules');
+  const notice = document.getElementById('pfmsTeamPermissionNotice');
   panel.hidden = false;
   modules.hidden = false;
   title.textContent = team.team_name;
   meta.textContent = team.organization_name + ' · ' + team.age_group + ' · ' + team.season;
-  staffHost.innerHTML = '<p class="admin-message">Trainerteam wird geladen …</p>';
+  staffHost.innerHTML = '<p class="admin-message">Trainerteam und Bereichsrechte werden geladen …</p>';
+  if (notice) {
+    notice.hidden = true;
+    notice.textContent = '';
+  }
 
   try {
-    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_staff', {
-      p_team_id: teamId
-    });
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId || pfmsSelectedLegacyTeam?.team_id !== teamId) return;
-    if (error) throw error;
+    const [staffResult, permissionResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_staff', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_get_my_legacy_team_permissions', { p_team_id: teamId })
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== teamId) return;
+    if (staffResult.error) throw staffResult.error;
+    if (permissionResult.error) throw permissionResult.error;
+
+    pfmsSelectedTeamPermissions = new Map((permissionResult.data || [])
+      .map(permission => [permission.module_key, {
+        can_view: permission.can_view === true,
+        can_edit: permission.can_edit === true
+      }]));
+
     staffHost.innerHTML = '<h3>Trainer & Betreuer</h3>' +
-      (data?.length ? data.map(member =>
+      (staffResult.data?.length ? staffResult.data.map(member =>
         '<article class="admin-user-card"><div class="admin-user-info"><b>' +
         escapeHtml(member.full_name || member.username || member.email || 'Mitglied') +
         '</b><small>' + escapeHtml(pfmsTeamRoleLabel(member.team_role)) + '</small></div></article>'
       ).join('') : '<p class="admin-message">Noch kein Trainerteam zugeordnet.</p>');
+    pfmsSelectedTeamStaff = staffResult.data || [];
     if (team.can_manage) {
       staffHost.innerHTML += '<button type="button" class="btn btn-primary" data-pfms-team-staff="' +
         escapeHtml(team.team_id) + '">Trainerteam verwalten</button>';
     }
+    applyPfmsLegacyTeamModulePermissions();
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
-    console.error('PFMS selected team staff load failed:', error);
-    staffHost.textContent = 'Trainerteam konnte nicht geladen werden.';
+    console.error('PFMS selected team access load failed:', error);
+    staffHost.textContent = 'Teamzugriff und Bereichsrechte konnten nicht geladen werden. Prüfe die Team- und Rechte-Migrationen.';
+    if (notice) {
+      notice.hidden = false;
+      notice.textContent = 'Die Team-Bereichsrechte konnten nicht geprüft werden. Aus Sicherheitsgründen bleiben die Module gesperrt.';
+    }
+    modules.querySelectorAll('[data-pfms-team-module]').forEach(card => { card.hidden = true; });
+    document.getElementById('pfmsTeamRosterPanel').hidden = true;
+    return;
   }
 
   await loadPfmsLegacyTeamRoster(teamId);
@@ -3010,6 +3077,8 @@ function setupPfmsLegacyTeamWorkspace() {
     document.getElementById('pfmsSelectedTeamPanel').hidden = true;
     document.getElementById('pfmsTeamModules').hidden = true;
     pfmsSelectedLegacyTeam = null;
+    pfmsSelectedTeamPermissions = new Map();
+    pfmsLegacyTeamRoster = [];
   });
 
   document.addEventListener('click', event => {
@@ -3352,6 +3421,7 @@ function resetPfmsAuthenticatedState() {
   pfmsSelectedLegacyTeam = null;
   pfmsSelectedTeamStaff = [];
   pfmsSelectedTeamPermissionAssignment = null;
+  pfmsSelectedTeamPermissions = new Map();
   pfmsLegacyTeamRoster = [];
   pfmsLegacyTeamRosterCandidates = [];
   const rosterList = document.getElementById('pfmsTeamRosterList');
