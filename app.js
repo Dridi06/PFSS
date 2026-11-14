@@ -2728,7 +2728,7 @@ function renderPfmsLegacyTeamRoster() {
       ? '<div class="pfms-roster-edit-controls">' +
           '<label>Nr.<input type="number" min="1" max="99" data-roster-jersey value="' + escapeHtml(player.jersey_number ?? '') + '" placeholder="–"></label>' +
           '<label>Position<select data-roster-position><option value="">Stammposition</option>' +
-            positions.map(position => '<option value="' + position + '"' + (player.squad_position === position ? ' selected' : '') + '>' + position + '</option>').join('') +
+            positions.map(position => '<option value="' + position + '"' + (player.position_override === position ? ' selected' : '') + '>' + position + '</option>').join('') +
           '</select></label>' +
           '<label>Status<select data-roster-status>' +
             Object.entries(statuses).map(([value,label]) => '<option value="' + value + '"' + (player.squad_status === value ? ' selected' : '') + '>' + label + '</option>').join('') +
@@ -3322,6 +3322,12 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTeams = [];
   pfmsManageableLegacyOrganizations = [];
   pfmsSelectedLegacyTeam = null;
+  pfmsLegacyTeamRoster = [];
+  pfmsLegacyTeamRosterCandidates = [];
+  const rosterList = document.getElementById('pfmsTeamRosterList');
+  if (rosterList) rosterList.innerHTML = '';
+  const rosterCount = document.getElementById('pfmsTeamRosterCount');
+  if (rosterCount) rosterCount.textContent = '0 Spieler';
   document.getElementById('pfmsTeamDialog')?.close();
   document.getElementById('pfmsTeamStaffDialog')?.close();
   document.getElementById('pfmsSelectedTeamPanel')?.setAttribute('hidden', '');
