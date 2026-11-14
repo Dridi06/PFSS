@@ -349,3 +349,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 
 - GitHub-Actions-Lauf [43644791339](https://github.com/Dridi06/PFSS/actions/runs/43644791339) auf Commit `a1b587b573e6c0007f79ee43509174cfcf2745c5` war erfolgreich. Beide Jobs bestanden: Projekt-/Smoke-/Accessibility-/SQL-/Funktionsrechte-/Backup-Prüfungen und Deno-Typprüfung. Ein erster Testlauf hatte lediglich eine zu wörtliche Quelltext-Assertion im neu ergänzten Test beanstandet; die Assertion wurde auf eine robuste Funktions-/Guard-Prüfung umgestellt und danach erfolgreich ausgeführt.
+
+
+## Schutz vor verspäteten Antworten in Team-Unterbereichen – 14.11.2026
+
+- Bei der Prüfung von Trainingsplan, Anwesenheitsliste und Spielaufstellung wurde die Fehlerbehandlung auf verspätete Antworten geprüft.
+- Fehlerantworten werden nun nur noch angezeigt, wenn Benutzer, ausgewählte Mannschaft und der jeweils geöffnete Termin/das Spiel weiterhin übereinstimmen. Ein alter Request kann dadurch nicht mehr den gerade geöffneten anderen Mannschaftsbereich mit einer veralteten Fehlermeldung oder leeren Daten überschreiben.
+- Drei Regressionstests sichern diese Team-/Sitzungs-/Spielbindung.
+- Keine Datenbankänderung und kein Deployment. Die Änderung liegt ausschließlich im Feature-Branch; Staging- und Live-Akzeptanz bleiben offen.
