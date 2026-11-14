@@ -500,6 +500,13 @@ assert.ok(
   "Event RSVP and attendance states are incomplete"
 );
 assert.ok(
+  teamEventParticipantsMigration.includes("p_status is null or p_status not in")
+    && teamEventParticipantsMigration.includes("tp.squad_status <> 'inactive'")
+    && teamEventParticipantsMigration.includes("unique (event_id, team_player_assignment_id)"),
+  "Event participant updates must reject null states, inactive roster players and duplicate registrations"
+);
+
+assert.ok(
   app.includes("async function addPfmsLegacyTeamEventParticipant")
     && app.includes("async function updatePfmsLegacyTeamEventParticipant")
     && app.includes("async function removePfmsLegacyTeamEventParticipant")
