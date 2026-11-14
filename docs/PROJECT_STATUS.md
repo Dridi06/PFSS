@@ -70,7 +70,7 @@ Vorhandene Migrationen betreffen:
 
 | Bereich | Aktueller Stand | Noch erforderlicher Nachweis / Arbeit |
 |---|---|---|
-| Haupt-Spielerdatenbank | Supabase-Tabelle `pfms_global_players`; Lesen für freigegebene Konten, Anlegen/Bearbeiten/Löschen nur für Plattformadministratoren; Such-/Sortierfilter vorhanden | Migration in Staging anwenden; CRUD-, RLS- und Mandantentests; Alt-Daten nur nach bewusster Importbestätigung übernehmen |
+| Haupt-Spielerdatenbank | Supabase-Tabelle `pfms_global_players`; FORCE RLS, Lesen für freigegebene Konten, Schreibrechte nur für Plattformadministratoren; Such-/Sortierfilter vorhanden | Migration in Staging anwenden; CRUD-, RLS- und Mandantentests; Alt-Daten nur nach bewusster Importbestätigung übernehmen |
 | Haupt-Scoutingberichte | Supabase-Tabelle `pfms_main_scouting_reports`; Anlegen/Bearbeiten/Löschen durch Verfasser oder Administrator; Admin kann alle sehen, normale Konten nur eigene Berichte | Migration in Staging anwenden; positive/negative RLS- und CRUD-Tests |
 | Haupt-Medienbereich | Private Benutzer-Medienbibliothek mit Supabase-Storage, signierten Abrufen, Metadaten und Löschfunktion im Entwicklungszweig | Staging-Migration anwenden; Upload, MIME-/Größenlimits, Owner-RLS und Negativtests auf fremde Dateien abnehmen |
 | Privater Scout-Bereich | Private Supabase-CRUDs und Storage; globale Spielersuche mit Übernahme in private Scout-Datenbank vorbereitet | Migrationen in Staging anwenden; Suche, Übernahme, CRUD-, RLS- und Storage-Tests verwenden |
