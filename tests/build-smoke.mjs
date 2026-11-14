@@ -9,6 +9,7 @@ assert.match(authStyles, /#authScreen \.pricing-grid\{grid-template-columns:minm
 assert.ok(!authStyles.includes("#authScreen .pricing-grid{grid-template-columns:repeat(2"), "Desktop styles must not override the vertical package layout");
 
 assert.ok(renderConfig.includes("Content-Security-Policy"), "Render staging must publish a Content-Security-Policy header");
+assert.ok(renderConfig.includes("Strict-Transport-Security") && renderConfig.includes("max-age=31536000; includeSubDomains"), "Render staging must enforce HTTPS with HSTS");
 assert.ok(renderConfig.includes("frame-ancestors 'none'") && renderConfig.includes("object-src 'none'"), "Render CSP must block framing and plugin content");
 assert.ok(renderConfig.includes("https://cdn.jsdelivr.net") && renderConfig.includes("https://*.supabase.co"), "Render CSP must allow the required external script and Supabase origins");
 assert.ok(renderConfig.includes("https://fonts.googleapis.com") && renderConfig.includes("font-src"), "Render CSP must allow the stylesheet and font resources used by the UI");
