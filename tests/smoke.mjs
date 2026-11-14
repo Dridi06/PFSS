@@ -161,6 +161,9 @@ assert.ok(scout.includes("requestUserId !== window.pfssCurrentUserId") && scout.
 const denoConfig = JSON.parse(await read("deno.json"));
 assert.equal(denoConfig.nodeModulesDir, "auto", "Deno npm dependency resolution must be enabled");
 assert.ok(cors.includes("PFMS_ALLOWED_ORIGINS") && cors.includes("DEFAULT_ALLOWED_ORIGINS"), "CORS allowlist configuration is missing");
+assert.ok(!cors.includes("https://pfss-scouting.onrender.com"), "Production origin must not be allowed by the Edge Function fallback");
+assert.ok(supabaseConfigText.includes('project_id = "pfms-local"'), "Supabase CLI local project name must not impersonate a hosted project reference");
+
 assert.ok(usernameLogin.includes("corsForRequest") && r2Check.includes("corsForRequest"), "Edge Functions must use shared CORS policy");
 assert.ok(!usernameLogin.includes('"Access-Control-Allow-Origin": "*"'), "Username login must not allow wildcard CORS");
 assert.ok(!r2Check.includes('"Access-Control-Allow-Origin": "*"'), "R2 check must not allow wildcard CORS");
