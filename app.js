@@ -3223,6 +3223,7 @@ async function savePfmsLegacyCalendarEvent(event) {
 
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const isEditing = Boolean(pfmsEditingCalendarEventId);
   button.disabled = true;
   message.textContent = 'Termin wird gespeichert …';
   try {
@@ -3258,7 +3259,7 @@ async function savePfmsLegacyCalendarEvent(event) {
     resetPfmsLegacyCalendarForm();
     await loadPfmsLegacyTeamCalendar(team.team_id);
     if (requestGeneration === pfmsAuthGeneration && requestUserId === window.pfssCurrentUserId) {
-      toast(pfmsEditingCalendarEventId ? 'Termin wurde aktualisiert.' : 'Termin wurde gespeichert.');
+      toast(isEditing ? 'Termin wurde aktualisiert.' : 'Termin wurde gespeichert.');
     }
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
