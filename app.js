@@ -873,10 +873,12 @@ function showAuthenticatedApp(user, profile) {
 
   const welcome = document.getElementById('welcomeSequence');
   const welcomeUser = document.getElementById('welcomeUser');
+  const shouldShowWelcome = showIntro || showReturningGreeting;
   if (welcomeUser) welcomeUser.textContent = 'Willkommen, ' + username + '!';
-  if (welcome) welcome.classList.remove('hidden');
+  if (welcome) welcome.classList.toggle('hidden', !shouldShowWelcome);
+
   window.clearTimeout(window.pfmsWelcomeTimer);
-  window.pfmsWelcomeTimer = window.setTimeout(() => {
+  const finishAuthentication = () => {
     window.scrollTo(0, 0);
     if (welcome) welcome.classList.add('hidden');
     document.getElementById('appShell').classList.remove('hidden');
@@ -888,7 +890,14 @@ function showAuthenticatedApp(user, profile) {
     const nav = [...document.querySelectorAll('[data-view]')].find(el => el.dataset.view === startView &&
       (startView !== 'team-workspace' || el.textContent.trim() === 'Mannschaftsübersicht'));
     showView(startView, nav, true);
-  }, 4500);
+  };
+
+  if (shouldShowWelcome) {
+    window.pfmsWelcomeTimer = window.setTimeout(finishAuthentication, 4500);
+  } else {
+    // Ein normaler Seiten-Reload stellt die App sofort wieder her.
+    finishAuthentication();
+  }
 }
 
 async function loadAdminUsers() {
