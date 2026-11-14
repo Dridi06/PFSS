@@ -67,7 +67,7 @@ Vorhandene Migrationen betreffen:
 | Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
 | Backup | Workflow im Repository | Secrets prüfen, Backup ausführen und Restore-Probe dokumentieren |
 | Render | `render.yaml` definiert `pfms-staging-static` auf dem Feature-Branch; noch nicht im Render-Konto angewendet | Bestehenden Testdiensttyp/Branch prüfen, Blueprint kontrolliert anwenden, Build-Logs und Browser-Test abnehmen |
-| Qualitätssicherung | `npm test` prüft Syntax, Projekt-Smoke-Tests sowie den erzeugten Static-Site-Build; GitHub Actions typprüft alle drei Edge Functions | CI-Lauf für den aktuellen Branch-Head nach den neuesten Änderungen nachweisen; Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
+| Qualitätssicherung | GitHub-Actions-Lauf `43602406116` auf dem aktuellen Stand `86c5807` erfolgreich: Node-Syntax/Projekt-Smoke/Static-Build und Deno-Typprüfung aller drei Edge Functions | Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
 
 ## 3a. Umgesetzter Team-Betrieb
 
@@ -150,6 +150,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `package.json` enthält `npm test`, `npm run check:syntax` und `npm run build`. Der Static-Site-Build erstellt ausschließlich die sieben benötigten Browserdateien in `dist/`; `tests/build-smoke.mjs` prüft lokale Asset-Referenzen und schließt interne Repository-Dateien aus. Die bestehenden Smoke-Tests prüfen zusätzlich Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik, globale Spielersuche, private Medien, Team-/Trainings-/Spielmodule, Organisationsübersicht und Fehlertelemetrie.
 - `.github/workflows/pfms-quality.yml` führt die Projekt- und Build-Tests sowie die Deno-Typprüfung bei Push/PR aus.
+- Der GitHub-Actions-Lauf `43602406116` auf Branch-Head `86c5807a75498295534d65c564bb22f740d30fba` wurde erfolgreich abgeschlossen: `Syntax and project smoke tests` und `Type-check Supabase Edge Functions` sind beide `success`. Der Lauf deckt statische Tests und Edge-Function-Typprüfung ab, nicht die reale Supabase-/Render-Laufzeit.
 - `render.yaml` definiert den isolierten Render-Staging-Static-Site-Dienst `pfms-staging-static` auf `feature/pfss-complete-platform-build`, veröffentlicht nur `dist/` und begrenzt automatische Deployments auf bestandene Checks. Die Blueprint-Konfiguration wurde noch nicht mit dem Render-Konto synchronisiert.
 - Der GitHub-Actions-Lauf `43600769629` auf Commit `139b90b...` war erfolgreich: Frontend-Syntax-/Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Weitere Änderungen am Club-Workspace befinden sich in einem neuen CI-Lauf. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
