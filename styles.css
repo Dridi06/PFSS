@@ -1365,3 +1365,50 @@ button,input,select,textarea{max-width:100%}
 .pfms-support-response p{margin:6px 0 0}
 .pfms-support-ticket-actions select{min-width:150px}
 @media(max-width:620px){.pfms-support-ticket-actions{display:grid;grid-template-columns:1fr}.pfms-support-ticket-actions select,.pfms-support-ticket-actions button{width:100%}}
+
+
+/* PFMS team training cycles and weekly microcycle planning */
+.pfms-training-cycle-section{margin:18px 0 22px;padding:18px;border:1px solid rgba(198,161,91,.24);border-radius:16px;background:linear-gradient(145deg,rgba(198,161,91,.075),rgba(255,255,255,.018));display:grid;gap:14px}
+.pfms-training-cycle-section>.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.pfms-training-cycle-section .panel-heading h3{margin:5px 0}
+.pfms-training-cycle-section .panel-heading p{margin:5px 0 0;color:var(--muted,#aaa);font-size:13px}
+.pfms-training-cycle-form{margin:0}
+.pfms-training-cycles-list{display:grid;gap:14px}
+.pfms-training-cycle-card{padding:16px;border:1px solid rgba(198,161,91,.22);border-radius:14px;background:rgba(10,11,12,.42);display:grid;gap:14px}
+.pfms-training-cycle-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.pfms-training-cycle-head h4{margin:5px 0 0;color:#f1e8d6;font-size:17px}
+.pfms-cycle-focus{margin:0;color:#d6c5a3;font-size:13px}
+.pfms-cycle-status-actions{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.pfms-cycle-status-actions .field{min-width:170px;max-width:240px;margin:0}
+.pfms-cycle-weeks{display:grid;gap:9px}
+.pfms-cycle-week{border:1px solid rgba(255,255,255,.09);border-radius:11px;background:rgba(255,255,255,.025);overflow:hidden}
+.pfms-cycle-week>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px 12px;padding:12px 14px;color:#eee}
+.pfms-cycle-week>summary::-webkit-details-marker{display:none}
+.pfms-cycle-week>summary::after{content:"＋";grid-column:3;grid-row:1/3;color:#c6a15b;justify-self:end}
+.pfms-cycle-week[open]>summary::after{content:"−"}
+.pfms-cycle-week>summary span:first-child{font-weight:750;color:#e5c98e}
+.pfms-cycle-week>summary span:nth-child(2){font-size:12px;color:var(--muted,#aaa)}
+.pfms-cycle-week>summary small{grid-column:1/3;font-size:12px;color:#b8b0a2}
+.pfms-cycle-week-body{padding:14px;border-top:1px solid rgba(255,255,255,.07);display:grid;gap:12px}
+.pfms-cycle-week-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pfms-cycle-week-form .field{min-width:0;margin:0}
+.pfms-cycle-week-form .field.full,.pfms-cycle-week-form button{grid-column:1/-1}
+.pfms-cycle-week-readonly{display:grid;gap:7px;color:var(--muted,#b5b5b5);font-size:13px}
+.pfms-cycle-week-readonly p{margin:0}
+.pfms-cycle-linked-sessions{display:grid;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.pfms-cycle-linked-sessions>b{font-size:12px;color:#d8c18f}
+.pfms-cycle-linked-session{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px}
+.pfms-inline-action{border:0;background:transparent;color:#d7b974;text-decoration:underline;cursor:pointer;padding:4px}
+.pfms-cycle-no-sessions{margin:0;font-size:12px;color:var(--muted,#999)}
+.pfms-cycle-assign-session{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
+.pfms-cycle-assign-session .field{min-width:0;margin:0}
+@media(max-width:640px){
+  .pfms-training-cycle-section{padding:13px}
+  .pfms-training-cycle-card{padding:12px}
+  .pfms-cycle-week-form{grid-template-columns:1fr}
+  .pfms-cycle-week-form .field.full,.pfms-cycle-week-form button{grid-column:auto}
+  .pfms-cycle-assign-session{grid-template-columns:1fr}
+  .pfms-cycle-assign-session button{width:100%}
+  .pfms-cycle-status-actions{display:grid;grid-template-columns:1fr}
+  .pfms-cycle-status-actions .field{min-width:0;max-width:none}
+}
