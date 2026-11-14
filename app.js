@@ -2357,6 +2357,8 @@ let pfmsLegacyTrainingCycles = [];
 let pfmsLegacyTeamAnalysis = [];
 let pfmsLegacyTeamAnalysisMatches = [];
 let pfmsEditingTeamAnalysisId = null;
+let pfmsLegacyTeamEvents = [];
+let pfmsEditingTeamEventId = null;
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -2435,6 +2437,28 @@ function resetPfmsLegacyTeamAnalysisState() {
   const save = document.getElementById('pfmsTeamAnalysisSave');
   if (save) save.textContent = 'Analyse speichern';
   document.getElementById('pfmsTeamAnalysisCancelEdit')?.setAttribute('hidden', '');
+}
+
+function resetPfmsLegacyTeamEventsState() {
+  pfmsLegacyTeamEvents = [];
+  pfmsEditingTeamEventId = null;
+
+  const panel = document.getElementById('pfmsTeamEventsPanel');
+  if (panel) panel.hidden = true;
+
+  const form = document.getElementById('pfmsTeamEventForm');
+  form?.reset();
+  if (form?.elements.event_id) form.elements.event_id.value = '';
+
+  const host = document.getElementById('pfmsTeamEventsList');
+  if (host) host.replaceChildren();
+
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (message) message.textContent = '';
+
+  const save = document.getElementById('pfmsTeamEventSave');
+  if (save) save.textContent = 'Veranstaltung speichern';
+  document.getElementById('pfmsTeamEventCancelEdit')?.setAttribute('hidden', '');
 }
 
 function renderPfmsClubWorkspace() {
@@ -3929,6 +3953,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyTrainingSessions = [];
   resetPfmsLegacyTrainingCycleState();
   resetPfmsLegacyTeamAnalysisState();
+  resetPfmsLegacyTeamEventsState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
@@ -6141,6 +6166,7 @@ function setupPfmsLegacyTeamWorkspace() {
     pfmsLegacyTrainingSessions = [];
     resetPfmsLegacyTrainingCycleState();
     resetPfmsLegacyTeamAnalysisState();
+    resetPfmsLegacyTeamEventsState();
     pfmsLegacyTeamExercises = [];
     pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
@@ -6557,6 +6583,7 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTrainingSessions = [];
   resetPfmsLegacyTrainingCycleState();
   resetPfmsLegacyTeamAnalysisState();
+  resetPfmsLegacyTeamEventsState();
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingPlanSession = null;
