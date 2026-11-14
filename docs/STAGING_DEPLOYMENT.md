@@ -35,6 +35,16 @@ Die CLI wendet alle noch ausstehenden, versionierten Migrationen in ihrer Reihen
 
 Die Migration `20261118_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit, den die Einladungs-RPC verwendet. Sie muss in der regulären chronologischen Migrationenfolge nach `20261111_fix_invitation_admin_access.sql` angewendet werden; nicht isoliert vorziehen oder auslassen.
 
+## 3.1 Username-Login-Rate-Limit vorbereiten
+
+Vor dem Deploy der Username-Login-Function müssen eine eigene Upstash-Redis-Datenbank für Staging sowie diese drei Supabase-Function-Secrets im Staging-Projekt eingerichtet sein:
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `PFMS_RATE_LIMIT_HMAC_KEY` (zufällig, mindestens 32 Zeichen)
+
+Die Erstellung und Secret-Befüllung ist in [EDGE_FUNCTION_CONFIGURATION.md](EDGE_FUNCTION_CONFIGURATION.md#2-username-login-gemeinsames-rate-limit) beschrieben. Ohne diese Werte antwortet die Function absichtlich mit HTTP 503; es gibt keinen ungeschützten Fallback.
+
 ## 3. Edge Functions bereitstellen
 
 Nach erfolgreichem Datenbank-Push:
