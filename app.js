@@ -225,6 +225,8 @@ function showView(view, navElement = null, fromPopState = false) {
     reports: 'Scouting-Berichte',
     media: 'Medien',
     admin: 'Administration',
+    'admin-members': 'Mitgliederverwaltung',
+    'admin-errors': 'Fehlerprotokoll',
     backup: 'Datensicherung',
     'team-workspace': 'Meine Mannschaft'
   };
@@ -249,6 +251,8 @@ function showView(view, navElement = null, fromPopState = false) {
   if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'admin') loadAdminUsers();
+  if (view === 'admin-members') loadPfmsAdminMembers();
+  if (view === 'admin-errors') loadPfmsAdminErrors();
 }
 
 function openGlobalPlayerDialog(player = null) {
