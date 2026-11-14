@@ -4,7 +4,7 @@ Diese Anleitung betrifft ausschließlich die Supabase-Edge-Functions. Die Functi
 
 ## 1. CORS-Allowlist
 
-Beide Functions `username-login` und `r2-connection-check` verwenden den gemeinsamen Helfer `supabase/functions/_shared/cors.ts`.
+Die Functions `username-login`, `r2-connection-check` und `pfms-owner-bootstrap` verwenden den gemeinsamen Helfer `supabase/functions/_shared/cors.ts`.
 
 Die erlaubten Origins werden aus dem Supabase-Function-Secret `PFMS_ALLOWED_ORIGINS` gelesen. Der Wert ist eine kommaseparierte Liste vollständiger Origins (Schema + Host + optional Port), ohne Pfad und ohne abschließenden Slash.
 
@@ -26,6 +26,8 @@ Staging und Produktion sind getrennt zu konfigurieren. Das Secret enthält keine
    - `username-login`
    - `r2-connection-check`
 4. Login per E-Mail und Benutzername, fehlerhafte Anmeldedaten, unbekannte Origin und R2-Verbindungsprüfung testen.
+5. Für den Owner-Bootstrap zusätzlich die Datenbankmigration anwenden und ein mindestens 40 Zeichen langes, kryptografisch zufälliges `PFMS_OWNER_BOOTSTRAP_TOKEN` ausschließlich als Supabase Function Secret setzen. Die Owner-Function deployen und den Inhaber-Claim mit einem Testkonto prüfen.
+6. Den Einmalcode niemals in GitHub, HTML, Browser-Konfiguration, Issue-Tracker oder Chat speichern. Nach erfolgreichem Claim das Secret entfernen oder rotieren.
 5. Erst nach dokumentiertem Staging-Erfolg die Produktionskonfiguration getrennt prüfen und – nur nach ausdrücklicher Freigabe – deployen.
 
 Beispielbefehl (Platzhalter vor Ausführung ersetzen):
@@ -34,9 +36,20 @@ Beispielbefehl (Platzhalter vor Ausführung ersetzen):
 supabase secrets set PFMS_ALLOWED_ORIGINS="https://pfss-scouting.onrender.com,https://<tatsaechliche-staging-domain>" --project-ref <STAGING_PROJECT_REF>
 supabase functions deploy username-login --project-ref <STAGING_PROJECT_REF>
 supabase functions deploy r2-connection-check --project-ref <STAGING_PROJECT_REF>
+supabase functions deploy pfms-owner-bootstrap --project-ref <STAGING_PROJECT_REF>
 ```
 
-## 3. Sicherheitsverhalten
+## 3. Owner-Bootstrap-Secret
+
+Vor dem Deploy der Owner-Function ist im Staging-Projekt ein kryptografisch zufälliger Wert mit mindestens 40 Zeichen als `PFMS_OWNER_BOOTSTRAP_TOKEN` zu setzen. Der Wert wird nur serverseitig gelesen und nie in der Datenbank gespeichert. Der registrierte Benutzer muss sich mit einer gültigen Supabase-Sitzung anmelden; die Function ermittelt die User-ID ausschließlich aus dem geprüften JWT. Die SQL-RPC nimmt nur Aufrufe mit `auth.role() = 'service_role'` an und erlaubt genau einen Claim.
+
+```bash
+supabase secrets set PFMS_OWNER_BOOTSTRAP_TOKEN="<mindestens-40-zeichen-zufaelliger-wert>" --project-ref <STAGING_PROJECT_REF>
+```
+
+Nach erfolgreicher Inhabereinrichtung das Secret löschen bzw. rotieren.
+
+## 4. Sicherheitsverhalten
 
 - Origins außerhalb der Allowlist erhalten HTTP 403.
 - Requests ohne `Origin`-Header werden für Server-zu-Server-Aufrufe zugelassen. Das ist keine Authentifizierung und ersetzt keine serverseitige Berechtigungsprüfung.
