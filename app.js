@@ -3570,6 +3570,7 @@ async function openPfmsLegacyTeamWorkspace(teamId) {
   pfmsLegacyMatchCandidates = [];
   pfmsLegacyMatchLineup = [];
   pfmsLegacyTrainingSessions = [];
+  pfmsLegacyTrainingCycles = [];
   pfmsLegacyTeamExercises = [];
   pfmsLegacySessionExercises = [];
   pfmsSelectedTrainingSession = null;
@@ -5765,6 +5766,7 @@ function setupPfmsLegacyTeamWorkspace() {
     resetPfmsLegacyCalendarForm();
     pfmsLegacyTeamRoster = [];
     pfmsLegacyTrainingSessions = [];
+    pfmsLegacyTrainingCycles = [];
     pfmsLegacyTeamExercises = [];
     pfmsLegacySessionExercises = [];
     pfmsSelectedTrainingSession = null;
@@ -6172,6 +6174,10 @@ function resetPfmsAuthenticatedState() {
   pfmsLegacyTeamRoster = [];
   pfmsLegacyTeamRosterCandidates = [];
   pfmsLegacyTrainingSessions = [];
+  pfmsLegacyTrainingCycles = [];
+  pfmsLegacyTeamExercises = [];
+  pfmsLegacySessionExercises = [];
+  pfmsSelectedTrainingPlanSession = null;
   pfmsSelectedTrainingSession = null;
   pfmsLegacyTrainingAttendance = [];
   pfmsLegacyTeamFinanceEntries = [];
