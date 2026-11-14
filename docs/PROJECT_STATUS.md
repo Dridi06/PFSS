@@ -66,16 +66,16 @@ Vorhandene Migrationen betreffen:
 | Sicherheit | einzelne RLS-Policies und Security-Definer-Funktionen | gesamtes Policy-/Grant-/Storage-Inventar und Negativtests |
 | Backup | Workflow im Repository | Secrets prüfen, Backup ausführen und Restore-Probe dokumentieren |
 | Render | Service-Konfiguration nicht verifiziert | Service-Typ prüfen, Test-Build, Health-Check und Browser-Test |
-| Qualitätssicherung | `npm test`, GitHub Actions, Deno-Typprüfung aller drei Edge Functions sowie statische Checks für Owner, Mitglieder, Scout und Fehlertelemetrie | Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
+| Qualitätssicherung | `npm test`, GitHub Actions, Deno-Typprüfung aller drei Edge Functions sowie statische Checks für Owner, Mitglieder, Scout, Fehlertelemetrie, Teamspiele und Trainingsübungen | Browser-/E2E-, Datenbank-, RLS-, Mandanten-, Datenschutz- und Restore-Tests |
 
 ## 3a. Umgesetzter Team-Betrieb
 
 - **Kader:** Globale Spieler können einer Legacy-Mannschaft zugeordnet werden; Rückennummer, Positionsabweichung und Kaderstatus werden getrennt pro Team gespeichert.
-- **Training:** Termine mit Titel, Datum, Beginn/Ende, Ort, Schwerpunkt und Notizen können durch Benutzer mit `training.edit` angelegt werden. Berechtigte Trainer können geplante Einheiten abschließen oder absagen.
+- **Training:** Termine mit Titel, Datum, Beginn/Ende, Ort, Schwerpunkt und Notizen können durch Benutzer mit `training.edit` angelegt werden. Berechtigte Trainer können geplante Einheiten abschließen oder absagen. Ein teambezogener Übungskatalog speichert Kategorien, Dauer, Spielerzahl, Schwierigkeitsgrad, Material, Aufbau, Ablauf und Coachingpunkte; mehrere Übungen können mit Reihenfolge, Dauer und Einheitenhinweis in einem Trainingsplan kombiniert werden.
 - **Anwesenheit:** Für jede Einheit wird eine Liste der Kaderspieler angezeigt. Mit `attendance.edit` lassen sich Status (anwesend, abwesend, entschuldigt, verletzt, verspätet oder offen) und Notiz pro Spieler speichern. Die Datenbank blockiert Zuordnungen zu einer anderen Mannschaft.
 - **Zugriff:** `training.view/edit` und `attendance.view/edit` sind getrennte Module. Tabellen sind nicht direkt für Browser-Schreibzugriffe freigegeben; Änderungen laufen über berechtigungsgeprüfte RPCs.
 - **Zusätzlich umgesetzt:** Mannschaftskalender, Spielansetzungen und Ergebnisse sowie Spieltagskader und matchbezogene Aufstellungen mit Startelf, Ersatzbank, Position, Reihenfolge und Kapitän.
-- **Noch offen:** Taktik-/Spielanalyse, Videoanalyse, Trainingsübungen/-zyklen, Mannschaftskasse und Veranstaltungen. Die bereits umgesetzten Teamfunktionen sind im Entwicklungszweig verbunden, aber noch nicht auf der Supabase-Testdatenbank abgenommen.
+- **Noch offen:** Trainingszyklen/Wochenplanung, Taktik-/Videoanalyse, Mannschaftskasse und Veranstaltungen. Die Übungsbibliothek und die Planerstellung je Trainingseinheit sind jetzt im Entwicklungszweig implementiert. Die bereits umgesetzten Teamfunktionen sind im Entwicklungszweig verbunden, aber noch nicht auf der Supabase-Testdatenbank abgenommen.
 
 ### Teamkalender
 
@@ -86,7 +86,9 @@ Der Mannschaftskalender verwendet `pfms_legacy_team_calendar_events` mit getrenn
 - `pfms_legacy_team_matches` speichert Spielansetzungen, Gegner, Wettbewerb, Heim/Auswärts, Spielstätte, Status und Ergebnisse.
 - `pfms_legacy_team_match_lineup` speichert eine matchbezogene Aufstellung mit Startelf/Ersatzbank, Position, Reihenfolge und Kapitän. Alle Spieler müssen zum Kader der Mannschaft gehören.
 - Lesen und Ändern werden durch `matches.view/edit` kontrolliert. Die Datenbank erzwingt maximal elf Startelf-Spieler und höchstens einen Kapitän. Direkte Browser-Schreibzugriffe auf die Tabellen bleiben gesperrt.
-- Die Migration `20261125_pfms_legacy_team_matches.sql` enthält Spielansetzungen, Ergebnisse und matchbezogene Aufstellungen. `matches.view/edit` werden serverseitig geprüft; die SQL-Funktionen erzwingen Teamzugehörigkeit, maximal elf Startelf-Spieler und höchstens einen Kapitän. Die Oberfläche unterstützt Erstellen/Bearbeiten von Spielen, Ergebnis-/Statuspflege, Spieltagskandidaten und das Speichern der Aufstellung. Die Migration muss noch in Staging angewendet und mit verschiedenen Teamrollen Ende-zu-Ende geprüft werden.
+- - **Übungskatalog und Einheitenplan:** Die Migration `20261126_pfms_legacy_training_exercises.sql` ergänzt Mannschaftsübungen und die Verknüpfung mit Trainingseinheiten. Teamrechte `training.view/edit` gelten für Katalog und Plan. Zusammengesetzte Fremdschlüssel verhindern teamfremde Übungen; die Plan-RPC prüft Anzahl, Reihenfolge, Dauer und Teamzugehörigkeit vor dem Austausch des bestehenden Plans. Direkte Browser-Schreibzugriffe bleiben gesperrt. Frontend und CI-Smoke-Tests sind verbunden; Staging-Migration und Rollen-/Browserabnahme stehen noch aus.
+
+Die Migration `20261125_pfms_legacy_team_matches.sql` enthält Spielansetzungen, Ergebnisse und matchbezogene Aufstellungen. `matches.view/edit` werden serverseitig geprüft; die SQL-Funktionen erzwingen Teamzugehörigkeit, maximal elf Startelf-Spieler und höchstens einen Kapitän. Die Oberfläche unterstützt Erstellen/Bearbeiten von Spielen, Ergebnis-/Statuspflege, Spieltagskandidaten und das Speichern der Aufstellung. Die Migration muss noch in Staging angewendet und mit verschiedenen Teamrollen Ende-zu-Ende geprüft werden.
 
 ## 4. Kritische Architekturentscheidung: Organisationsmodell
 
@@ -139,7 +141,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - `package.json` enthält `npm test` und `npm run check:syntax`. Die Smoke-Tests prüfen nun auch den Cloud-Katalog, Owner-Bootstrap, Admin-Mitgliederliste und Fehlerüberwachung.
 - `tests/smoke.mjs` prüft Dateien, Navigation, lokale Assets, PFMS-Markenhinweise, Auth-Reload-Logik sowie die privaten Scout-Tabellen und Medienfunktionen.
 - `.github/workflows/pfms-quality.yml` führt diese Prüfungen bei Push/PR aus.
-- Der GitHub-Actions-Lauf `43597799050` auf Commit `e32d14a59d1b0f07bc0c1bc5207734d39d6b3de0` war am 14.11.2026 erfolgreich: Frontend-Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Der unmittelbar vorherige Lauf `43597684884` scheiterte an einer veralteten Textannahme im Smoke-Test; der Test wurde an die tatsächliche SQL-Fehlermeldung angepasst. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
+- Der GitHub-Actions-Lauf `43598858042` auf Commit `c3c90d9b59165a1667a158bd25cb39467af86b1a` war am 14.11.2026 erfolgreich: Frontend-Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Die Smoke-Tests prüfen jetzt zusätzlich die Team-Übungsbibliothek, den Session-Plan, zusammengesetzte Team-Fremdschlüssel, Dauergrenzen, Berechtigungen und das Staging-Audit. Der unmittelbar vorherige Lauf `43597684884` scheiterte an einer veralteten Textannahme im Smoke-Test; der Test wurde an die tatsächliche SQL-Fehlermeldung angepasst. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
