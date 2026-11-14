@@ -2124,6 +2124,7 @@ async function showAuthenticatedApp(user, profile) {
   setupPfmsClubScouting();
   setupPfmsPersonalTasks();
   setupPfmsNotifications();
+  void loadPfmsNotifications();
   setupPfmsSupportTickets();
   setupPfmsAdminSupport();
   const userIdDisplay = document.getElementById('userIdDisplay');
