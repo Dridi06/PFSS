@@ -38,7 +38,7 @@ Vorhandene Migrationen betreffen:
 - Legacy-Organisationen, Mitgliedschaften und Einladungen.
 - Ein zusätzliches neues Organisations-/Mitgliedschaftsmodell.
 - Private Scout-Spieler, Berichte, Medien und einen privaten Storage-Bucket.
-- Edge Functions: `username-login`, `r2-connection-check`.
+- Edge Functions: `username-login`, `r2-connection-check`, `pfms-owner-bootstrap`.
 
 ### Sicherung
 - Ein GitHub-Actions-Workflow erstellt verschlüsselte PostgreSQL-Dumps und lädt sie in Cloudflare R2.
@@ -88,6 +88,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 
 ## 6. Aktuelle Qualitätsbasis und letzte Änderungen
 
+- `supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql` und `supabase/functions/pfms-owner-bootstrap/index.ts` ergänzen einen einmaligen Owner-Claim: verifizierte Supabase-Sitzung, separater Function-Secret, ausschließlich service-role-RPC und Singleton-Datensatz. UI für einmalige Registrierung und Aktivierung ist vorhanden; noch nicht in Staging angewendet oder deployed.
 - `supabase/functions/_shared/cors.ts` implementiert eine gemeinsame CORS-Origin-Allowlist; `username-login` und `r2-connection-check` verwenden sie. Die Staging-Origin muss vor dem Deploy über `PFMS_ALLOWED_ORIGINS` freigegeben werden.
 - `supabase/migrations/20261114_scout_workspace_integrity.sql` ergänzt Datenbankgrenzen für Scout-Daten, automatische `updated_at`-Zeitstempel und die Prüfung, dass Medien-Metadaten nur in den eigenen Benutzerordner zeigen. Die Migration wurde im Repository korrigiert, aber noch nicht in Supabase ausgeführt.
 - `package.json` enthält `npm test` und `npm run check:syntax`.
