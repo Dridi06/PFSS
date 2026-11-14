@@ -191,10 +191,15 @@ function renderPfmsNotifications() {
 
   const typeLabels = {
     team_task_assigned: 'Teamaufgabe',
-    team_task_completed: 'Teamaufgabe abgeschlossen'
+    team_task_completed: 'Teamaufgabe abgeschlossen',
+    support_ticket_replied: 'Supportantwort',
+    support_ticket_resolved: 'Support abgeschlossen'
   };
   host.innerHTML = pfmsNotifications.map(item => {
     const date = item.created_at ? new Date(item.created_at).toLocaleString('de-DE') : '';
+    const supportAction = item.support_ticket_id
+      ? '<button type="button" class="pfms-inline-action" data-pfms-notification-support="' + escapeHtml(item.support_ticket_id) + '">Supportanfrage öffnen</button>'
+      : '';
     return '<article class="pfms-notification-card ' + (item.is_read ? 'is-read' : 'is-unread') + '" data-pfms-notification="' + escapeHtml(item.id) + '">' +
       '<div class="pfms-notification-card-head"><div><span class="eyebrow">' +
         escapeHtml(typeLabels[item.notification_type] || 'Systemmitteilung') +
@@ -203,6 +208,7 @@ function renderPfmsNotifications() {
       '</div>' +
       '<p>' + escapeHtml(item.body) + '</p>' +
       '<div class="pfms-notification-meta"><span>' + escapeHtml(date) + '</span>' +
+        supportAction +
         (!item.is_read ? '<button type="button" class="pfms-inline-action" data-pfms-notification-read="' + escapeHtml(item.id) + '">Als gelesen markieren</button>' : '<span>Gelesen</span>') +
       '</div></article>';
   }).join('');
@@ -230,7 +236,7 @@ async function loadPfmsNotifications() {
   try {
     const { data, error } = await pfssSupabase
       .from('pfms_notifications')
-      .select('id,notification_type,title,body,team_id,task_id,is_read,created_at')
+      .select('id,notification_type,title,body,team_id,task_id,support_ticket_id,is_read,created_at')
       .eq('recipient_id', requestUserId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -309,7 +315,20 @@ function setupPfmsNotifications() {
   markAll.addEventListener('click', markAllPfmsNotificationsRead);
   host.addEventListener('click', event => {
     const button = event.target.closest('[data-pfms-notification-read]');
-    if (button) void markPfmsNotificationRead(button.dataset.pfmsNotificationRead);
+    if (button) {
+      void markPfmsNotificationRead(button.dataset.pfmsNotificationRead);
+      return;
+    }
+    const supportButton = event.target.closest('[data-pfms-notification-support]');
+    if (supportButton) {
+      const ticketId = supportButton.dataset.pfmsNotificationSupport;
+      showView('support');
+      void loadPfmsSupportTickets().then(() => {
+        const ticket = [...document.querySelectorAll('[data-pfms-support-ticket]')]
+          .find(element => element.dataset.pfmsSupportTicket === ticketId);
+        ticket?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
   });
   pfmsNotificationsBound = true;
 }
@@ -503,7 +522,7 @@ function renderPfmsSupportTickets() {
   const labels = { open: 'Offen', in_progress: 'In Bearbeitung', resolved: 'Erledigt' };
   const categories = { account: 'Konto', organization: 'Organisation', scouting: 'Scouting', technical: 'Technik', billing: 'Abrechnung', other: 'Sonstiges' };
   host.innerHTML = pfmsSupportTickets.length ? pfmsSupportTickets.map(ticket =>
-    '<article class="pfms-support-ticket-card">' +
+    '<article class="pfms-support-ticket-card" data-pfms-support-ticket="' + escapeHtml(ticket.id) + '">' +
       '<div class="pfms-support-ticket-head"><strong>' + escapeHtml(ticket.subject) + '</strong><span class="module-status">' + escapeHtml(labels[ticket.status] || ticket.status) + '</span></div>' +
       '<div class="pfms-support-ticket-meta"><span>' + escapeHtml(categories[ticket.category] || ticket.category) + '</span><span>' + escapeHtml(new Date(ticket.created_at).toLocaleString('de-DE')) + '</span></div>' +
       '<p>' + escapeHtml(ticket.message) + '</p>' +
