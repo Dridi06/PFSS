@@ -14,8 +14,17 @@ let playerSearchHasRun = false;
 let pfmsMainDataReady = false;
 let pfmsMainDataLoading = false;
 let pfmsMainDataError = '';
+let pfmsMainMediaLoading = false;
+let pfmsMainMediaLoadedAt = 0;
 let editingGlobalPlayerId = null;
 let editingMainReportId = null;
+
+const PFMS_MAIN_MEDIA_BUCKET = 'pfss-scout-private';
+const PFMS_MAIN_MEDIA_MAX_SIZE = 50 * 1024 * 1024;
+const PFMS_MAIN_MEDIA_ALLOWED_TYPES = new Set([
+  'image/jpeg', 'image/png', 'image/webp', 'image/heic',
+  'video/mp4', 'video/quicktime', 'video/webm'
+]);
 
 function read(key, fallback) {
   try {
@@ -238,6 +247,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'players') renderPlayers();
   if (view === 'reports') renderReports();
   if (view === 'dashboard') renderDashboard();
+  if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
   if (view === 'admin') loadAdminUsers();
 }
 
@@ -742,48 +752,222 @@ async function importLegacyLocalData() {
     toast('Lokale Alt-Daten konnten nicht importiert werden. Die Originaldaten bleiben im Browser erhalten.');
   }
 }
-function addMedia(files) {
-  [...files].forEach(file => {
-    if (
-      !file.type.startsWith('image/') &&
-      !file.type.startsWith('video/')
-    ) return;
+function formatPfmsMediaSize(bytes) {
+  const size = Number(bytes) || 0;
+  if (size < 1024) return size + ' B';
+  if (size < 1024 * 1024) return (size / 1024).toFixed(1) + ' KB';
+  return (size / (1024 * 1024)).toFixed(1) + ' MB';
+}
 
-    const url = URL.createObjectURL(file);
+function renderPfmsMainMedia() {
+  const host = document.getElementById('mediaGrid');
+  if (!host) return;
 
-    mediaItems.push({
-      name: file.name,
-      type: file.type,
-      url
-    });
+  if (!mediaItems.length) {
+    host.innerHTML = '<div class="empty-state"><span class="empty-icon">▧</span><b>Noch keine Medien gespeichert</b><p>Lade deine Spielerfotos oder Videos hoch. Die Dateien werden privat in der PFMS-Cloud gespeichert.</p></div>';
+    renderDashboard();
+    return;
+  }
 
-    const card = document.createElement('article');
-    card.className = 'media-card';
+  host.innerHTML = mediaItems.map((item) => {
+    const url = item.signedUrl ? escapeHtml(item.signedUrl) : '';
+    const preview = !url
+      ? '<div class="media-unavailable">Datei derzeit nicht abrufbar</div>'
+      : item.media_type === 'video'
+        ? '<video src="' + url + '" controls playsinline preload="metadata"></video>'
+        : '<img src="' + url + '" alt="' + escapeHtml(item.file_name) + '" loading="lazy">';
+    const date = item.created_at ? new Date(item.created_at).toLocaleDateString('de-DE') : '–';
 
-    const media = file.type.startsWith('video/')
-      ? document.createElement('video')
-      : document.createElement('img');
-
-    media.src = url;
-
-    if (media.tagName === 'VIDEO') {
-      media.controls = true;
-      media.playsInline = true;
-    } else {
-      media.alt = file.name;
-    }
-
-    const caption = document.createElement('div');
-    caption.textContent = file.name;
-
-    card.append(media, caption);
-    document.getElementById('mediaGrid').append(card);
-  });
+    return '<article class="media-card pfms-cloud-media-card">' +
+      preview +
+      '<div class="media-card-caption"><b>' + escapeHtml(item.file_name) + '</b>' +
+      '<small>' + escapeHtml(date) + ' · ' + escapeHtml(formatPfmsMediaSize(item.file_size)) + '</small>' +
+      '<button type="button" class="btn btn-secondary" data-main-media-delete="' + escapeHtml(item.id) + '">Datei löschen</button>' +
+      '</div></article>';
+  }).join('');
 
   renderDashboard();
+}
 
-  if (files.length) {
-    toast('Dateien hinzugefügt. Hinweis: vorerst nur in dieser Sitzung verfügbar.');
+async function loadPfmsMainMedia(force = false) {
+  const host = document.getElementById('mediaGrid');
+  const status = document.getElementById('mainMediaStatus');
+  if (!host) return false;
+  if (!window.pfssCurrentUserId) {
+    if (status) {
+      status.hidden = false;
+      status.textContent = 'Bitte melde dich an, um deine privaten Medien zu laden.';
+    }
+    return false;
+  }
+  if (pfmsMainMediaLoading) return false;
+  if (!force && pfmsMainMediaLoadedAt &&
+      Date.now() - pfmsMainMediaLoadedAt < 45 * 60 * 1000) {
+    return true;
+  }
+
+  pfmsMainMediaLoading = true;
+  if (status) {
+    status.hidden = false;
+    status.textContent = 'Private Medien werden aus der PFMS-Cloud geladen …';
+  }
+  try {
+    const { data, error } = await pfssSupabase
+      .from('pfms_main_media')
+      .select('id,owner_id,media_type,file_name,storage_path,mime_type,file_size,created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const rows = data || [];
+    mediaItems = await Promise.all(rows.map(async (item) => {
+      const signed = await pfssSupabase.storage
+        .from(PFMS_MAIN_MEDIA_BUCKET)
+        .createSignedUrl(item.storage_path, 3600);
+      return {
+        ...item,
+        signedUrl: signed.error ? '' : signed.data?.signedUrl || ''
+      };
+    }));
+
+    pfmsMainMediaLoadedAt = Date.now();
+    renderPfmsMainMedia();
+    if (status) {
+      status.hidden = true;
+      status.textContent = '';
+    }
+    return true;
+  } catch (error) {
+    console.error('PFMS main media load failed:', error);
+    mediaItems = [];
+    pfmsMainMediaLoadedAt = 0;
+    renderPfmsMainMedia();
+    if (status) {
+      status.hidden = false;
+      status.textContent = 'Die private Medienbibliothek ist noch nicht verfügbar. Bitte prüfe, ob die PFMS-Medienmigration in der Testdatenbank angewendet wurde.';
+    }
+    return false;
+  } finally {
+    pfmsMainMediaLoading = false;
+  }
+}
+
+function safePfmsMediaFileName(value) {
+  const cleaned = String(value || 'datei')
+    .normalize('NFKD')
+    .replace(/[^A-Za-z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^\.+/, '')
+    .slice(-100);
+  return cleaned || 'datei';
+}
+
+async function addMedia(files) {
+  const selected = Array.from(files || []);
+  if (!selected.length) return;
+  if (!window.pfssCurrentUserId) {
+    toast('Deine Sitzung ist nicht verfügbar. Bitte melde dich erneut an.');
+    return;
+  }
+  if (selected.length > 20) {
+    toast('Bitte lade höchstens 20 Dateien gleichzeitig hoch.');
+    return;
+  }
+
+  const input = document.getElementById('mediaInput');
+  const status = document.getElementById('mainMediaStatus');
+  if (input) input.disabled = true;
+  if (status) {
+    status.hidden = false;
+    status.textContent = 'Dateien werden privat in die PFMS-Cloud hochgeladen …';
+  }
+
+  let uploadedCount = 0;
+  const failures = [];
+  for (const file of selected) {
+    if (!PFMS_MAIN_MEDIA_ALLOWED_TYPES.has(file.type)) {
+      failures.push(file.name + ': Dateityp nicht zugelassen.');
+      continue;
+    }
+    if (!file.size || file.size > PFMS_MAIN_MEDIA_MAX_SIZE) {
+      failures.push(file.name + ': Die Datei muss kleiner als 50 MB sein.');
+      continue;
+    }
+
+    const storagePath = window.pfssCurrentUserId + '/main/' +
+      Date.now() + '-' + Math.random().toString(16).slice(2) + '-' +
+      safePfmsMediaFileName(file.name);
+
+    try {
+      const uploaded = await pfssSupabase.storage
+        .from(PFMS_MAIN_MEDIA_BUCKET)
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: false
+        });
+      if (uploaded.error) throw uploaded.error;
+
+      const metadata = await pfssSupabase.from('pfms_main_media').insert({
+        owner_id: window.pfssCurrentUserId,
+        media_type: file.type.startsWith('video/') ? 'video' : 'photo',
+        file_name: file.name,
+        storage_path: storagePath,
+        mime_type: file.type,
+        file_size: file.size
+      });
+      if (metadata.error) {
+        await pfssSupabase.storage.from(PFMS_MAIN_MEDIA_BUCKET).remove([storagePath]);
+        throw metadata.error;
+      }
+      uploadedCount += 1;
+    } catch (error) {
+      console.error('PFMS main media upload failed:', error);
+      failures.push(file.name + ': Upload fehlgeschlagen.');
+    }
+  }
+
+  if (input) {
+    input.value = '';
+    input.disabled = false;
+  }
+  await loadPfmsMainMedia(true);
+
+  if (status && failures.length) {
+    status.hidden = false;
+    status.textContent = failures.slice(0, 3).join(' ') +
+      (failures.length > 3 ? ' Weitere Dateien konnten nicht hochgeladen werden.' : '');
+  }
+  if (uploadedCount) toast(uploadedCount + ' Datei(en) wurden privat in PFMS gespeichert.');
+  else if (failures.length) toast('Keine Datei konnte hochgeladen werden. Bitte Dateityp, Größe und Datenbankmigration prüfen.');
+}
+
+async function deleteMainMedia(mediaId) {
+  const item = mediaItems.find((media) => media.id === mediaId);
+  if (!item || item.owner_id !== window.pfssCurrentUserId) return;
+  if (!window.confirm('Datei "' + item.file_name + '" wirklich aus deiner privaten Medienbibliothek löschen?')) return;
+
+  try {
+    const removedFile = await pfssSupabase.storage
+      .from(PFMS_MAIN_MEDIA_BUCKET)
+      .remove([item.storage_path]);
+    if (removedFile.error) throw removedFile.error;
+
+    const removedRow = await pfssSupabase
+      .from('pfms_main_media')
+      .delete()
+      .eq('id', mediaId)
+      .eq('owner_id', window.pfssCurrentUserId);
+    if (removedRow.error) {
+      await loadPfmsMainMedia(true);
+      toast('Die Datei wurde aus dem Speicher entfernt; der Datenbankeintrag muss noch geprüft werden.');
+      return;
+    }
+
+    await loadPfmsMainMedia(true);
+    toast('Datei wurde aus deiner privaten Medienbibliothek gelöscht.');
+  } catch (error) {
+    console.error('PFMS main media deletion failed:', error);
+    toast('Datei konnte nicht gelöscht werden. Bitte Berechtigung und Speicherverbindung prüfen.');
   }
 }
 
@@ -839,6 +1023,12 @@ document.addEventListener('click', event => {
   const deleteMainReportButton = event.target.closest('[data-main-report-delete]');
   if (deleteMainReportButton) {
     deleteMainReport(deleteMainReportButton.dataset.mainReportDelete);
+    return;
+  }
+
+  const deleteMainMediaButton = event.target.closest('[data-main-media-delete]');
+  if (deleteMainMediaButton) {
+    deleteMainMedia(deleteMainMediaButton.dataset.mainMediaDelete);
     return;
   }
 
@@ -1312,6 +1502,7 @@ async function showAuthenticatedApp(user, profile) {
   window.pfssIsRealAdmin = isAdmin;
   window.pfssPreviewMode = 'admin';
   await loadPfmsMainData();
+  await loadPfmsMainMedia();
   const previewSwitch = document.getElementById('adminPreviewSwitch');
   const previewSelect = document.getElementById('adminPreviewMode');
   if (previewSwitch) previewSwitch.hidden = !isAdmin;
