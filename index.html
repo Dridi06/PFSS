@@ -941,6 +941,33 @@
       <div id="pfmsTeamAnalysisList" class="pfms-team-analysis-list"></div>
     </section>
 
+    <section class="panel pfms-team-events-panel" id="pfmsTeamEventsPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TEAMORGANISATION · EVENTS</div>
+          <h3>Veranstaltungen & Turniere</h3>
+          <p>Organisiere Turniere, Mannschaftstage, Auswärtsfahrten und weitere Teamveranstaltungen. Diese Liste nutzt dieselbe Kalenderdatenbasis, bleibt aber über eigene Veranstaltungsrechte begrenzt.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamEventForm" class="pfms-event-form" hidden>
+        <input type="hidden" name="event_id">
+        <label class="field">Bezeichnung<input name="title" maxlength="140" required placeholder="z. B. Sommerturnier U17"></label>
+        <label class="field">Art<select name="event_type" required><option value="event">Veranstaltung</option><option value="tournament">Turnier</option></select></label>
+        <label class="field">Datum<input name="event_date" type="date" required></label>
+        <label class="field">Beginn<input name="starts_at" type="time" required></label>
+        <label class="field">Ende<input name="ends_at" type="time"></label>
+        <label class="field">Ort / Treffpunkt<input name="location" maxlength="160" placeholder="Sportanlage / Treffpunkt"></label>
+        <label class="field">Status<select name="status"><option value="planned">Geplant</option><option value="completed">Abgeschlossen</option><option value="cancelled">Abgesagt</option></select></label>
+        <label class="field full">Informationen / Hinweise<textarea name="notes" rows="3" maxlength="4000" placeholder="Ablauf, Anreise, Material und organisatorische Hinweise"></textarea></label>
+        <div class="pfms-event-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamEventSave">Veranstaltung speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamEventCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamEventsMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamEventsList" class="pfms-team-events-list"></div>
+    </section>
+
     <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
       <div class="panel-heading">
         <div>
@@ -1076,7 +1103,7 @@
     <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-matches>Spiele öffnen</button></article>
     <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Schwerpunkte, Gegneranalyse und Videoauswertung.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-analysis>Analyse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben und nachvollziehbare Buchungshistorie in Euro.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-finance>Kasse öffnen</button></article>
-    <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-events>Veranstaltungen öffnen</button></article>
   </div></section>
       
       <section class="view" id="view-reports">
