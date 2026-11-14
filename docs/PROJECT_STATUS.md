@@ -391,3 +391,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Drei Regressionstests schützen die Teamkontextbindung aller drei Kader-Schreibwege.
 - Globale Spielerprofile werden weiterhin nicht gelöscht, wenn eine Mannschaftszuordnung entfernt wird.
 - Keine Migration, keine Änderung an Produktivdaten und kein Deployment.
+
+
+## Weitere Team-Workspace-Schreibwege gegen verspätete Abschlussaktionen geschützt – 14.11.2026
+
+- Die Abschlussbehandlung wurde auch bei Analyse, Veranstaltungen, Teilnehmerlisten, Fahrtplänen, Teamaufgaben, Trainings-Terminen und Trainingswochen-Zuordnungen an den ursprünglichen Teamkontext gebunden.
+- Die Zuordnung von Trainer-/Betreuerpersonal prüft die Team-ID jetzt auch nach dem RPC und nach dem Neuladen, bevor ein Dialog geöffnet oder eine Schaltfläche verändert wird.
+- Acht zusätzliche Regressionstests decken die verbleibenden Schreibwege und die Personalzuordnung ab.
+- Keine Datenbank- oder Live-Änderung; Feature-Branch und CI bleiben der Prüfpfad.
