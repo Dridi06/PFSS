@@ -255,7 +255,7 @@ begin
     ) values (
       (id_map ->> old_player_id)::uuid,
       auth.uid(),
-      coalesce(nullif(report_item ->> 'date', '')::date, pg_catalog.current_date),
+      coalesce(nullif(report_item ->> 'date', '')::date, current_date),
       rating_value,
       report_notes
     );
