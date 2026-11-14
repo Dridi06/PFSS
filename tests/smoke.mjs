@@ -126,7 +126,7 @@ assert.ok(app.includes("function pfmsSanitizeLogPath") && app.includes("'[id]'")
 assert.ok(app.includes("pfmsClientErrorCount >= 5"), "Client error telemetry must be rate-limited");
 assert.ok(app.includes("addEventListener('unhandledrejection'") && app.includes("addEventListener('error'"), "Frontend error handlers are missing");
 assert.ok(app.includes(".from('pfms_system_events').insert") && app.includes("function setupPfmsAdminErrors()"), "Error reporting and admin review are not connected");
-assert.ok(audit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
+assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect the system event log");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Transactional, bounded legacy backup import is missing");
 assert.ok(!globalCatalogueMigration.includes("pg_catalog.current_date"), "Migration must use valid PostgreSQL date syntax");
 
