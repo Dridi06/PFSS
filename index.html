@@ -332,7 +332,11 @@
           <span class="nav-icon">▧</span>Medien
         </button>
         <button class="nav-item" data-view="tasks">
-          <span class="nav-icon">☑</span>Meine Aufgaben
+          <span class="nav-icon">☑</span><span class="nav-label">Meine Aufgaben</span>
+        </button>
+        <button class="nav-item pfms-notification-nav" type="button" data-view="notifications">
+          <span class="nav-icon">♧</span><span class="nav-label">Mitteilungen</span>
+          <span class="pfms-notification-count" data-pfms-notification-count hidden></span>
         </button>
         <button class="nav-item" data-view="support">
           <span class="nav-icon">✉</span>Hilfe & Support
@@ -346,6 +350,7 @@
           <button class="nav-item admin-nav-item" data-view="players"><span class="nav-icon">⚽</span>Spielerdatenbank</button>
           <button class="nav-item admin-nav-item" data-view="admin-errors"><span class="nav-icon">!</span>Fehler</button>
           <button class="nav-item admin-nav-item" data-view="admin-inbox"><span class="nav-icon">✉</span>Postfach</button>
+          <button class="nav-item admin-nav-item pfms-notification-nav" data-view="notifications" type="button"><span class="nav-icon">♧</span>Mitteilungen <span class="pfms-notification-count" data-pfms-notification-count hidden></span></button>
           <button class="nav-item admin-nav-item" data-view="admin-payments"><span class="nav-icon">€</span>Zahlungen</button>
           <button class="nav-item admin-nav-item" data-view="admin"><span class="nav-icon">⚙</span>Admin-Einstellungen</button>
           <button class="nav-item admin-nav-item" data-view="backup"><span class="nav-icon">⇧</span>Datensicherung</button>
@@ -1300,6 +1305,19 @@
           <div id="pfmsAdminErrorsResults" class="admin-user-list"></div>
         </div>
       </section>
+      <section class="view" id="view-notifications">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">SYSTEMMITTEILUNGEN</div>
+            <h1>Mitteilungen</h1>
+            <p>Persönliche Hinweise zu Teamaufgaben und wichtigen Änderungen in deinen Arbeitsbereichen.</p>
+          </div>
+          <button class="btn btn-secondary" type="button" id="pfmsNotificationsMarkAllRead">Alle als gelesen markieren</button>
+        </div>
+        <div id="pfmsNotificationsMessage" class="notice" role="status" aria-live="polite"></div>
+        <div id="pfmsNotificationsList" class="pfms-notifications-list"></div>
+      </section>
+
       <section class="view" id="view-support">
         <div class="page-heading"><div><div class="eyebrow">PFMS SERVICE</div><h1>Hilfe & Support</h1><p>Erstelle eine Supportanfrage und verfolge den Bearbeitungsstatus deiner eigenen Anfragen.</p></div><span class="module-status">Vertraulich</span></div>
         <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">
