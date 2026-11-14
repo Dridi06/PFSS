@@ -87,7 +87,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.pfms_can_access_legacy_team(p_team_id) then
+  if not public.pfms_has_legacy_team_permission(p_team_id, 'squad', 'view') then
     raise exception 'Not authorized to view this team roster' using errcode = '42501';
   end if;
 
@@ -139,7 +139,7 @@ as $$
 declare
   v_query text := pg_catalog.btrim(coalesce(p_query, ''));
 begin
-  if not public.pfms_can_manage_legacy_team(p_team_id) then
+  if not public.pfms_has_legacy_team_permission(p_team_id, 'squad', 'edit') then
     raise exception 'Not authorized to search players for this team' using errcode = '42501';
   end if;
 
@@ -179,7 +179,7 @@ as $$
 declare
   v_assignment_id uuid;
 begin
-  if not public.pfms_can_manage_legacy_team(p_team_id) then
+  if not public.pfms_has_legacy_team_permission(p_team_id, 'squad', 'edit') then
     raise exception 'Not authorized to manage this team roster' using errcode = '42501';
   end if;
 
@@ -237,7 +237,7 @@ begin
   if not found then
     raise exception 'Team player assignment not found' using errcode = 'P0002';
   end if;
-  if not public.pfms_can_manage_legacy_team(v_team_id) then
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'squad', 'edit') then
     raise exception 'Not authorized to update this team roster' using errcode = '42501';
   end if;
   if p_jersey_number is not null and p_jersey_number not between 1 and 99 then
@@ -279,7 +279,7 @@ begin
   if not found then
     return;
   end if;
-  if not public.pfms_can_manage_legacy_team(v_team_id) then
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'squad', 'edit') then
     raise exception 'Not authorized to remove this player from the team' using errcode = '42501';
   end if;
 
