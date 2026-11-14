@@ -771,8 +771,8 @@ assert.equal(
   "Training plan save RPC must have one matching authenticated grant"
 );
 assert.equal(
-  legacyTeamTrainingExercisesMigration.split("$").length % 2,
-  1,
+  (legacyTeamTrainingExercisesMigration.match(/\$\$/g) || []).length % 2,
+  0,
   "Training exercise migration must have balanced function bodies"
 );
 assert.ok(
