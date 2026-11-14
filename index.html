@@ -995,6 +995,33 @@
       <div id="pfmsTeamEventsList" class="pfms-team-events-list"></div>
     </section>
 
+    <section class="panel pfms-team-tasks-panel" id="pfmsTeamTasksPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">TEAMORGANISATION</div>
+          <h3>Gemeinsame Teamaufgaben</h3>
+          <p>Verteile Aufgaben an aktive Trainer, Co-Trainer und Betreuer. Private persönliche Aufgaben bleiben davon getrennt.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamTaskForm" class="pfms-team-task-form" hidden>
+        <input type="hidden" name="task_id">
+        <div class="pfms-team-task-form-grid">
+          <label class="field">Aufgabe<input name="title" maxlength="160" required placeholder="z. B. Trikots für das Turnier organisieren"></label>
+          <label class="field">Verantwortlich<select name="assigned_to" id="pfmsTeamTaskAssignee"><option value="">Noch nicht zugewiesen</option></select></label>
+          <label class="field">Fällig am<input name="due_date" type="date"></label>
+          <label class="field">Priorität<select name="priority"><option value="normal">Normal</option><option value="high">Hoch</option><option value="low">Niedrig</option></select></label>
+          <label class="field">Status<select name="status"><option value="open">Offen</option><option value="in_progress">In Bearbeitung</option><option value="done">Erledigt</option><option value="cancelled">Abgebrochen</option></select></label>
+          <label class="field full">Beschreibung<textarea name="description" rows="2" maxlength="3000" placeholder="Hinweise und Details zur Aufgabe"></textarea></label>
+        </div>
+        <div class="pfms-team-task-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamTaskSave">Teamaufgabe speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamTaskCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamTasksMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamTasksList" class="pfms-team-task-list"></div>
+    </section>
+
     <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
       <div class="panel-heading">
         <div>
@@ -1131,6 +1158,7 @@
     <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Schwerpunkte, Gegneranalyse und Videoauswertung.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-analysis>Analyse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben und nachvollziehbare Buchungshistorie in Euro.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-finance>Kasse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-events>Veranstaltungen öffnen</button></article>
+    <article class="module-card" data-pfms-team-module="tasks"><span class="module-symbol">☑</span><div class="eyebrow">TEAMORGANISATION</div><h3>Teamaufgaben</h3><p>Aufgaben an Trainer und Betreuer verteilen, Fristen verfolgen und Erledigung dokumentieren.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-tasks>Aufgaben öffnen</button></article>
   </div></section>
       
       <section class="view" id="view-reports">
