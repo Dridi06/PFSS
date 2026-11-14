@@ -1877,3 +1877,34 @@ assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must i
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
+
+const remainingTeamWriteHandlers = [
+  "savePfmsLegacyTeamAnalysis",
+  "deletePfmsLegacyTeamEventTravelPlan",
+  "savePfmsLegacyTeamEvent",
+  "addPfmsLegacyTeamEventParticipant",
+  "removePfmsLegacyTeamEventParticipant",
+  "savePfmsLegacyTeamTask",
+  "savePfmsLegacyTeamTraining"
+];
+for (const handler of remainingTeamWriteHandlers) {
+  const start = app.indexOf("async function " + handler);
+  const next = app.indexOf("\nasync function ", start + 1);
+  const end = next >= 0 ? next : app.length;
+  const source = app.slice(start, end);
+  assert.ok(
+    start >= 0 && source.includes("pfmsSelectedLegacyTeam?.team_id === team.team_id") &&
+    source.includes("button.disabled = false"),
+    handler + " must only release its control while the original team remains selected"
+  );
+}
+const staffAssignment = app.slice(
+  app.indexOf("async function assignPfmsLegacyTeamStaff"),
+  app.indexOf("async function removePfmsLegacyTeamStaff")
+);
+assert.ok(
+  staffAssignment.includes("const teamId = team?.team_id") &&
+  staffAssignment.includes("pfmsSelectedLegacyTeam?.team_id !== teamId") &&
+  staffAssignment.includes("button.disabled = false"),
+  "Team staff assignment must remain bound to its original team during refresh and cleanup"
+);
