@@ -2359,6 +2359,8 @@ let pfmsLegacyTeamAnalysisMatches = [];
 let pfmsEditingTeamAnalysisId = null;
 let pfmsLegacyTeamEvents = [];
 let pfmsEditingTeamEventId = null;
+let pfmsLegacyTeamEventParticipants = [];
+let pfmsLegacyTeamEventPlayerOptions = [];
 let pfmsLegacyTeamExercises = [];
 let pfmsLegacySessionExercises = [];
 let pfmsLegacyTeamFinanceEntries = [];
@@ -3628,6 +3630,8 @@ const PFMS_TEAM_EVENT_STATUS_LABELS = {
 
 function resetPfmsLegacyTeamEventsState() {
   pfmsLegacyTeamEvents = [];
+  pfmsLegacyTeamEventParticipants = [];
+  pfmsLegacyTeamEventPlayerOptions = [];
   pfmsEditingTeamEventId = null;
 
   const panel = document.getElementById('pfmsTeamEventsPanel');
@@ -3668,6 +3672,14 @@ function renderPfmsLegacyTeamEvents() {
   if (!host) return;
 
   const canEdit = pfmsSelectedTeamPermissions.get('events')?.can_edit === true;
+  const participantStatusLabels = {
+    invited: 'Eingeladen',
+    confirmed: 'Zugesagt',
+    declined: 'Abgesagt',
+    attended: 'Anwesend',
+    absent: 'Nicht erschienen'
+  };
+
   if (!pfmsLegacyTeamEvents.length) {
     host.innerHTML = '<div class="empty-state"><b>Noch keine Veranstaltungen geplant</b><p>' +
       (canEdit ? 'Lege ein Turnier oder eine Veranstaltung an. Termine werden zusätzlich im Mannschaftskalender geführt.' : 'Für diese Mannschaft liegen noch keine Veranstaltungs- oder Turniereinträge vor.') +
@@ -3681,6 +3693,46 @@ function renderPfmsLegacyTeamEvents() {
     const start = String(item.starts_at || '').slice(0, 5);
     const end = item.ends_at ? String(item.ends_at).slice(0, 5) : '';
     const time = start + (end ? ' – ' + end : '');
+    const participants = pfmsLegacyTeamEventParticipants
+      .filter(participant => participant.event_id === item.event_id);
+    const alreadyAdded = new Set(participants.map(participant => participant.assignment_id));
+    const playerOptions = pfmsLegacyTeamEventPlayerOptions
+      .filter(player => !alreadyAdded.has(player.assignment_id))
+      .map(player => {
+        const name = [player.player_name, player.player_surname].filter(Boolean).join(' ');
+        const jersey = player.jersey_number == null ? 'ohne Nummer' : '#' + player.jersey_number;
+        return '<option value="' + escapeHtml(player.assignment_id) + '">' +
+          escapeHtml(jersey + ' · ' + name) + '</option>';
+      }).join('');
+    const participantList = participants.length
+      ? '<div class="pfms-event-participants"><b>Anmeldeliste · ' + participants.length + '</b>' +
+        participants.map(participant => {
+          const name = [participant.player_name, participant.player_surname].filter(Boolean).join(' ') || 'Spieler';
+          const jersey = participant.jersey_number == null ? '–' : '#' + participant.jersey_number;
+          return '<div class="pfms-event-participant-row"><span class="pfms-event-participant-name">' +
+            escapeHtml(jersey + ' · ' + name) + '</span>' +
+            (canEdit
+              ? '<select aria-label="Teilnahmestatus für ' + escapeHtml(name) +
+                  '" data-pfms-event-participant-status="' + escapeHtml(participant.participant_id) + '">' +
+                  Object.entries(participantStatusLabels).map(([value,label]) =>
+                    '<option value="' + value + '"' + (participant.participant_status === value ? ' selected' : '') + '>' +
+                      label + '</option>'
+                  ).join('') +
+                '</select><button type="button" class="pfms-inline-action" data-pfms-event-participant-remove="' +
+                  escapeHtml(participant.participant_id) + '">Entfernen</button>'
+              : '<span class="module-status">' +
+                  escapeHtml(participantStatusLabels[participant.participant_status] || participant.participant_status) +
+                '</span>') +
+          '</div>';
+        }).join('') + '</div>'
+      : '<p class="pfms-cycle-no-sessions">Noch keine Spieler angemeldet.</p>';
+    const participantControls = canEdit
+      ? '<div class="pfms-event-participant-add"><label class="field">Spieler aus dem Kader hinzufügen<select data-pfms-event-participant-select="' +
+          escapeHtml(item.event_id) + '"><option value="">Spieler auswählen …</option>' + playerOptions + '</select></label>' +
+          '<button type="button" class="btn btn-secondary" data-pfms-event-participant-add="' +
+          escapeHtml(item.event_id) + '"' + (playerOptions ? '' : ' disabled') + '>Spieler anmelden</button></div>'
+      : '';
+
     return '<article class="pfms-team-event-card" data-pfms-team-event-card="' + escapeHtml(item.event_id) + '">' +
       '<div class="pfms-team-event-card-head"><div><span class="eyebrow">' +
         escapeHtml(PFMS_TEAM_EVENT_TYPE_LABELS[item.event_type] || item.event_type) + ' · ' + escapeHtml(date) +
@@ -3691,6 +3743,7 @@ function renderPfmsLegacyTeamEvents() {
         '<span>' + escapeHtml(item.location || 'Ort noch offen') + '</span>' +
       '</div>' +
       (item.event_notes ? '<p class="pfms-team-event-notes">' + escapeHtml(item.event_notes) + '</p>' : '') +
+      participantList + participantControls +
       (canEdit
         ? '<div class="pfms-team-event-actions"><button type="button" class="btn btn-secondary" data-pfms-event-edit="' +
             escapeHtml(item.event_id) + '">Bearbeiten</button><button type="button" class="btn btn-secondary" data-pfms-event-delete="' +
@@ -3699,7 +3752,10 @@ function renderPfmsLegacyTeamEvents() {
       '</article>';
   }).join('');
 
-  if (message) message.textContent = pfmsLegacyTeamEvents.length + ' Veranstaltung(en) geladen.';
+  if (message) {
+    const participantCount = pfmsLegacyTeamEventParticipants.length;
+    message.textContent = pfmsLegacyTeamEvents.length + ' Veranstaltung(en) und ' + participantCount + ' Teilnehmerzuordnung(en) geladen.';
+  }
 }
 
 async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id) {
@@ -3720,18 +3776,25 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
   const requestGeneration = pfmsAuthGeneration;
   panel.hidden = false;
   form.hidden = permission.can_edit !== true;
-  message.textContent = 'Veranstaltungen werden geladen …';
+  message.textContent = 'Veranstaltungen und Anmeldelisten werden geladen …';
   host.replaceChildren();
 
   try {
-    const { data, error } = await pfssSupabase.rpc('pfms_list_legacy_team_events', {
-      p_team_id: teamId
-    });
+    const [eventResult, participantResult, playerResult] = await Promise.all([
+      pfssSupabase.rpc('pfms_list_legacy_team_events', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_event_participants', { p_team_id: teamId }),
+      pfssSupabase.rpc('pfms_list_legacy_team_event_player_options', { p_team_id: teamId })
+    ]);
     if (requestGeneration !== pfmsAuthGeneration ||
         requestUserId !== window.pfssCurrentUserId ||
         pfmsSelectedLegacyTeam?.team_id !== teamId) return;
-    if (error) throw error;
-    pfmsLegacyTeamEvents = data || [];
+    if (eventResult.error) throw eventResult.error;
+    if (participantResult.error) throw participantResult.error;
+    if (playerResult.error) throw playerResult.error;
+
+    pfmsLegacyTeamEvents = eventResult.data || [];
+    pfmsLegacyTeamEventParticipants = participantResult.data || [];
+    pfmsLegacyTeamEventPlayerOptions = playerResult.data || [];
     renderPfmsLegacyTeamEvents();
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration ||
@@ -3739,7 +3802,9 @@ async function loadPfmsLegacyTeamEvents(teamId = pfmsSelectedLegacyTeam?.team_id
         pfmsSelectedLegacyTeam?.team_id !== teamId) return;
     console.error('PFMS team events load failed:', error);
     pfmsLegacyTeamEvents = [];
-    host.innerHTML = '<div class="empty-state">Veranstaltungen konnten nicht geladen werden. Prüfe die Event-Migration und Bereichsrechte.</div>';
+    pfmsLegacyTeamEventParticipants = [];
+    pfmsLegacyTeamEventPlayerOptions = [];
+    host.innerHTML = '<div class="empty-state">Veranstaltungen und Anmeldelisten konnten nicht geladen werden. Prüfe die Event-Migrationen und Bereichsrechte.</div>';
     message.textContent = 'Veranstaltungsbereich derzeit nicht verfügbar.';
   }
 }
@@ -3864,6 +3929,103 @@ async function deletePfmsLegacyTeamEvent(eventId) {
     console.error('PFMS team event delete failed:', error);
     const message = document.getElementById('pfmsTeamEventsMessage');
     if (message) message.textContent = 'Veranstaltung konnte nicht gelöscht werden. Prüfe die Event-Rechte.';
+  }
+}
+
+async function addPfmsLegacyTeamEventParticipant(button) {
+  const team = pfmsSelectedLegacyTeam;
+  const eventId = button.dataset.pfmsEventParticipantAdd;
+  const card = button.closest('[data-pfms-team-event-card]');
+  const select = card?.querySelector('[data-pfms-event-participant-select]');
+  const assignmentId = select?.value;
+  const message = document.getElementById('pfmsTeamEventsMessage');
+  if (!team || !eventId || !assignmentId ||
+      pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_add_legacy_team_event_participant', {
+      p_event_id: eventId,
+      p_team_player_assignment_id: assignmentId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    message.textContent = 'Spieler wurde zur Anmeldeliste hinzugefügt.';
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS event participant add failed:', error);
+    message.textContent = 'Spieler konnte nicht angemeldet werden. Prüfe die Teamzuordnung und Event-Rechte.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function updatePfmsLegacyTeamEventParticipant(select) {
+  const participantId = select.dataset.pfmsEventParticipantStatus;
+  const team = pfmsSelectedLegacyTeam;
+  if (!participantId || !team || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  select.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_update_legacy_team_event_participant', {
+      p_participant_id: participantId,
+      p_status: select.value,
+      p_note: null
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    toast('Teilnahmestatus wurde gespeichert.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS event participant update failed:', error);
+    toast('Teilnahmestatus konnte nicht gespeichert werden.');
+    await loadPfmsLegacyTeamEvents(team.team_id);
+  } finally {
+    select.disabled = false;
+  }
+}
+
+async function removePfmsLegacyTeamEventParticipant(button) {
+  const participantId = button.dataset.pfmsEventParticipantRemove;
+  const team = pfmsSelectedLegacyTeam;
+  if (!participantId || !team || pfmsSelectedTeamPermissions.get('events')?.can_edit !== true) return;
+  if (!window.confirm('Spieler wirklich aus der Anmeldeliste entfernen?')) return;
+
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  button.disabled = true;
+  try {
+    const { error } = await pfssSupabase.rpc('pfms_remove_legacy_team_event_participant', {
+      p_participant_id: participantId
+    });
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    if (error) throw error;
+    await loadPfmsLegacyTeamEvents(team.team_id);
+    toast('Spieler wurde aus der Anmeldeliste entfernt.');
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration ||
+        requestUserId !== window.pfssCurrentUserId ||
+        pfmsSelectedLegacyTeam?.team_id !== team.team_id) return;
+    console.error('PFMS event participant removal failed:', error);
+    toast('Spieler konnte nicht entfernt werden.');
+  } finally {
+    button.disabled = false;
   }
 }
 
