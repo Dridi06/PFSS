@@ -808,3 +808,22 @@ assert.match(taskAssigneeScope, /for share of s, o, m/);
 assert.match(taskAssigneeScope, /revoke all on function public\.pfms_create_legacy_team_task/);
 assert.match(taskAssigneeScope, /revoke all on function public\.pfms_update_legacy_team_task/);
 assert.match(stagingAcceptance, /'legacy_team_access_requires_active_org_membership'/);
+
+ 
+// A session already assigned to a microcycle must not be moved outside its dates.
+const cycleSessionGuard = (
+  await readFile(
+    resolve(directory, "20261213_pfms_training_cycle_session_date_guard.sql"),
+    "utf8"
+  )
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(cycleSessionGuard, /create or replace function public\.pfms_guard_training_session_cycle_week\(\)/);
+assert.match(cycleSessionGuard, /security definer/);
+assert.match(cycleSessionGuard, /set search_path = ''/);
+assert.match(cycleSessionGuard, /new\.cycle_week_id is null/);
+assert.match(cycleSessionGuard, /v_week_team_id <> new\.team_id/);
+assert.match(cycleSessionGuard, /new\.session_date < v_week_start/);
+assert.match(cycleSessionGuard, /new\.session_date > v_week_end/);
+assert.match(cycleSessionGuard, /for share/);
+assert.match(cycleSessionGuard, /before insert or update of team_id, session_date, cycle_week_id/);
+assert.match(cycleSessionGuard, /revoke all on function public\.pfms_guard_training_session_cycle_week\(\) from public, anon, authenticated/);
