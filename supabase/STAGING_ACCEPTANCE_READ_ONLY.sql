@@ -778,6 +778,34 @@ with checks as (
     ), false),
     'Jede Aufstellungszeile ist per zusammengesetztem Fremdschlüssel an das Team des Spiels und des Kaderdatensatzes gebunden'
 
+  union all
+  select
+    'team_module_permissions_require_central_membership',
+    coalesce((
+      select pg_catalog.pg_get_functiondef(p.oid) ilike '%pfms_can_access_legacy_team(p_team_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%''tasks''%'
+        and p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and p.proname = 'pfms_has_legacy_team_permission'
+        and pg_catalog.pg_get_function_identity_arguments(p.oid) = 'p_team_id uuid, p_module_key text, p_action text'
+    ), false)
+    and coalesce((
+      select pg_catalog.pg_get_functiondef(p.oid) ilike '%pfms_can_access_legacy_team(v_team_id)%'
+        and p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+      from pg_catalog.pg_proc p
+      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and p.proname = 'pfms_list_legacy_team_permissions'
+        and pg_catalog.pg_get_function_identity_arguments(p.oid) = 'p_assignment_id uuid'
+    ), false),
+    'Modulrechte und Berechtigungslisten setzen die zentrale Prüfung der aktuellen Organisationsmitgliedschaft voraus'
+
 )
 select check_name, passed, details
 from checks
