@@ -5416,7 +5416,7 @@ async function loadPfmsLegacyTeamMatches(teamId = pfmsSelectedLegacyTeam?.team_i
 
 function openPfmsLegacyTeamMatch(matchRecord = null) {
   const form = document.getElementById('pfmsTeamMatchForm');
-  if (!form) return;
+  if (!form || pfmsSelectedTeamPermissions.get('matches')?.can_edit !== true) return;
   pfmsEditingMatchId = matchRecord?.match_id || null;
   form.reset();
   form.elements.match_id.value = pfmsEditingMatchId || '';
@@ -5784,7 +5784,7 @@ async function loadPfmsLegacyTeamCalendar(teamId = pfmsSelectedLegacyTeam?.team_
 
 function openPfmsLegacyCalendarEvent(eventRecord = null) {
   const form = document.getElementById('pfmsTeamCalendarForm');
-  if (!form) return;
+  if (!form || pfmsSelectedTeamPermissions.get('calendar')?.can_edit !== true) return;
   pfmsEditingCalendarEventId = eventRecord?.event_id || null;
   form.reset();
   form.elements.event_id.value = pfmsEditingCalendarEventId || '';
