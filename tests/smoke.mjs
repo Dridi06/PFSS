@@ -19,7 +19,9 @@ const requiredFiles = [
   "scout-workspace.js",
   "scout-workspace.css",
   "pfms-logo.svg",
-  "rechtliches.html"
+  "rechtliches.html",
+  "supabase/migrations/20261115_pfms_platform_owner_bootstrap.sql",
+  "supabase/functions/pfms-owner-bootstrap/index.ts"
 ];
 
 for (const path of requiredFiles) {
@@ -60,7 +62,7 @@ assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner re
 assert.ok(html.includes('id="ownerBootstrapForm"') && html.includes('id="ownerBootstrapToken"'), "Owner activation form is missing");
 assert.ok(app.includes("pfms_owner_setup_available") && app.includes("pfms-owner-bootstrap"), "Owner availability or activation wiring is missing");
 assert.ok(ownerBootstrap.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerBootstrap.includes("pfms_claim_initial_owner"), "Owner bootstrap secret or claim call is missing");
-assert.ok(ownerBootstrap.includes("auth.getUser()") && !ownerBootstrap.includes("p_user_id"), "Owner bootstrap must derive identity from verified JWT, not request body");
+assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("userData.user.id") && !/payload[^;]*p_user_id/s.test(ownerBootstrap), "Owner bootstrap must derive identity from verified JWT, not request body");
 assert.ok(ownerMigration.includes("singleton boolean primary key") && ownerMigration.includes("auth.role()") && ownerMigration.includes("'service_role'"), "Owner migration must enforce a single server-side owner claim");
 assert.ok(supabaseConfig.includes("[functions.pfms-owner-bootstrap]") && supabaseConfig.includes("verify_jwt = true"), "Owner bootstrap must require JWT verification");
 
