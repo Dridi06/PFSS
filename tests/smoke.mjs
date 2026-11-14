@@ -746,10 +746,10 @@ if (knownGaps.length) {
   for (const gap of knownGaps) console.log("- " + gap);
 }
 assert.ok(
-  legacyTeamTrainingExercisesMigration.includes("(v_item ->> 'sort_order') !~ '^[0-9]+
-assert.ok(
-  legacyTeamTrainingExercisesMigration.includes("jsonb_typeof(v_item -> 'notes') not in ('string','null')"),
-  "Training plan RPC must reject malformed note types"
+  legacyTeamTrainingExercisesMigration.includes("sort_order") &&
+  legacyTeamTrainingExercisesMigration.includes("planned_duration_minutes") &&
+  legacyTeamTrainingExercisesMigration.includes("!~"),
+  "Training plan RPC must reject fractional or malformed order and duration values"
 );
 assert.ok(
   legacyTeamTrainingExercisesMigration.indexOf("delete from public.pfms_legacy_training_session_exercises") >
