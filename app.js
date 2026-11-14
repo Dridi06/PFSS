@@ -660,6 +660,21 @@ function showAuthScreen() {
   document.getElementById('appShell').classList.add('hidden');
 }
 
+async function updateOwnerBootstrapVisibility() {
+  const section = document.getElementById('ownerBootstrapSection');
+  if (!section) return;
+  section.hidden = true;
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_owner_setup_available');
+    if (error) throw error;
+    section.hidden = data !== true;
+  } catch (error) {
+    // The owner setup is hidden until its database migration is installed.
+    console.warn('PFMS owner setup availability could not be checked:', error?.message || error);
+  }
+}
+
 function showPendingScreen(status) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('pendingScreen').classList.remove('hidden');
@@ -667,6 +682,8 @@ function showPendingScreen(status) {
 
   const title = document.getElementById('pendingTitle');
   const message = document.getElementById('pendingText');
+  const ownerSection = document.getElementById('ownerBootstrapSection');
+  if (ownerSection) ownerSection.hidden = true;
 
   if (status === 'suspended') {
     title.textContent = 'Zugang gesperrt';
@@ -676,6 +693,7 @@ function showPendingScreen(status) {
     title.textContent = 'Freigabe ausstehend';
     message.textContent =
       'Dein Konto wurde angelegt. Der Zugang wird nach Prüfung freigeschaltet.';
+    updateOwnerBootstrapVisibility();
   }
 }
 
@@ -1345,7 +1363,8 @@ const registrationChoiceDetails = {
   user: 'Mitglieder können sich ausschließlich über einen gültigen Einladungslink registrieren. Der Link ordnet das Konto direkt dem einladenden Verein oder der Agentur zu.',
   club: 'Der Vereinszugang bietet eine eigene Organisationsverwaltung. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
   agency: 'Der Agenturzugang bietet eine eigene Agenturverwaltung und Scoutorganisation. Die 30-tägige Testphase startet nach erfolgreicher Einrichtung der Abrechnung.',
-  scout: 'Der Einzelscout kann globale Spielerdaten suchen und lesen. Er darf ausschließlich eigene Spielerprofile und eigene Scouting-Berichte erstellen oder bearbeiten.'
+  scout: 'Der Einzelscout kann globale Spielerdaten suchen und lesen. Er darf ausschließlich eigene Spielerprofile und eigene Scouting-Berichte erstellen oder bearbeiten.',
+  owner_bootstrap: 'Die erstmalige Plattforminhaberschaft wird nur einmal vergeben. Nach der E-Mail-Bestätigung ist ein separater, geheimer Einmalcode erforderlich.'
 };
 
 function chooseRegistrationType(type) {
@@ -1356,7 +1375,7 @@ function chooseRegistrationType(type) {
   registrationChoice.hidden = true;
   registrationFields.hidden = false;
   document.getElementById('selectedRegistrationLabel').textContent =
-    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout'}[type] || type);
+    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout',owner_bootstrap:'PFMS-Plattforminhaber'}[type] || type);
   const orderSummary = document.getElementById('orderSummary');
   const memberSummary = document.getElementById('memberFreeSummary');
   const planNames = {club:'Verein',agency:'Agentur',scout:'Einzelscout'};
@@ -1377,7 +1396,8 @@ function chooseRegistrationType(type) {
       document.getElementById('orderPlanDetail').textContent = planNames[type] + ' · ' + (cycle === 'yearly' ? 'jährliche Zahlung' : 'monatliche Zahlung');
       document.getElementById('signupButton').textContent = 'Weiter zur Zahlungsübersicht';
     } else {
-      document.getElementById('signupButton').textContent = 'Kostenlos registrieren';
+      document.getElementById('signupButton').textContent =
+        type === 'owner_bootstrap' ? 'Erstzugang registrieren' : 'Kostenlos registrieren';
     }
   }
   requestedRoleField.hidden = type !== 'user';
@@ -1392,7 +1412,9 @@ function chooseRegistrationType(type) {
     ? 'Pflichtfeld: Der Einladungslink ordnet dich direkt einem Verein oder einer Agentur zu.'
     : 'Für diesen Zugang ist keine Mitgliedseinladung erforderlich.';
   document.getElementById('authTitle').textContent = 'Konto registrieren.';
-  document.getElementById('authIntro').textContent = 'Ergänze deine Angaben, um die Registrierung abzuschließen.';
+  document.getElementById('authIntro').textContent = type === 'owner_bootstrap'
+    ? 'Lege das erste Inhaberkonto an. Nach der E-Mail-Bestätigung wird der Zugang mit einem separaten Einmalcode aktiviert.'
+    : 'Ergänze deine Angaben, um die Registrierung abzuschließen.';
   document.getElementById('authMessage').textContent = '';
 }
 
@@ -1614,7 +1636,9 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     if (data.session && data.user) {
       await checkPfssAccess(data.user);
     } else {
-      message.textContent = 'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Die Organisationsanlage bzw. Einladung wird erst nach Aktivierung der serverseitigen Prüf- und Datenbankfunktionen abgeschlossen.';
+      message.textContent = type === 'owner_bootstrap'
+        ? 'Inhaberregistrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse und melde dich anschließend an. Die einmalige Inhaberschaft aktivierst du danach mit dem separaten Einmalcode.'
+        : 'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Die Organisationsanlage bzw. Einladung wird erst nach Aktivierung der serverseitigen Prüf- und Datenbankfunktionen abgeschlossen.';
     }
   } catch (error) {
     message.textContent = 'Registrierung fehlgeschlagen. Bitte prüfe deine Angaben oder versuche es später erneut.';
@@ -1637,6 +1661,42 @@ document.getElementById('logoutButton')
 
 document.getElementById('logoutPending')
   .addEventListener('click', pfssLogout);
+
+document.getElementById('ownerBootstrapForm')
+  ?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const tokenInput = document.getElementById('ownerBootstrapToken');
+    const message = document.getElementById('ownerBootstrapMessage');
+    const button = document.getElementById('ownerBootstrapButton');
+    const token = tokenInput.value.trim();
+
+    if (token.length < 40) {
+      message.textContent = 'Der Einmalcode ist ungültig oder unvollständig.';
+      tokenInput.focus();
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Die erstmalige Inhaberschaft wird sicher eingerichtet …';
+    try {
+      const { data, error } = await pfssSupabase.functions.invoke('pfms-owner-bootstrap', {
+        body: { bootstrap_token: token }
+      });
+      if (error || !data?.ok) throw error || new Error('Owner claim rejected');
+
+      tokenInput.value = '';
+      message.textContent = 'Plattforminhaberschaft bestätigt. PFMS wird geöffnet …';
+      const { data: userData, error: userError } = await pfssSupabase.auth.getUser();
+      if (userError || !userData.user) throw userError || new Error('Session unavailable');
+      await checkPfssAccess(userData.user);
+    } catch (error) {
+      console.error('PFMS owner bootstrap failed:', error);
+      message.textContent = 'Die Inhaberschaft konnte nicht aktiviert werden. Bitte Einmalcode und Serverkonfiguration prüfen.';
+    } finally {
+      button.disabled = false;
+    }
+  });
 
 // Bestehende Sitzung beim Laden wiederherstellen
 async function initializePfssAuth() {
