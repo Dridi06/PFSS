@@ -424,9 +424,14 @@
             <p>Willkommen bei deinem Professionell Football Management System.</p>
             
           </div>
-          <button class="btn btn-primary" data-action="new-player">
-            ＋ Spieler hinzufügen
-          </button>
+          <div class="page-heading-actions">
+            <button class="btn btn-secondary" id="importLegacyDataButton" type="button" hidden>
+              Lokale Alt-Daten importieren
+            </button>
+            <button class="btn btn-primary" data-action="new-player" id="addGlobalPlayerButton">
+              ＋ Spieler hinzufügen
+            </button>
+          </div>
         </div>
 
         <div class="hero-panel">
@@ -557,6 +562,7 @@
           </button>
         </div>
 
+        <div id="mainPlayerDataStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <form id="playerSearchForm" class="panel pfss-search-form">
           <div class="panel-heading"><div><div class="eyebrow">SPIELERDATENBANK</div><h3>Spieler gezielt suchen</h3></div></div>
           <div class="pfss-search-fields">
@@ -743,6 +749,7 @@
             ＋ Bericht erstellen
           </button>
         </div>
+        <div id="mainReportDataStatus" class="notice" role="status" aria-live="polite" hidden></div>
         <div id="reportList" class="report-list"></div>
       </section>
 
