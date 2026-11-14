@@ -21,6 +21,7 @@ target_tables AS (
         'pfms_organizations', 'pfms_memberships', 'pfms_scout_profiles',
         'pfms_platform_owner',
         'pfms_owner_bootstrap_requests',
+        'pfms_global_players', 'pfms_main_scouting_reports', 'pfms_system_events',
         'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media'
       )
     )
