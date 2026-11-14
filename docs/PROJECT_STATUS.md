@@ -61,8 +61,9 @@ Vorhandene Migrationen betreffen:
 - Edge Functions: `username-login`, `r2-connection-check`, `pfms-owner-bootstrap`.
 
 ### Sicherung
-- Ein GitHub-Actions-Workflow erstellt verschlüsselte PostgreSQL-Dumps und lädt sie in Cloudflare R2.
-- Der reale Lauf hängt von korrekt gesetzten Repository-Secrets ab; die Wiederherstellung muss in einer isolierten Staging-Umgebung getestet werden.
+- Ein GitHub-Actions-Workflow erstellt verschlüsselte PostgreSQL-Dumps, prüft das Archiv vor und nach der Verschlüsselung und lädt Archiv plus separates HMAC-SHA-256-Manifest in Cloudflare R2.
+- `scripts/backup-hmac.py` enthält die gemeinsame PBKDF2-/HMAC-Schlüsselableitung und Manifestprüfung für Backup und Restore. Der Workflow verwendet für OpenSSL und HMAC dieselbe Secret-Variable; ein fehlendes oder manipuliertes Manifest stoppt die Entschlüsselung.
+- Der reale R2-Lauf hängt von korrekt gesetzten Repository-Secrets ab; ein vollständiger Restore muss weiterhin in einer isolierten Staging-Umgebung praktisch getestet werden.
 - Der kontrollierte Ablauf für Migrationen, Edge-Function-Deploy, Read-only-Audit, Rollen-/Negativtests und Render-Staging ist in `docs/STAGING_DEPLOYMENT.md` dokumentiert.
 
 ## 3. Offene bzw. unvollständige Funktionen
@@ -238,6 +239,10 @@ Ein Modul zählt erst als fertig, wenn UI, Datenbank, serverseitige Rechte, Fehl
 
 
 ## 9. Qualitätssicherung – Stand 14.11.2026
+
+- Der zuletzt abgeschlossene GitHub-Actions-Lauf auf Commit `cf23adfbd41c3b4f9066b98aebfdd1a78ce30c8b` war in beiden Jobs erfolgreich: Node-/Build-/Smoke-/Accessibility-/SQL-/Funktionsrechte-Prüfungen sowie Deno-Typprüfung aller drei Edge Functions.
+- Die Backup-Smoke-Tests prüfen jetzt den gemeinsam genutzten HMAC-Helfer statt veralteten Inline-Code. Zusätzlich ist die zuvor inkonsistente Passphrase-Umgebungsvariable im manuellen und geplanten Backup-Workflow vereinheitlicht.
+- Der Scout-Workspace verwirft veraltete asynchrone Ladevorgänge bei Kontowechsel; doppelte Request-Generation-Prüfungen wurden bereinigt.
 
 - `npm test` führt Syntaxprüfung, isolierten CI-Build, Projekt-Smoke-Tests, Build-/Asset-/CSP-Prüfungen, Accessibility-Prüfung, SQL-Migrationssyntaxprüfung und Funktionsrechte-Signaturprüfung aus.
 - Der Migrationstest prüft paarige PostgreSQL-Dollar-Quote-Begrenzer; der Funktionstest vergleicht deklarierte Funktionssignaturen mit `GRANT EXECUTE` und SECURITY-DEFINER-`REVOKE`.
