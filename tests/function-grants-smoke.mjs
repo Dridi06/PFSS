@@ -192,7 +192,7 @@ assert.match(
 
 const stagingAcceptance = (
   await readFile(resolve(process.cwd(), "supabase/STAGING_ACCEPTANCE_READ_ONLY.sql"), "utf8")
-).replace(/\\s+/g, " ").toLowerCase();
+).replace(/\s+/g, " ").toLowerCase();
 assert.match(stagingAcceptance, /'legacy_org_manager_guard'/);
 assert.match(stagingAcceptance, /'legacy_invitation_manager_authorization'/);
 assert.match(stagingAcceptance, /pg_catalog\.aclexplode\(/);
