@@ -14,7 +14,7 @@ Beispiel für die **Staging-Umgebung** (Domains durch die tatsächliche Render-S
 https://pfss-scouting.onrender.com,https://<tatsaechliche-staging-domain>
 ```
 
-Wenn das Secret fehlt, gilt der Code-Fallback: bekannte Produktionsdomain sowie localhost auf Port 3000. Sobald das Secret gesetzt ist, ersetzt seine Liste den Fallback vollständig. Deshalb müssen in einem Projekt alle Origins aufgenommen werden, von denen dessen Frontend aus die Functions aufruft.
+Wenn das Secret fehlt, erlaubt der Code-Fallback ausschließlich localhost auf Port 3000. Eine Produktions- oder Staging-Domain wird niemals automatisch freigegeben. Deshalb muss `PFMS_ALLOWED_ORIGINS` in jedem Supabase-Projekt explizit gesetzt werden und alle Origins enthalten, von denen dessen Frontend aus die Functions aufruft.
 
 Staging und Produktion sind getrennt zu konfigurieren. Das Secret enthält keine Zugangsdaten, gehört aber trotzdem nicht in den Quellcode.
 
