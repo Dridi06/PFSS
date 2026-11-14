@@ -35,21 +35,21 @@ const migrationSources = await Promise.all(
   migrationFiles.map((filename) => readFile(resolve(migrationsDirectory, filename), "utf8"))
 );
 const combinedMigrationSql = migrationSources.join("\n");
-const normalizedMigrationSql = combinedMigrationSql.replace(/\\s+/g, " ").toLowerCase();
+const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const functionDefinitions = combinedMigrationSql.matchAll(
-  /create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.([a-z0-9_]+)\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$[\\s\\S]*?\\$\\$;/gi
+  /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)\s*\([\s\S]*?\bas\s+\$\$[\s\S]*?\$\$;/gi
 );
 
 let securityDefinerCount = 0;
 for (const match of functionDefinitions) {
   const definition = match[0];
-  const header = definition.slice(0, definition.search(/\\bas\\s+\\$\\$/i));
-  if (!/security\\s+definer/i.test(header)) continue;
+  const header = definition.slice(0, definition.search(/\bas\s+\$\$/i));
+  if (!/security\s+definer/i.test(header)) continue;
 
   const functionName = match[1].toLowerCase();
   assert.match(
     header,
-    /set\\s+search_path\\s*=/i,
+    /set\s+search_path\s*=/i,
     functionName + " is SECURITY DEFINER but has no fixed search_path"
   );
   assert.ok(
