@@ -72,6 +72,14 @@ Ergebnisse sichern und insbesondere prüfen:
 
 Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
 
+### Abrechnung und Registrierungssperre
+- Vereins-, Agentur- und Einzelscout-Tarife sind bis zur Anbieter- und Vertragsfreigabe reine Vorschau. Preise sind Entwürfe und dürfen nicht als verbindliches Angebot oder aktivierte Testphase verstanden werden.
+- Beim Klick auf die Tarifvorschau darf weder ein Supabase-Auth-Konto angelegt noch ein Vertrag, eine Testphase oder eine Abbuchung ausgelöst werden.
+- Es dürfen keine `trial_days`- oder `billing_cycle`-Metadaten als tatsächliche Vertragsdaten gespeichert werden.
+- Die Adminseite muss deutlich „Keine Abbuchungen aktiv“ und „Kein Zahlungsanbieter verbunden“ anzeigen. Kein externer Checkout-Button darf aktiv sein.
+- Vor Aktivierung sind Anbieter, Preis-/USt.-Logik, signierte Webhooks, Kündigungs- und Erstattungsprozesse, Rechnungsdaten, Datenschutz und rechtliche Vertragsbedingungen abzunehmen. Test- und Live-Schlüssel sind getrennt und ausschließlich serverseitig zu halten.
+- Ohne vollständige Anbieterintegration, erfolgreiche Testzahlungen und ausdrückliche Produktionsfreigabe bleibt die Zahlungsfunktion deaktiviert.
+
 ### In-App-Mitteilungen
 - Eine neue Zuweisung einer Teamaufgabe erzeugt eine Mitteilung nur beim Empfänger; Selbstzuweisungen erzeugen keine eigene Mitteilung.
 - Beim Abschließen einer Aufgabe erhalten Ersteller und zugewiesene Person (außer dem ausführenden Konto) jeweils eine eigene Mitteilung.
