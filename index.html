@@ -808,9 +808,47 @@
   <section class="panel" id="pfmsSelectedTeamPanel" hidden>
     <div class="panel-heading"><div><div class="eyebrow">MANNSCHAFT</div><h2 id="pfmsSelectedTeamTitle"></h2><p id="pfmsSelectedTeamMeta"></p></div><button class="btn btn-secondary" type="button" id="pfmsCloseSelectedTeam">Schließen</button></div>
     <div id="pfmsSelectedTeamStaff" class="admin-user-list"></div>
+    <section class="pfms-team-roster-panel" id="pfmsTeamRosterPanel">
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">MANNSCHAFTSKADER</div>
+          <h3>Spielerkader</h3>
+          <p>Die Kaderzuordnung verwendet zentrale PFMS-Spielerprofile. Das globale Spielerprofil bleibt unverändert.</p>
+        </div>
+        <span class="module-status" id="pfmsTeamRosterCount">0 Spieler</span>
+      </div>
+      <form id="pfmsTeamRosterSearchForm" class="pfms-team-roster-search" hidden>
+        <label class="field">Globalen Spieler suchen
+          <input id="pfmsTeamRosterSearch" name="query" type="search" maxlength="120" placeholder="Vorname, Nachname oder Verein">
+        </label>
+        <button class="btn btn-secondary" type="submit">Spieler suchen</button>
+      </form>
+      <form id="pfmsTeamRosterForm" class="pfms-team-roster-add" hidden>
+        <label class="field">Spieler aus der PFMS-Datenbank
+          <select id="pfmsTeamRosterCandidate" name="player_id" required>
+            <option value="">Zuerst Spieler suchen …</option>
+          </select>
+        </label>
+        <label class="field">Trikotnummer
+          <input id="pfmsTeamRosterJersey" name="jersey_number" type="number" min="1" max="99" placeholder="1–99">
+        </label>
+        <label class="field">Kaderposition (optional)
+          <select id="pfmsTeamRosterPosition" name="position_override">
+            <option value="">Stammposition übernehmen</option>
+            <option value="Torwart">Torwart</option>
+            <option value="Abwehr">Abwehr</option>
+            <option value="Mittelfeld">Mittelfeld</option>
+            <option value="Sturm">Sturm</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit" id="pfmsTeamRosterAddButton">Spieler zum Kader hinzufügen</button>
+      </form>
+      <p id="pfmsTeamRosterMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamRosterList" class="pfms-team-roster-list"></div>
+    </section>
   </section>
   <div class="module-grid team-module-grid" id="pfmsTeamModules" hidden>
-    <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Spielerprofile, Positionen, Jahrgänge, Kontaktdaten und Mannschaftszugehörigkeit.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card module-feature"><span class="module-symbol">♙</span><div class="eyebrow">KADER</div><h3>Spielerkader</h3><p>Globale Spielerprofile dieser Mannschaft zuordnen, Trikotnummern und Kaderstatus verwalten.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-roster>Kader öffnen</button></article>
     <article class="module-card"><span class="module-symbol">⚽</span><div class="eyebrow">TRAININGSBETRIEB</div><h3>Training & Übungen</h3><p>Trainingsplanung, Übungssammlung und Trainingsinhalte.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
     <article class="module-card"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Trainingstermine, Besprechungen, Turniere und Veranstaltungen.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
