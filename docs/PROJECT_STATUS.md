@@ -147,6 +147,7 @@ Dafür wurde `supabase/STAGING_READ_ONLY_AUDIT.sql` bereitgestellt. Das Skript i
 - Der GitHub-Actions-Lauf `43600769629` auf Commit `139b90b...` war erfolgreich: Frontend-Syntax-/Smoke-Tests und Deno-Typprüfung aller drei Edge Functions. Weitere Änderungen am Club-Workspace befinden sich in einem neuen CI-Lauf. Ein erfolgreicher statischer Test ist kein Nachweis für die Laufzeitintegration mit Supabase oder Render.
 - Der Scout-Bereich wurde von Beispieldaten auf private Supabase-Tabellen und Storage umgestellt.
 - Die Markenbezeichnung wurde in den zuletzt bearbeiteten Oberflächen auf PFMS ausgerichtet.
+- Der Vereinsbereich lädt verwaltbare Organisationen live, führt zu Mitgliederverwaltung und Mannschaften und zeigt aktive Scouts je Organisation. Beim Kontowechsel werden Organisations- und Scoutdaten zurückgesetzt.
 - Normale Seitenneuladungen zeigen die Willkommensanimation nicht erneut.
 
 Die tatsächliche Browser-, Supabase-, Storage- und Render-Ende-zu-Ende-Prüfung steht noch aus.
