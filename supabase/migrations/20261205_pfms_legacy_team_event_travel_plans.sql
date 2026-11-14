@@ -30,8 +30,6 @@ create table if not exists public.pfms_legacy_team_event_travel_plans (
     check (length(pg_catalog.btrim(origin)) between 2 and 180),
   constraint pfms_legacy_team_event_travel_destination_check
     check (length(pg_catalog.btrim(destination)) between 2 and 180),
-  constraint pfms_legacy_team_event_travel_meeting_point_check
-    check (meeting_point is null or length(meeting_point) <= 180),
   constraint pfms_legacy_team_event_travel_provider_check
     check (transport_provider is null or length(transport_provider) <= 160),
   constraint pfms_legacy_team_event_travel_vehicle_check
