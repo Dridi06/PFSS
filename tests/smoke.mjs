@@ -1929,10 +1929,11 @@ assert.ok(
   "Passkey login and account-management controls must be present"
 );
 assert.ok(
-  app.includes("experimental: { passkey: true }") &&
+  html.includes("@supabase/supabase-js@2.119.0") &&
+  !app.includes("experimental: { passkey: true }") &&
   app.includes("auth.registerPasskey()") &&
   app.includes("auth.signInWithPasskey()"),
-  "Supabase Auth passkey opt-in, registration and sign-in must remain wired"
+  "Pinned current Supabase SDK and passkey registration/sign-in must remain wired"
 );
 assert.ok(
   app.includes("auth.passkey.list()") &&
