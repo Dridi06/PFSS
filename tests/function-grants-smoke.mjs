@@ -672,3 +672,39 @@ assert.match(teamMatches, /v_starters > 11 or v_captains > 1/);
 assert.match(teamMatches, /count\(distinct value ->> 'assignment_id'\)/);
 assert.match(teamMatches, /unique \(match_id, team_player_assignment_id\)/);
 
+// Latest team-permission revision includes the tasks module as the ninth permission.
+const latestTeamPermissions = (
+  await readFile(resolve(directory, "20261206_pfms_legacy_team_tasks.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(latestTeamPermissions, /jsonb_array_length\\(p_permissions\\) <> 9/);
+assert.match(latestTeamPermissions, /count\\(distinct value ->> 'module_key'\\)/);
+assert.match(latestTeamPermissions, /'analysis','tasks'/);
+assert.match(latestTeamPermissions, /'tasks'::text/);
+assert.match(latestTeamPermissions, /if v_can_edit and not v_can_view then/);
+
+// Finance ledger entries are append-only and corrected by voiding, never physical deletion.
+const teamFinance = (
+  await readFile(resolve(directory, "20261127_pfms_legacy_team_finance.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(teamFinance, /force row level security/);
+assert.match(teamFinance, /finance', 'view'/);
+assert.match(teamFinance, /finance', 'edit'/);
+assert.match(teamFinance, /amount > 0 and amount <= 1000000/);
+assert.match(teamFinance, /p_amount <> pg_catalog\\.round\\(p_amount, 2\\)/);
+assert.match(teamFinance, /status = 'voided'/);
+assert.doesNotMatch(teamFinance, /grant delete on table public\\.pfms_legacy_team_finance_entries/);
+
+// Event participants and travel plans are structurally constrained to the same team as the event.
+const eventParticipants = (
+  await readFile(resolve(directory, "20261204_pfms_legacy_team_event_participants.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(eventParticipants, /foreign key \\(event_id, team_id\\)/);
+assert.match(eventParticipants, /foreign key \\(team_player_assignment_id, team_id\\)/);
+assert.match(eventParticipants, /events', 'edit'/);
+const eventTravel = (
+  await readFile(resolve(directory, "20261205_pfms_legacy_team_event_travel_plans.sql"), "utf8")
+).replace(/\\s+/g, " ").toLowerCase();
+assert.match(eventTravel, /foreign key \\(event_id, team_id\\)/);
+assert.match(eventTravel, /events', 'edit'/);
+assert.match(eventTravel, /p_seat_capacity between 1 and 80/);
+
