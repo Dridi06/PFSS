@@ -28,7 +28,7 @@ as $$
 declare
   v_query text := pg_catalog.trim(coalesce(p_query, ''));
 begin
-  if not public.is_admin() then
+  if not public.pfms_is_admin() then
     raise exception 'Not authorized' using errcode = '42501';
   end if;
 
