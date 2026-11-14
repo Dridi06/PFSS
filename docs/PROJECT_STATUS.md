@@ -338,3 +338,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Zusätzlich werden die eindeutige Neuner-Konfiguration, die Validierung der Bearbeitungs-/Lesekombination sowie die zulässigen Aktionen `view/edit` geprüft.
 - Ein automatisierter Regressionstest schützt diese konkreten Staging-Prüfungen. Das Skript bleibt vollständig lesend und führt keine Schema- oder Datenänderungen aus.
 - Die Prüfung wurde im Repository erweitert; sie wurde noch nicht gegen eine reale Staging-Datenbank ausgeführt.
+
+
+## Zusätzliche UI-Rechtehärtung – Spielbetrieb und Kalender – 14.11.2026
+
+- Bei der Prüfung der Bearbeitungswege wurde festgestellt, dass die Formular-Öffnungsfunktionen für Spiele und Kalendereinträge selbst keine eigene `can_edit`-Prüfung hatten. Die Speichern-Funktionen und serverseitigen RPCs prüften die Bearbeitungsrechte bereits; die sichtbaren Bearbeiten-Schaltflächen wurden ebenfalls nur berechtigten Konten angezeigt.
+- Die Formular-Öffnungsfunktionen prüfen jetzt zusätzlich unmittelbar `matches.edit` bzw. `calendar.edit`. Damit bleibt auch bei direktem Aufruf oder verändertem DOM die UI-Berechtigungslogik konsistent.
+- Zwei Smoke-Regressionstests schützen diese Guards. Serverseitige Berechtigungen bleiben die maßgebliche Sicherheitsgrenze.
+- Die Änderung betrifft ausschließlich Frontend und Tests. Keine Migration, kein Datenbankzugriff und kein Deployment wurden ausgeführt.
