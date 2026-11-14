@@ -903,6 +903,44 @@
       </section>
     </section>
 
+    <section class="panel pfms-team-analysis-panel" id="pfmsTeamAnalysisPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">SPORTLICHE ENTWICKLUNG</div>
+          <h3>Taktik & Videoanalyse</h3>
+          <p>Halte taktische Beobachtungen, Spielphasen, Videoquellen und konkrete Trainingsmaßnahmen mannschaftsbezogen fest.</p>
+        </div>
+      </div>
+      <form id="pfmsTeamAnalysisForm" class="pfms-analysis-form" hidden>
+        <input type="hidden" name="analysis_id">
+        <div class="pfms-analysis-form-grid">
+          <label class="field">Titel<input name="title" maxlength="140" required placeholder="z. B. Pressing im hohen Block"></label>
+          <label class="field">Analyseart<select name="analysis_type" required><option value="tactical">Taktische Auswertung</option><option value="video">Videoanalyse</option></select></label>
+          <label class="field">Spielbezug<select name="match_id" id="pfmsTeamAnalysisMatch"><option value="">Ohne konkretes Spiel</option></select></label>
+          <label class="field">Spielphase / Schwerpunkt<select name="phase" required>
+            <option value="general">Allgemein</option><option value="pre_match">Spielvorbereitung</option>
+            <option value="build_up">Spielaufbau</option><option value="pressing">Pressing</option>
+            <option value="transition">Umschalten</option><option value="defending">Defensivverhalten</option>
+            <option value="set_piece">Standards</option><option value="individual">Individualverhalten</option>
+          </select></label>
+          <label class="field">Beobachtungsdatum<input name="observation_date" type="date" required></label>
+          <label class="field">Status<select name="status"><option value="draft">Entwurf</option><option value="reviewed">Besprochen</option><option value="archived">Archiviert</option></select></label>
+          <label class="field full">HTTPS-Videoquelle<input name="video_url" type="url" maxlength="1000" placeholder="https://…"><span class="field-hint">Optional bei Taktiknotizen, erforderlich bei Videoanalyse. Es wird nur ein Link gespeichert, kein Video eingebettet.</span></label>
+          <label class="field">Zeitmarke in Sekunden<input name="video_timestamp_seconds" type="number" min="0" max="86400" step="1" placeholder="z. B. 325"></label>
+          <label class="field full">Zusammenfassung / Beobachtung<textarea name="summary" rows="3" maxlength="10000" required placeholder="Was ist im Spiel oder in der Videoanalyse aufgefallen?"></textarea></label>
+          <label class="field full">Stärken<textarea name="strengths" rows="2" maxlength="3000" placeholder="Was hat die Mannschaft gut gelöst?"></textarea></label>
+          <label class="field full">Verbesserungspunkte<textarea name="improvements" rows="2" maxlength="3000" placeholder="Welche Abläufe müssen wir verbessern?"></textarea></label>
+          <label class="field full">Konkrete Maßnahmen<textarea name="action_items" rows="2" maxlength="3000" placeholder="Welche Inhalte werden im Training umgesetzt?"></textarea></label>
+        </div>
+        <div class="pfms-analysis-form-actions">
+          <button class="btn btn-primary" type="submit" id="pfmsTeamAnalysisSave">Analyse speichern</button>
+          <button class="btn btn-secondary" type="button" id="pfmsTeamAnalysisCancelEdit" hidden>Bearbeitung abbrechen</button>
+        </div>
+      </form>
+      <p id="pfmsTeamAnalysisMessage" class="admin-message" role="status" aria-live="polite"></p>
+      <div id="pfmsTeamAnalysisList" class="pfms-team-analysis-list"></div>
+    </section>
+
     <section class="panel pfms-team-training-panel" id="pfmsTeamTrainingPanel" hidden>
       <div class="panel-heading">
         <div>
@@ -1036,7 +1074,7 @@
     <article class="module-card" data-pfms-team-module="attendance"><span class="module-symbol">✓</span><div class="eyebrow">ORGANISATION</div><h3>Anwesenheitsliste</h3><p>Zu- und Absagen, Anwesenheit und Trainingsbeteiligung pro Einheit.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-attendance>Trainingsanwesenheit öffnen</button></article>
     <article class="module-card" data-pfms-team-module="calendar"><span class="module-symbol">▦</span><div class="eyebrow">TERMINE</div><h3>Mannschaftskalender</h3><p>Besprechungen, Turniere, Spieltermine und Veranstaltungen.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-calendar>Kalender öffnen</button></article>
     <article class="module-card" data-pfms-team-module="matches"><span class="module-symbol">🏆</span><div class="eyebrow">SPIELBETRIEB</div><h3>Spiele & Aufstellungen</h3><p>Spielplan, Spieltagskader, Aufstellung und Ergebnisse.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-matches>Spiele öffnen</button></article>
-    <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Systeme, Gegneranalyse und Videoauswertung.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
+    <article class="module-card" data-pfms-team-module="analysis"><span class="module-symbol">⌁</span><div class="eyebrow">SPORTLICHE ENTWICKLUNG</div><h3>Taktik & Analyse</h3><p>Spielanalyse, taktische Schwerpunkte, Gegneranalyse und Videoauswertung.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-analysis>Analyse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="finance"><span class="module-symbol">€</span><div class="eyebrow">TEAMORGANISATION</div><h3>Mannschaftskasse</h3><p>Einnahmen, Ausgaben und nachvollziehbare Buchungshistorie in Euro.</p><span class="module-status">Angebunden</span><button type="button" class="btn btn-secondary" data-pfms-show-finance>Kasse öffnen</button></article>
     <article class="module-card" data-pfms-team-module="events"><span class="module-symbol">✦</span><div class="eyebrow">FAHRTEN & EVENTS</div><h3>Veranstaltungen</h3><p>Turniere, Auswärtsfahrten, Teamtage und organisatorische Termine.</p><span class="module-status">Nächster Entwicklungsbaustein</span></article>
   </div></section>
