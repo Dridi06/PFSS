@@ -520,14 +520,19 @@ function exportPfssBackup() {
 
 function importPfssBackup(file) {
   if (!file) return;
+  if (!window.pfssIsRealAdmin || !pfmsMainDataReady) {
+    toast('Ein vollständiger Katalogimport ist nur für Administratoren bei verfügbarer Cloud-Datenbank möglich.');
+    return;
+  }
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const backup = JSON.parse(String(reader.result || ''));
       if (!['PFMS','PFSS'].includes(backup?.product) || backup?.formatVersion !== 1 ||
           !Array.isArray(backup?.data?.players) || !Array.isArray(backup?.data?.reports)) {
         throw new Error('Ungültiges PFMS-Backupformat');
       }
+
       const importedPlayers = backup.data.players;
       const importedReports = backup.data.reports;
       const validPlayers = importedPlayers.every(p =>
@@ -543,25 +548,64 @@ function importPfssBackup(file) {
       if (!validPlayers || !validReports) {
         throw new Error('Backup enthält unvollständige oder ungültige Datensätze');
       }
+
       const confirmed = window.confirm(
-        `Backup enthält ${importedPlayers.length} Spieler und ${importedReports.length} Berichte.\\n\\nDie aktuell gespeicherten Spieler und Berichte in diesem Browser werden dadurch ersetzt. Vorher bitte bei Bedarf ein Backup exportieren. Fortfahren?`
+        'Backup enthält ' + importedPlayers.length + ' Spieler und ' +
+        importedReports.length + ' Berichte. Die Einträge werden zusätzlich in die PFMS-Cloud importiert; bestehende Daten bleiben erhalten. Fortfahren?'
       );
       if (!confirmed) return;
-      players = importedPlayers;
-      reports = importedReports;
-      write();
-      renderDashboard();
-      renderPlayers();
-      renderReports();
-      toast('Backup erfolgreich wiederhergestellt.');
+
+      const { data, error } = await pfssSupabase.rpc('pfms_import_legacy_catalogue', {
+        p_players: importedPlayers,
+        p_reports: importedReports
+      });
+      if (error) throw error;
+      await loadPfmsMainData();
+      toast('Backup importiert: ' + data.players_imported + ' Spieler und ' +
+        data.reports_imported + ' Berichte.');
     } catch (error) {
-      toast('Backup ungültig oder beschädigt. Es wurden keine Daten geändert.');
+      console.error('PFMS cloud backup import failed:', error);
+      toast('Backup konnte nicht importiert werden. Prüfe Format, Migration und Datenbankprotokoll.');
     }
   };
   reader.onerror = () => toast('Die Backup-Datei konnte nicht gelesen werden.');
   reader.readAsText(file);
 }
 
+async function importLegacyLocalData() {
+  if (!window.pfssIsRealAdmin || !pfmsMainDataReady) {
+    toast('Alt-Daten können nur durch einen Administrator in die aktive Cloud-Datenbank übernommen werden.');
+    return;
+  }
+  if (!legacyLocalPlayers.length && !legacyLocalReports.length) {
+    toast('Keine lokalen PFMS-Alt-Daten gefunden.');
+    return;
+  }
+  const confirmed = window.confirm(
+    'Es wurden ' + legacyLocalPlayers.length + ' lokale Spieler und ' +
+    legacyLocalReports.length + ' lokale Berichte gefunden. Sie werden zusätzlich in den globalen PFMS-Katalog importiert. Bestehende Cloud-Daten bleiben erhalten. Fortfahren?'
+  );
+  if (!confirmed) return;
+
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_import_legacy_catalogue', {
+      p_players: legacyLocalPlayers,
+      p_reports: legacyLocalReports
+    });
+    if (error) throw error;
+
+    localStorage.removeItem(DB_KEYS.players);
+    localStorage.removeItem(DB_KEYS.reports);
+    legacyLocalPlayers = [];
+    legacyLocalReports = [];
+    await loadPfmsMainData();
+    toast('Alt-Daten übernommen: ' + data.players_imported + ' Spieler und ' +
+      data.reports_imported + ' Berichte.');
+  } catch (error) {
+    console.error('PFMS legacy local data import failed:', error);
+    toast('Lokale Alt-Daten konnten nicht importiert werden. Die Originaldaten bleiben im Browser erhalten.');
+  }
+}
 function addMedia(files) {
   [...files].forEach(file => {
     if (
