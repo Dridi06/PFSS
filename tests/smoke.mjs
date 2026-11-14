@@ -92,6 +92,7 @@ const teamEventParticipantsMigration = await read("supabase/migrations/20261204_
 const teamEventLogisticsMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql");
 const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql");
 const inAppNotificationsMigration = await read("supabase/migrations/20261207_pfms_in_app_notifications.sql");
+const stagingAcceptanceSql = await read("supabase/STAGING_ACCEPTANCE_READ_ONLY.sql");
 
 
 const requiredFiles = [
@@ -253,6 +254,23 @@ assert.ok(
   stagingAudit.includes("'pfms_notifications'"),
   "Staging audit must inventory the private notification table"
 );
+assert.ok(
+  stagingAcceptanceSql.includes("select check_name, passed, details")
+    && stagingAcceptanceSql.includes("team_tasks_rls")
+    && stagingAcceptanceSql.includes("notifications_browser_privileges")
+    && stagingAcceptanceSql.includes("task_same_team_assignee_fk")
+    && stagingAcceptanceSql.includes("notification_own_row_policies"),
+  "Read-only Staging acceptance script must verify task, permission and notification security"
+);
+const acceptanceExecutableLines = stagingAcceptanceSql
+  .split(/\r?\n/)
+  .map(line => line.replace(/--.*$/, "").trim())
+  .filter(Boolean);
+assert.ok(
+  !acceptanceExecutableLines.some(line => /^(insert|update|delete|alter|create|drop|truncate)\b/i.test(line)),
+  "Staging acceptance SQL must not contain data/schema mutation statements"
+);
+
 
 assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--clean`"), "Restore guide must prohibit destructive clean restore flags");
 
