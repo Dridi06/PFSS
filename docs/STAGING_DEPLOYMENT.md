@@ -250,3 +250,11 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Positivtest: Eine Trainingseinheit innerhalb des Start-/Enddatums ihrer zugeordneten Mikrozykluswoche muss gespeichert werden können.
 - Negativtests: Nach Zuordnung darf das Datum nicht vor den Wochenbeginn oder nach das Wochenende verschoben werden. Eine Zuordnung zu einer Woche eines anderen Teams muss ebenfalls scheitern.
 - Die Tests über die regulären Trainings-RPCs mit zwei Team-Testkonten ausführen und Ergebnisse protokollieren. Noch nicht in Produktion oder auf einer realen Staging-Datenbank angewendet.
+
+
+### Spieltagsaufstellungen: Teamgrenzen
+
+- Read-only-Abnahme: `match_lineup_same_team_integrity` muss `passed = true` melden.
+- Positivtest: Ein Spieler aus dem Kader desselben Teams kann in die Aufstellung aufgenommen werden.
+- Negativtests: Eine Aufstellungszeile mit einem Spieler eines anderen Teams muss auf Datenbankebene abgewiesen werden, auch wenn ein direkter Schreibversuch außerhalb der regulären Oberfläche simuliert wird.
+- Vor Anwendung die vorhandenen Aufstellungsdaten auf Teamkonflikte prüfen. Die Migration bricht absichtlich ab, wenn bestehende Zeilen Spiel und Kaderzuordnung aus unterschiedlichen Teams verbinden.
