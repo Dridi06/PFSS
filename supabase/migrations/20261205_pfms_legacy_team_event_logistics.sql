@@ -321,7 +321,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_team_id uuid;
   v_event_id uuid;
@@ -329,11 +329,12 @@ declare
   v_capacity integer;
   v_participant_count bigint;
 begin
+  -- Read the event key first, then lock the event before the participant row.
+  -- This is the same lock order used by participant additions and event edits.
   select ep.team_id, ep.event_id
     into v_team_id, v_event_id
   from public.pfms_legacy_team_event_participants ep
-  where ep.id = p_participant_id
-  for update;
+  where ep.id = p_participant_id;
 
   if not found then
     raise exception 'Event participant not found' using errcode = 'P0002';
@@ -341,7 +342,8 @@ begin
   if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
     raise exception 'Not authorized to update event participant' using errcode = '42501';
   end if;
-  if p_status not in ('invited','confirmed','declined','attended','absent')
+  if p_status is null
+     or p_status not in ('invited','confirmed','declined','attended','absent')
      or (p_note is not null and pg_catalog.length(p_note) > 1000) then
     raise exception 'Invalid event participant data' using errcode = '22023';
   end if;
@@ -357,6 +359,18 @@ begin
   if not found or v_event_type not in ('tournament','event') then
     raise exception 'Event participant does not belong to an event entry'
       using errcode = '42501';
+  end if;
+
+  perform 1
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id
+    and ep.event_id = v_event_id
+    and ep.team_id = v_team_id
+  for update;
+
+  if not found then
+    raise exception 'Event participant was removed during the update'
+      using errcode = 'P0002';
   end if;
 
   if p_status in ('invited','confirmed','attended') then
@@ -378,7 +392,8 @@ begin
       updated_at = pg_catalog.now()
   where id = p_participant_id;
 end;
-$;
+$$;
+
 
 revoke all on function public.pfms_list_legacy_team_events_with_logistics(uuid) from public, anon;
 grant execute on function public.pfms_list_legacy_team_events_with_logistics(uuid) to authenticated;
