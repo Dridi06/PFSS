@@ -1,32 +1,41 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsForRequest } from "../_shared/cors.ts";
 
 Deno.serve(async (req: Request) => {
+  const cors = corsForRequest(req, "POST, OPTIONS");
   const json = (body: Record<string, unknown>, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors.headers, "Content-Type": "application/json" },
     });
 
+  if (!cors.allowed) {
+    return json({ error: "Origin not allowed" }, 403);
+  }
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: cors.headers });
   }
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
 
   try {
-    const { username, password } = await req.json();
+    const contentLength = Number(req.headers.get("content-length") ?? 0);
+    if (contentLength > 8192) {
+      return json({ error: "Invalid credentials" }, 413);
+    }
+
+    const payload = await req.json();
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return json({ error: "Invalid credentials" }, 400);
+    }
+    const { username, password } = payload as Record<string, unknown>;
     const normalizedUsername = String(username ?? "").trim();
     const suppliedPassword = String(password ?? "");
 
     if (!/^[A-Za-z0-9_.-]{3,20}$/.test(normalizedUsername) ||
-        suppliedPassword.length < 1) {
+        suppliedPassword.length < 1 || suppliedPassword.length > 1024) {
       return json({ error: "Invalid credentials" }, 400);
     }
 
