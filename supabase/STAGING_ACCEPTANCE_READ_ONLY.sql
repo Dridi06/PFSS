@@ -71,14 +71,39 @@ with checks as (
   select
     'nine_team_permission_modules',
     coalesce(
-      pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%tasks%',
+      (
+        select
+          pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''squad''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''training''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''attendance''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''finance''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''events''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''calendar''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''matches''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''analysis''%'
+          and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')) ilike '%''tasks''%'
+      ),
       false
     )
       and coalesce(
-        pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%<> 9%',
+        (
+          select
+            pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%<> 9%'
+            and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%count(distinct value ->> ''module_key'')%'
+            and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%v_can_edit and not v_can_view%'
+            and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')) ilike '%''tasks''%'
+        ),
+        false
+      )
+      and coalesce(
+        (
+          select
+            pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_has_legacy_team_permission(uuid,text,text)')) ilike '%''tasks''%'
+            and pg_catalog.pg_get_functiondef(pg_catalog.to_regprocedure('public.pfms_has_legacy_team_permission(uuid,text,text)')) ilike '%p_action in (''view'',''edit'')%'
+        ),
         false
       ),
-    'tasks-Modul und exakt neun Rechtebereiche erwartet'
+    'Alle neun Modulschlüssel, eindeutige Neuner-Konfiguration und edit-erfordert-view-Regel müssen in den effektiven Rechtefunktionen vorhanden sein'
 
   union all
   select
