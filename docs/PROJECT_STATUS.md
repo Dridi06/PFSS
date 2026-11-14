@@ -275,3 +275,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Der Migration-Smoke-Test prüft jetzt zusätzlich alle expliziten `supabase/migrations/<datei>.sql`-Verweise in den Markdown-Dateien unter `docs/` gegen den tatsächlichen Migrationsbestand. Damit werden veraltete oder falsch benannte Migrationsanweisungen künftig im CI erkannt.
 - GitHub-Actions-Lauf [43634176285](https://github.com/Dridi06/PFSS/actions/runs/43634176285) auf dem Feature-Branch war erfolgreich: Syntax-/Build-/Smoke-/Accessibility-/SQL-/Grant-/Backup-Prüfungen und Deno-Typprüfung beider Jobs bestanden.
 - Die Render-Blueprint-Datei, Staging-Build-Konfiguration, Veröffentlichungsliste, CSP/Security-Header und Backup-/Restore-Abläufe wurden statisch geprüft. Das ist keine Bestätigung der Render-Dashboard-Konfiguration, einer realen Supabase-Verbindung oder eines erfolgreichen Restore-Laufs.
+
+### Zusätzliche Staging-Origin-Isolation – 14.11.2026
+
+- Bei der Prüfung der Edge-Function-Anleitung wurde festgestellt, dass das Beispiel für `PFMS_ALLOWED_ORIGINS` in der Staging-Projektkonfiguration neben der Platzhalter-Staging-Domain auch die Produktionsdomain `pfss-scouting.onrender.com` aufführte.
+- Die Produktionsdomain wurde aus dem Staging-Beispiel entfernt. Die Staging-Allowlist enthält dort jetzt ausschließlich die dedizierte Staging-Origin. Produktion und Staging müssen ihre jeweilige Allowlist getrennt verwalten.
+- Ein Regressionstest verhindert, dass die Produktionsdomain künftig erneut in einem Staging-Allowlist-Beispiel auftaucht.
+- GitHub-Actions-Lauf [43634340307](https://github.com/Dridi06/PFSS/actions/runs/43634340307) bestand beide Jobs. Der Testlauf bestätigte erneut 21 Navigationstargets, 44 SQL-Migrationen, 118 SECURITY-DEFINER-Definitionen sowie die Build-, Accessibility-, Grant- und Backup-Prüfungen.
+- Die Korrektur betrifft Dokumentation und CI-Schutz. Die tatsächlichen Supabase-Function-Secrets wurden nicht verändert; deren Dashboard-Konfiguration muss im Staging separat geprüft werden.
