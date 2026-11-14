@@ -302,6 +302,138 @@ with checks as (
       false
     ),
     'Legacy-Import-RPC muss authenticated aufrufen können; Adminprüfung erfolgt innerhalb der transaktionalen Funktion'
+  union all
+  select
+    'personal_tasks_owner_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_personal_tasks')
+    ), false)
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_personal_tasks'
+          and p.policyname = 'pfms_personal_tasks_select_own'
+          and p.qual ilike '%owner_id = auth.uid()%'
+          and p.qual ilike '%pfms_current_user_is_approved()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_personal_tasks'
+          and p.policyname = 'pfms_personal_tasks_update_own'
+          and p.qual ilike '%owner_id = auth.uid()%'
+          and p.with_check ilike '%owner_id = auth.uid()%'
+      ),
+    'Persönliche Aufgaben benötigen FORCE RLS und Owner-/Approved-Policies'
+
+  union all
+  select
+    'support_tickets_owner_admin_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_support_tickets')
+    ), false)
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_support_tickets'
+          and p.policyname = 'pfms_support_tickets_select_own_or_admin'
+          and p.qual ilike '%owner_id = auth.uid()%'
+          and p.qual ilike '%pfms_is_admin()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_support_tickets'
+          and p.policyname = 'pfms_support_tickets_insert_own'
+          and p.with_check ilike '%owner_id = auth.uid()%'
+          and p.with_check ilike '%pfms_current_user_is_approved()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_support_tickets'
+          and p.policyname = 'pfms_support_tickets_update_admin'
+          and p.qual ilike '%pfms_is_admin()%'
+          and p.with_check ilike '%pfms_is_admin()%'
+      ),
+    'Supporttickets benötigen FORCE RLS: Eigentümer lesen eigene Tickets, Admins verwalten alle'
+
+  union all
+  select
+    'support_tickets_column_grants',
+    coalesce(pg_catalog.has_table_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'SELECT'), false)
+      and coalesce(pg_catalog.has_table_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'INSERT'), false)
+      and coalesce(pg_catalog.has_column_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'status', 'UPDATE'), false)
+      and coalesce(pg_catalog.has_column_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'admin_response', 'UPDATE'), false)
+      and not coalesce(pg_catalog.has_table_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'DELETE'), false)
+      and not coalesce(pg_catalog.has_column_privilege('authenticated', pg_catalog.to_regclass('public.pfms_support_tickets'), 'owner_id', 'UPDATE'), false),
+    'Browser dürfen Tickets lesen/einreichen und nur Status/Antwortspalten aktualisieren; Löschen und Owner-Wechsel verboten'
+
+  union all
+  select
+    'main_media_private_bucket',
+    exists (
+      select 1 from storage.buckets b
+      where b.id = 'pfss-scout-private'
+        and b.public = false
+        and b.file_size_limit = 52428800
+    ),
+    'Storage-Bucket pfss-scout-private muss privat bleiben und ein 50-MB-Limit haben'
+
+  union all
+  select
+    'main_media_storage_owner_path',
+    exists (
+      select 1 from pg_catalog.pg_policies p
+      where p.schemaname = 'storage' and p.tablename = 'objects'
+        and p.policyname = 'pfss_scout_storage_select'
+        and p.qual ilike '%bucket_id%pfss-scout-private%'
+        and p.qual ilike '%storage.foldername(name)%auth.uid()%'
+    )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'storage' and p.tablename = 'objects'
+          and p.policyname = 'pfss_scout_storage_insert'
+          and p.with_check ilike '%bucket_id%pfss-scout-private%'
+          and p.with_check ilike '%storage.foldername(name)%auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'storage' and p.tablename = 'objects'
+          and p.policyname = 'pfss_scout_storage_delete'
+          and p.qual ilike '%bucket_id%pfss-scout-private%'
+          and p.qual ilike '%storage.foldername(name)%auth.uid()%'
+      ),
+    'Storage-Policies müssen den ersten Ordner auf auth.uid() begrenzen; <uid>/main/ bleibt privat'
+
+  union all
+  select
+    'main_media_metadata_rls',
+    coalesce((
+      select c.relrowsecurity and c.relforcerowsecurity
+      from pg_catalog.pg_class c
+      where c.oid = pg_catalog.to_regclass('public.pfms_main_media')
+    ), false)
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_main_media'
+          and p.policyname = 'pfms_main_media_select_own'
+          and p.qual ilike '%owner_id = auth.uid()%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_main_media'
+          and p.policyname = 'pfms_main_media_insert_own'
+          and p.with_check ilike '%owner_id = auth.uid()%'
+          and p.with_check ilike '%auth.uid()%/main/%'
+      )
+      and exists (
+        select 1 from pg_catalog.pg_policies p
+        where p.schemaname = 'public' and p.tablename = 'pfms_main_media'
+          and p.policyname = 'pfms_main_media_delete_own'
+          and p.qual ilike '%owner_id = auth.uid()%'
+      ),
+    'Medienmetadaten benötigen FORCE RLS und Owner-Bindung für SELECT/INSERT/DELETE'
+
 )
 select check_name, passed, details
 from checks
