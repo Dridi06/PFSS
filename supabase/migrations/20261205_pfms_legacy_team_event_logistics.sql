@@ -151,7 +151,7 @@ begin
   end if;
 
   if pg_catalog.length(pg_catalog.btrim(coalesce(p_title, ''))) not between 1 and 140
-     or p_event_type not in ('tournament','event')
+     or p_event_type is null or p_event_type not in ('tournament','event')
      or p_event_date is null
      or p_starts_at is null
      or (p_ends_at is not null and p_ends_at <= p_starts_at)
@@ -159,7 +159,7 @@ begin
      or (p_location is not null and pg_catalog.length(p_location) > 160)
      or (p_notes is not null and pg_catalog.length(p_notes) > 4000)
      or (p_meeting_point is not null and pg_catalog.length(p_meeting_point) > 180)
-     or p_transport_mode not in ('none','bus','carpool','public_transport','own_transport')
+     or p_transport_mode is null or p_transport_mode not in ('none','bus','carpool','public_transport','own_transport')
      or (p_transport_notes is not null and pg_catalog.length(p_transport_notes) > 3000)
      or p_fee_per_person is null or p_fee_per_person < 0 or p_fee_per_person > 10000
      or (p_capacity is not null and p_capacity not between 1 and 200) then
@@ -403,7 +403,7 @@ revoke all on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
 grant execute on function public.pfms_add_legacy_team_event_participant(uuid, uuid) to authenticated;
 
 revoke all on function public.pfms_update_legacy_team_event_participant(uuid, text, text) from public, anon;
-grant execute on function public.pfms_update_legacy_team_event_participant(uuid, uuid, text) to authenticated;
+grant execute on function public.pfms_update_legacy_team_event_participant(uuid, text, text) to authenticated;
 
 comment on table public.pfms_legacy_team_event_logistics is
   'Team-scoped event logistics: registration deadline, meeting point, transport, per-person fee and capacity.';
