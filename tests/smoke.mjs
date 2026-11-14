@@ -58,12 +58,33 @@ assert.ok(
   (await read("supabase/migrations/20261112_private_scout_workspaces.sql")).length > 0,
   "Private scout workspace migration is missing"
 );
+assert.ok(
+  scout.includes("pfss_scout_players") &&
+  scout.includes("pfss_scout_reports") &&
+  scout.includes("pfss_scout_media"),
+  "Scout workspace must use the private Supabase tables"
+);
+assert.ok(
+  scout.includes(".storage.from(BUCKET).upload") &&
+  scout.includes("createSignedUrl") &&
+  scout.includes(".storage.from(BUCKET).remove"),
+  "Scout workspace must upload, privately display and delete media"
+);
+assert.ok(
+  scout.includes("data-scout-edit-player") &&
+  scout.includes("data-scout-delete-player") &&
+  scout.includes("data-scout-edit-report") &&
+  scout.includes("data-scout-delete-report"),
+  "Scout workspace CRUD controls are incomplete"
+);
+assert.ok(
+  !/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout),
+  "Scout workspace must not ship demo data or preview copy"
+);
 
 const knownGaps = [];
 if (/pfss_players_v1|pfss_reports_v1/.test(app)) knownGaps.push("Haupt-Spieler und Berichte verwenden noch localStorage.");
-if (/demoPlayers|demoReports|DESIGNVORSCHAU|TECHNISCHE ANBINDUNG FOLGT/i.test(scout)) {
-  knownGaps.push("Scout-Workspace enthält noch Vorschau-/Beispieldaten.");
-}
+if (!/pfss_scout_players/.test(scout)) knownGaps.push("Scout-Workspace ist noch nicht mit Supabase verbunden.");
 for (const [label, pattern] of [
   ["Vereinsworkflow", /Platzhalter|Funktionen folgen/i],
   ["Zahlungsworkflow", /kein Zahlungsanbieter|noch keine Zahlung/i],
