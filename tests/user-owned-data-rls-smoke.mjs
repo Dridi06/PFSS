@@ -41,15 +41,15 @@ requirePattern(tickets, /alter table public\.pfms_support_tickets enable row lev
 requirePattern(tickets, /alter table public\.pfms_support_tickets force row level security/);
 requirePattern(
   tickets,
-  /create policy pfms_support_tickets_select_own_or_admin[\\s\\S]*?owner_id = auth\.uid\(\) and public\.pfms_current_user_is_approved\(\)[\\s\\S]*?or public\.pfms_is_admin\(\)/
+  /create policy pfms_support_tickets_select_own_or_admin[\s\S]*?owner_id = auth\.uid\(\) and public\.pfms_current_user_is_approved\(\)[\s\S]*?or public\.pfms_is_admin\(\)/
 );
 requirePattern(
   tickets,
-  /create policy pfms_support_tickets_insert_own[\\s\\S]*?owner_id = auth\.uid\(\)[\\s\\S]*?status = 'open'[\\s\\S]*?admin_response is null[\\s\\S]*?public\.pfms_current_user_is_approved\(\)/
+  /create policy pfms_support_tickets_insert_own[\s\S]*?owner_id = auth\.uid\(\)[\s\S]*?status = 'open'[\s\S]*?admin_response is null[\s\S]*?public\.pfms_current_user_is_approved\(\)/
 );
 requirePattern(
   tickets,
-  /create policy pfms_support_tickets_update_admin[\\s\\S]*?using \(public\.pfms_is_admin\(\)\)[\\s\\S]*?with check \(public\.pfms_is_admin\(\)\)/
+  /create policy pfms_support_tickets_update_admin[\s\S]*?using \(public\.pfms_is_admin\(\)\)[\s\S]*?with check \(public\.pfms_is_admin\(\)\)/
 );
 requirePattern(tickets, /grant update \(status, admin_response\) on public\.pfms_support_tickets to authenticated/);
 forbidPattern(tickets, /grant update on public\.pfms_support_tickets to authenticated/);
