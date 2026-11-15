@@ -1176,6 +1176,39 @@ with checks as (
     'Legacy-Profilliste muss SECURITY DEFINER mit leerem search_path und Admin-Prüfung besitzen; EXECUTE nur für authenticated, nicht PUBLIC oder anon'
 
 
+
+  union all
+  select
+    'legacy_core_security_definer_search_path',
+    coalesce((
+      select count(*) = 6
+        and bool_and(
+          p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=""%'
+          and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+          and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+          and not exists (
+            select 1
+            from pg_catalog.aclexplode(
+              coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+            ) acl
+            where acl.grantee = 0
+              and acl.privilege_type = 'EXECUTE'
+          )
+        )
+      from pg_catalog.pg_proc p
+      where p.oid in (
+        pg_catalog.to_regprocedure('public.pfms_is_admin()'),
+        pg_catalog.to_regprocedure('public.pfms_is_org_member(uuid)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_search_organizations(text,text)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_org_members(uuid)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_update_membership(uuid,text,text,jsonb)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_scouts(text)')
+      )
+    ), false),
+    'Kernfunktionen für Admin- und Organisationsberechtigungen müssen SECURITY DEFINER mit leerem search_path und EXECUTE nur für authenticated besitzen'
+
+
 )
 select check_name, passed, details
 from checks
