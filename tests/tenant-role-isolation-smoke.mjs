@@ -32,7 +32,7 @@ function assertHas(body, pattern, message) {
 }
 
 const teamAccess = latestFunctionBody("pfms_can_access_legacy_team");
-assertHas(teamAccess, /auth\.uid\(\) is not null/, "Team access must require an authenticated user.");
+assertHas(teamAccess, /auth\.uid\(\)\s+is\s+not\s+null/i, "Team access must require an authenticated user.");
 assertHas(teamAccess, /public\.is_admin\(\)/, "Platform administrators must retain the explicit global access path.");
 assertHas(teamAccess, /join public\.organizations o on o\.id = t\.organization_id/, "Team access must resolve the owning organization.");
 assertHas(teamAccess, /o\.status in \('approved', 'active'\)/, "Suspended or pending organizations must not grant team access.");
