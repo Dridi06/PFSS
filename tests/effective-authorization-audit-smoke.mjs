@@ -41,7 +41,7 @@ for (const marker of [
 ]) {
   assert.ok(sql.includes(marker), "Audit is missing required effective-security inventory: " + marker);
 }
-assert.match(sql, /PERMISSIVE policies OR together; RESTRICTIVE policies AND together/i);
+assert.match(sql, /Applicable permissive policies OR together; applicable restrictive policies AND together/i);
 assert.match(sql, /RLS denies all rows to roles subject to RLS/i);
 assert.match(sql, /WHERE n\.nspname = 'public'/i, "RPC inventory must include all public functions.");
 assert.match(sql, /OR \(n\.nspname = 'auth' AND c\.relname = 'users'\)/i,
