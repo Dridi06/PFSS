@@ -95,6 +95,16 @@ for (const tableName of createdPublicTables) {
 
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
+const forceRlsExceptions = new Map([
+  [
+    "organization_invitations",
+    "RLS is enabled; browser table privileges are fully revoked; access is through the controlled invitation RPC and auth trigger."
+  ],
+  [
+    "pfms_platform_owner",
+    "RLS is enabled; browser table privileges are fully revoked; ownership is accessed only by protected server-side functions."
+  ]
+]);
 for (const tableName of createdPublicTables) {
   const tableReference = "public\\." + tableName;
   assert.match(
@@ -102,12 +112,21 @@ for (const tableName of createdPublicTables) {
     new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+enable\\s+row\\s+level\\s+security"),
     "Migration-created table must enable RLS: public." + tableName
   );
+  if (forceRlsExceptions.has(tableName)) {
+    assert.match(
+      normalizedMigrationSql,
+      new RegExp("revoke\\s+all\\s+on\\s+table\\s+" + tableReference + "\\s+from\\s+public,\\s*anon,\\s*authenticated"),
+      "RLS exception must revoke all direct browser table privileges: public." + tableName
+    );
+    continue;
+  }
   assert.match(
     normalizedMigrationSql,
     new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+force\\s+row\\s+level\\s+security"),
-    "Migration-created table must force RLS: public." + tableName
+    "Migration-created table must force RLS unless explicitly and safely exempted: public." + tableName
   );
 }
+
 
 const functionDefinitions = combinedMigrationSql.matchAll(
   /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)\s*\([\s\S]*?\bas\s+\$\$[\s\S]*?\$\$;/gi
