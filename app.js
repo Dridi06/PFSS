@@ -691,6 +691,18 @@ function setupPfmsAdminSupport() {
 }
 
 function showView(view, navElement = null, fromPopState = false) {
+  const adminOnlyViews = new Set([
+    'clubs', 'agencies', 'admin-members', 'admin-errors',
+    'admin-inbox', 'admin-payments', 'admin', 'backup'
+  ]);
+  // Navigation visibility is only a usability layer. This route guard also
+  // blocks stale history/direct UI navigation; database/RPC policies remain
+  // the actual authorization boundary.
+  if (adminOnlyViews.has(view) && !window.pfssIsRealAdmin) {
+    view = 'dashboard';
+    navElement = null;
+    if (window.pfssCurrentUserId) toast('Für diesen Administrationsbereich fehlen die erforderlichen Rechte.');
+  }
   const selectedLabel = navElement?.textContent?.trim() || (
     view === 'team-workspace' ? 'Mannschaftsübersicht' : ''
   );
