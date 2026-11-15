@@ -809,6 +809,44 @@ with checks as (
 
   union all
   select
+    'team_permission_matrix_read_write_security',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%pfms_can_access_legacy_team(v_team_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%''tasks''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_list_legacy_team_permissions(uuid)')
+    ), false)
+    and coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%pfms_can_access_legacy_team(p_team_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%''tasks''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_get_my_legacy_team_permissions(uuid)')
+    ), false)
+    and coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%pfms_can_manage_legacy_team(v_team_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%jsonb_array_length(p_permissions) <> 9%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%count(distinct value ->> ''module_key'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_can_edit and not v_can_view%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%''tasks''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_save_legacy_team_permissions(uuid,jsonb)')
+    ), false),
+    'Lesen der Rechte-Matrix nur mit aktuellem Teamzugriff; Schreiben nur durch Teammanager; neun Module, eindeutige Einträge und edit-erfordert-view'
+
+  union all
+  select
     'calendar_read_rpc_event_isolation',
     coalesce((
       select p.prosecdef
