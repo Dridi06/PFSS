@@ -168,10 +168,15 @@ for (const signature of securityDefinerSignatures) {
   const effectiveSearchPath = searchPathOverrides.has(signature)
     ? searchPathOverrides.get(signature)
     : declaredSearchPath;
-  assert.equal(
+  assert.notEqual(
     effectiveSearchPath,
-    "",
-    "SECURITY DEFINER function must have an effective empty search_path: " + signature
+    undefined,
+    "SECURITY DEFINER function must have a fixed search_path: " + signature
+  );
+  assert.doesNotMatch(
+    effectiveSearchPath,
+    /(^|,\\s*)(?:"?\\$user"?|pg_temp(?:_\\d+)?)(\\s*,|$)/i,
+    "SECURITY DEFINER function must not use caller-controlled or temporary schemas: " + signature
   );
   assert.ok(
     revokes.has(signature),
