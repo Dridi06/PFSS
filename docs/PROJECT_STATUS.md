@@ -1089,3 +1089,5 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Mehrere REVOKE-Statements für dieselbe Funktionssignatur werden zusammengeführt. Ein unvollständiger Eintrag (z. B. nur `anon`) kann die Prüfung nicht mehr bestehen.
 - Die bestehende Search-Path-Prüfung bleibt unverändert; legitime EXECUTE-Rechte für `authenticated` bleiben möglich und werden nicht pauschal entfernt.
 - Änderung ausschließlich im Feature-Branch. Die GitHub-Actions-Prüfung muss den neuen Vertrag noch bestätigen; keine Migration, Datenbankverbindung, Deployment, Merge oder Produktionsänderung.
+
+- Nachweis ergänzt: Push-CI und PR-CI für den Teststand erfolgreich; beide Jobs (Projekt-/Smoke-Prüfungen und Edge-Function-Typprüfung) bestanden. [Push-CI 43726451752](https://github.com/Dridi06/PFSS/actions/runs/43726451752) · [PR-CI 43726455795](https://github.com/Dridi06/PFSS/actions/runs/43726455795).
