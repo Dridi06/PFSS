@@ -607,6 +607,39 @@ assert.match(
   "Read-only staging acceptance must verify the legacy profile-list RPC."
 );
 
+const legacyTeamNullGuard = migrationSources[
+  migrationFiles.indexOf("20261227_pfms_legacy_team_access_null_guard.sql")
+];
+assert.ok(legacyTeamNullGuard, "Legacy team null-ID authorization guard migration is missing.");
+const normalizedLegacyTeamNullGuard = legacyTeamNullGuard
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of ["pfms_can_access_legacy_team", "pfms_can_manage_legacy_team"]) {
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "create or replace function public." + functionName + "(p_team_id uuid) returns boolean language sql stable security definer set search_path = '' as $ select auth.uid() is not null and p_team_id is not null"
+    ),
+    "Central tenant authorization must reject NULL team IDs before evaluating roles: " + functionName
+  );
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "revoke all on function public." + functionName + "(uuid) from public, anon"
+    ),
+    "Central tenant authorization must revoke PUBLIC and anon EXECUTE: " + functionName
+  );
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "grant execute on function public." + functionName + "(uuid) to authenticated"
+    ),
+    "Central tenant authorization must remain callable by authenticated users: " + functionName
+  );
+}
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_team_access_requires_active_org_membership'[\s\S]*?p_team_id is not null/i,
+  "Read-only staging acceptance must verify NULL team IDs are denied by both central team authorization helpers."
+);
+
 const organizationCoreAclMigration = migrationSources[
   migrationFiles.indexOf("20261225_pfms_organization_table_write_acl_hardening.sql")
 ];
