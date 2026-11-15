@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Fehlerprotokoll mit serverseitiger Suche und Pagination
+
+- Das Admin-Fehlerprotokoll lädt nicht länger pauschal die 200 neuesten Ereignisse und filtert diese nur im Browser. Eine neue RPC filtert Meldung/Pfad, Schweregrad und Bearbeitungsstatus direkt in PostgreSQL und liefert 25er-Seiten mit Gesamtzahl.
+- Neue Migration: `20261220_pfms_admin_system_event_pagination.sql`. Sie ist additiv, verändert keine Ereignisdaten, verlangt `pfms_is_admin()`, SECURITY DEFINER mit leerem `search_path`, validierte Filter und Seitenfenster (1–100 Zeilen; Offset bis 1.000.000) sowie EXECUTE ausschließlich für `authenticated`.
+- Die bestehende Sitzungs-/Request-Isolation bleibt erhalten. Filter- und Seitenwechsel verwerfen ältere Antworten; Statusänderungen bleiben an die initiierende Admin-Sitzung gebunden.
+- Das Read-only-Staging-Acceptance-Audit enthält die Prüfungen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds`. Regressionstests prüfen Frontend-RPC-Vertrag, Sitzungsbindung, SQL-Sicherheit und Berechtigungsgrenzen.
+- Migration noch nicht auf Supabase Staging angewendet; CI und reale Datenbankausführung werden separat abgewartet. Kein Render-Deployment, keine Änderung an `main` oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Admin-Pagination CI-Abnahme
 
 - Die Admin-Profilverwaltung, Organisationssuche, Scout-Verwaltung und globale Mitgliedschaftsverwaltung verwenden nun serverseitige Filter und begrenzte 25er-Seiten. Gesamtzähler der Profile werden unabhängig von Suchfiltern abgefragt.
