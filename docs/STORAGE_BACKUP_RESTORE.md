@@ -160,7 +160,23 @@ python3 scripts/storage_archive.py verify backup/storage-restored.tar
 
 **Kryptografische Einordnung:** Das Verfahren folgt dem bestehenden Datenbank-Backup-Standard und schützt den Chiffretext durch HMAC. AES-CBC ist kein AEAD-Verfahren; die Authentizität wird daher durch den separaten HMAC vor der Entschlüsselung gewährleistet. Ein späterer Algorithmuswechsel muss für Datenbank- und Storage-Backups gemeinsam geplant und getestet werden.
 
-## 9. Noch nicht umgesetzt bzw. nicht nachgewiesen
+## 9. Injizierter R2-Transport für verschlüsselte Storage-Archive (offline getestet)
+
+`scripts/storage_r2_adapter.py` ergänzt einen ausdrücklich injizierten AWS-CLI-Transport. Das Modul startet selbst keinen Prozess und beschafft keine Zugangsdaten. Ein Aufrufer muss einen Runner sowie Endpoint, Bucket und Zugangsdaten explizit übergeben; Tests verwenden ausschließlich einen Fake-Runner.
+
+- Akzeptiert nur einen kanonischen HTTPS-R2-Origin ohne Pfad, Zugangsdaten, Query oder Fragment.
+- Beschränkt den Objektnamensraum auf `storage/daily/` und Dateinamen mit UTC-Zeitstempel plus eindeutigem Lauf-Suffix.
+- Überträgt ausschließlich die bereits verschlüsselte `.tar.enc`-Datei und die zugehörige `.hmac`-Datei; Klartextarchive werden nicht als Upload-Eingabe akzeptiert.
+- AWS-Zugangsdaten werden ausschließlich als Prozessumgebung an den injizierten Runner übergeben, nicht in Argumente geschrieben. EC2-Metadaten-Credential-Discovery wird deaktiviert.
+- Vor dem Upload werden beide Zielobjekte geprüft. Ein Upload wird nur fortgesetzt, wenn der Runner ausdrücklich einen NotFound-Befund meldet; generische Fehler (z. B. 403 oder Netzwerkfehler) führen zum Abbruch.
+- Nach dem Upload werden beide Objekte mit `head-object` auf Existenz geprüft. Das ist kein vollständiger Download-, Inhalts- oder Restore-Nachweis.
+- Der Downloadpfad akzeptiert nur denselben eingeschränkten Namensraum und nur ein noch nicht vorhandenes lokales Zielverzeichnis.
+
+`tests/storage-r2-adapter-smoke.py` prüft Argumente, Secrets-Handling, Namensraum, ungültige Endpoints, Kollisionen und das Fail-closed-Verhalten mit einem Fake-Runner. Es findet kein Netzwerkzugriff statt.
+
+**Betriebsgrenze:** HEAD-vor-PUT ist keine atomare No-overwrite-Garantie; zwischen Prüfung und Upload besteht ein Race-Fenster. Deshalb ist ein eindeutiger Lauf-Suffix zwingend und konkurrierende Writer müssen organisatorisch verhindert werden. Bucket-Versionierung und Retention sind separat im R2-Konto einzurichten. Der Adapter ist eine Transportbibliothek, kein aktivierter Workflow. Es wurden keine R2-Zugangsdaten verwendet und keine Objekte übertragen.
+
+## 10. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
 - Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen; der Adapter wurde ausschließlich mit einem Fake-Transport getestet.
