@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 
 const script = "scripts/build-static.mjs";
 const baseEnv = { ...process.env, PFMS_BUILD_TARGET: "staging" };
@@ -62,4 +63,26 @@ const invalidUrl = spawnSync(process.execPath, [script], {
 assert.notEqual(invalidUrl.status, 0, "Staging build must reject malformed Supabase URLs");
 assert.match(invalidUrl.stderr, /valid HTTPS Supabase project URL/);
 
-console.log("PFMS build configuration smoke tests passed: missing, mismatched, malformed, non-canonical and secret credentials fail closed.");
+
+const renderBlueprint = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
+assert.equal((renderBlueprint.match(/^  - type:/gm) || []).length, 1, "Render blueprint must define exactly one service in this staging-only branch");
+assert.match(renderBlueprint, /^    name: pfms-staging-static$/m, "Render service must be explicitly named as staging");
+assert.match(renderBlueprint, /^    runtime: static$/m, "Staging service must remain a static site");
+assert.match(renderBlueprint, /^    branch: feature\/pfss-complete-platform-build$/m, "Staging service must deploy only from the feature branch");
+assert.match(renderBlueprint, /^    buildCommand: npm run check:syntax && npm run build && npm run test:dist$/m, "Staging deploy must run syntax, build and distribution tests");
+assert.match(renderBlueprint, /^    staticPublishPath: \.\/dist$/m, "Only the tested dist directory may be published");
+assert.match(renderBlueprint, /^        value: staging$/m, "Render must build with the staging target");
+for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABASE_KEY"]) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\console.log("PFMS build configuration smoke tests passed: missing, mismatched, malformed, non-canonical and secret credentials fail closed.");");
+  assert.match(
+    renderBlueprint,
+    new RegExp("      - key: " + escapedKey + "\\n        sync: false"),
+    "Staging environment value " + key + " must be supplied privately in Render, never committed to the blueprint"
+  );
+}
+assert.match(renderBlueprint, /^    autoDeployTrigger: checksPass$/m, "Render auto-deploy must wait for successful checks");
+assert.match(renderBlueprint, /name: Content-Security-Policy/, "Staging must retain its Content Security Policy");
+assert.match(renderBlueprint, /name: Strict-Transport-Security/, "Staging must retain HSTS");
+assert.doesNotMatch(renderBlueprint, /^    branch: main$/m, "Staging blueprint must never deploy from production main");
+
+console.log("PFMS build configuration smoke tests passed: fail-closed Supabase config and staging-only Render blueprint safeguards.");
