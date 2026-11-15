@@ -71,14 +71,14 @@ for (const { file, source } of migrationSources) {
       match.index + match[0].toLowerCase().lastIndexOf("public.")
     )
   );
-  const referencePattern = /public\\.([a-z0-9_]+)\\s*\\(/gi;
+  const referencePattern = /public\.([a-z0-9_]+)\s*\(/gi;
   for (const match of source.matchAll(referencePattern)) {
     const name = match[1].toLowerCase();
     const record = functions.get(name);
     if (!record || declarationOffsets.has(match.index)) continue;
     const prefix = source.slice(Math.max(0, match.index - 90), match.index);
-    if (/\\b(?:grant|revoke)\\b[\\s\\S]*\\bon\\s+function\\s*$/i.test(prefix)) continue;
-    if (/\\bexecute\\s+function\\s*$/i.test(prefix)) continue;
+    if (/\b(?:grant|revoke)\b[\s\S]*\bon\s+function\s*$/i.test(prefix)) continue;
+    if (/\bexecute\s+function\s*$/i.test(prefix)) continue;
     record.sqlReferences.push(file);
   }
 }
