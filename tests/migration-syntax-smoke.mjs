@@ -168,7 +168,7 @@ assert.ok(legacyInvitationWorkspaceIndex > organizationManagerGuardIndex,
 assert.ok(legacyOrganizationMembershipIndex > organizationManagerGuardIndex,
   "Organization membership management RPCs must not precede the can_manage_org(uuid) helper.");
 const organizationManagerGuardSource = migrationSources[organizationManagerGuardIndex];
-assert.match(organizationManagerGuardSource, /create or replace function public\\.can_manage_org\\(p_organization_id uuid\\)/i,
+assert.ok(organizationManagerGuardSource.toLowerCase().includes("create or replace function public.can_manage_org(p_organization_id uuid)"),
   "The prerequisite migration must define can_manage_org(uuid) before its downstream consumers.");
 assert.match(organizationManagerGuardSource, /security definer[\\s\\S]*?set search_path = ''/i,
   "The early organization manager helper must retain its hardened security context.");
