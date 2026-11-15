@@ -1249,6 +1249,9 @@ with checks as (
           and pg_catalog.has_table_privilege('service_role', c.oid, 'INSERT')
           and pg_catalog.has_table_privilege('service_role', c.oid, 'UPDATE')
           and pg_catalog.has_table_privilege('service_role', c.oid, 'DELETE')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'TRUNCATE')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'REFERENCES')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'TRIGGER')
         )
       from pg_catalog.pg_class c
       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
