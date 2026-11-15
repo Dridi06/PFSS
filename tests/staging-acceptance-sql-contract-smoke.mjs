@@ -17,14 +17,13 @@ assert.match(executable, /\)\s*SELECT\s+check_name,\s*passed,\s*details\s+FROM\s
   "Audit must return a stable check_name/passed/details result contract.");
 assert.equal((executable.match(/;/g) ?? []).length, 1,
   "Acceptance audit must contain exactly one terminal SQL statement.");
-assert.doesNotMatch(
-  executable,
-  /pg_catalog\\.substring\\s*\\([^)]*\\s+from\\s+/i,
+assert.equal(
+  executable.includes("pg_catalog.substring"),
+  false,
   "Schema-qualified substring special syntax is not accepted by PostgreSQL; use pg_catalog.substr(value, start)."
 );
-assert.match(
-  executable,
-  /pg_catalog\\.substr\\s*\\(/i,
+assert.ok(
+  executable.includes("pg_catalog.substr("),
   "Position-based function-definition checks must use the portable schema-qualified substr function."
 );
 assert.doesNotMatch(
