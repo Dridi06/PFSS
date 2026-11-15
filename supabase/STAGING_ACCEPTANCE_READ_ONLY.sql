@@ -1478,6 +1478,41 @@ with checks as (
     'ensure_rls muss aktiv auf ddl_command_end für genau die drei erwarteten DDL-Tags registriert sein; die SECURITY DEFINER-Funktion benötigt leeren search_path, darf nicht für PUBLIC/anon/authenticated ausführbar sein und muss bei RLS-Fehlern abbrechen'
 
 
+  union all
+  select
+    'legacy_membership_requires_active_organization',
+    coalesce((
+      select
+        p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%join public.pfss_organizations%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%o.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfss_has_org_role(uuid,text[])')
+    ), false),
+    'Legacy PFSS role checks must require an active membership in an active organization, use an empty search_path and remain unavailable to anon'
+  union all
+  select
+    'pfms_last_active_owner_is_protected',
+    coalesce((
+      select
+        p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for update%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%other_owner.member_role = ''owner''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%other_owner.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%must retain at least one active owner%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_admin_update_membership(uuid,text,text,jsonb)')
+    ), false),
+    'PFMS admin membership changes must serialize on the parent organization and preserve at least one active owner'
+
+
 )
 select check_name, passed, details
 from checks
