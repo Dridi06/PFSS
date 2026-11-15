@@ -381,17 +381,20 @@ Der Read-only-Acceptance-Audit muss `legacy_org_manager_active_organization_gate
 
 ## Ergänzung – Sicherheits-Audit und neue Staging-Abnahmepunkte (15.11.2026)
 
-Der Feature-Branch enthält nun 62 SQL-Migrationen. Die automatisierten GitHub-Actions sind für den aktuellen Auditstand erfolgreich. Das ist ein statischer Repository-Nachweis, keine Bestätigung, dass die Migrationen bereits auf Supabase Staging angewendet wurden.
+Der Feature-Branch enthält nun 64 SQL-Migrationen. Die automatisierten GitHub-Actions sind für den aktuellen Auditstand erfolgreich. Das ist ein statischer Repository-Nachweis, keine Bestätigung, dass die Migrationen bereits auf Supabase Staging angewendet wurden.
 
 ### Vor jeder Migration
 
 1. Ausschließlich das ausdrücklich dedizierte Supabase-Staging-Projekt verwenden.
 2. `supabase/STAGING_READ_ONLY_AUDIT.sql` vollständig ausführen und das Ergebnis sichern. Die Abfrage erfasst dynamisch alle Tabellen und partitionierten Tabellen in `public` und `storage`, Views, Policies, Trigger, Constraints, Tabellen-/Sequenz-/Schema-ACLs, Funktionsdefinitionen und Default-Privileges.
 3. `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` ausführen. Keine Migration aus diesem Schritt heraus anwenden.
-4. Die tatsächlichen Staging-Migrationsversionen gegen alle 63 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
+4. Die tatsächlichen Staging-Migrationsversionen gegen alle 64 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
 5. Erst nach dokumentierter Freigabe die additive Migrationen einzeln in der vorgesehenen Reihenfolge anwenden. Live und Produktion bleiben unangetastet.
 
 ### Neue Read-only-Acceptance-Prüfpunkte
+
+- `legacy_membership_requires_active_organization`: Die zentrale Legacy-PFSS-Rollenprüfung muss aktive Mitgliedschaft und aktive Organisation gemeinsam verlangen; `anon` darf die Funktion nicht ausführen.
+- `pfms_last_active_owner_is_protected`: Änderungen an PFMS-Mitgliedschaften müssen pro Organisation serialisiert werden und den letzten aktiven Owner schützen.
 
 - `ddl_rls_event_trigger_fail_closed`: Der aktive `ensure_rls`-Event-Trigger muss auf `ddl_command_end` mit genau den erwarteten DDL-Tags registriert sein. Seine SECURITY-DEFINER-Funktion muss einen leeren `search_path` verwenden, darf nicht für `PUBLIC`, `anon` oder `authenticated` ausführbar sein und muss bei Fehlern während der RLS-Aktivierung die Tabellenerstellung abbrechen.
 
@@ -414,6 +417,8 @@ Folgende Prüfungen müssen jeweils `passed = true` liefern:
 6. **Regression:** Nach Änderung oder Suspendierung einer Organisationsmitgliedschaft alle relevanten Team-RPCs erneut prüfen. Eine noch aktive Teamzuweisung darf eine fehlende oder gesperrte Organisationsmitgliedschaft nicht ersetzen.
 
 ### Neue additive Migrationen
+
+- `20261229_pfms_membership_authorization_integrity.sql`: Legacy-Rollenprüfung an den Organisationsstatus koppeln und den letzten aktiven Owner bei PFMS-Mitgliedschaftsänderungen schützen.
 
 - `20261228_pfms_ddl_rls_fail_closed.sql`: DDL-Event-Trigger für neue öffentliche Tabellen erhält einen leeren `search_path`, entzieht direkte Browser-EXECUTE-Rechte und bricht die DDL-Transaktion ab, wenn RLS nicht aktiviert werden kann.
 
