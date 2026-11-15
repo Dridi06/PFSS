@@ -1282,7 +1282,7 @@ with checks as (
   select
     'auth_trigger_function_acl',
     coalesce((
-      select count(*) = 2
+      select count(*) = 4
         and bool_and(
           p.prosecdef
           and coalesce(p.proconfig::text, '') like '%search_path=""%'
@@ -1300,7 +1300,9 @@ with checks as (
       from pg_catalog.pg_proc p
       where p.oid in (
         pg_catalog.to_regprocedure('public.pfss_sync_signup_username()'),
-        pg_catalog.to_regprocedure('public.pfms_provision_new_account()')
+        pg_catalog.to_regprocedure('public.pfms_provision_new_account()'),
+        pg_catalog.to_regprocedure('public.pfms_register_owner_bootstrap_request()'),
+        pg_catalog.to_regprocedure('public.pfms_apply_legacy_invitation()')
       )
     ), false),
     'Auth-Triggerfunktionen müssen SECURITY DEFINER mit leerem search_path sein und dürfen nicht direkt durch PUBLIC, anon oder authenticated aufrufbar sein'
