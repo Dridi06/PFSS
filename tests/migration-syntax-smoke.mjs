@@ -62,7 +62,7 @@ const organizationManagerGateMigration = await readFile(
 const normalizedOrganizationManagerGate = organizationManagerGateMigration.replace(/\s+/g, " ").toLowerCase();
 assert.match(normalizedOrganizationManagerGate, /security definer set search_path = '' as \$\$/,
   "Legacy organization manager helper must remain SECURITY DEFINER with an empty search_path.");
-assert.match(normalizedOrganizationManagerGate, /join public\.organizations o/,
+assert.match(normalizedOrganizationManagerGate, /from public\.organizations o/,
   "Legacy organization manager helper must load the authoritative organization row.");
 assert.match(normalizedOrganizationManagerGate, /o\.status in \('approved', 'active'\)/,
   "Suspended or unapproved organizations must not retain manager authority.");
