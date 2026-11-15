@@ -22,7 +22,8 @@ const migrationFiles = [
   "20261212_pfms_legacy_team_task_assignee_membership.sql",
   "20261213_pfms_training_cycle_session_date_guard.sql",
   "20261214_pfms_match_lineup_team_integrity.sql",
-  "20261215_pfms_team_permission_membership_gate.sql"
+  "20261215_pfms_team_permission_membership_gate.sql",
+  "20261216_pfms_roster_select_permission_gate.sql"
 ];
 const sources = await Promise.all(
   migrationFiles.map((file) => readFile(resolve(migrationDirectory, file), "utf8"))
@@ -122,7 +123,8 @@ const modules = {
     rpc: {
       pfms_list_legacy_team_tasks: "view",
       pfms_create_legacy_team_task: "edit",
-      pfms_update_legacy_team_task: "edit"
+      pfms_update_legacy_team_task: "edit",
+      pfms_delete_legacy_team_task: "edit"
     }
   }
 };
@@ -136,6 +138,18 @@ function latestFunctionBody(name) {
   );
   const matches = [...sql.matchAll(pattern)];
   assert.ok(matches.length > 0, "Missing database RPC definition: " + name);
+  return matches.at(-1)[1].replace(/\s+/g, " ").toLowerCase();
+}
+
+function latestSelectPolicyBody(tableName) {
+  const pattern = new RegExp(
+    "create policy\\s+[a-z0-9_]+\\s+on\\s+public\\." +
+      tableName +
+      "\\s+for\\s+select\\s+to\\s+authenticated\\s+using\\s*\\(([\\s\\S]*?)\\);",
+    "gi"
+  );
+  const matches = [...sql.matchAll(pattern)];
+  assert.ok(matches.length > 0, "Missing authenticated SELECT policy: " + tableName);
   return matches.at(-1)[1].replace(/\s+/g, " ").toLowerCase();
 }
 
@@ -171,24 +185,27 @@ for (const [moduleKey, definition] of Object.entries(modules)) {
       new RegExp("alter table " + tableRef + " force row level security"),
       moduleKey + " table must force RLS: " + tableName
     );
-    const policyPattern = new RegExp(
-      "create policy [a-z0-9_]+ on " +
-        tableRef +
-        " for select to authenticated using \\(public\\.pfms_has_legacy_team_permission\\s*\\([^)]*?['\"]" +
-        moduleKey +
-        "['\"]\\s*,\\s*['\"]view['\"]\\s*\\)\\)"
-    );
-    assert.match(
-      normalized,
-      policyPattern,
-      moduleKey + " table must have a module-scoped SELECT policy: " + tableName
-    );
+
+    const policyBody = latestSelectPolicyBody(tableName);
+    const requiredPolicyModules =
+      tableName === "pfms_legacy_training_sessions"
+        ? ["training", "attendance"]
+        : [moduleKey];
+    for (const requiredModule of requiredPolicyModules) {
+      assert.match(
+        policyBody,
+        new RegExp(
+          "pfms_has_legacy_team_permission\\s*\\([^)]*?['\"]" +
+            requiredModule +
+            "['\"]\\s*,\\s*['\"]view['\"]"
+        ),
+        moduleKey + " table SELECT policy must enforce " + requiredModule + ".view: " + tableName
+      );
+    }
     tableCount += 1;
   }
 }
 
-// The task module was added after the original eight permissions. Protect the
-// table constraint, all-nine payload validation and central membership gate.
 assert.match(
   normalized,
   /add constraint pfms_legacy_team_permissions_module_key_check\s+check\s*\(module_key in\s*\([^)]*'tasks'[^)]*\)\)/,
@@ -204,6 +221,7 @@ assert.match(
   /count\(distinct value ->> 'module_key'\)[\s\S]*?\)\s*<>\s*9/,
   "Permission save RPC must reject duplicate or missing module entries."
 );
+
 const latestPermissionHelper = latestFunctionBody("pfms_has_legacy_team_permission");
 assert.match(
   latestPermissionHelper,
@@ -215,7 +233,6 @@ assert.match(
   /'squad'[\s\S]*?'tasks'/,
   "The central permission helper must retain all nine supported modules."
 );
-
 const latestPermissionList = latestFunctionBody("pfms_list_legacy_team_permissions");
 assert.match(
   latestPermissionList,
@@ -223,14 +240,13 @@ assert.match(
   "Permission settings must not be readable through stale team assignments."
 );
 
-// Attendance is intentionally separate from training: training access alone
-// must never grant attendance access.
 const trainingList = latestFunctionBody("pfms_list_legacy_team_training");
 assert.match(
   trainingList,
   /'training', 'view'[\s\S]*?'attendance', 'view'/,
   "Combined training view must independently gate attendance data."
 );
+
 console.log(
   "PFMS team permission regression tests passed: " +
     rpcCount +
