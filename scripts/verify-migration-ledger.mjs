@@ -63,7 +63,7 @@ async function main() {
     "Remote migration ledger contains versions missing from this branch: " + remoteOnly.join(", "));
 
   const remoteSet = new Set(ledger.remote);
-  const expectedAppliedPrefix = localFiles.filter((version) => remoteSet.has(version));
+  const expectedAppliedPrefix = localFiles.slice(0, ledger.remote.length);
   assert.deepEqual(ledger.remote, expectedAppliedPrefix,
     "Remote migrations are not a chronological prefix of this branch. Reconcile history before applying anything.");
 
