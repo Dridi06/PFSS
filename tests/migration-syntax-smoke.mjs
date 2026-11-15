@@ -433,32 +433,19 @@ const legacyCoreHardening = migrationSources[
   migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
 ];
 assert.ok(legacyCoreHardening, "Legacy core SECURITY DEFINER hardening migration is missing.");
-for (const signature of [
-  "pfms_is_admin()",
-  "pfms_is_org_member(uuid)",
-  "pfms_admin_search_organizations(text, text)",
-  "pfms_admin_list_org_members(uuid)",
-  "pfms_admin_update_membership(uuid, text, text, jsonb)",
-  "pfms_admin_list_scouts(text)"
-]) {
-  const escapedSignature = signature.replace(/[.*+?^\u0024{}()|[\\]\\\\]/g, "\\\\const normalizedLegacyCoreHardening = legacyCoreHardening.toLowerCase().replace(/\s+/g, " ");
-for (const signature of [
-  "pfms_is_admin()",
-  "pfms_is_org_member(uuid)",
-  "pfms_admin_search_organizations(text, text)",
-  "pfms_admin_list_org_members(uuid)",
-  "pfms_admin_update_membership(uuid, text, text, jsonb)",
-  "pfms_admin_list_scouts(text)"
-]) {
-  assert.ok(
-    normalizedLegacyCoreHardening.includes("alter function public." + signature + " set search_path = ''"),
-    "Legacy SECURITY DEFINER function must receive an empty effective search_path: " + signature
-  );
-}");
+const legacyCoreSearchPathPatterns = [
+  /alter\s+function\s+public\.pfms_is_admin\(\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_is_org_member\(uuid\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_search_organizations\(text,\s*text\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_list_org_members\(uuid\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_update_membership\(uuid,\s*text,\s*text,\s*jsonb\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_list_scouts\(text\)\s+set\s+search_path\s*=\s*''/i
+];
+for (const pattern of legacyCoreSearchPathPatterns) {
   assert.match(
     legacyCoreHardening,
-    new RegExp("alter\\\\s+function\\\\s+public\\\\." + escapedSignature + "\\\\s+set\\\\s+search_path\\\\s*=\\\\s*''", "i"),
-    "Legacy SECURITY DEFINER function must receive an empty effective search_path: " + signature
+    pattern,
+    "Legacy SECURITY DEFINER function must receive an empty effective search_path: " + pattern
   );
 }
 
