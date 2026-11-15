@@ -20,6 +20,8 @@ let pfmsMainMediaLoadedAt = 0;
 let pfmsMainMediaOwnerId = '';
 let pfmsMainMediaRequestId = 0;
 let pfmsAuthGeneration = 0;
+let pfmsAccessCheckGeneration = 0;
+let pfmsLastVisibilityAccessCheckAt = 0;
 let editingGlobalPlayerId = null;
 let editingMainReportId = null;
 
@@ -7928,14 +7930,21 @@ function setupPfmsAdminMembers() {
   loadPfmsAdminMembers();
 }
 
-async function checkPfssAccess(user) {
+async function checkPfssAccess(user, options = {}) {
+  if (!user?.id) return;
+  const requestId = ++pfmsAccessCheckGeneration;
+  const requestedUserId = user.id;
+  const refreshOnly = options.refreshOnly === true;
   const { data: profile, error } = await pfssSupabase
     .from('profiles')
     .select('status, role, username')
-    .eq('id', user.id)
+    .eq('id', requestedUserId)
     .maybeSingle();
 
+  // A newer auth event or sign-out supersedes this profile lookup.
+  if (requestId !== pfmsAccessCheckGeneration) return;
   if (error || !profile) {
+    if (window.pfssCurrentUserId === requestedUserId) resetPfmsAuthenticatedState();
     showPendingScreen('pending', user);
     document.getElementById('pendingText').textContent =
       'Dein Profil konnte noch nicht geprüft werden. Bitte versuche es später erneut.';
@@ -7943,7 +7952,20 @@ async function checkPfssAccess(user) {
   }
 
   if (profile.status !== 'approved') {
+    if (window.pfssCurrentUserId === requestedUserId) resetPfmsAuthenticatedState();
     showPendingScreen(profile.status, user);
+    return;
+  }
+
+  const sameUser = window.pfssCurrentUserId === requestedUserId;
+  const sameRole = String(window.pfssCurrentRole || '').toLowerCase() ===
+    String(profile.role || '').toLowerCase();
+  if (sameUser && !sameRole) resetPfmsAuthenticatedState();
+
+  // On a resumed tab / refreshed token, keep the current screen when the
+  // account role is unchanged, but refresh the server-authoritative team list.
+  if (refreshOnly && sameUser && sameRole) {
+    await loadPfmsLegacyTeams();
     return;
   }
 
@@ -8704,10 +8726,19 @@ async function initializePfssAuth() {
 initializePfssAuth();
 
 // Bei Abmeldung Oberfläche schließen
-pfssSupabase.auth.onAuthStateChange(event => {
+pfssSupabase.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT') {
+    pfmsAccessCheckGeneration += 1;
     resetPfmsAuthenticatedState();
     showAuthScreen();
+  }
+
+  // Supabase auth callbacks run inside the auth event pipeline. Defer the
+  // profile lookup so it cannot block token/session processing.
+  if ((event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session?.user) {
+    setTimeout(() => {
+      void checkPfssAccess(session.user, { refreshOnly: true });
+    }, 0);
   }
 
   if (event === 'PASSWORD_RECOVERY') {
@@ -8716,6 +8747,29 @@ pfssSupabase.auth.onAuthStateChange(event => {
       if (dialog && !dialog.open) dialog.showModal();
     }, 0);
   }
+});
+
+// Revalidate approval and role after a tab resumes. This also refreshes team
+// assignments without resetting the user's current workspace unnecessarily.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !window.pfssCurrentUserId) return;
+  const now = Date.now();
+  if (now - pfmsLastVisibilityAccessCheckAt < 60000) return;
+  pfmsLastVisibilityAccessCheckAt = now;
+  setTimeout(async () => {
+    try {
+      const { data, error } = await pfssSupabase.auth.getUser();
+      if (error || !data?.user) {
+        pfmsAccessCheckGeneration += 1;
+        resetPfmsAuthenticatedState();
+        showAuthScreen();
+        return;
+      }
+      await checkPfssAccess(data.user, { refreshOnly: true });
+    } catch (error) {
+      console.warn('PFMS session revalidation failed:', error?.message || error);
+    }
+  }, 0);
 });
 
 document.getElementById('passwordForm')
