@@ -266,14 +266,14 @@ revoke all on function public.pfms_admin_list_legacy_scouts_page(text, text, tex
 revoke all on function public.pfms_admin_list_legacy_members_page(text, text, text, text, integer, integer)
   from public, anon;
 
-grant execute on function public.pfms_admin_search_legacy_organizations_page(text, text, text, integer, integer)
+grant execute on function public.pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)
   to authenticated;
 grant execute on function public.pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)
   to authenticated;
 grant execute on function public.pfms_admin_list_legacy_members_page(text, text, text, text, integer, integer)
   to authenticated;
 
-comment on function public.pfms_admin_search_legacy_organizations_page(text, text, text, integer, integer) is
+comment on function public.pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer) is
   'Administrator-only filtered organization directory page with a total row count.';
 comment on function public.pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer) is
   'Administrator-only filtered scout directory page with a total row count.';
