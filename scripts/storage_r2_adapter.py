@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 BUCKET_PREFIX = "storage/daily/"
 _NAME = re.compile(r"^pfms-storage-[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9_-]{6,40}\.tar\.enc$")
 _BUCKET = re.compile(r"^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")
+_R2_HOST = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.r2\.cloudflarestorage\.com$")
 
 
 class R2TransportError(RuntimeError):
@@ -23,16 +24,24 @@ Runner = Callable[[list[str], Mapping[str, str]], object]
 
 
 def _config(endpoint: str, bucket: str, access_key: str, secret_key: str) -> tuple[str, str, dict[str, str]]:
-    parsed = urlsplit(endpoint if isinstance(endpoint, str) else "")
-    if (parsed.scheme != "https" or not parsed.hostname or parsed.username is not None
-            or parsed.password is not None or parsed.query or parsed.fragment
-            or parsed.path not in ("", "/") or parsed.port not in (None, 443)):
+    if not isinstance(endpoint, str) or not endpoint or endpoint != endpoint.strip():
         raise R2TransportError("R2 endpoint must be a canonical HTTPS origin.")
+    try:
+        parsed = urlsplit(endpoint)
+        port = parsed.port
+    except ValueError:
+        raise R2TransportError("R2 endpoint must be a canonical HTTPS origin.") from None
+    hostname = parsed.hostname
+    if (parsed.scheme != "https" or not hostname or not _R2_HOST.fullmatch(hostname)
+            or parsed.username is not None or parsed.password is not None
+            or parsed.query or parsed.fragment or parsed.path not in ("", "/")
+            or port not in (None, 443)):
+        raise R2TransportError("R2 endpoint must be a canonical Cloudflare R2 HTTPS origin.")
     if not isinstance(bucket, str) or not _BUCKET.fullmatch(bucket):
         raise R2TransportError("Invalid R2 bucket name.")
     if not isinstance(access_key, str) or not access_key or not isinstance(secret_key, str) or not secret_key:
         raise R2TransportError("Explicit R2 credentials are required.")
-    return f"https://{parsed.hostname}", bucket, {
+    return f"https://{hostname}", bucket, {
         "AWS_ACCESS_KEY_ID": access_key,
         "AWS_SECRET_ACCESS_KEY": secret_key,
         "AWS_EC2_METADATA_DISABLED": "true",
