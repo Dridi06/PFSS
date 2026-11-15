@@ -492,6 +492,32 @@ with checks as (
 
   union all
   select
+    'legacy_invitation_redemption_status_gate',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%from public.organizations o%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for share%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_org_status not in (''approved'', ''active'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.redeemed_at is null%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.revoked_at is null%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%i.expires_at > pg_catalog.now()%'
+        and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) a
+          where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+        )
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_apply_legacy_invitation()')
+    ), false),
+    'Registrierungs-Trigger: aktueller Organisationsstatus und Einmal-Token werden unter Row Locks geprüft; kein Browser-EXECUTE'
+
+  union all
+  select
     'profile_authority_columns_protected',
     not coalesce(
       pg_catalog.has_column_privilege(
