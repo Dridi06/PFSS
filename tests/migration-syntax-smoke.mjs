@@ -50,6 +50,21 @@ assert.match(stagingAuditSql, /acldefault\('n'/i,
 assert.match(stagingAuditSql, /FROM\s+pg_default_acl/i,
   "Read-only audit must inspect configured default privileges.");
 
+const functionInventory = stagingAuditSql.match(
+  /function_rows AS \(([\s\S]*?)\),\s*function_grant_rows AS/i
+)?.[1] || "";
+const functionGrantInventory = stagingAuditSql.match(
+  /function_grant_rows AS \(([\s\S]*?)\),\s*grant_rows AS/i
+)?.[1] || "";
+assert.ok(functionInventory.includes("pg_get_functiondef"),
+  "Read-only audit must include effective definitions of public functions.");
+assert.ok(functionGrantInventory.includes("aclexplode"),
+  "Read-only audit must include ACLs for public functions.");
+assert.doesNotMatch(functionInventory, /p\.proname\s+ILIKE/i,
+  "Read-only audit must not silently filter public function definitions by name prefix.");
+assert.doesNotMatch(functionGrantInventory, /p\.proname\s+ILIKE/i,
+  "Read-only audit must not silently filter public function grants by name prefix.");
+
 assert.match(
   stagingAuditSql,
   /to_regclass\('supabase_migrations\.schema_migrations'\)\s+IS\s+NOT\s+NULL/i,
