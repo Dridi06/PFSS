@@ -450,7 +450,13 @@ assert.ok(ownerGuardMigration.includes("after insert on auth.users") && ownerGua
 assert.ok(ownerGuardMigration.includes("revoke all on table public.pfms_owner_bootstrap_requests"), "Owner registration evidence must not be user-readable or writable");
 assert.ok(supabaseConfigText.includes("[functions.pfms-owner-bootstrap]") && supabaseConfigText.includes("verify_jwt = true"), "Owner function must require JWT verification");
 assert.ok(ownerGuide.includes("PFMS_OWNER_BOOTSTRAP_TOKEN") && ownerGuide.includes("Staging"), "Staging owner setup guide is incomplete");
-assert.ok(stagingAudit.includes("'pfms_platform_owner'") && stagingAudit.includes("'pfms_owner_bootstrap_requests'"), "Read-only audit must inspect owner bootstrap tables");
+assert.ok(
+  stagingAudit.includes("n.nspname IN ('public', 'storage')")
+    && stagingAudit.includes("c.relkind IN ('r', 'p')")
+    && stagingAudit.includes("'RELATIONS'")
+    && stagingAudit.includes("'DEFAULT_PRIVILEGES'"),
+  "Read-only audit must dynamically inspect all owner bootstrap tables, relations and effective grants"
+);
 
 // Admin member directory uses the dedicated PFMS admin helper and legacy compatibility bridge.
 assert.ok(html.includes('id="pfmsAdminMembersFilterForm"') && html.includes('id="pfmsAdminMembersResults"'), "Admin member directory UI is missing");
