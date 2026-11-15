@@ -90,6 +90,8 @@ Das Skript führt ausdrücklich **keine Netzwerkverbindung** aus, liest keine Zu
 
 Die reine Traversierungslogik liegt in `scripts/storage_inventory.py`. Sie nimmt eine Seitenabruf-Funktion entgegen und erledigt selbst keine Netzwerkaufrufe. Damit lassen sich rekursive Ordner und Pagination isoliert testen, bevor ein Supabase-Adapter überhaupt verbunden wird.
 
+Der Kern ist zusätzlich gegen unkontrollierten Ressourcenverbrauch begrenzt: standardmäßig höchstens 100.000 Objekte, 10.000 Listenseiten und 32 Ordnerebenen. Die Grenzwerte sind beim Aufruf konfigurierbar, aber selbst ebenfalls nach oben begrenzt. Überschreitungen führen zum Abbruch und nicht zu einem scheinbar vollständigen Teilergebnis.
+
 Der Kern:
 
 - besucht Unterordner rekursiv und sortiert das Ergebnis nach Objektpfad;
@@ -100,7 +102,7 @@ Der Kern:
 
 Zusätzlich erzeugt `build_inventory_manifest()` eine deterministische Zusammenfassung mit Objektanzahl, Gesamtbytes und SHA-256 über die kanonisch sortierte Metadatenliste. Ein Manifest wird verweigert, wenn auch nur eine Dateigröße unbekannt oder ungültig ist. Größen werden als ganzzahlige Bytewerte behandelt.
 
-Die Regressionstests `tests/storage-inventory-core-smoke.py` verwenden ausschließlich lokale Testdaten. Sie prüfen verschachtelte Ordner, mehrseitige Ergebnisse, Sortierung, ungültige Pfade, Duplikate und fehlerhafte Größenangaben.
+Die Regressionstests `tests/storage-inventory-core-smoke.py` verwenden ausschließlich lokale Testdaten. Sie prüfen verschachtelte Ordner, mehrseitige Ergebnisse, Sortierung, ungültige Pfade, Duplikate, fehlerhafte Größenangaben, deterministische Manifeste sowie Objekt-, Seiten- und Tiefenlimits.
 
 ### Injizierter Supabase-Adapter (offline getestet)
 
