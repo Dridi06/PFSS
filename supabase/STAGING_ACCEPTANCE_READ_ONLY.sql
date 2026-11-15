@@ -1185,6 +1185,41 @@ with checks as (
     'Kernfunktionen für Admin- und Organisationsberechtigungen müssen SECURITY DEFINER mit leerem search_path und EXECUTE nur für authenticated besitzen'
 
 
+
+  union all
+  select
+    'organization_core_table_write_acl',
+    coalesce((
+      select count(*) = 3
+        and bool_and(
+          pg_catalog.has_table_privilege('authenticated', c.oid, 'SELECT')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'INSERT')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'TRUNCATE')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'SELECT')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'INSERT')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'UPDATE')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'DELETE')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'TRUNCATE')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'SELECT')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'INSERT')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'UPDATE')
+          and pg_catalog.has_table_privilege('service_role', c.oid, 'DELETE')
+        )
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public'
+        and c.relname in (
+          'pfms_organizations',
+          'pfms_memberships',
+          'pfms_scout_profiles'
+        )
+        and c.relkind in ('r', 'p')
+    ), false),
+    'Organisationen, Mitgliedschaften und Scout-Profile sind für authenticated nur lesbar; anon hat keinen Zugriff und service_role behält die serverseitigen Schreibrechte'
+
+
 )
 select check_name, passed, details
 from checks
