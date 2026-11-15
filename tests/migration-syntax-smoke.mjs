@@ -95,7 +95,6 @@ for (const tableName of createdPublicTables) {
 
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
-const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 for (const tableName of createdPublicTables) {
   const tableReference = "public\\." + tableName;
   assert.match(
