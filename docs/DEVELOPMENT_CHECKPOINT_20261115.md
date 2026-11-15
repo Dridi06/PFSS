@@ -156,3 +156,12 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - The collision baseline remains a blocker, not an approval to repair or rename migration history.
 - Code head at save time: `07b3bf28aa2d816124989ca11afbfc2697b65a95`; CI pending.
 - Overall progress remains 76% provisional; no live Supabase or production changes.
+
+
+## Staging acceptance SQL contract guard – 15 November 2026
+
+- Added a CI contract test for the 63 named checks in the read-only staging acceptance SQL.
+- Validates unique check names, stable result fields, a single read-only statement and critical authentication/tenant gates.
+- Integrated into `npm test`; no live database was queried.
+- Code head at save time: `483ed9182a374cfa14c25d43cdd04d4a7f2f4237`; CI pending.
+- Project estimate remains 76% provisional.
