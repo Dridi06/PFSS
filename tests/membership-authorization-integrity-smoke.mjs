@@ -79,9 +79,12 @@ for (const [pattern, message] of [
   [/v_current_role in \('owner','club_admin','agency_admin'\)/, "Leadership memberships must be protected for every manager RPC caller."],
   [/p_role is null[\s\S]*p_role not in/, "NULL and unsupported operational roles must be rejected."],
   [/p_status is null[\s\S]*p_status not in/, "NULL and unsupported membership statuses must be rejected."],
-  [/revoke all on function/, "Default/public execution must be revoked."],
-  [/grant execute on function[\s\S]*to authenticated/, "The existing authenticated manager workflow must remain callable."]
 ]) assert.match(managerUpdate, pattern, message);
+assert.match(
+  managerMigration,
+  /revoke all on function public\.pfms_update_legacy_org_membership_for_manager\(uuid, text, text\)[\s\S]*grant execute on function public\.pfms_update_legacy_org_membership_for_manager\(uuid, text, text\)[\s\S]*to authenticated/,
+  "The manager RPC must revoke PUBLIC/anon and retain authenticated execution."
+);
 assert.doesNotMatch(
   managerUpdate,
   /not public\.is_admin\(\) and v_current_role/,
