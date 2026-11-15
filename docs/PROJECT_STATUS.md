@@ -634,3 +634,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die neunte Berechtigung `tasks` wird ausdrücklich gegen die Tabellen-Constraint, die vollständige Neun-Einträge-Payload und die zentrale aktuelle Organisationsmitgliedschaftsprüfung abgesichert. Die Regression verhindert, dass spätere Änderungen den zentralen Teamzugriff wieder umgehen.
 - Der Test ist in Syntax- und vollständige Projekt-Testläufe eingebunden. Dies ist ein statischer Quelltext-/Migrationsschutz; reale Rollen- und Mandantentests gegen Supabase-Staging bleiben verpflichtend.
 - Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration und keine Änderung an `main` oder Produktivdaten.
+
+
+### Kaderdaten: direkte SELECT-Policy an granularen Modulzugriff gebunden – 15.11.2026
+
+- Die Prüfung hat eine konkrete RLS-Lücke in der Kader-Tabelle gefunden: Die SECURITY-DEFINER-RPCs verlangten bereits `squad.view`, die direkte PostgREST-SELECT-Policy prüfte aber nur allgemeinen Teamzugriff. Ein Teammitarbeiter ohne Kader-Leserecht hätte daher die Kaderzeilen direkt abfragen können.
+- Neue additive Migration `20261216_pfms_roster_select_permission_gate.sql` ersetzt diese Policy durch `pfms_has_legacy_team_permission(team_id, 'squad', 'view')`. Die zentrale Funktion verlangt zusätzlich die aktuelle aktive Organisationsmitgliedschaft und den gültigen Organisationsstatus.
+- Der neue Regressionstest prüft die jeweils neueste SELECT-Policy, FORCE RLS, modulbezogene RPC-Lese-/Schreibrechte und die vollständigen Aufgabenrechte einschließlich Löschen. Trainings- und Anwesenheitsrechte bleiben getrennt geprüft.
+- Noch nicht in Supabase angewendet. Vor Freigabe ist in Staging mit zwei Konten zu testen: gleicher aktiver Teamzugriff, aber einmal mit und einmal ohne `squad.view`; direkte Tabellenabfrage muss ohne Recht leer/abgewiesen sein, die berechtigte Abfrage muss funktionieren.
+- Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration und keine Änderung an `main` oder Produktivdaten.
