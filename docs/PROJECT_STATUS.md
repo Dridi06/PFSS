@@ -818,3 +818,14 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Das read-only Staging-Acceptance-Audit enthält dafür zwei neue Prüfpunkte: `admin_owner_integrity_membership` und `admin_platform_owner_profile_protection`. Die Checks lesen Funktionsdefinitionen und Berechtigungen; sie verändern keine Daten.
 - Die neuen Prüfungen sind zunächst Quellcode-/Audit-Verträge. Die tatsächliche Datenbankmigration und die negativen Laufzeittests mit getrennten Admin-/Nicht-Admin-Konten müssen weiterhin in der isolierten Staging-Umgebung ausgeführt werden.
 - Ausschließlich Feature-Branch; kein Merge, kein Render-Deployment, keine Supabase-Migration und keine Änderung an `main` oder Produktionsdaten.
+
+
+---
+
+# Ergänzung 15.11.2026 – Inhaber-Integrität CI-abgenommen
+
+- Verifizierter Feature-Commit: `825a966c3fd55122653f5fae051f92a38dd8715d`.
+- GitHub Actions vollständig erfolgreich: [Run 43716599147](https://github.com/Dridi06/PFSS/actions/runs/43716599147). Beide Jobs bestanden: Node-/Build-/Smoke-/Accessibility-/SQL-/Backup-Prüfungen und Deno-Typprüfung.
+- Die SQL-Smoke-Tests prüfen weiterhin 56 Migrationen und 137 SECURITY-DEFINER-Definitionen; zusätzlich sind die Inhaber-/Plattforminhaber-Schutzverträge jetzt explizit Teil der Regression.
+- Das Read-only-Staging-Audit prüft die beiden neuen Integritätsbedingungen bei der späteren Datenbankabnahme. Es wurde in dieser Runde nicht gegen eine reale Supabase-Datenbank ausgeführt.
+- Kein Merge, keine Render-Veröffentlichung, keine Migration und keine Änderung an `main` oder Produktionsdaten.
