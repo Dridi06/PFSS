@@ -91,3 +91,12 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Added `docs/RPC_DEPRECATION_REVIEW.md` and `tests/rpc-deprecation-review-smoke.mjs`. The test protects all five functions against accidental DROP, checks their authenticated grants, verifies the three paginated replacements and current frontend calls, and keeps the review report synchronized.
 - No SQL migration, function definition, grant, database, deployment, or production resource was changed.
 - Remaining release gates: effective staging catalog audit, migration-ledger reconciliation, helper-equivalence tests, two-tenant positive/negative runtime tests, and external-consumer/API-usage verification.
+
+
+## RPC review CI verification and project status – 15 November 2026
+
+- Commit `1b81ea1639a87b4ef3f7cb75599f0754f857e4b6` adds the RPC deprecation review, a regression guard and CI integration.
+- Push CI [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357) and PR CI [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779) both completed successfully; syntax/project smoke tests and Supabase Edge Function type-checks passed.
+- Full project smoke suite verified 21 navigation targets, 62 SQL migrations, 141 SECURITY DEFINER definitions, 128 public RPC names, 83 frontend RPC calls, tenant-write boundaries, grants, backup/restore safeguards and authorization audit contracts. These are static/CI checks, not live database acceptance.
+- Added `docs/PROJECT_STATUS_20261115.md` with a transparent weighted estimate of 76%. It explicitly marks staging/runtime acceptance as 0% and records all release gates; the overall percentage is provisional and not a production-readiness claim.
+- Verified branch head at this checkpoint: `1b81ea1639a87b4ef3f7cb75599f0754f857e4b6`.
