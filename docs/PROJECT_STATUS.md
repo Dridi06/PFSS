@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Neun-Modul-Berechtigungsmatrix zusätzlich abgesichert
+
+- Feature-Commit: `4a7689bf3e50eb984fe4d100ec24242fbe0f90c7`.
+- Die Regressionstests prüfen nun zusätzlich die vollständige Rechte-Matrix für alle neun Team-Module in drei zentralen RPC-Pfaden: eigene effektive Rechte lesen, Berechtigungsmatrix eines Teammitarbeiters anzeigen und Rechte als Teamleitung speichern.
+- Explizit abgesichert: zentrale aktuelle Team-/Organisationsmitgliedschaft vor dem Lesen, neun vollständige Module einschließlich `tasks`, ausschließlich berechtigte Teammanager für Änderungen, genau neun eindeutige Einträge und die Regel „edit erfordert view“.
+- GitHub Actions vollständig erfolgreich: [Run 43717699464](https://github.com/Dridi06/PFSS/actions/runs/43717699464). Beide Jobs bestanden: Node-/Build-/Smoke-/SQL-/Berechtigungs-/Backup-Prüfungen und Deno-Typprüfung der Edge Functions.
+- Ausschließlich Feature-Branch. Keine reale Supabase-Ausführung, keine Migration, kein Render-Deployment und keine Änderung an `main`, Staging-Daten oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – CI-Abnahme Admin-Fehlerprotokoll und Support-Postfach
 
 - Verifizierter Feature-Commit: `9da6e5f2991b7e8529c9e28df203c5972e5c49e7`.
