@@ -1091,3 +1091,12 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Änderung ausschließlich im Feature-Branch. Die GitHub-Actions-Prüfung muss den neuen Vertrag noch bestätigen; keine Migration, Datenbankverbindung, Deployment, Merge oder Produktionsänderung.
 
 - Nachweis ergänzt: Push-CI und PR-CI für den Teststand erfolgreich; beide Jobs (Projekt-/Smoke-Prüfungen und Edge-Function-Typprüfung) bestanden. [Push-CI 43726451752](https://github.com/Dridi06/PFSS/actions/runs/43726451752) · [PR-CI 43726455795](https://github.com/Dridi06/PFSS/actions/runs/43726455795).
+
+
+## Ergänzung 15.11.2026 – Expliziter Migrationsabhängigkeitsgraph
+
+- Neue Datei `supabase/migrations/dependency-manifest.json`: kuratierter Graph kritischer Reihenfolgeabhängigkeiten zwischen Schema-, Helper-, RPC-, Trigger- und Integritätsmigrationen. Jede Kante enthält eine kurze fachliche Begründung.
+- Neuer Regressionstest `tests/migration-dependency-graph-smoke.mjs`: prüft, dass alle referenzierten Migrationen existieren, jede Abhängigkeit in der tatsächlichen lexikografischen Ausführungsreihenfolge erfüllt ist, keine Kante doppelt vorkommt und der Graph zyklenfrei ist.
+- Der Test ist sowohl in `npm run check:syntax` als auch in `npm test` integriert. Die bestehende Migration-Syntaxprüfung bleibt bestehen.
+- Umfang bewusst begrenzt: Der Graph dokumentiert explizit geprüfte kritische Abhängigkeiten und behauptet nicht, jede mögliche SQL-Abhängigkeit automatisch zu erkennen. PostgreSQL-Ausführung und tatsächlicher Staging-Migrationsledger bleiben erforderlich.
+- CI für diesen Stand wird nachverfolgt. Keine Supabase-Verbindung, keine Migration angewendet, kein Render-Deployment, kein Merge und keine Produktionsänderung.
