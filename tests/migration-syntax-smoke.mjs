@@ -58,6 +58,8 @@ const functionGrantInventory = stagingAuditSql.match(
 )?.[1] || "";
 assert.ok(functionInventory.includes("pg_get_functiondef"),
   "Read-only audit must include effective definitions of public functions.");
+assert.match(functionInventory, /case when p\.prokind = 'a' then null else pg_get_functiondef/i,
+  "Read-only audit must safely represent public aggregate functions.");
 assert.ok(functionGrantInventory.includes("aclexplode"),
   "Read-only audit must include ACLs for public functions.");
 assert.doesNotMatch(functionInventory, /p\.proname\s+ILIKE/i,
