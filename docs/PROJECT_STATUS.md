@@ -807,3 +807,14 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Noch nicht auf Supabase Staging angewendet oder zur Laufzeit getestet. Keine Render-Änderung, kein Deployment, keine Produktionsmigration und keine Änderung an `main`.
 
 - CI-Nachweis für diesen Entwicklungsschritt: Commit `a485cddc407aadffc09ae03d6d5ce3df4ab19d41`, Push-Run [43715340949](https://github.com/Dridi06/PFSS/actions/runs/43715340949) und PR-Run [43715344055](https://github.com/Dridi06/PFSS/actions/runs/43715344055) erfolgreich; Node-/Build-/Regressionstests und Deno Edge-Function-Typprüfung bestanden.
+
+
+---
+
+# Ergänzung 15.11.2026 – Organisations- und Inhaberschutz als Staging-Abnahmekriterium
+
+- Die vorhandene Admin-Mitgliedschafts-RPC wird jetzt zusätzlich durch automatisierte Regressionen auf ihre kritischen Integritätsbedingungen geprüft: Sperre der übergeordneten Organisation vor der Mitgliedschaft, erneutes Sperren der Zielmitgliedschaft, Schutz des letzten aktiven Inhabers und serverseitige Admin-Autorisierung.
+- Auch die Profilverwaltung wird explizit gegen Selbständerung des eigenen Admin-Profils und gegen Änderungen am separat hinterlegten Plattforminhaber geprüft.
+- Das read-only Staging-Acceptance-Audit enthält dafür zwei neue Prüfpunkte: `admin_owner_integrity_membership` und `admin_platform_owner_profile_protection`. Die Checks lesen Funktionsdefinitionen und Berechtigungen; sie verändern keine Daten.
+- Die neuen Prüfungen sind zunächst Quellcode-/Audit-Verträge. Die tatsächliche Datenbankmigration und die negativen Laufzeittests mit getrennten Admin-/Nicht-Admin-Konten müssen weiterhin in der isolierten Staging-Umgebung ausgeführt werden.
+- Ausschließlich Feature-Branch; kein Merge, kein Render-Deployment, keine Supabase-Migration und keine Änderung an `main` oder Produktionsdaten.
