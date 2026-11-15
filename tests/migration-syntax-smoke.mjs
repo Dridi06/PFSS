@@ -123,6 +123,10 @@ const forceRlsExceptions = new Map([
     "RLS is enabled; browser table privileges are fully revoked; ownership is accessed only by protected server-side functions."
   ],
   [
+    "pfms_owner_bootstrap_requests",
+    "RLS is enabled; browser table privileges are fully revoked; eligibility evidence is written only by the auth trigger and consumed by the server-side owner bootstrap."
+  ],
+  [
     "pfms_organizations",
     "Legacy organization foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
   ],
