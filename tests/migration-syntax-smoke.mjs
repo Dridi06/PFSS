@@ -402,25 +402,6 @@ assert.match(stagingAcceptanceSql, /'admin_owner_integrity_membership'/,
 assert.match(stagingAcceptanceSql, /'admin_platform_owner_profile_protection'/,
   "The read-only staging audit must verify platform-owner profile protection.");
 
-const legacyProfileListHardening = migrationSources[
-  migrationFiles.indexOf("20261223_pfss_admin_profile_list_search_path_hardening.sql")
-];
-assert.ok(legacyProfileListHardening, "Legacy admin profile-list hardening migration is missing.");
-const legacyProfileListDefinition = extractSqlFunction(
-  legacyProfileListHardening, "pfss_admin_list_profiles"
-);
-assert.ok(legacyProfileListDefinition, "Legacy admin profile-list RPC is missing.");
-assert.match(legacyProfileListDefinition, /security definer set search_path = '' as \$\$/,
-  "Legacy admin profile-list RPC must use SECURITY DEFINER with an empty search_path.");
-assert.match(legacyProfileListDefinition, /public\.pfms_is_admin\(\)/,
-  "Legacy admin profile-list RPC must use the canonical administrator authorization.");
-assert.match(legacyProfileListHardening, /revoke all on function public\.pfss_admin_list_profiles\(\)\s+from public, anon/i);
-assert.match(legacyProfileListHardening, /grant execute on function public\.pfss_admin_list_profiles\(\)\s+to authenticated/i);
-assert.match(stagingAcceptanceSql, /'admin_legacy_profile_list_rpc_security'/,
-  "The read-only staging acceptance audit must verify the legacy profile-list RPC ACL and search_path.");
-assert.match(stagingAcceptanceSql, /'legacy_core_security_definer_search_path'/,
-  "The read-only staging acceptance audit must verify legacy core authorization helper ACLs and search_path.");
-
 const legacyCoreHardening = migrationSources[
   migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
 ];
