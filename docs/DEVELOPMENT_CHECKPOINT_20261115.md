@@ -71,3 +71,12 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Five review candidates: `pfms_admin_list_legacy_org_members`, `pfms_admin_list_legacy_scouts`, `pfms_admin_search_legacy_organizations`, `pfms_create_legacy_team_event`, and `pfms_update_legacy_team_event`. The first three are older unpaginated directory RPCs and may be compatibility endpoints; the event RPCs require checking UI/integration usage. No deletion or privilege change was made.
 - Verified CI for commit `11117733a641c43d61169250d192845babc75f65`: [Push run 43730466429](https://github.com/Dridi06/PFSS/actions/runs/43730466429) and [PR run 43730471577](https://github.com/Dridi06/PFSS/actions/runs/43730471577); both Node project tests and Supabase Edge Function type-check jobs passed in both runs.
 - These counts describe static source references only. Confirm actual staging `pg_proc`, effective ACLs, external consumers and API usage before any deprecation decision.
+
+
+## Checkpoint closure – RPC inventory review
+
+- RPC inventory implementation and interpretation documentation were finalized. Latest code-level verification commit: `11117733a641c43d61169250d192845babc75f65`; both push and PR CI passed (runs `43730466429` and `43730471577`).
+- Follow-up documentation/test-label commit: `fa347431b49f7fe12126b0ac12ec1c3b5ab3c215`; both push and PR CI passed (runs `43730585646` and `43730589612`).
+- Current branch head at checkpoint closure: `fa347431b49f7fe12126b0ac12ec1c3b5ab3c215`.
+- Pull request #1 remains open and Draft. GitHub currently reports it as mergeable/clean, but that is not a release approval and does not resolve migration-ledger or runtime staging acceptance.
+- Next safe work: inspect the five review-only RPC candidates against their effective latest SQL definitions and current UI workflows; preserve legacy endpoints until external-client usage is excluded. Then execute read-only catalog audits and isolated two-tenant runtime tests only after the dedicated Staging project is explicitly confirmed.
