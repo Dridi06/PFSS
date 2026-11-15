@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – R2-Transport-Härtung und CI-Nachweis
+
+- Der CI-Fehler im R2-Adapter-Smoke-Test wurde behoben: Die temporäre Backup-Datei bleibt während der Kollisionsprüfung innerhalb ihres temporären Verzeichnisses verfügbar.
+- Der folgende vollständige CI-Lauf auf Commit `bc4424bfe41eb158c62f1f1e4b0ac948eee0aea5` war erfolgreich: Projekt-/Build-/Smoke-/Accessibility-/SQL-/Backup-Prüfungen sowie Deno-Typprüfung.
+- Der R2-Transportadapter akzeptiert als Zielhost nun ausschließlich einen kanonischen HTTPS-Host unter `*.r2.cloudflarestorage.com`. Fremde Hosts, manipulierte Suffixe, Zugangsdaten in URLs, Pfade, Query-/Fragmentteile, nicht erlaubte Ports und fehlerhafte Portangaben werden vor Übergabe der Credentials an den Runner abgewiesen.
+- Die Regressionstests prüfen zusätzlich Host-Allowlist, Normalisierung des Hostnamens, fehlerhafte Ports und bösartige Lookalike-Domains. Der CI-Nachweis für den neuesten Commit `37b8e808b418b674e8d960c9d2b1fa51746c26e8` ist noch ausstehend.
+- Die R2-Transportfunktion bleibt ein injizierter Adapter. Ein realer R2-Upload, die Verifikation der Cloudflare-Kontoidentität und ein vollständiger Restore sind nicht erfolgt. Der HEAD-vor-PUT-Ablauf ist ausdrücklich keine atomare No-Overwrite-Garantie.
+
+---
+
 # PFMS – Verbindlicher Projektstatus
 
 Stand: 14.11.2026  
