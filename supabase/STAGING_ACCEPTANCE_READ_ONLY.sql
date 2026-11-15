@@ -1220,11 +1220,31 @@ with checks as (
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'TRUNCATE')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'REFERENCES')
+          and not pg_catalog.has_table_privilege('authenticated', c.oid, 'TRIGGER')
           and not pg_catalog.has_table_privilege('anon', c.oid, 'SELECT')
           and not pg_catalog.has_table_privilege('anon', c.oid, 'INSERT')
           and not pg_catalog.has_table_privilege('anon', c.oid, 'UPDATE')
           and not pg_catalog.has_table_privilege('anon', c.oid, 'DELETE')
           and not pg_catalog.has_table_privilege('anon', c.oid, 'TRUNCATE')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'REFERENCES')
+          and not pg_catalog.has_table_privilege('anon', c.oid, 'TRIGGER')
+          and not exists (
+            select 1
+            from pg_catalog.pg_attribute a
+            where a.attrelid = c.oid
+              and a.attnum > 0
+              and not a.attisdropped
+              and (
+                pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'INSERT')
+                or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'UPDATE')
+                or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'REFERENCES')
+                or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'SELECT')
+                or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'INSERT')
+                or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'UPDATE')
+                or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'REFERENCES')
+              )
+          )
           and pg_catalog.has_table_privilege('service_role', c.oid, 'SELECT')
           and pg_catalog.has_table_privilege('service_role', c.oid, 'INSERT')
           and pg_catalog.has_table_privilege('service_role', c.oid, 'UPDATE')
