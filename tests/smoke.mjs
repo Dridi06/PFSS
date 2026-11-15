@@ -198,7 +198,8 @@ for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
 }
 
 assert.ok(!html.includes("\\n  "), "index.html contains literal escaped line breaks");
-assert.ok(!html.includes("PROFESSIONAL FOOTBALL"), "Old public-facing product spelling remains");
+assert.ok(!html.includes("PROFESSIONELL FOOTBALL"), "Old public-facing product spelling remains");
+assert.ok(html.includes("PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM"), "Full product name must be used on the public-facing site");
 assert.ok(backupWorkflow.includes('pg_restore --list "backup/$FILE"') && backupWorkflow.includes('pg_restore --list "$VERIFY_FILE"'), "Backup workflow must validate the archive before and after encryption");
 assert.ok(backupWorkflow.includes("openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000"), "Backup workflow must verify decryption using the configured KDF parameters");
 assert.ok(backupWorkflow.includes("aws s3api head-object"), "Backup workflow must verify the uploaded encrypted object");
