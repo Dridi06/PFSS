@@ -1024,7 +1024,7 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 
 ### CI-Ergebnis
 
-<badge color="success">CI vollständig erfolgreich</badge>
+**CI vollständig erfolgreich.**
 
 - Workflow: `43723649878`
 - **Syntax and project smoke tests:** erfolgreich
@@ -1033,7 +1033,7 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 
 ### Grenzen und nächster Arbeitsschritt
 
-- Es wurde **keine** Migration auf Staging oder Produktion ausgeführt.
+- In diesem Arbeitsabschnitt wurde **keine** Datenbankmigration auf Staging oder Produktion ausgeführt.
 - Es erfolgte **kein** Deployment, Merge oder Eingriff in Live-/Produktivdaten.
 - Die historischen Migrationen wurden nicht umgeschrieben; die Härtung erfolgt additiv, damit ein bereits vorhandenes Migration-Ledger nicht durch geänderte Altdateien inkonsistent wird.
 - Implementierungsstand bleibt vorerst bei ca. **78 %**, Release-Reife bei ca. **55 %**. Die CI-Abdeckung ersetzt keine reale Staging-Abnahme.
