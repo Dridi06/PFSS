@@ -505,6 +505,39 @@ with checks as (
         and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
         and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
         and not pg_catalog.has_table_privilege('authenticated', c.oid, 'TRUNCATE')
+        -- REVOKE ON TABLE does not remove column-level grants. Check them separately.
+        and not exists (
+          select 1
+          from pg_catalog.pg_attribute a
+          where a.attrelid = c.oid
+            and a.attnum > 0
+            and not a.attisdropped
+            and (
+              pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'SELECT')
+              or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'INSERT')
+              or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'UPDATE')
+              or pg_catalog.has_column_privilege('anon', c.oid, a.attnum, 'REFERENCES')
+              or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'SELECT')
+              or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'INSERT')
+              or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'UPDATE')
+              or pg_catalog.has_column_privilege('authenticated', c.oid, a.attnum, 'REFERENCES')
+            )
+        )
+        -- PUBLIC is a distinct ACL grantee, not the anon role.
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(c.relacl, pg_catalog.acldefault('r', c.relowner))
+          ) acl
+          where acl.grantee = 0
+            and acl.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER')
+        )
+        and not exists (
+          select 1
+          from pg_catalog.pg_policies pol
+          where pol.schemaname = 'public'
+            and pol.tablename = 'organization_invitations'
+        )
       from pg_catalog.pg_class c
       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public'
