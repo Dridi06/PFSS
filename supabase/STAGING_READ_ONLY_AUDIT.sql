@@ -109,14 +109,7 @@ function_rows AS (
   FROM pg_proc p
   JOIN pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public'
-    AND (
-      p.proname ILIKE 'pfms_%'
-      OR p.proname ILIKE 'pfss_%'
-      OR p.proname IN (
-        'is_admin', 'is_org_member', 'can_manage_org',
-        'can_access_org_team', 'can_view_shared_scouting_report'
-      )
-    )
+
 ),
 function_grant_rows AS (
   SELECT
@@ -136,14 +129,7 @@ function_grant_rows AS (
   ) AS acl
   LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
   WHERE n.nspname = 'public'
-    AND (
-      p.proname ILIKE 'pfms_%'
-      OR p.proname ILIKE 'pfss_%'
-      OR p.proname IN (
-        'is_admin', 'is_org_member', 'can_manage_org',
-        'can_access_org_team', 'can_view_shared_scouting_report'
-      )
-    )
+
 ),
 grant_rows AS (
   SELECT 'TABLE_GRANTS'::text AS section,
