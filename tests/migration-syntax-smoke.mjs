@@ -229,8 +229,9 @@ assert.ok(
   ownerIntegrityMigration.includes("revoke all on function public.pfms_admin_update_legacy_membership(uuid, text, text)"),
   "The administrator membership RPC must revoke default public/anon execution."
 );
-assert.ok(
-  ownerIntegrityMigration.includes("grant execute on function public.pfms_admin_update_legacy_membership(uuid, text, text) to authenticated"),
+assert.match(
+  ownerIntegrityMigration,
+  /grant execute on function public\\.pfms_admin_update_legacy_membership\\(uuid, text, text\\)\\s+to authenticated/i,
   "The administrator membership RPC must explicitly grant execution to authenticated."
 );
 assert.match(stagingAcceptanceSql, /'admin_owner_integrity_membership'/,
