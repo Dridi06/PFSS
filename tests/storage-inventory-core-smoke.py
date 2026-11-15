@@ -83,6 +83,18 @@ def main() -> None:
     expect_error(lambda *_: [{"name": "fractional", "id": "x", "metadata": {"size": 1.5}}])
     expect_error(lambda *_: [{"name": "a", "id": "same"}, {"name": "a", "id": "same"}])
     expect_error(lambda *_: [{"name": "x", "id": "x"}], page_size=0)
+    expect_error(lambda *_: [{"name": "x", "id": "x"}], max_objects=0)
+    expect_error(lambda *_: [{"name": "x", "id": "x"}], max_pages=0)
+    expect_error(lambda *_: [{"name": "x", "id": "x"}], max_depth=0)
+    expect_error(lambda *_: [{"name": "x", "id": "x"}], page_size=1, max_pages=1)
+    expect_error(
+        lambda prefix, limit, offset: [{"name": "nested", "id": None}],
+        max_depth=1,
+    )
+    expect_error(
+        lambda prefix, limit, offset: [{"name": "same", "id": "file"}],
+        max_objects=0,
+    )
 
     print("PFMS Storage inventory core tests passed: recursion, pagination, sorting, path safety, duplicates, metadata validation and deterministic manifest; no network.")
 
