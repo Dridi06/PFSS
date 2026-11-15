@@ -7985,6 +7985,8 @@ function setupPfmsAdminMembers() {
       const card = button.closest('[data-membership-id]');
       if (!card) return;
 
+      const requestUserId = window.pfssCurrentUserId;
+      const requestGeneration = pfmsAuthGeneration;
       const message = card.querySelector('[data-global-member-message]');
       button.disabled = true;
       message.textContent = 'Änderungen werden gespeichert …';
@@ -7994,10 +7996,12 @@ function setupPfmsAdminMembers() {
           p_role: card.querySelector('[data-member-role]').value,
           p_status: card.querySelector('[data-member-status]').value
         });
+        if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
         if (error) throw error;
         message.textContent = 'Änderungen gespeichert.';
         await loadPfmsAdminMembers();
       } catch (error) {
+        if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
         console.error('PFMS global membership update:', error);
         message.textContent = 'Speichern fehlgeschlagen: ' + (error?.message || 'Berechtigung oder Eingaben prüfen.');
         button.disabled = false;
