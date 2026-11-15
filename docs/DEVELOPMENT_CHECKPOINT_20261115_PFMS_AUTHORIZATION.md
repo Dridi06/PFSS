@@ -90,3 +90,40 @@ Continue from branch `feature/pfss-complete-platform-build`, starting at HEAD `5
 
 ### Resume instruction
 Continue from the newest branch HEAD after this checkpoint commit. Re-check branch and CI first. Preserve all existing features, auth flows, menu/DOM/RPC contracts, tenant boundaries and server-side authorization. Keep development on the feature branch; do not apply migrations, deploy, merge, rebase or alter production without explicit approval and a separately reviewed plan.
+
+
+## Continuation checkpoint – 15 November 2026, legacy manager RPC boundary
+
+### Verified branch and CI
+- Repository: \`Dridi06/PFSS\`; branch: \`feature/pfss-complete-platform-build\`.
+- Code HEAD: \`930f682b9eeb75e31847193f01bf0400b84f922b\`.
+- GitHub Actions push run \`43741681430\` and PR run \`43741687445\` both completed successfully on this code HEAD. Syntax/project smoke tests and Supabase Edge Function Deno type checks passed in both runs.
+- PR #1 remains open and Draft against \`main\`. No merge or release approval was requested.
+
+### Additional authorization issue found and fixed
+- Source review of \`app.js\` confirmed that platform administrators already use \`pfms_admin_update_legacy_membership\`, while organization managers use \`pfms_update_legacy_org_membership_for_manager\`.
+- The previous manager RPC also admitted platform administrators and exempted them from its leadership-role restriction. This created an alternate path around the hardened, serialized last-active-owner admin RPC.
+- Added additive migration \`20261230_pfms_legacy_manager_admin_rpc_boundary.sql\`:
+  - Platform administrators are rejected by the legacy manager RPC and must use the dedicated admin RPC.
+  - Organization managers still retain operational membership management.
+  - Leadership memberships are protected for every caller of the manager RPC.
+  - Existing signature, SECURITY DEFINER model, empty search_path, and authenticated manager access are retained; PUBLIC/anon execution is revoked.
+- Added three migration dependency edges after the legacy membership foundation, owner-integrity hardening and active-organization manager predicate.
+- Extended \`tests/membership-authorization-integrity-smoke.mjs\`, the read-only staging acceptance SQL, its contract smoke test and \`docs/STAGING_DEPLOYMENT.md\`.
+- Staging acceptance now explicitly verifies the admin/manager RPC split, and the manual staging procedure tests that admins cannot invoke the manager RPC while managers can still manage operational roles.
+
+### Previous audit extension retained
+- The read-only audit verifies parent-organization lock order, membership reread/tenant-key revalidation, and role/status/permission payload validation.
+- The isolated two-session last-active-owner concurrency test remains a required future staging acceptance step.
+
+### Safety and release boundaries
+- The new migration has **not** been applied to Supabase staging or production.
+- No live database, Render service, deployment or production resource was changed.
+- PR #1 remains Draft; no merge, rebase or migration-history rewrite.
+- The feature branch remains diverged from \`main\`; the two main-side commits since the merge base were inspected as an add/revert pair for the legacy manager helper. Do not automatically synchronize or rewrite the migration history.
+- The existing duplicate migration-version prefixes remain a hard blocker pending backup-first reconciliation against the real staging ledger.
+- Real read-only staging audits, two-tenant positive/negative tests, RPC runtime tests, concurrent owner test, browser/device QA, passkey E2E and backup/restore validation remain outstanding.
+- Overall project estimate remains **76% provisional**; static CI success does not increase the live acceptance or release percentage.
+
+### Resume instruction
+Start by rechecking the latest feature-branch HEAD and both CI workflows. Continue source-level review of every legacy and PFMS membership/profile write path for authorization bypasses. Preserve all existing frontend contracts and tenant boundaries. Keep changes on the feature branch; do not apply migrations, deploy, merge or alter production without explicit approval.
