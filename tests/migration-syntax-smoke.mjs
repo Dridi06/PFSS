@@ -43,6 +43,8 @@ assert.match(stagingAuditSql, /pg_get_viewdef/i,
   "Read-only audit must expose view definitions for security review.");
 assert.match(stagingAuditSql, /security_invoker_view/,
   "Read-only audit must identify security-invoker view options.");
+assert.match(stagingAuditSql, /n\.nspname = 'auth' and c\.relname = 'users'/i,
+  "Read-only audit must inventory the auth.users relation and trigger context.");
 assert.match(stagingAuditSql, /acldefault\('S'/i,
   "Read-only audit must inspect sequence ACL defaults.");
 assert.match(stagingAuditSql, /acldefault\('n'/i,
