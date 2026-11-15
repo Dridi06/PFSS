@@ -50,6 +50,27 @@ Keine Werte oder Secrets in GitHub/Chat eintragen. Insbesondere darf niemals ein
 
 Daher darf `render.yaml` nicht blind synchronisiert und der Render-Branch nicht ohne weiteren Abgleich umgestellt werden. Eine falsche Blueprint-Synchronisierung könnte einen zusätzlichen Dienst anlegen oder den bestehenden Dienst unbeabsichtigt verändern.
 
+
+## Ergänzung nach Render-Build-/Deploy-Einstellungen (Screenshots)
+
+Die zusätzlich gelieferten Render-Screenshots zeigen für den bestehenden Dienst `pfss-staging`:
+- Repository: `Dridi06/PFSS`
+- Branch: `foundation/permissions-v1`
+- Root Directory: leer (Repository-Root)
+- Build Command: leer
+- Publish Directory: `.` (Repository-Root)
+- Auto-Deploy: `On Commit`
+- Pull Request Previews: `Off`
+- Render Subdomain: aktiviert, `https://pfss-staging.onrender.com`
+- Git Credentials sind dem Benutzerkonto zugeordnet.
+- Ein Deploy Hook ist vorhanden und als Geheimnis maskiert; niemals veröffentlichen oder in GitHub/Chat kopieren.
+
+**Abweichung zum bisherigen Überblick:** Die Übersichtsseite zeigte einen Button `Manual Deploy`; die Settings-Seite zeigt ausdrücklich `Auto-Deploy: On Commit`. Für die tatsächliche automatische Auslieferung ist daher zunächst von `On Commit` auszugehen. Vor jeder Branch-Änderung muss diese Einstellung berücksichtigt werden, weil ein Commit auf dem verbundenen Branch einen Build/Deploy auslösen kann.
+
+Der aktuell konfigurierte Build (leerer Build Command, Publish Directory `.`) unterscheidet sich wesentlich vom neuen Feature-Branch-Build (`npm run check:syntax && npm run build && npm run test:dist`, Publish Directory `./dist`). Eine Umstellung des Branches allein wäre deshalb nicht ausreichend und könnte die bestehende Website durch ein falsches/inkomplettes Artefakt ersetzen.
+
+Es wurde keine Render-Einstellung geändert und kein Deploy ausgelöst.
+
 ## Ergänzung nach Render-Environment-Screenshot
 
 Der Screenshot des bestehenden Dienstes `pfss-staging` zeigt:
