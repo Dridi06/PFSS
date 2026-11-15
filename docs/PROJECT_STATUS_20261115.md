@@ -136,3 +136,11 @@ No live Supabase migration was executed. No staging or production database was q
 - Documentation-only checkpoint follows in commit `850fd9dff181a8203069cce8ca7f641fab415bb6`.
 - No live database, staging or production resource was changed; no Render deployment or merge was performed.
 - Overall project estimate remains 76% provisional. Live staging migration-ledger reconciliation and two-tenant runtime acceptance remain outstanding.
+
+
+## Staging browser security-header contract – 15 November 2026
+
+- Render staging security settings now have explicit automated coverage for CSP, script-origin restrictions, inline/eval prohibition, HSTS, anti-framing, MIME protection, referrer policy and Permissions Policy.
+- GitHub Actions run [43737130315](https://github.com/Dridi06/PFSS/actions/runs/43737130315) passed both CI jobs on code commit `36eb895fd447036fe7a83ba41d52854416098098`.
+- No live staging/production resource or database was changed; no deployment or merge occurred.
+- Overall project estimate remains 76% provisional. Staging ledger reconciliation and two-tenant runtime acceptance remain outstanding.
