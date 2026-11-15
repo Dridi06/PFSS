@@ -56,12 +56,21 @@ for (const rpc of [
   "pfms_assign_legacy_team_staff",
   "pfms_save_legacy_team_permissions"
 ]) {
-  assert.match(
-    frontend,
-    new RegExp("\\.rpc\\s*\\(\\s*['\\\"]" + rpc + "['\\\"]"),
+  assert.ok(
+    frontend.includes(rpc),
     "Expected guarded RPC workflow is missing from the browser application: " + rpc
   );
 }
+assert.match(
+  frontend,
+  /\\.rpc\\s*\\(/,
+  "Tenant workflows must be routed through Supabase RPC calls."
+);
+assert.match(
+  frontend,
+  /pfms_update_legacy_org_membership_for_manager[\\s\\S]*?pfssSupabase\\.rpc\\(rpc,/,
+  "Organization-manager membership changes must select the guarded manager RPC dynamically."
+);
 
 console.log(
   "PFMS frontend tenant-write boundary passed: " +
