@@ -1028,6 +1028,45 @@ with checks as (
     ), false),
     'Organisationsmitglieder-Pagination muss Organisation, Filter und begrenzte Seiten samt Gesamtzahl prüfen'
 
+
+  union all
+  select
+    'admin_owner_integrity_membership',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.is_admin()%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%from public.organizations o%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%for update%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%other_owner.role = ''owner''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%other_owner.status = ''active''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfms_admin_update_legacy_membership(uuid,text,text)'
+      )
+    ), false),
+    'Admin-Mitgliedschaftsänderungen müssen SECURITY DEFINER, Admin-geschützt und serialisiert sein; die Organisation behält mindestens einen aktiven Inhaber'
+
+  union all
+  select
+    'admin_platform_owner_profile_protection',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_user_id = auth.uid()%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_platform_owner%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%owner_user_id = p_user_id%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfss_admin_update_profile(uuid,text,text)'
+      )
+    ), false),
+    'Der designierte Plattforminhaber und das eigene Admin-Profil müssen vor gewöhnlichen Profiländerungen geschützt sein'
+
 )
 select check_name, passed, details
 from checks
