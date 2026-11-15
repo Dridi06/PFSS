@@ -40,3 +40,13 @@
 ## Explicit limitations
 
 A green CI run proves repository checks, not the live PostgreSQL authorization behavior. The new SQL audit has not yet been executed against Supabase staging. Do not claim staging acceptance or production readiness until its output and the required negative tests have been reviewed.
+
+## Follow-up verification – final state
+
+- Per-command RLS summaries now distinguish SELECT, INSERT, UPDATE and DELETE, including ALL policies for each command.
+- The smoke test verifies the per-command summary and the exact permissive/restrictive combination explanation.
+- The first follow-up CI attempts exposed test-fixture assertion/syntax issues; these were corrected in subsequent commits rather than ignored.
+- Final verification commit: `2a494af212034417ca54ddd2754aedbe2e72ae27`.
+- Final GitHub Actions run: `43729260827` – completed successfully; both jobs passed.
+- Current feature branch head at checkpoint: `2a494af212034417ca54ddd2754aedbe2e72ae27`.
+- Staging SQL execution and live tenant-isolation tests remain outstanding. CI success is not a substitute for those gates.
