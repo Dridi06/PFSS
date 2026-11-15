@@ -318,8 +318,10 @@ assert.ok(
   "Notification inbox cards and unread counters require workspace styling"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_notifications'"),
-  "Staging audit must inventory the private notification table"
+  stagingAudit.includes("n.nspname IN ('public', 'storage')")
+    && stagingAudit.includes("c.relkind IN ('r', 'p')")
+    && stagingAudit.includes("'RELATIONS'"),
+  "Staging audit must inventory every public/storage table, including the private notification table"
 );
 assert.ok(
   stagingAcceptanceSql.includes("select check_name, passed, details")
