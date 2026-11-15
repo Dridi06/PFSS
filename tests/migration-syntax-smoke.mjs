@@ -7,6 +7,10 @@ const stagingAuditSql = await readFile(
   resolve(process.cwd(), "supabase/STAGING_READ_ONLY_AUDIT.sql"),
   "utf8"
 );
+const stagingAcceptanceSql = await readFile(
+  resolve(process.cwd(), "supabase/STAGING_ACCEPTANCE_READ_ONLY.sql"),
+  "utf8"
+);
 const executableAuditSql = stagingAuditSql
   .replace(/--[^\n]*/g, "")
   .replace(/'(?:''|[^'])*'/g, "''")
@@ -132,9 +136,9 @@ for (const [name, source, functionName] of [
 const profileCountsDefinition = extractSqlFunction(adminProfilePagination, "pfss_admin_profile_counts");
 assert.match(profileCountsDefinition, /public\.pfms_is_admin\(\)/,
   "The dashboard counters must have a separate administrator-only aggregate RPC.");
-assert.match(stagingAuditSql, /'admin_directory_pagination_rpc_security'/,
+assert.match(stagingAcceptanceSql, /'admin_directory_pagination_rpc_security'/,
   "The read-only staging acceptance audit must verify pagination RPC security.");
-assert.match(stagingAuditSql, /'admin_directory_pagination_bounds'/,
+assert.match(stagingAcceptanceSql, /'admin_directory_pagination_bounds'/,
   "The read-only staging acceptance audit must verify pagination limits.");
 for (const signature of [
   "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
