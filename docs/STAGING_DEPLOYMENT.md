@@ -97,7 +97,7 @@ supabase db push
 
 Die CLI wendet alle noch ausstehenden, versionierten Migrationen in ihrer Reihenfolge an. Keine einzelne Migration überspringen.
 
-Die Migration `20261112_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit. Sie folgt auf die Basistabellen für `organizations` und `organization_memberships` vom 11. November und liegt bewusst vor den nachfolgenden Einladungs- und Mitgliederverwaltungs-RPCs. Die reguläre chronologische Migrationenfolge muss eingehalten werden; die Migration darf nicht ausgelassen werden.
+Die Migration `20261112_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit. Sie folgt auf die Basistabellen für `organizations` und `organization_memberships` vom 11. November und liegt bewusst vor den nachfolgenden Einladungs- und Mitgliederverwaltungs-RPCs. Die frühere Migration `20261118_pfms_legacy_org_manager_guard.sql` bleibt als idempotente Wiederholung erhalten, damit ein möglicherweise bereits vorhandener Remote-Migrationsledger-Eintrag nicht verwaist. Beide Dateien müssen in der regulären chronologischen Reihenfolge erhalten bleiben; die frühere Definition wird zuerst installiert.
 
 ## 3.1 Username-Login-Rate-Limit vorbereiten
 
