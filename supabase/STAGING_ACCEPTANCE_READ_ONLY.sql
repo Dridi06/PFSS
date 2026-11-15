@@ -1214,7 +1214,8 @@ with checks as (
     coalesce((
       select count(*) = 3
         and bool_and(
-          pg_catalog.has_table_privilege('authenticated', c.oid, 'SELECT')
+          c.relrowsecurity
+          and pg_catalog.has_table_privilege('authenticated', c.oid, 'SELECT')
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'INSERT')
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
           and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
