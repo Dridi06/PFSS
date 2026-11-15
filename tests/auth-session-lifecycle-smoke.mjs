@@ -23,7 +23,11 @@ assert.match(app, /document\.addEventListener\('visibilitychange'[\s\S]*?pfssSup
   "Returning to a visible tab must revalidate the current user and refresh team assignments.");
 assert.match(app, /now - pfmsLastVisibilityAccessCheckAt < 60000/,
   "Visibility revalidation must be throttled to avoid excessive profile requests.");
-assert.match(app, /if \(refreshOnly && sameUser && sameRole\) \{\s*await loadPfmsLegacyTeams\(\);\s*return;/,
+assert.match(app, /if \(refreshOnly && sameUser && sameRole\) \{[\s\S]*?await loadPfmsLegacyTeams\(\)/,
   "Refresh-only checks must keep the current view and refresh server-authoritative team assignments.");
+assert.match(app, /!pfmsLegacyTeams\.some\(team => team\.team_id === pfmsSelectedLegacyTeam\.team_id\)/,
+  "A selected team that is no longer assigned must be invalidated after a team refresh.");
+assert.match(app, /pfmsTeamStaffDialog'\)\?\.close\(\)[\s\S]*?pfmsCloseSelectedTeam'\)\?\.click\(\)/,
+  "Revoked team assignments must close team-management dialogs and clear the selected workspace.");
 
 console.log("PFMS auth/session lifecycle tests passed: stale-request protection, approval/role revalidation, sign-out invalidation, token refresh and tab-resume checks.");
