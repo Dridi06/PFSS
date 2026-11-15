@@ -1188,6 +1188,98 @@ with checks as (
 
   union all
   select
+    'owner_bootstrap_security_boundary',
+    coalesce((
+      select
+        (
+          select count(*) = 2
+            and bool_and(
+              c.relrowsecurity
+              and not pg_catalog.has_table_privilege('authenticated', c.oid, 'SELECT')
+              and not pg_catalog.has_table_privilege('authenticated', c.oid, 'INSERT')
+              and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
+              and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
+              and not pg_catalog.has_table_privilege('anon', c.oid, 'SELECT')
+              and not pg_catalog.has_table_privilege('anon', c.oid, 'INSERT')
+              and not pg_catalog.has_table_privilege('anon', c.oid, 'UPDATE')
+              and not pg_catalog.has_table_privilege('anon', c.oid, 'DELETE')
+            )
+          from pg_catalog.pg_class c
+          join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+          where n.nspname = 'public'
+            and c.relname in ('pfms_platform_owner', 'pfms_owner_bootstrap_requests')
+            and c.relkind in ('r', 'p')
+        )
+        and (
+          select count(*) = 3
+            and bool_and(
+              p.prosecdef
+              and coalesce(p.proconfig::text, '') like '%search_path=""%'
+            )
+          from pg_catalog.pg_proc p
+          where p.oid in (
+            pg_catalog.to_regprocedure('public.pfms_register_owner_bootstrap_request()'),
+            pg_catalog.to_regprocedure('public.pfms_owner_setup_available()'),
+            pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)')
+          )
+        )
+        and not pg_catalog.has_function_privilege(
+          'authenticated',
+          pg_catalog.to_regprocedure('public.pfms_register_owner_bootstrap_request()'),
+          'EXECUTE'
+        )
+        and not pg_catalog.has_function_privilege(
+          'anon',
+          pg_catalog.to_regprocedure('public.pfms_register_owner_bootstrap_request()'),
+          'EXECUTE'
+        )
+        and pg_catalog.has_function_privilege(
+          'authenticated',
+          pg_catalog.to_regprocedure('public.pfms_owner_setup_available()'),
+          'EXECUTE'
+        )
+        and not pg_catalog.has_function_privilege(
+          'anon',
+          pg_catalog.to_regprocedure('public.pfms_owner_setup_available()'),
+          'EXECUTE'
+        )
+        and pg_catalog.has_function_privilege(
+          'service_role',
+          pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)'),
+          'EXECUTE'
+        )
+        and not pg_catalog.has_function_privilege(
+          'authenticated',
+          pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)'),
+          'EXECUTE'
+        )
+        and not pg_catalog.has_function_privilege(
+          'anon',
+          pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)'),
+          'EXECUTE'
+        )
+        and exists (
+          select 1
+          from pg_catalog.pg_trigger trg
+          join pg_catalog.pg_class rel on rel.oid = trg.tgrelid
+          join pg_catalog.pg_namespace ns on ns.oid = rel.relnamespace
+          join pg_catalog.pg_proc fn on fn.oid = trg.tgfoid
+          where ns.nspname = 'auth'
+            and rel.relname = 'users'
+            and not trg.tgisinternal
+            and fn.proname = 'pfms_register_owner_bootstrap_request'
+        )
+        and pg_catalog.pg_get_functiondef(
+          pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)')
+        ) ilike '%for update%'
+        and pg_catalog.pg_get_functiondef(
+          pg_catalog.to_regprocedure('public.pfms_claim_initial_owner(uuid)')
+        ) ilike '%service_role%'
+    ), false),
+    'Owner-Bootstrap ist an initiale Signup-Evidenz, RLS, leere search_paths, gesperrte Browser-Tabellenrechte und service_role-only Claim gebunden'
+
+  union all
+  select
     'auth_trigger_function_acl',
     coalesce((
       select count(*) = 2
