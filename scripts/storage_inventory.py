@@ -135,8 +135,12 @@ def build_inventory_manifest(inventory: list[dict[str, Any]]) -> dict[str, Any]:
         path = item.get("path")
         size = item.get("size")
         mime_type = item.get("mime_type")
-        if not isinstance(path, str) or not path or path in seen:
-            raise InventoryError("Inventory paths must be unique non-empty strings.")
+        if not isinstance(path, str) or not path or path.startswith("/") or path.endswith("/"):
+            raise InventoryError("Inventory path must be a non-empty relative file path.")
+        for segment in path.split("/"):
+            _validate_segment(segment)
+        if path in seen:
+            raise InventoryError("Inventory paths must be unique.")
         if isinstance(size, bool) or not isinstance(size, int) or size < 0:
             raise InventoryError("A complete manifest requires a known non-negative byte size.")
         if mime_type is not None and not isinstance(mime_type, str):
