@@ -25,6 +25,8 @@ supabase db push --dry-run
 
 **Sofort stoppen**, wenn das verknüpfte Projekt nicht eindeutig Staging ist, Migrationen fehlen, die Remote-Historie abweicht oder ein unerwarteter SQL-Plan angezeigt wird. Keine Migration-Historie manuell als erledigt markieren und kein `--include-all` ohne Schema-Audit verwenden.
 
+Vor jeder Migration zusätzlich das Skript `supabase/STAGING_READ_ONLY_AUDIT.sql` im SQL Editor des eindeutig bestätigten Staging-Projekts ausführen und das Ergebnis sichern. Es inventarisiert Tabellen/Spalten, RLS, Policies, Constraints, Trigger, Funktionsdefinitionen und -rechte, Tabellenrechte, Organisationsmodelle, Row-Schätzungen sowie **alle** Storage-Buckets. Es meldet auch, ob die Supabase-Migrationstabelle vorhanden ist. Das Skript ist eine einzelne read-only Abfrage und ersetzt weder `supabase migration list` noch den Dry-Run. Bei unbekannten Buckets, unerwarteten Rollen/Rechten oder Abweichungen zuerst klären; nicht automatisch bereinigen oder migrieren.
+
 Wenn der Dry-Run vollständig geprüft wurde:
 
 ```bash
