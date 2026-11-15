@@ -8,7 +8,7 @@ const authStyles = await readFile(resolve(outputDirectory, "styles.css"), "utf8"
 const executiveAuthStyles = await readFile(resolve(outputDirectory, "pfms-auth-executive.css"), "utf8");
 
 // Guard the Render blueprint as configuration, without contacting or changing Render.
-assert.ok(renderConfig.includes("name: pfms-staging-static"));
+assert.ok(renderConfig.includes("name: pfss-staging"), "Render blueprint must target the existing staging service");
 assert.ok(renderConfig.includes("runtime: static"));
 assert.ok(renderConfig.includes("branch: feature/pfss-complete-platform-build"));
 assert.match(renderConfig, /buildCommand: npm run check:syntax && npm run build && npm run test:dist/);
