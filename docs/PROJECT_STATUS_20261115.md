@@ -144,3 +144,36 @@ No live Supabase migration was executed. No staging or production database was q
 - GitHub Actions run [43737130315](https://github.com/Dridi06/PFSS/actions/runs/43737130315) passed both CI jobs on code commit `36eb895fd447036fe7a83ba41d52854416098098`.
 - No live staging/production resource or database was changed; no deployment or merge occurred.
 - Overall project estimate remains 76% provisional. Staging ledger reconciliation and two-tenant runtime acceptance remain outstanding.
+
+
+## Latest six-workstream continuation – 15 November 2026
+
+### Verified repository state
+- Current feature branch: `feature/pfss-complete-platform-build`.
+- Latest saved checkpoint commit: `44a1214d1cea91a108586716a08fae54347c55f0`.
+- PR #1 remains open and Draft; its head matches the saved checkpoint. The branch is diverged from `main` (1,419 commits ahead, 2 behind); no automatic rebase, merge or history rewrite is permitted.
+- Latest quality workflow run [43743980957](https://github.com/Dridi06/PFSS/actions/runs/43743980957) completed successfully. Both jobs passed: syntax/project smoke tests and Supabase Edge Function Deno type checks.
+
+### Latest automated evidence
+- 66 timestamped SQL migration files, 50 distinct eight-digit prefixes and 11 known duplicate version prefixes; 16 additional colliding files. Collision guard passes only because the exact known baseline is unchanged. This remains a release blocker.
+- Migration dependency graph: 66 files, 30 reviewed dependency edges, no missing nodes, ordering violations or cycles.
+- Static SQL checks parsed 66 migrations and 145 SECURITY DEFINER definitions.
+- RPC inventory: 131 public SQL RPC names; 83 frontend call sites checked; 110 SECURITY DEFINER signatures audited for effective source-level ACL restrictions.
+- Team permission tests: 46 guarded RPCs, 12 FORCE-RLS module tables and nine permission keys.
+- Frontend tenant write boundary: nine protected relations remain RPC-only across two browser entry points.
+- Read-only staging acceptance SQL: 70 unique named checks. CI validates its contract only; the SQL was not executed against a live database.
+- Backup/Storage adapter, archive, cryptographic integrity and staging-preflight regression suites passed using offline/fake transports only.
+- Project smoke suite verifies 21 navigation targets. Auth/session, frontend RPC, accessibility and Edge Function type checks passed.
+
+### Six-workstream disposition
+1. RPC and authorization source review: static checks passed. Five definition-only legacy RPC candidates are documented for compatibility review and remain intact.
+2. Tenant table, RLS and Storage boundaries: static and offline tests passed. No live bucket inventory, object transfer or restore was performed.
+3. Migration integrity: static dependency checks passed; duplicate versions and actual staging ledger reconciliation remain blocking.
+4. Two-tenant and live staging authorization: prepared read-only audits and test procedures exist, but live audit and two-tenant positive/negative runtime tests remain unexecuted.
+5. Authentication and UI regression checks: static CI passed; authenticated browser sessions and passkey end-to-end tests remain outstanding.
+6. Browser/device QA and recovery validation: not executed in an interactive browser/device or real isolated restore environment.
+
+### Release decision and progress
+- Overall estimate remains **76% provisional**. No increase is justified by static CI alone.
+- No Supabase migration, staging or production schema/data operation, Render deployment, PR merge or production change was performed.
+- Next required external input: the unmodified output of `supabase migration list` from the explicitly confirmed dedicated STAGING project, plus confirmation of the staging project ref/URL (never share secrets). Do not run migration repair, rename migrations, apply migrations or deploy before a reviewed backup-first reconciliation plan and explicit approval.
