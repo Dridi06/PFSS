@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – Vollständigkeit des Staging-Audits automatisch abgesichert
+
+- Der Migrationstest vergleicht jetzt jede in den Supabase-Migrationen neu angelegte Tabelle mit der expliziten Tabellenliste des Read-only-Staging-Audits. Fehlt künftig eine Tabelle im Audit, schlägt der CI-Test fehl, statt dass Schema-/RLS-/Policy-/Grant-Informationen unbemerkt fehlen.
+- Die Prüfung ist bewusst additiv und read-only: Sie verändert keine Migration, kein Datenbankschema und keine Daten. Neue Tabellen müssen künftig entweder in den Audit aufgenommen oder mit einer dokumentierten, begründeten Ausnahme versehen werden.
+- Vollständiger GitHub-Actions-Lauf für Commit `e1668a0166de23c7a1504e38a39198bb72e14055` erfolgreich: Node-Projekt-/Build-/Smoke-/Backup-Prüfungen und Deno-Typprüfung. [GitHub Actions – Run 43660208898](https://github.com/Dridi06/PFSS/actions/runs/43660208898).
+- Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung oder Migration, keine Änderung an `main` oder Produktivdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Read-only-Staging-Audit erweitert, CI vollständig grün
 
 - Das Skript `supabase/STAGING_READ_ONLY_AUDIT.sql` inventarisiert jetzt **alle vorhandenen Storage-Buckets** statt ausschließlich `pfss-scout-private`. Dadurch werden unerwartete oder zusätzliche Buckets sichtbar, bevor ein Storage-Backup oder eine Migration geplant wird.
