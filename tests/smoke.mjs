@@ -68,7 +68,7 @@ const [
   read("supabase/migrations/20261116_pfms_system_event_monitoring.sql"),
   read("supabase/migrations/20261117_pfms_system_event_hardening.sql"),
   read("supabase/migrations/20261117_pfms_main_media_library.sql"),
-  read("supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql"),
+  read("supabase/migrations/20261112_pfms_legacy_org_manager_guard.sql"),
   read("supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql"),
   read("supabase/migrations/20261121_pfms_legacy_org_membership_management.sql"),
   read("supabase/migrations/20261121_pfms_legacy_team_management.sql"),
