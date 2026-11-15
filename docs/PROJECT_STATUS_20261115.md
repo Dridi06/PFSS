@@ -22,7 +22,7 @@ The percentages for partially completed product workstreams are engineering esti
 
 - Repository: `Dridi06/PFSS`
 - Branch: `feature/pfss-complete-platform-build`
-- Current code checkpoint commit: `0471bd0bb908df40fde85612bec497a75b01bbce`
+- Current code checkpoint commit: `07b3bf28aa2d816124989ca11afbfc2697b65a95`
 - PR #1 remains open and Draft; do not merge or deploy without explicit approval.
 - CI push run [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357): both jobs passed.
 - CI pull-request run [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779): both jobs passed.
@@ -95,3 +95,14 @@ No live Supabase migration was executed. No staging or production database was q
 - CI fully passed for code commit `0471bd0bb908df40fde85612bec497a75b01bbce`: push run [43735267214](https://github.com/Dridi06/PFSS/actions/runs/43735267214) and PR run [43735271634](https://github.com/Dridi06/PFSS/actions/runs/43735271634), both jobs successful.
 - Important finding: the current branch contains 62 timestamped SQL files but only 46 distinct eight-digit prefixes; 11 prefixes occur more than once. The checker intentionally blocks this inventory until the real staging migration ledger and schema are reconciled. Existing migrations were not renamed or reordered.
 - No Supabase database was queried or modified, no migration was applied, no Render deployment occurred, and PR #1 remains Draft. The overall estimate remains 76% provisional; no increase is claimed because live staging/runtime acceptance remains outstanding.
+
+
+## Migration collision guard – 15 November 2026
+
+- Added `supabase/migrations/version-collision-baseline.json` with the exact 11 pre-existing duplicate version-prefix groups.
+- Added a CI audit that fails if the collision inventory changes unexpectedly, plus a smoke test for the baseline contract.
+- Added `docs/MIGRATION_VERSION_COLLISIONS.md` with a staged, backup-first reconciliation procedure.
+- Integrated both checks into `npm test`.
+- The baseline is deliberately marked `blocked-pending-staging-ledger-reconciliation`; it does not authorize migration repair, renaming, reordering, or application.
+- Current code checkpoint at this documentation update: `07b3bf28aa2d816124989ca11afbfc2697b65a95`. CI for this exact head is pending.
+- Overall project estimate remains 76% provisional. No live database, Render deployment, or merge was performed.
