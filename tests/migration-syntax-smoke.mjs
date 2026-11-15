@@ -85,6 +85,24 @@ for (const source of migrationSources) {
     createdPublicTables.add(match[1].toLowerCase());
   }
 }
+const expectedReadPolicies = new Map([
+  ["pfms_organizations", "pfms_org_read"],
+  ["pfms_memberships", "pfms_membership_read"],
+  ["pfms_scout_profiles", "pfms_scout_profile_read"]
+]);
+for (const [tableName, policyName] of expectedReadPolicies) {
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("create\\s+policy\\s+" + policyName + "\\s+on\\s+public\\." + tableName + "\\s+for\\s+select\\s+to\\s+authenticated"),
+    "RLS exception must retain its authenticated read policy: " + policyName
+  );
+  assert.doesNotMatch(
+    normalizedMigrationSql,
+    new RegExp("create\\s+policy\\s+[a-z0-9_]+\\s+on\\s+public\\." + tableName + "\\s+for\\s+(?:insert|update|delete|all)\\b"),
+    "Legacy foundation tables must not gain direct browser write policies: public." + tableName
+  );
+}
+
 assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
 for (const tableName of createdPublicTables) {
   assert.ok(
@@ -103,6 +121,18 @@ const forceRlsExceptions = new Map([
   [
     "pfms_platform_owner",
     "RLS is enabled; browser table privileges are fully revoked; ownership is accessed only by protected server-side functions."
+  ],
+  [
+    "pfms_organizations",
+    "Legacy organization foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
+  ],
+  [
+    "pfms_memberships",
+    "Legacy membership foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
+  ],
+  [
+    "pfms_scout_profiles",
+    "Legacy scout-profile foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
   ]
 ]);
 for (const tableName of createdPublicTables) {
