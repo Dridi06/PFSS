@@ -141,7 +141,8 @@ Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattforma
 
 ### Spiele, Kalender und Veranstaltungen
 - `matches.view/edit` und `calendar.view/edit` getrennt testen. Spiele, Ergebnisse, Aufstellungen und Mannschaftskalender dürfen nur im jeweiligen Berechtigungsbereich gelesen oder geändert werden.
-- Mit `events.view` nur Turniere und allgemeine Veranstaltungen der eigenen Mannschaft sehen; Spiele und Besprechungen müssen verborgen bleiben. `calendar.view` muss weiterhin den vollständigen Mannschaftskalender abdecken.
+- SECURITY-DEFINER-Negativtest: Ein Benutzer mit ausschließlich `calendar.view` darf über `pfms_list_legacy_team_calendar` keine Event-/Turnierzeilen erhalten. `pfms_create_legacy_team_calendar_event` darf keine Event-/Turnierarten anlegen; `pfms_update_legacy_team_calendar_event` darf bestehende Event-/Turnierzeilen weder lesen noch ändern oder umklassifizieren. Die entsprechenden Aktionen müssen mit ausschließlich `events.view/edit` ebenfalls über die Kalender-RPCs scheitern.
+- Mit `events.view` nur Turniere und allgemeine Veranstaltungen der eigenen Mannschaft sehen; Spiele und Besprechungen müssen verborgen bleiben. `calendar.view` umfasst ausschließlich Spiel-, Besprechungs- und sonstige Kalendereinträge; Event-/Turnierzeilen bleiben dem `events`-Modul vorbehalten.
 - Mit `events.edit` Veranstaltungen anlegen, bearbeiten und löschen. Ohne dieses Recht müssen alle Änderungen serverseitig scheitern.
 - Teilnehmerlisten dürfen nur Kaderspieler derselben Mannschaft enthalten. RSVP-Status `invited/confirmed/declined/attended/absent` testen. Teamfremde Spieler, teamfremde Veranstaltungen und direkte Tabellen-Schreibversuche müssen abgewiesen werden.
 - Anmeldeschluss, Treffpunkt, Transportart, Kosten und Kapazität prüfen. Das Kapazitätslimit darf weder beim Hinzufügen noch beim RSVP-Statuswechsel überschritten werden.
