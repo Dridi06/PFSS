@@ -90,6 +90,37 @@ const migrationFiles = entries
 
 assert.ok(migrationFiles.length > 0, "No Supabase migrations were found.");
 
+// Supabase applies timestamped migrations in filename order. Reject malformed
+// versions, impossible calendar dates, and duplicate version identifiers
+// before a migration can reach a staging or production deployment.
+const migrationVersionIds = new Set();
+for (const filename of migrationFiles) {
+  const match = filename.match(/^(\\d{8})_([a-z0-9][a-z0-9_]*)\\.sql$/);
+  assert.ok(
+    match,
+    filename + " must use the YYYYMMDD_description.sql migration naming convention."
+  );
+
+  const [, dateStamp, description] = match;
+  const year = Number(dateStamp.slice(0, 4));
+  const month = Number(dateStamp.slice(4, 6));
+  const day = Number(dateStamp.slice(6, 8));
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  assert.equal(parsedDate.getUTCFullYear(), year, filename + " has an invalid migration year.");
+  assert.equal(parsedDate.getUTCMonth() + 1, month, filename + " has an invalid migration month.");
+  assert.equal(parsedDate.getUTCDate(), day, filename + " has an invalid migration day.");
+  assert.ok(description.length >= 3, filename + " must have a descriptive migration name.");
+
+  const versionId = dateStamp + "_" + description;
+  assert.ok(!migrationVersionIds.has(versionId), "Duplicate migration version identifier: " + versionId);
+  migrationVersionIds.add(versionId);
+}
+assert.deepEqual(
+  migrationFiles,
+  [...migrationFiles].sort(),
+  "Migration filenames must remain in deterministic Supabase execution order."
+);
+
 for (const filename of migrationFiles) {
   const source = await readFile(resolve(migrationsDirectory, filename), "utf8");
   const delimiters = source.match(/\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$/g) ?? [];
