@@ -13,7 +13,7 @@ assert.ok(renderConfig.includes("runtime: static"));
 assert.ok(renderConfig.includes("branch: feature/pfss-complete-platform-build"));
 assert.match(renderConfig, /buildCommand: npm run check:syntax && npm run build && npm run test:dist/);
 assert.match(renderConfig, /staticPublishPath: \.\/dist/);
-assert.match(renderConfig, /autoDeployTrigger: checksPass/);
+assert.match(renderConfig, /autoDeployTrigger: ['\"]?off['\"]?/);
 assert.match(renderConfig, /key: PFMS_BUILD_TARGET\s+value: staging/);
 for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABASE_KEY"]) {
   assert.match(renderConfig, new RegExp("key: " + key + "\\s+sync: false"), key + " must be supplied outside the repository");
