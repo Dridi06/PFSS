@@ -576,3 +576,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - `tests/storage-archive-smoke.py` ergänzt Offline-Tests für Round-trip, Manipulation, Traversal, Duplikate, leere Inventare und Ressourcenlimits. Der Test wird in `npm run test:backup` aufgenommen.
 - **Nicht enthalten:** Supabase-Download, R2-Transport, Verschlüsselung dieses Storage-Archivs, automatischer Workflow oder echter Restore. Das TAR ist bis zur separaten Verschlüsselung nicht für dauerhafte Ablage oder Übertragung geeignet.
 - Die Entwicklung bleibt ausschließlich im Feature-Branch; keine Migration, Supabase-Verbindung, R2-Aktion, Render-Änderung oder Produktionsänderung.
+
+
+### Storage-Archiv – Verschlüsselung und Authentifizierung ergänzt – 15.11.2026
+
+- `scripts/storage_archive_crypto.py` ergänzt lokale AES-256-CBC/PBKDF2-Verschlüsselung (600.000 Iterationen) und verwendet den vorhandenen domain-separierten HMAC-SHA-256-Helfer.
+- Die Entschlüsselungsroutine authentifiziert den Chiffretext zuerst und ruft OpenSSL erst nach erfolgreicher HMAC-Prüfung auf.
+- Zielüberschreibung wird verhindert; Passphrase wird ausschließlich aus einer Umgebungsvariable gelesen und nicht als Prozessargument übergeben.
+- `tests/storage-archive-crypto-smoke.py` prüft Round-trip, manipulierten Chiffretext, falsches HMAC und Zielkonflikte. Der Test ist in `npm run test:backup` eingebunden.
+- **Noch nicht umgesetzt:** Supabase-Dateidownload, R2-Upload/Download, R2-Retention, automatischer Workflow und echter Staging-Restore. Es wurden keine externen Dienste kontaktiert.
