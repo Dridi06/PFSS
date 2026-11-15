@@ -360,7 +360,7 @@ assert.ok(
 assert.ok(!backupRunbook.includes("--clean") || backupRunbook.includes("Kein `--clean`"), "Restore guide must prohibit destructive clean restore flags");
 
 assert.ok(html.includes("PFMS – Professional Football Management System"), "PFMS brand is missing");
-assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 5, "Five PFMS registration choices must remain available");
+assert.equal((html.match(/class="registration-choice-card pricing-card/g) || []).length, 4, "Four public PFMS registration choices must remain available; privileged owner bootstrap stays private.");
 assert.equal((html.match(/data-registration-choice="(?:user|club|agency|scout)"/g) || []).length, 4, "Four public PFMS access packages must remain available separately from owner bootstrap");
 assert.ok(
   html.includes("Tarifvorschau") && html.includes("noch nicht buchbar")
