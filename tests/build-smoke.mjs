@@ -35,6 +35,8 @@ const requiredFiles = [
   "styles.css",
   "pfms-auth-executive.css",
   "scout-workspace.css",
+  "PFSS_Black_Gold_Design_Update.css",
+  "pfms-design-system.css",
   "app.js",
   "scout-workspace.js",
   "pfms-logo.svg",
@@ -89,7 +91,7 @@ for (const page of ["index.html", "rechtliches.html"]) {
 }
 
 
-for (const stylesheet of ["styles.css", "pfms-auth-executive.css", "scout-workspace.css"]) {
+for (const stylesheet of ["styles.css", "pfms-auth-executive.css", "scout-workspace.css", "PFSS_Black_Gold_Design_Update.css", "pfms-design-system.css"]) {
   const stylesheetPath = resolve(outputDirectory, stylesheet);
   const source = await readFile(stylesheetPath, "utf8");
 
