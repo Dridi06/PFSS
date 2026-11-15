@@ -639,6 +639,16 @@ assert.match(
   /'legacy_team_access_requires_active_org_membership'[\s\S]*?p_team_id is not null/i,
   "Read-only staging acceptance must verify NULL team IDs are denied by both central team authorization helpers."
 );
+assert.match(
+  stagingAcceptanceSql,
+  /pg_get_functiondef\(p_access\.oid\) ilike '%p_team_id is not null%exists \(%from public\.pfms_legacy_teams t%where t\.id = p_team_id%'/i,
+  "Read-only staging acceptance must verify admin access requires an existing team."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pg_get_functiondef\(p_manage\.oid\) ilike '%p_team_id is not null%exists \(%from public\.pfms_legacy_teams t%where t\.id = p_team_id%'/i,
+  "Read-only staging acceptance must verify admin management requires an existing team."
+);
 
 const organizationCoreAclMigration = migrationSources[
   migrationFiles.indexOf("20261225_pfms_organization_table_write_acl_hardening.sql")
