@@ -457,7 +457,7 @@ with checks as (
     coalesce((
       select p.prosecdef
         and coalesce(p.proconfig::text, '') like '%search_path=""%'
-        and pg_catalog.pg_get_functiondef(p.oid) ilike '%join public.organizations o%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%from public.organizations o%'
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%o.status in (''approved'', ''active'')%'
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.role in (''owner'', ''club_admin'', ''agency_admin'')%'
