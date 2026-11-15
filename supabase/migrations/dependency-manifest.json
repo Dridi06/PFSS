@@ -126,6 +126,21 @@
       "before": "20261111_organizations_memberships_permissions.sql",
       "after": "20261229_pfms_membership_authorization_integrity.sql",
       "reason": "The PFMS membership editor is replaced with serialized active-owner protection; the legacy organization-role helper is tightened against the existing PFSS organization lifecycle."
+    },
+    {
+      "before": "20261121_pfms_legacy_org_membership_management.sql",
+      "after": "20261230_pfms_legacy_manager_admin_rpc_boundary.sql",
+      "reason": "The replacement keeps the existing organization-manager RPC contract but separates manager operations from platform-admin ownership changes."
+    },
+    {
+      "before": "20261210_pfms_owner_integrity_hardening.sql",
+      "after": "20261230_pfms_legacy_manager_admin_rpc_boundary.sql",
+      "reason": "Platform administrators are routed to the dedicated serialized legacy-membership RPC that protects the final active owner."
+    },
+    {
+      "before": "20261222_pfms_legacy_org_manager_active_org_gate.sql",
+      "after": "20261230_pfms_legacy_manager_admin_rpc_boundary.sql",
+      "reason": "The manager-only replacement relies on the final active-organization can_manage_org authorization helper."
     }
   ]
 }
