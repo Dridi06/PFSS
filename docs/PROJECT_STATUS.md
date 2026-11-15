@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Read-only-Staging-Audit erweitert, CI vollständig grün
+
+- Das Skript `supabase/STAGING_READ_ONLY_AUDIT.sql` inventarisiert jetzt **alle vorhandenen Storage-Buckets** statt ausschließlich `pfss-scout-private`. Dadurch werden unerwartete oder zusätzliche Buckets sichtbar, bevor ein Storage-Backup oder eine Migration geplant wird.
+- Der Audit weist zusätzlich aus, ob die Supabase-Migrationshistorie unter `supabase_migrations.schema_migrations` vorhanden ist. Die konkreten Versionsstände werden weiterhin verbindlich mit `supabase migration list` und `supabase db push --dry-run` geprüft; das Audit ersetzt diese CLI-Prüfung nicht.
+- `tests/migration-syntax-smoke.mjs` schützt jetzt die Audit-Grenzen: genau eine read-only SQL-Abfrage, keine DDL-/DML-/GRANT-/REVOKE-Anweisungen, vollständige Bucket-Inventarisierung und Prüfung der Migration-Ledger-Erkennung.
+- Vollständiger GitHub-Actions-Lauf für Commit `163f8680e7ef7aeca4899001f646c071cc57fc43` erfolgreich: Node-Projekt-/Build-/Smoke-/Backup-Prüfungen und Deno-Typprüfung. [GitHub Actions – Run 43659970112](https://github.com/Dridi06/PFSS/actions/runs/43659970112).
+- Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung, keine Migration und keine Änderung an `main` oder Produktivdaten. Render bleibt bis zur vereinbarten späteren Staging-Runde unangetastet.
+
+---
+
 # Ergänzung 15.11.2026 – R2-Transport-Härtung und CI-Nachweis
 
 - Der CI-Fehler im R2-Adapter-Smoke-Test wurde behoben: Die temporäre Backup-Datei bleibt während der Kollisionsprüfung innerhalb ihres temporären Verzeichnisses verfügbar.
