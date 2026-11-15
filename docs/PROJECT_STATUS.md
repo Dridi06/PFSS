@@ -1072,3 +1072,11 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Vollständiger CI-Lauf für Commit `61c25cdaf1a2256ac63e09da7abbade186db0008` erfolgreich: [GitHub Actions – Run 43724837509](https://github.com/Dridi06/PFSS/actions/runs/43724837509). Syntax-/Projekt-Smoke-Tests und Deno-Edge-Function-Typprüfung bestanden. Der neue Test meldet neun geschützte Relationen über zwei Browser-Einstiegspunkte; anschließend bestanden auch Funktions-ACL-, Backup- und Storage-Regressionen.
 - Die ersten Testläufe deckten zwei Testfehler auf (dynamisch benannte RPC-Aufrufe und Regex-Escaping); beide wurden korrigiert und der abschließende vollständige Lauf war grün.
 - Keine Datenbankverbindung, keine Migration ausgeführt, kein Merge, kein Render-Deployment und keine Live-/Produktionsänderung.
+
+
+### Integrationshinweis – Abgleich mit `main` (15.11.2026)
+
+- Der aktuelle Commitvergleich meldet weiterhin einen divergierten Verlauf: Feature-Branch 1.299 Commits voraus, `main` zwei Commits voraus. Es wurde nicht gemergt, gerebased oder gepusht.
+- Die beiden Main-only-Commits betreffen ausschließlich `20261118_pfms_legacy_org_manager_guard.sql`: zunächst wurde die abgesicherte Helper-Funktion hinzugefügt, anschließend wurde dieselbe Datei wegen einer versehentlichen Default-Branch-Änderung wieder entfernt.
+- Der Feature-Branch enthält den identischen Funktionskörper bereits früher in `20261112_pfms_legacy_org_manager_guard.sql`, damit Einladungs-RPCs die Funktion in der chronologischen Migrationsreihenfolge vor ihrer ersten Verwendung erhalten. Die spätere `20261118`-Datei bleibt als idempotente Ledger-Kompatibilität erhalten.
+- Die beiden Main-only-Änderungen führen daher keinen fehlenden Funktionskörper ein, der im Feature-Branch nachgezogen werden müsste. Die Branch-Historie bleibt dennoch vor jeder Integration separat zu prüfen; kein automatischer Merge.
