@@ -41,6 +41,21 @@ for (const [index, edge] of manifest.dependencies.entries()) {
   indegree.set(after, indegree.get(after) + 1);
 }
 
+// Keep the latest security-hardening migrations connected to the schema and
+// authorization helpers they alter or call. This prevents a valid-looking
+// filename order from silently losing a critical dependency contract.
+const requiredEdges = [
+  ["20261111_organizations_memberships_permissions.sql", "20261224_pfms_legacy_core_search_path_hardening.sql"],
+  ["20261111_organizations_memberships_permissions.sql", "20261225_pfms_organization_table_write_acl_hardening.sql"],
+  ["20261111_organizations_memberships_permissions.sql", "20261227_pfms_legacy_team_access_null_guard.sql"],
+  ["20261121_pfms_legacy_team_management.sql", "20261227_pfms_legacy_team_access_null_guard.sql"],
+  ["20261222_pfms_legacy_org_manager_active_org_gate.sql", "20261227_pfms_legacy_team_access_null_guard.sql"]
+];
+for (const [before, after] of requiredEdges) {
+  assert.ok(edges.has(before + " -> " + after),
+    "Required security migration dependency is missing: " + before + " -> " + after);
+}
+
 // Kahn's algorithm: reject cycles even if future edits to ordering conventions
 // accidentally make a dependency graph appear superficially plausible.
 const queue = files.filter((name) => indegree.get(name) === 0);
