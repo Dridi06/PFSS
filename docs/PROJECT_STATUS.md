@@ -1,3 +1,15 @@
+# Ergänzung 15.11.2026 – Serverseitige Admin-Verzeichnis-Pagination
+
+- Die globalen Benutzerprofile, Organisationen, Scouts und organisationsübergreifenden Mitgliedschaften werden nicht mehr vollständig in den Browser geladen und dort gefiltert. Neue RPCs übernehmen Filterung, stabile Sortierung, Gesamtzählung und begrenzte Seitenfenster in PostgreSQL.
+- Standardseitengröße: 25 Datensätze; Datenbankseitige Obergrenze: 100 Datensätze pro Anfrage. Offsets sind zusätzlich begrenzt. Die RPCs verlangen die kanonische Admin-Prüfung `pfms_is_admin()`, SECURITY DEFINER mit leerem `search_path` und EXECUTE ausschließlich für `authenticated`.
+- Die Profilstatus-Kennzahlen werden separat aggregiert, damit sie unabhängig von Suchfilter und aktueller Seite korrekt bleiben.
+- Neue Migrationen: `20261218_pfms_admin_directory_pagination.sql` und `20261219_pfss_admin_profile_pagination.sql`. Das Read-only-Staging-Audit prüft die Funktionsrechte, Sicherheitsdefinitionen und Seitenbegrenzungen.
+- Frontend: Filter werden serverseitig übergeben; Navigation zeigt aktuelle Seite und Gesamtzahl. Such- und Seitenwechsel setzen ältere Antworten durch Request-IDs außer Kraft.
+- Regressionen: `tests/auth-session-lifecycle-smoke.mjs`, `tests/migration-syntax-smoke.mjs` und der vorhandene RPC-Vertragstest prüfen Frontend-Aufrufe, SQL-Signaturen, Admin-Schutz, Begrenzungen und Grants.
+- Noch kein CI-Lauf und keine reale Supabase-Ausführung für diese Änderungen bestätigt. Die Migrationen sind nicht angewendet; kein Render-Deployment, keine Änderung an `main` oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Sitzungsisolation der Plattformadministration
 
 - Die administrativen Leseansichten binden ihre Antworten jetzt an Benutzer-ID, Auth-Generation und bestätigten Adminstatus. Antworten nach Logout, Kontowechsel oder Rollenentzug werden verworfen, statt alte Verwaltungsdaten in eine neue Sitzung einzublenden.
