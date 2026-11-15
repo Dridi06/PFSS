@@ -154,7 +154,7 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Added a documented backup-first staging reconciliation procedure.
 - Integrated the guard into `npm test`.
 - The collision baseline remains a blocker, not an approval to repair or rename migration history.
-- Code head at save time: `07b3bf28aa2d816124989ca11afbfc2697b65a95`; CI pending.
+- Code head verified by push CI [43735599487](https://github.com/Dridi06/PFSS/actions/runs/43735599487) and PR CI [43735600046](https://github.com/Dridi06/PFSS/actions/runs/43735600046); both jobs passed.
 - Overall progress remains 76% provisional; no live Supabase or production changes.
 
 
@@ -163,5 +163,17 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Added a CI contract test for the 63 named checks in the read-only staging acceptance SQL.
 - Validates unique check names, stable result fields, a single read-only statement and critical authentication/tenant gates.
 - Integrated into `npm test`; no live database was queried.
-- Code head at save time: `483ed9182a374cfa14c25d43cdd04d4a7f2f4237`; CI pending.
+- Final code head for this block: `931c832747f2c7d5bdc9b7bd3b6037d332795831`; push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341) both passed.
 - Project estimate remains 76% provisional.
+
+
+## Verified continuation checkpoint – 15 November 2026
+
+- Branch: `feature/pfss-complete-platform-build`
+- Latest verified code head: `931c832747f2c7d5bdc9b7bd3b6037d332795831`
+- Added a read-only migration ledger preflight, explicit baseline guard for 11 pre-existing duplicate migration version prefixes, and a documented backup-first reconciliation procedure.
+- Added a CI contract test for all 63 unique checks in the read-only staging acceptance SQL.
+- Corrected the package description to the canonical product name Professional Football Management System.
+- Push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341) both passed.
+- PR #1 remains open and Draft. No merge, deployment, or database operation occurred.
+- Overall progress remains 76% provisional. Next priority: obtain/confirm dedicated STAGING project ref, reconcile the actual remote migration ledger, then execute approved two-tenant runtime acceptance.
