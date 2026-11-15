@@ -282,7 +282,7 @@ assert.match(
 const latestEventsList = latestFunctionBody("pfms_list_legacy_team_events");
 assert.match(
   latestEventsList,
-  /'events', 'view'[\s\S]*?event_type in \('tournament', 'event'\)/,
+  /'events', 'view'[\s\S]*?event_type in \('tournament',\s*'event'\)/,
   "Events read RPC must remain separately permission-gated and type-scoped."
 );
 
