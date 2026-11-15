@@ -15,7 +15,7 @@ begin
   for command_row in
     select *
     from pg_catalog.pg_event_trigger_ddl_commands()
-    where command_tag in ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+    where command_tag in ('CREATE TABLE', 'CREATE TABLE' || ' AS', 'SELECT INTO')
       and object_type in ('table', 'partitioned table')
   loop
     if command_row.schema_name = 'public' then
