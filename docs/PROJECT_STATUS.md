@@ -1039,3 +1039,14 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Implementierungsstand bleibt vorerst bei ca. **78 %**, Release-Reife bei ca. **55 %**. Die CI-Abdeckung ersetzt keine reale Staging-Abnahme.
 
 **Nächste offene Aufgabe:** Das Read-only-Audit und die 62 Acceptance-Prüfungen in der isolierten Staging-Umgebung ausführen, den Remote-Migrationsstand mit den 62 Repository-Migrationen vergleichen und Abweichungen dokumentieren. Erst danach die negativen RLS-/Tenant-Tests und die Browser-/Edge-Ende-zu-Ende-Prüfung vorbereiten. Jede Datenbankmigration und jedes Deployment bleiben bis zur ausdrücklichen Freigabe des Nutzers gesperrt.
+
+
+---
+
+## Ergänzung 15.11.2026 – Einladungstabelle: ACL-Audit auf Spaltenebene erweitert
+
+- Die Staging-Abnahme für `public.organization_invitations` prüft jetzt zusätzlich zu Tabellenrechten auch explizite Spaltenrechte für `anon` und `authenticated`. Das ist wichtig, weil PostgreSQL-Spaltenprivilegien getrennt von Tabellenprivilegien vergeben werden können.
+- Zusätzlich werden direkte `PUBLIC`-ACL-Einträge und Policies auf der Einladungstabelle ausdrücklich ausgeschlossen. Die Einladungsdaten bleiben damit ausschließlich über die kontrollierten SECURITY-DEFINER-RPCs und den Auth-Trigger erreichbar.
+- Der statische Migrationstest schützt diese drei zusätzlichen Prüfungen gegen spätere unbeabsichtigte Entfernung.
+- Änderung ausschließlich auf `feature/pfss-complete-platform-build`; keine Migration ausgeführt, keine Datenbankverbindung, kein Deployment, kein Merge und keine Live-Änderung.
+- CI für den neuen Commit wird separat ausgewertet; der Staging-Laufzeittest bleibt offen.
