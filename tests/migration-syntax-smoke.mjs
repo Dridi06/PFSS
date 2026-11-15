@@ -108,20 +108,20 @@ for (const [name, source] of [
   ["membership page", adminDirectoryPagination],
   ["profile page", adminProfilePagination]
 ]) {
-  const normalized = source.replace(/\\s+/g, " ").toLowerCase();
+  const normalized = source.replace(/\s+/g, " ").toLowerCase();
   assert.match(normalized, /security definer set search_path = '' as \$\$/,
     name + " must be a SECURITY DEFINER function with an empty search_path.");
-  assert.match(normalized, /public\\.pfms_is_admin\\(\\)/,
+  assert.match(normalized, /public\.pfms_is_admin\(\)/,
     name + " must enforce the canonical platform administrator check.");
   assert.match(normalized, /p_limit is null or p_limit not between 1 and 100/,
     name + " must cap each page at 100 rows.");
   assert.match(normalized, /p_offset is null or p_offset not between 0 and 1000000/,
     name + " must reject unbounded offsets.");
-  assert.match(normalized, /count\\(\\*\\) over \\(\\)/,
+  assert.match(normalized, /count\(\*\) over \(\)/,
     name + " must return a total count for stable pagination.");
 }
-assert.match(adminProfilePagination.replace(/\\s+/g, " ").toLowerCase(),
-  /create or replace function public\\.pfss_admin_profile_counts\\(\\)[\\s\\S]*?public\\.pfms_is_admin\\(\\)/,
+assert.match(adminProfilePagination.replace(/\s+/g, " ").toLowerCase(),
+  /create or replace function public\.pfss_admin_profile_counts\(\)[\s\S]*?public\.pfms_is_admin\(\)/,
   "The dashboard counters must have a separate administrator-only aggregate RPC.");
 for (const signature of [
   "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
