@@ -27,7 +27,8 @@ for (const phrase of ["read-only", "SHA-256", "isoliertes Supabase-Testprojekt",
   assert.ok(plan.toLowerCase().includes(phrase.toLowerCase()), "Storage backup plan is missing: " + phrase);
 }
 assert.match(plan, /niemals Quellobjekte bereinigen/i);
-assert.match(plan, /nicht überschreiben oder löschen/i);
+assert.match(plan, /nicht überschreiben/i);
+assert.match(plan, /nicht löschen/i);
 assert.match(acceptance, /'main_media_private_bucket'/);
 assert.match(acceptance, /'private_scout_storage_isolated'/);
 assert.match(acceptance, /b\.public\s*=\s*false/);
