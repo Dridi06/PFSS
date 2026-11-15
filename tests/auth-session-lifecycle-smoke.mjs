@@ -134,6 +134,16 @@ assert.match(organizationDetailLoader, /p_query: query[\s\S]*?p_status: status[\
   "Organization membership search, status and role filters must be applied server-side.");
 assert.match(organizationDetailLoader, /active_count[\s\S]*?pending_count[\s\S]*?suspended_count/,
   "Organization details must display accurate membership status totals.");
+
+assert.match(organizationDetailLoader, /const summary = data\?\.\[0\] \|\| \{\}/,
+  "Organization summary counters must be read from the summary row even when the page has no members.");
+assert.match(organizationDetailLoader, /members = \(data \|\| \[\]\)\.filter\(row => row\.membership_id\)/,
+  "The summary-only row from an empty page must never be rendered as a membership.");
+assert.match(organizationDetailLoader, /summaryTargets\.total\.textContent[\s\S]*?summaryTargets\.suspended\.textContent/,
+  "All four unfiltered organization counters must be rendered independently from the filtered page rows.");
+assert.match(organizationDetailLoader, /const filteredCount = Number\(summary\.filtered_count \|\| 0\)/,
+  "The filtered result count must remain separate from unfiltered organization totals.");
+
 assert.match(organizationDetailLoader, /currentRequestId !== memberRequestId[\s\S]*?isCurrentDetailRequest/,
   "Organization member pages must reject stale requests after filter, page or organization changes.");
 assert.match(organizationDetailLoader, /pfmsAdminPaginationMarkup/,
