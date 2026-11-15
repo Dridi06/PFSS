@@ -1,3 +1,18 @@
+## Ergänzung – Abnahme des Authentifizierungs- und Sitzungslebenszyklus
+
+Die folgenden Prüfungen sind nach Anwendung des vollständigen Staging-Migrationsstands mit getrennten Testkonten durchzuführen:
+
+1. Anmeldung mit einem freigegebenen Konto; Startansicht und aktuell berechtigte Teams prüfen.
+2. Im Staging-Konto die Plattformrolle ändern und die Sitzung erneuern bzw. den Browser-Tab in den Vordergrund zurückholen. Die Oberfläche muss die neue Rolle übernehmen; alte Admin-/Mitgliederansichten dürfen nicht weiter als aktive Berechtigung gelten.
+3. Ein Konto serverseitig auf `suspended` setzen. Nach Token-Erneuerung oder Tab-Rückkehr muss die PFMS-Arbeitsoberfläche geschlossen und der gesperrte Status angezeigt werden.
+4. Eine Teamzuordnung deaktivieren oder entfernen. Nach Tab-Rückkehr muss die Teamliste erneut aus der geschützten RPC geladen werden. Direkte RPC-/Datenbankzugriffe müssen unabhängig von der Darstellung weiterhin serverseitig abgewiesen werden.
+5. Während einer laufenden Profilprüfung abmelden und unmittelbar mit einem anderen Testkonto anmelden. Eine verspätete Antwort des ersten Kontos darf weder Rolle noch Ansicht noch Daten des zweiten Kontos überschreiben.
+6. Abmelden, erneut anmelden und die Browserseite neu laden. Es dürfen keine Team-, Scout-, Medien- oder Organisationsdaten des vorherigen Kontos sichtbar bleiben.
+
+**Abnahmegrenze:** CI-Smoke-Tests prüfen den Quellcodevertrag und die Schutzlogik. Sie simulieren weder Supabase Auth noch echte JWT-/RLS-/RPC-Laufzeit. Die obigen Tests sind deshalb echte Staging-Abnahmeschritte und dürfen nicht durch grüne CI ersetzt werden.
+
+---
+
 # PFMS – Staging-Deployment und Abnahme
 
 Diese Anleitung gilt ausschließlich für die getrennte PFMS-Testumgebung. Sie ist keine Freigabe für `main`, Produktions-Supabase oder die Live-Render-Domain.
