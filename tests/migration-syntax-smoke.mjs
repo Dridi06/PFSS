@@ -521,6 +521,13 @@ const expectedReadPolicies = new Map([
   ["pfms_memberships", "pfms_membership_read"],
   ["pfms_scout_profiles", "pfms_scout_profile_read"]
 ]);
+for (const tableName of ["pfms_organizations", "pfms_memberships", "pfms_scout_profiles"]) {
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("alter\\s+table\\s+public\\." + tableName + "\\s+enable\\s+row\\s+level\\s+security"),
+    "Organization core table must keep RLS enabled: " + tableName
+  );
+}
 for (const [tableName, policyName] of expectedReadPolicies) {
   assert.match(
     normalizedMigrationSql,
