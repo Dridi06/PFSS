@@ -50,7 +50,17 @@ assert.match(adminErrorsLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminError
 assert.match(app, /async function saveAdminUser\(button\)[\s\S]*?isCurrentPfmsAdminRequest/,
   "Admin profile changes must not update a different account's UI after a session switch.");
 
-console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, approval/role revalidation, token refresh and tab-resume checks.");
+
+const adminOrganizationDetails = app.match(/async function showPfmsOrganizationDetails\(root,org\)[\s\S]*?(?=function showPfmsScoutDetails)/)?.[0] || "";
+assert.match(adminOrganizationDetails, /isCurrentDetailRequest[\s\S]*?pfms_admin_list_legacy_org_members[\s\S]*?isCurrentDetailRequest/,
+  "Organization member details must be bound to the selected organization and active admin session.");
+assert.match(adminOrganizationDetails, /pfms_create_legacy_invitation[\s\S]*?isCurrentDetailRequest/,
+  "Invitation results must not be rendered into a stale administrator view.");
+const adminEventActions = app.match(/results\.addEventListener\('click',[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
+assert.match(adminEventActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
+  "System-event triage writes must not update stale or non-admin UI state.");
+
+console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
 
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
   "The frontend must maintain an explicit list of platform-administrator-only routes.");
