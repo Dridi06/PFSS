@@ -492,6 +492,29 @@ with checks as (
 
   union all
   select
+    'legacy_invitation_table_acl',
+    coalesce((
+      select c.relrowsecurity
+        and not pg_catalog.has_table_privilege('anon', c.oid, 'SELECT')
+        and not pg_catalog.has_table_privilege('anon', c.oid, 'INSERT')
+        and not pg_catalog.has_table_privilege('anon', c.oid, 'UPDATE')
+        and not pg_catalog.has_table_privilege('anon', c.oid, 'DELETE')
+        and not pg_catalog.has_table_privilege('anon', c.oid, 'TRUNCATE')
+        and not pg_catalog.has_table_privilege('authenticated', c.oid, 'SELECT')
+        and not pg_catalog.has_table_privilege('authenticated', c.oid, 'INSERT')
+        and not pg_catalog.has_table_privilege('authenticated', c.oid, 'UPDATE')
+        and not pg_catalog.has_table_privilege('authenticated', c.oid, 'DELETE')
+        and not pg_catalog.has_table_privilege('authenticated', c.oid, 'TRUNCATE')
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public'
+        and c.relname = 'organization_invitations'
+        and c.relkind in ('r', 'p')
+    ), false),
+    'Einladungstoken und Organisationszuordnung sind RLS-geschützt und für anon/authenticated nicht direkt les- oder schreibbar; Zugriff nur über kontrollierte RPCs und Auth-Trigger'
+
+  union all
+  select
     'legacy_invitation_redemption_status_gate',
     coalesce((
       select p.prosecdef
