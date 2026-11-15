@@ -531,7 +531,7 @@
   async function savePlayer(event) {
     event.preventDefault();
     if (state.previewMode) {
-      showMessage('In der Designvorschau sind Änderungen deaktiviert.');
+      showMessage('In dieser Vorschau sind Änderungen deaktiviert.');
       return;
     }
     const requestGeneration = state.generation;
@@ -582,7 +582,7 @@
   async function saveReport(event) {
     event.preventDefault();
     if (state.previewMode) {
-      showMessage('In der Designvorschau sind Änderungen deaktiviert.');
+      showMessage('In dieser Vorschau sind Änderungen deaktiviert.');
       return;
     }
     const requestGeneration = state.generation;
@@ -843,22 +843,11 @@
   }
 
   function renderPreviewData() {
-    const today = new Date();
-    const date = (daysAgo) => {
-      const value = new Date(today);
-      value.setDate(value.getDate() - daysAgo);
-      return value.toISOString().slice(0, 10);
-    };
-    state.players = [
-      { id: 'preview-player-1', name: 'Leon', surname: 'Berger', birth: '2006-04-18', club: 'Berlin Academy', position: 'Mittelfeld', foot: 'Rechts', nationality: 'Deutschland', height: 180 },
-      { id: 'preview-player-2', name: 'Yanis', surname: 'Haddad', birth: '2007-09-02', club: 'FC Nord', position: 'Sturm', foot: 'Links', nationality: 'Frankreich', height: 176 },
-      { id: 'preview-player-3', name: 'David', surname: 'Moretti', birth: '2005-12-11', club: 'Sporting West', position: 'Abwehr', foot: 'Rechts', nationality: 'Italien', height: 184 }
-    ];
-    state.reports = [
-      { id: 'preview-report-1', player_id: 'preview-player-1', observation_date: date(1), overall_rating: 3.6, notes: 'Gutes Raumgefühl, saubere erste Ballberührung und konstante Passqualität unter Druck.' },
-      { id: 'preview-report-2', player_id: 'preview-player-2', observation_date: date(3), overall_rating: 3.3, notes: 'Dynamischer Tiefenläufer mit starkem Antritt und Entwicklungspotenzial im Abschluss.' }
-    ];
-    state.globalPlayers = state.players;
+    // The administrator preview is intentionally empty and read-only.
+    // Never seed fixtures or read another account's private Scout data here.
+    state.players = [];
+    state.reports = [];
+    state.globalPlayers = [];
     state.globalPlayersAvailable = true;
     state.media = [];
     renderOverview();
@@ -866,7 +855,9 @@
     renderGlobalPlayers();
     renderReports();
     void renderMedia();
-    showMessage('Designvorschau mit Beispieldaten · keine Live-Daten · Änderungen und Uploads deaktiviert.');
+    const note = document.querySelector('#view-scout-workspace .scout-private-note');
+    if (note) note.textContent = 'Read-only Ansicht: Es werden keine echten Spieler-, Berichts- oder Mediendaten geladen.';
+    showMessage('Administratoransicht · keine Live-Daten geladen · Änderungen und Uploads deaktiviert.');
   }
 
   function activate() {
