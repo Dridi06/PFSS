@@ -63,3 +63,14 @@ No live Supabase migration was executed. No staging or production database was q
 - Verified GitHub Actions for code checkpoint 6b94cc348c1992e744a75143d5904657ae697898: push run https://github.com/Dridi06/PFSS/actions/runs/43733576413 and PR run https://github.com/Dridi06/PFSS/actions/runs/43733571078 both passed.
 - No Render deployment, Supabase auth configuration change, live staging/production database operation, or merge to main occurred. Browser-level visual QA on actual devices and a real auth round-trip remain outstanding.
 - Overall provisional project estimate remains 76%; the design implementation is a code milestone, not a substitute for the still-open staging/runtime and release gates.
+
+
+## Guided authentication UX follow-up – 15 November 2026
+
+- Added a two-step registration progress indicator (access selection, then account details) and a clear selection summary with a return path.
+- Added focus management when advancing/returning, polite live announcements for auth status and selection changes, and reduced-motion-aware scrolling.
+- Kept all five registration paths, existing form fields and server-side authorization behavior intact. Tariff amounts remain draft previews only and no checkout/payment capability is implied.
+- Canonical full product name is used as the primary public-facing brand. PFMS remains a secondary abbreviation; auth footer, logo alternative text and registration copy were aligned accordingly.
+- Updated asset query versions to ensure browsers receive the changed stylesheet and application script.
+- Latest code commit: 8a7f6bb0da4d1ed66a32cdae3c5880860a6b498c. Push run https://github.com/Dridi06/PFSS/actions/runs/43734178920 and PR run https://github.com/Dridi06/PFSS/actions/runs/43734184257 both passed.
+- Remaining: visual QA on actual browser/device combinations, test invitation and signup round-trips against isolated staging, and verify full legal/accessibility acceptance. No Render deployment or live database/auth changes were performed.

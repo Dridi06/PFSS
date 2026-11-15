@@ -111,3 +111,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Added the stylesheet to the static build allowlist and expanded smoke tests to check the auth contract, canonical brand spelling and published asset resolution.
 - CI passed for code checkpoint 6b94cc348c1992e744a75143d5904657ae697898: runs 43733576413 and 43733571078.
 - Remaining work: browser/device visual QA, registration-step UX refinement, test a real staging auth round-trip, and review copy/contrast with the complete legal and privacy flows. No live authentication or database changes were made.
+
+
+## Guided registration and brand refinement – 15 November 2026
+
+- Implemented a guided two-step registration UI with accessible progress states and a concise step announcement.
+- Added a dedicated registration detail intro, a clear way back to the access choices, and automatic focus on the username field after selecting an access type.
+- Added focus to the access selection section when returning, live announcement semantics for auth messages, and scroll behavior that respects reduced-motion preference.
+- Strengthened the smoke test to protect the progress markup, accessible status region, focus/scroll helper and both progress transitions.
+- Standardized public-facing login and registration copy around the full product name Professional Football Management System; PFMS remains only a supporting abbreviation. Updated CSS/JS cache query versions.
+- Latest code checkpoint 8a7f6bb0da4d1ed66a32cdae3c5880860a6b498c passed both CI workflows: runs 43734178920 and 43734184257.
+- No authentication backend changes, live staging/database access, Render deployment or merge to main. Real auth round-trip and visual device QA remain release gates.
