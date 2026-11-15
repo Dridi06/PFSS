@@ -63,12 +63,12 @@ for (const rpc of [
 }
 assert.match(
   frontend,
-  /\\.rpc\\s*\\(/,
+  /\.rpc\s*\(/,
   "Tenant workflows must be routed through Supabase RPC calls."
 );
 assert.match(
   frontend,
-  /pfms_update_legacy_org_membership_for_manager[\\s\\S]*?pfssSupabase\\.rpc\\(rpc,/,
+  /pfms_update_legacy_org_membership_for_manager[\s\S]*?pfssSupabase\.rpc\(rpc,/,
   "Organization-manager membership changes must select the guarded manager RPC dynamically."
 );
 
