@@ -1188,6 +1188,33 @@ with checks as (
 
   union all
   select
+    'auth_trigger_function_acl',
+    coalesce((
+      select count(*) = 2
+        and bool_and(
+          p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=""%'
+          and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+          and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+          and not exists (
+            select 1
+            from pg_catalog.aclexplode(
+              coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+            ) acl
+            where acl.grantee = 0
+              and acl.privilege_type = 'EXECUTE'
+          )
+        )
+      from pg_catalog.pg_proc p
+      where p.oid in (
+        pg_catalog.to_regprocedure('public.pfss_sync_signup_username()'),
+        pg_catalog.to_regprocedure('public.pfms_provision_new_account()')
+      )
+    ), false),
+    'Auth-Triggerfunktionen müssen SECURITY DEFINER mit leerem search_path sein und dürfen nicht direkt durch PUBLIC, anon oder authenticated aufrufbar sein'
+
+  union all
+  select
     'admin_legacy_profile_list_rpc_security',
     coalesce((
       select p.prosecdef
