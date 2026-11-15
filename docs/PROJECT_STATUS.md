@@ -905,7 +905,7 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 ---
 
-# Projekt-Sicherung / Übergabepunkt – 15.11.2026, 12:xx Uhr
+# Projekt-Sicherung / Übergabepunkt – 15.11.2026
 
 ## Verbindlicher Arbeitsstand
 - Repository: `Dridi06/PFSS`
