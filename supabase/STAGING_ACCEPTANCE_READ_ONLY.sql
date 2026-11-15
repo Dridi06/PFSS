@@ -804,7 +804,53 @@ with checks as (
         and p.proname = 'pfms_list_legacy_team_permissions'
         and pg_catalog.pg_get_function_identity_arguments(p.oid) = 'p_assignment_id uuid'
     ), false),
+
     'Modulrechte und Berechtigungslisten setzen die zentrale Prüfung der aktuellen Organisationsmitgliedschaft voraus'
+
+  union all
+  select
+    'calendar_read_rpc_event_isolation',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%e.event_type not in (''tournament'', ''event'')%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_list_legacy_team_calendar(uuid)')
+    ), false),
+    'SECURITY DEFINER Kalender-Lese-RPC muss Events/Turniere ausschließen und calendar.view erzwingen'
+
+  union all
+  select
+    'calendar_create_rpc_type_isolation',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_event_type not in (''match'',''meeting'',''other'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%calendar'', ''edit''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_create_legacy_team_calendar_event(uuid,text,text,date,time,time,text,text)')
+    ), false),
+    'Kalender-RPC darf nur Spiel-, Besprechungs- und sonstige Kalendereinträge anlegen; Events/Turniere gehören ins events-Modul'
+
+  union all
+  select
+    'calendar_update_rpc_type_isolation',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_existing_event_type in (''tournament'', ''event'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_event_type not in (''match'',''meeting'',''other'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%calendar'', ''edit''%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_update_legacy_team_calendar_event(uuid,text,text,date,time,time,text,text,text)')
+    ), false),
+    'Kalender-RPC darf Event-/Turnierzeilen weder lesen noch bearbeiten oder in Kalendereinträge umwandeln'
 
 )
 select check_name, passed, details
