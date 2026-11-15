@@ -453,6 +453,23 @@ with checks as (
 
   union all
   select
+    'legacy_org_manager_active_organization_gate',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%join public.organizations o%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.role in (''owner'', ''club_admin'', ''agency_admin'')%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.can_manage_org(uuid)')
+    ), false),
+    'Organisationsmanager benötigen eine aktive Mitgliedschaft und eine Organisation im Status approved/active'
+
+  union all
+  select
     'legacy_invitation_manager_authorization',
     coalesce((
       select p.prosecdef
