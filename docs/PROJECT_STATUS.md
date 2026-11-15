@@ -1018,7 +1018,7 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 ### Audit- und Abnahmeinstrumente
 
 - `supabase/STAGING_READ_ONLY_AUDIT.sql` inventarisiert öffentliche und Storage-Relationen, `auth.users`, Views, Trigger, alle öffentlichen Funktionen, Tabellen- und Spalten-ACLs, Sequenzrechte, Schema-Grants und Default-Privileges.
-- `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` enthält jetzt **63 gezielte Abnahmeprüfungen**, darunter Auth-Trigger-ACLs, SECURITY DEFINER-Suchpfade, Legacy-Team-Guards und Schreibrechte der Organisationskerntabellen.
+- `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` enthält jetzt **62 gezielte Abnahmeprüfungen**, darunter Auth-Trigger-ACLs, SECURITY DEFINER-Suchpfade, Legacy-Team-Guards und Schreibrechte der Organisationskerntabellen.
 - Die vier relevanten Auth-Registrierungstrigger werden auf SECURITY DEFINER, leeren Suchpfad und fehlende direkte Browser-EXECUTE-Rechte geprüft.
 - Regressionstests wurden um die effektive Suchpfad-Auswertung, Spalten-ACLs und die Existenzprüfung für Team-IDs ergänzt.
 
@@ -1038,4 +1038,4 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Die historischen Migrationen wurden nicht umgeschrieben; die Härtung erfolgt additiv, damit ein bereits vorhandenes Migration-Ledger nicht durch geänderte Altdateien inkonsistent wird.
 - Implementierungsstand bleibt vorerst bei ca. **78 %**, Release-Reife bei ca. **55 %**. Die CI-Abdeckung ersetzt keine reale Staging-Abnahme.
 
-**Nächste offene Aufgabe:** Das Read-only-Audit und die 63 Acceptance-Prüfungen in der isolierten Staging-Umgebung ausführen, den Remote-Migrationsstand mit den 62 Repository-Migrationen vergleichen und Abweichungen dokumentieren. Erst danach die negativen RLS-/Tenant-Tests und die Browser-/Edge-Ende-zu-Ende-Prüfung vorbereiten. Jede Datenbankmigration und jedes Deployment bleiben bis zur ausdrücklichen Freigabe des Nutzers gesperrt.
+**Nächste offene Aufgabe:** Das Read-only-Audit und die 62 Acceptance-Prüfungen in der isolierten Staging-Umgebung ausführen, den Remote-Migrationsstand mit den 62 Repository-Migrationen vergleichen und Abweichungen dokumentieren. Erst danach die negativen RLS-/Tenant-Tests und die Browser-/Edge-Ende-zu-Ende-Prüfung vorbereiten. Jede Datenbankmigration und jedes Deployment bleiben bis zur ausdrücklichen Freigabe des Nutzers gesperrt.
