@@ -211,3 +211,23 @@
   .pfms-notification-card{padding:13px}
   .pfms-notification-card-head{align-items:flex-start}
 }
+
+
+/* Admin-only visual preview: fixture data, no live reads or writes. */
+.scout-shell.is-preview .scout-private-note{
+  border-color:rgba(198,161,91,.42);
+  background:rgba(198,161,91,.1);
+  color:#ead7a7;
+}
+.scout-shell.is-preview [data-scout-action],
+.scout-shell.is-preview [data-scout-edit-player],
+.scout-shell.is-preview [data-scout-delete-player],
+.scout-shell.is-preview [data-scout-edit-report],
+.scout-shell.is-preview [data-scout-delete-report],
+.scout-shell.is-preview [data-scout-delete-media],
+.scout-shell.is-preview .scout-upload-button,
+.scout-shell.is-preview #scoutMediaInput,
+.scout-shell.is-preview .scout-dialog{
+  display:none!important;
+}
+.scout-shell.is-preview .scout-refresh-button{display:none!important}
