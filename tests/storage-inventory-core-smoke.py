@@ -43,7 +43,7 @@ def main() -> None:
         "alice/scout.png",
         "root.jpg",
     ]
-    assert len(calls) == 4
+    assert len(calls) == 5
     assert result[0]["size"] == 30
 
     # A full page must trigger the next offset; a short page ends pagination.
