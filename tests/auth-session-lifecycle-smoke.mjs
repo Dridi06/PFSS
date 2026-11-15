@@ -125,6 +125,20 @@ assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTicket
 
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
 
+const adminOverviewLoader = app.match(/async function loadPfmsAdminOverview\\(\\)[\\s\\S]*?(?=async function loadAdminUsers)/)?.[0] || "";
+assert.match(adminOverviewLoader, /pfms_admin_search_legacy_organizations_page[\\s\\S]*?p_limit: 1[\\s\\S]*?p_offset: 0/,
+  "The admin overview must count organizations through the bounded, protected directory RPC.");
+assert.match(adminOverviewLoader, /pfms_admin_list_legacy_members_page[\\s\\S]*?p_status: 'active'[\\s\\S]*?p_limit: 1/,
+  "The admin overview must count active memberships through the protected membership RPC.");
+assert.match(adminOverviewLoader, /pfms_admin_list_system_events_page[\\s\\S]*?p_status: 'open'[\\s\\S]*?p_limit: 1/,
+  "The admin overview must count open system events through the protected event RPC.");
+assert.match(adminOverviewLoader, /isCurrentPfmsAdminRequest[\\s\\S]*?requestId === pfmsAdminOverviewRequestId/,
+  "The admin overview must reject stale sessions and out-of-order responses.");
+assert.match(app, /pfmsAdminOverviewRequestId \\+= 1/,
+  "Authentication reset must invalidate pending admin overview requests.");
+assert.match(app, /if \\(view === 'admin' && window\\.pfssIsRealAdmin\\) void loadPfmsAdminOverview\\(\\)/,
+  "The platform overview must load only inside the administrator view.");
+
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
   "The frontend must maintain an explicit list of platform-administrator-only routes.");
 assert.match(app, /if \(adminOnlyViews\.has\(view\) && !window\.pfssIsRealAdmin\)[\s\S]*?view = 'dashboard'/,
