@@ -1561,3 +1561,10 @@ button,input,select,textarea{max-width:100%}
     flex: 1 1 auto;
   }
 }
+
+
+/* Accessible, responsive pagination for administrator directories */
+.pfms-admin-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 4px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.pfms-admin-pagination span{color:var(--muted);font-size:12px;text-align:center;flex:1 1 150px}
+.pfms-admin-pagination .btn:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:600px){.pfms-admin-pagination{display:grid;grid-template-columns:1fr 1fr}.pfms-admin-pagination span{grid-column:1/-1;grid-row:1}.pfms-admin-pagination .btn{width:100%}}
