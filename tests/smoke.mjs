@@ -447,7 +447,7 @@ assert.ok(authTriggerHardeningMigration.includes("set search_path = ''") && auth
 assert.ok(usernameLogin.includes('"Cache-Control": "no-store"'), "Username login token responses must not be cached");
 
 // One-time owner setup: original registration evidence, confirmed email, JWT identity and server-side claim.
-assert.ok(html.includes('data-registration-choice="owner_bootstrap"'), "Owner bootstrap registration choice is missing");
+assert.ok(!html.includes('data-registration-choice="owner_bootstrap"'), "Privileged owner bootstrap must not be exposed as a public registration choice");
 assert.ok(html.includes('id="ownerBootstrapForm"') && html.includes('id="ownerBootstrapToken"'), "Owner activation form is missing");
 assert.ok(app.includes("pfms_owner_setup_available") && app.includes("pfms-owner-bootstrap"), "Owner availability/activation wiring is missing");
 assert.ok(ownerBootstrap.includes("auth.getUser()") && ownerBootstrap.includes("email_confirmed_at"), "Owner bootstrap must verify the authenticated email");
