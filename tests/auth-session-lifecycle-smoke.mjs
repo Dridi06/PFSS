@@ -110,7 +110,8 @@ assert.match(adminSupportLoader, /requestId !== pfmsAdminSupportRequestId[\s\S]*
   "The administrator support inbox must reject stale sessions and out-of-order requests.");
 assert.match(adminSupportLoader, /if \(status\) request = request\.eq\('status', status\)/,
   "The support status filter must be applied by the database.");
-assert.match(adminSupportLoader, /pfmsAdminPaginationMarkup/,
+const adminSupportRenderer = app.match(/function renderPfmsAdminSupportTickets\(\)[\s\S]*?(?=async function loadPfmsAdminSupportTickets)/)?.[0] || "";
+assert.match(adminSupportRenderer, /pfmsAdminPaginationMarkup/,
   "The administrator support inbox must render page navigation.");
 const adminSupportSetup = app.match(/function setupPfmsAdminSupport\(\)[\s\S]*?(?=function showView)/)?.[0] || "";
 assert.match(adminSupportSetup, /data-admin-page-action[\s\S]*?loadPfmsAdminSupportTickets/,
