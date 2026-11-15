@@ -164,7 +164,6 @@ bucket_rows AS (
            'allowed_mime_types', allowed_mime_types
          ) AS details
   FROM storage.buckets
-  WHERE id IN ('pfss-scout-private')
 ),
 row_estimate_rows AS (
   SELECT
@@ -198,6 +197,8 @@ migration_table AS (
              to_regclass('public.pfms_platform_owner') IS NOT NULL,
            'profiles_exists',
              to_regclass('public.profiles') IS NOT NULL,
+           'supabase_migration_ledger_exists',
+             to_regclass('supabase_migrations.schema_migrations') IS NOT NULL,
            'legacy_organizations_rows_estimate',
              (select greatest(reltuples, 0)::bigint from pg_class where oid = to_regclass('public.organizations')),
            'legacy_memberships_rows_estimate',
