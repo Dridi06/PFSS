@@ -8760,6 +8760,12 @@ const registrationChoiceDetails = {
   owner_bootstrap: 'Die erstmalige Plattforminhaberschaft wird nur einmal vergeben. Nach der E-Mail-Bestätigung ist ein separater, geheimer Einmalcode erforderlich.'
 };
 
+function scrollAuthIntoView(element) {
+  if (!element) return;
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  element.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
 function updateRegistrationProgress(step) {
   const progress = document.getElementById('registrationProgress');
   const status = document.getElementById('registrationProgressStatus');
@@ -8879,7 +8885,7 @@ document.querySelectorAll('[data-registration-choice]').forEach(button => {
     signupPasswordField.hidden = false;
     authActions.hidden = false;
     document.getElementById('signupUsernameField')?.querySelector('input')?.focus({ preventScroll: true });
-    document.getElementById('registrationFields')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollAuthIntoView(document.getElementById('registrationFields'));
   });
 });
 document.querySelectorAll('[data-choice-info]').forEach(button => {
@@ -8898,7 +8904,9 @@ document.getElementById('changeRegistrationChoice').addEventListener('click', ()
   authActions.hidden = true;
   registrationChoice.hidden = false;
   document.getElementById('authTitle').textContent = 'Konto registrieren.';
-  document.getElementById('registrationChoice')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const registrationChoiceHeading = document.getElementById('registrationChoice');
+  scrollAuthIntoView(registrationChoiceHeading);
+  registrationChoiceHeading?.focus({ preventScroll: true });
   document.getElementById('authIntro').textContent = 'Wähle zunächst, wie du PFMS nutzen möchtest.';
   document.getElementById('authMessage').textContent = '';
   selectedRegistrationChoice = '';

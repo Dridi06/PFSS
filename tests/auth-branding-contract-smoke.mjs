@@ -9,10 +9,14 @@ for(const choice of ["user","club","agency","owner_bootstrap","scout"])assert.ma
 assert.match(html,/Professional Football Management System/);
 assert.match(html,/class="auth-layout"/);assert.match(html,/class="auth-visual"/);
 assert.match(html,/id="registrationProgress"/);
+assert.match(html,/aria-labelledby="registrationChoiceTitle"/);
+assert.match(html,/id="authMessage" role="status" aria-live="polite"/);
 assert.match(html,/data-registration-step="1"/);
 assert.match(html,/data-registration-step="2"/);
 assert.match(html,/class="registration-step-intro"/);
 assert.match(app,/function updateRegistrationProgress/);
+assert.match(app,/function scrollAuthIntoView/);
+assert.match(app,/prefers-reduced-motion: reduce/);
 assert.match(app,/updateRegistrationProgress\(2\)/);
 assert.match(app,/updateRegistrationProgress\(1\)/);
 assert.match(html,/pfms-auth-executive\.css/);assert.match(css,/prefers-reduced-motion/);

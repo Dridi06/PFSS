@@ -56,10 +56,10 @@
         <p id="registrationProgressStatus" class="registration-progress-status" aria-live="polite">Schritt 1 von 2 · Wähle deinen Zugang.</p>
       </div>
 
-      <section id="registrationChoice" class="registration-choice" hidden>
+      <section id="registrationChoice" class="registration-choice" hidden tabindex="-1" aria-labelledby="registrationChoiceTitle">
         <div class="pricing-intro">
           <span class="pricing-kicker">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</span>
-          <h2>Finde den passenden Zugang.</h2>
+          <h2 id="registrationChoiceTitle">Finde den passenden Zugang.</h2>
           <p>Starte mit dem Paket, das zu deiner Arbeit im Fußball passt.</p>
           <div class="trial-strip"><span class="trial-icon">✦</span><span><strong>Tarifvorschau</strong> – kostenpflichtige Zugänge sind noch nicht buchbar.</span></div>
         </div>
@@ -229,7 +229,7 @@
           <small class="legal-acceptance-hint">Zum Öffnen einfach auf „AGB“ oder „Datenschutzerklärung“ tippen.</small>
         </div>
 
-        <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+        <p id="authMessage" role="status" aria-live="polite" aria-atomic="true" class="auth-message" role="status" aria-live="polite"></p>
 
         <label class="field" id="signupEmailField">
           <span id="emailFieldLabel">E-Mail-Adresse oder Benutzername</span>
