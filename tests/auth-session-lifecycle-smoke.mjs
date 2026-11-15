@@ -61,10 +61,12 @@ assert.match(adminScoutDetails, /pfmsDetailRequestId/,
   "Selecting a scout must invalidate any pending organization detail response.");
 assert.match(adminDirectoryLoader, /pfmsDetailRequestId[\s\S]*?previousDetail\.hidden = true/,
   "Starting a new directory search must invalidate and hide the previous detail selection.");
-const adminMemberActions = app.match(/results\.addEventListener\('click',[\s\S]*?pfms_admin_update_legacy_membership[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
+const adminMembersSetup = app.match(/function setupPfmsAdminMembers\(\)[\s\S]*?(?=async function checkPfssAccess)/)?.[0] || "";
+const adminMemberActions = adminMembersSetup.match(/results\.addEventListener\('click',[\s\S]*?results\.dataset\.pfmsBound/)?.[0] || "";
 assert.match(adminMemberActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
   "Global membership changes must remain bound to the administrator session that initiated them.");
-const adminEventActions = app.match(/results\.addEventListener\('click',[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
+const adminErrorsSetup = app.match(/function setupPfmsAdminErrors\(\)[\s\S]*?(?=function setupPfmsAdminMembers)/)?.[0] || "";
+const adminEventActions = adminErrorsSetup.match(/results\.addEventListener\('click',[\s\S]*?results\.dataset\.pfmsBound/)?.[0] || "";
 assert.match(adminEventActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
   "System-event triage writes must not update stale or non-admin UI state.");
 
