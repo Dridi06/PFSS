@@ -444,6 +444,33 @@ for (const signature of [
   );
 }
 
+const authTriggerHardening = migrationSources[
+  migrationFiles.indexOf("20261130_pfms_auth_trigger_hardening.sql")
+];
+assert.ok(authTriggerHardening, "Auth trigger hardening migration is missing.");
+const normalizedAuthTriggerHardening = authTriggerHardening
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of ["pfss_sync_signup_username", "pfms_provision_new_account"]) {
+  assert.ok(
+    normalizedAuthTriggerHardening.includes(
+      "create or replace function public." + functionName + "() returns trigger language plpgsql security definer set search_path = '' as $"
+    ),
+    "Auth trigger function must be SECURITY DEFINER with an empty search_path: " + functionName
+  );
+  assert.ok(
+    normalizedAuthTriggerHardening.includes(
+      "revoke all on function public." + functionName + "() from public, anon, authenticated"
+    ),
+    "Auth trigger function must not be directly executable by browser roles: " + functionName
+  );
+}
+assert.match(
+  stagingAcceptanceSql,
+  /'auth_trigger_function_acl'/,
+  "Read-only staging acceptance must verify auth trigger function ACLs."
+);
+
 const legacyProfileListSearchPath = migrationSources[
   migrationFiles.indexOf("20261226_pfss_legacy_admin_profile_list_search_path.sql")
 ];
