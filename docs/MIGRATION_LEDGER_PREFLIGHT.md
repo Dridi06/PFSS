@@ -16,7 +16,7 @@ A successful result means only that the reported migration history is structural
 
 ## Current repository finding (15 November 2026)
 
-The current feature branch contains 62 timestamped SQL files but only 46 distinct eight-digit prefixes. Eleven prefixes are duplicated, including `20261110`, `20261111`, `20261112`, `20261115`, `20261116`, `20261117`, `20261118`, `20261121`, `20261122`, `20261201` and `20261205`. The checker deliberately fails closed on duplicate local versions. This is an unresolved migration-history blocker, not proof that any remote migration is already applied or unapplied. Do not rename or reorder existing migration files until the actual isolated staging migration ledger and schema have been reconciled.
+The current feature branch contains 63 timestamped SQL files but only 46 distinct eight-digit prefixes. Eleven prefixes are duplicated, including `20261110`, `20261111`, `20261112`, `20261115`, `20261116`, `20261117`, `20261118`, `20261121`, `20261122`, `20261201` and `20261205`. The checker deliberately fails closed on duplicate local versions. This is an unresolved migration-history blocker, not proof that any remote migration is already applied or unapplied. Do not rename or reorder existing migration files until the actual isolated staging migration ledger and schema have been reconciled.
 
 ## Stop conditions
 
