@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "purpose": "Explicit, reviewable ordering contracts for migrations whose functions, triggers, constraints or RPCs depend on objects introduced earlier. This is a curated dependency graph, not a replacement for PostgreSQL execution or a complete SQL parser.",
+  "dependencies": [
+    {
+      "before": "20261111_organizations_memberships_permissions.sql",
+      "after": "20261112_pfms_legacy_org_manager_guard.sql",
+      "reason": "The manager authorization helper reads organizations and organization_memberships."
+    },
+    {
+      "before": "20261112_pfms_legacy_org_manager_guard.sql",
+      "after": "20261119_pfms_legacy_invitation_workspace.sql",
+      "reason": "Invitation workspace RPCs call can_manage_org(uuid)."
+    },
+    {
+      "before": "20261112_pfms_legacy_org_manager_guard.sql",
+      "after": "20261121_pfms_legacy_org_membership_management.sql",
+      "reason": "Organization membership management calls can_manage_org(uuid)."
+    },
+    {
+      "before": "20261112_pfms_legacy_org_manager_guard.sql",
+      "after": "20261222_pfms_legacy_org_manager_active_org_gate.sql",
+      "reason": "The active-organization gate replaces the previously installed helper."
+    },
+    {
+      "before": "20261115_pfms_platform_owner_bootstrap.sql",
+      "after": "20261116_pfms_owner_bootstrap_registration_guard.sql",
+      "reason": "The registration guard uses the platform-owner singleton."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261122_pfms_legacy_team_permissions.sql",
+      "reason": "The permission matrix is attached to team staff assignments."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261122_pfms_legacy_team_roster.sql",
+      "reason": "Roster assignments reference legacy teams and team staff."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261123_pfms_legacy_team_training.sql",
+      "reason": "Training sessions and attendance are scoped to legacy teams and roster assignments."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261124_pfms_legacy_team_calendar.sql",
+      "reason": "Calendar events are scoped to legacy teams."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261125_pfms_legacy_team_matches.sql",
+      "reason": "Matches and lineups are scoped to legacy teams and roster assignments."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261127_pfms_legacy_team_finance.sql",
+      "reason": "Finance entries are scoped to legacy teams and team permissions."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261203_pfms_legacy_team_events.sql",
+      "reason": "Team events are scoped to legacy teams."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261206_pfms_legacy_team_tasks.sql",
+      "reason": "Team tasks are scoped to teams and team staff."
+    },
+    {
+      "before": "20261123_pfms_legacy_team_training.sql",
+      "after": "20261201_pfms_legacy_training_cycles.sql",
+      "reason": "Training cycles extend the existing training/session model."
+    },
+    {
+      "before": "20261201_pfms_legacy_training_cycles.sql",
+      "after": "20261213_pfms_training_cycle_session_date_guard.sql",
+      "reason": "The trigger validates the cycle-week relation introduced by training cycles."
+    },
+    {
+      "before": "20261125_pfms_legacy_team_matches.sql",
+      "after": "20261214_pfms_match_lineup_team_integrity.sql",
+      "reason": "The integrity migration hardens the existing match-lineup table."
+    },
+    {
+      "before": "20261122_pfms_legacy_team_permissions.sql",
+      "after": "20261215_pfms_team_permission_membership_gate.sql",
+      "reason": "The membership gate hardens the existing team permission RPCs."
+    },
+    {
+      "before": "20261129_pfms_support_tickets.sql",
+      "after": "20261208_pfms_support_ticket_notifications.sql",
+      "reason": "Notification triggers attach to support-ticket status and response changes."
+    },
+    {
+      "before": "20261206_pfms_legacy_team_tasks.sql",
+      "after": "20261207_pfms_in_app_notifications.sql",
+      "reason": "Task notification triggers attach to task assignment and status changes."
+    }
+  ]
+}
