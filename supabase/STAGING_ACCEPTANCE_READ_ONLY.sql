@@ -551,6 +551,7 @@ with checks as (
         and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%m.role = s.role%'
         and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%o.status in (''approved'', ''active'')%'
         and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%p_team_id is not null%'
+        and pg_catalog.pg_get_functiondef(p_access.oid) ilike '%p_team_id is not null%exists (%from public.pfms_legacy_teams t%where t.id = p_team_id%'
         and exists (
           select 1
           from pg_catalog.pg_proc p_manage
@@ -560,6 +561,7 @@ with checks as (
             and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%join public.organization_memberships m%'
             and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%m.role = ''trainer''%'
             and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%p_team_id is not null%'
+            and pg_catalog.pg_get_functiondef(p_manage.oid) ilike '%p_team_id is not null%exists (%from public.pfms_legacy_teams t%where t.id = p_team_id%'
         )
       from pg_catalog.pg_proc p_access
       where p_access.oid = pg_catalog.to_regprocedure('public.pfms_can_access_legacy_team(uuid)')
