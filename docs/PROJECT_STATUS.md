@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – Einlösesperre für alte Organisationseinladungen im Staging-Audit
+
+- Das read-only Acceptance-Audit prüft jetzt zusätzlich `legacy_invitation_redemption_status_gate`: Der Auth-Registrierungstrigger muss den aktuellen Status der Zielorganisation unter Row Lock kontrollieren, abgelaufene/eingelöste/widerrufene Tokens ablehnen und darf nicht direkt von Browserrollen ausführbar sein.
+- Der Migrationstest verlangt diesen Audit-Prüfpunkt. Der Regressionstest prüft außerdem die konkrete Triggerdefinition und die Zeilensperre.
+- Ziel: Nicht nur das Erzeugen neuer Einladungen, sondern auch das Einlösen bereits ausgestellter Einladungen muss nach einer Organisationssperrung zuverlässig blockiert sein.
+- Keine Datenbankausführung; Staging-Abnahme weiterhin offen.
+
+---
+
 # Ergänzung 15.11.2026 – Effektive Organisations- und Einladungsrechte als Regressionstest
 
 - `tests/function-grants-smoke.mjs` prüft nun zusätzlich die zuletzt wirksame Definition von `can_manage_org(uuid)`: Organisationsstatus `approved/active`, aktive Führungsmitgliedschaft, SECURITY DEFINER, leerer `search_path` und explizite EXECUTE-Rechte.
