@@ -167,6 +167,34 @@ assert.ok(
   "System event pagination must revoke default public/anon execution."
 );
 
+const organizationMembersPagination = migrationSources[
+  migrationFiles.indexOf("20261221_pfms_admin_org_member_pagination.sql")
+];
+assert.ok(organizationMembersPagination, "Organization member pagination migration is missing.");
+const organizationMembersPageDefinition = extractSqlFunction(
+  organizationMembersPagination, "pfms_admin_list_legacy_org_members_page"
+);
+assert.ok(organizationMembersPageDefinition, "Organization member pagination RPC is missing.");
+for (const field of ["total_count", "active_count", "pending_count", "suspended_count", "filtered_count"]) {
+  assert.ok(
+    organizationMembersPageDefinition.includes(field),
+    "Organization member pagination must return the " + field + " summary."
+  );
+}
+assert.match(
+  organizationMembersPageDefinition,
+  /left join page on true/,
+  "Organization summary counters must remain available even when a requested page has no rows."
+);
+assert.match(
+  organizationMembersPageDefinition,
+  /from stats[\\s\\S]*?left join page on true/,
+  "The page result must be anchored on the unfiltered organization summary."
+);
+assert.match(organizationMembersPageDefinition, /count\(\*\) as total_count/,
+  "Organization member totals must be calculated before page filtering.");
+
+
 for (const signature of [
   "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
   "pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)",
