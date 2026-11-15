@@ -1152,6 +1152,30 @@ with checks as (
     ), false),
     'Der designierte Plattforminhaber und das eigene Admin-Profil müssen vor gewöhnlichen Profiländerungen geschützt sein'
 
+
+  union all
+  select
+    'admin_legacy_profile_list_rpc_security',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_is_admin()%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) acl
+          where acl.grantee = 0
+            and acl.privilege_type = 'EXECUTE'
+        )
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfss_admin_list_profiles()')
+    ), false),
+    'Legacy-Profilliste muss SECURITY DEFINER mit leerem search_path und Admin-Prüfung besitzen; EXECUTE nur für authenticated, nicht PUBLIC oder anon'
+
+
 )
 select check_name, passed, details
 from checks
