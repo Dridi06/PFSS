@@ -190,7 +190,9 @@ for (const [moduleKey, definition] of Object.entries(modules)) {
     const requiredPolicyModules =
       tableName === "pfms_legacy_training_sessions"
         ? ["training", "attendance"]
-        : [moduleKey];
+        : tableName === "pfms_legacy_team_calendar_events"
+          ? ["calendar", "events"]
+          : [moduleKey];
     for (const requiredModule of requiredPolicyModules) {
       assert.match(
         policyBody,
