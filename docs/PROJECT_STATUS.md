@@ -790,3 +790,6 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die Kennzahlenabfrage ist an Administratorrolle, Benutzer-ID und Authentifizierungs-Generation gebunden. Neuere Abfragen gewinnen gegen ältere; ein Logout oder Kontowechsel invalidiert laufende Antworten.
 - Regressionstests prüfen RPC-Auswahl, Filter, begrenzte Abfragen, Sitzungsisolation und Invalidierung.
 - Die Funktion ist implementiert, aber noch nicht gegen die externe Supabase-Staging-Datenbank praktisch abgenommen. Falls die erforderlichen Admin-RPC-Migrationen dort fehlen, zeigt die Ansicht einen klaren Ladehinweis statt erfundener Zahlen. Keine Staging-Migration, kein Render-Deployment und keine Produktionsänderung.
+
+
+- CI-Nachweis für die Plattformkennzahlen: Commit `a04b7da090f1ae91a7d05ee77005af9aefcc9dcd`, Push-Run [43714646029](https://github.com/Dridi06/PFSS/actions/runs/43714646029) vollständig erfolgreich (Node-/Build-/Smoke-Tests und Deno Edge-Function-Typprüfung).
