@@ -67,6 +67,32 @@ for (const filename of migrationFiles) {
 const migrationSources = await Promise.all(
   migrationFiles.map((filename) => readFile(resolve(migrationsDirectory, filename), "utf8"))
 );
+// Every public table introduced by a repository migration must appear in
+// the read-only staging inventory. This prevents silent audit blind spots.
+const auditTargetTableBlock = stagingAuditSql.match(
+  /c\.relname\s+IN\s*\(([\s\S]*?)\n\s*\)/i
+);
+assert.ok(auditTargetTableBlock, "Staging audit must declare its public table inventory.");
+const auditedTableNames = new Set(
+  [...auditTargetTableBlock[1].matchAll(/'([a-z_][a-z0-9_]*)'/gi)].map((match) => match[1])
+);
+const createdPublicTables = new Set();
+for (const source of migrationSources) {
+  const executableSource = source.replace(/--[^\n]*/g, "");
+  for (const match of executableSource.matchAll(
+    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?([a-z_][a-z0-9_]*)\b/gi
+  )) {
+    createdPublicTables.add(match[1].toLowerCase());
+  }
+}
+assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
+for (const tableName of createdPublicTables) {
+  assert.ok(
+    auditedTableNames.has(tableName),
+    "Staging read-only audit omits migration-created table: public." + tableName
+  );
+}
+
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const functionDefinitions = combinedMigrationSql.matchAll(
