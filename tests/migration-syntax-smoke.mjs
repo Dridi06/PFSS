@@ -33,7 +33,7 @@ assert.doesNotMatch(
   /FROM\s+storage\.buckets\s+WHERE\s+id\s+IN/i,
   "Staging audit must inventory all buckets, not only a hard-coded bucket."
 );
-for (const section of ["RELATIONS", "SEQUENCE_GRANTS", "SCHEMA_GRANTS", "DEFAULT_PRIVILEGES"]) {
+for (const section of ["RELATIONS", "COLUMN_GRANTS", "SEQUENCE_GRANTS", "SCHEMA_GRANTS", "DEFAULT_PRIVILEGES"]) {
   assert.ok(
     stagingAuditSql.includes("'" + section + "'"),
     "Read-only staging audit must include " + section + " inventory."
@@ -66,6 +66,8 @@ assert.match(stagingAuditSql, /n\.nspname = 'auth' and c\.relname = 'users'/i,
   "Read-only audit must inventory the auth.users relation and trigger context.");
 assert.match(stagingAuditSql, /acldefault\('S'/i,
   "Read-only audit must inspect sequence ACL defaults.");
+assert.match(stagingAuditSql, /aclexplode\(a\.attacl\)/i,
+  "Read-only audit must inspect column-level ACLs.");
 assert.match(stagingAuditSql, /acldefault\('n'/i,
   "Read-only audit must inspect schema ACL defaults.");
 assert.match(stagingAuditSql, /FROM\s+pg_default_acl/i,
@@ -512,6 +514,11 @@ assert.match(
   stagingAcceptanceSql,
   /'organization_core_table_write_acl'/,
   "Read-only staging acceptance must verify organization core table ACL isolation."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /has_column_privilege\('authenticated'[\s\S]*?has_column_privilege\('anon'/i,
+  "Read-only staging acceptance must reject column-level browser write or anon read grants."
 );
 
 const combinedMigrationSql = migrationSources.join("\n");
