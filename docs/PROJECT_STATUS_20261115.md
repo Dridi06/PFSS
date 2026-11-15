@@ -22,7 +22,7 @@ The percentages for partially completed product workstreams are engineering esti
 
 - Repository: `Dridi06/PFSS`
 - Branch: `feature/pfss-complete-platform-build`
-- Current checkpoint commit: `6b94cc348c1992e744a75143d5904657ae697898`
+- Current checkpoint commit: `c2d2ef08aa2b949f40273610749a8c999c3e6dd3`
 - PR #1 remains open and Draft; do not merge or deploy without explicit approval.
 - CI push run [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357): both jobs passed.
 - CI pull-request run [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779): both jobs passed.
@@ -74,3 +74,14 @@ No live Supabase migration was executed. No staging or production database was q
 - Updated asset query versions to ensure browsers receive the changed stylesheet and application script.
 - Latest code commit: 8a7f6bb0da4d1ed66a32cdae3c5880860a6b498c. Push run https://github.com/Dridi06/PFSS/actions/runs/43734178920 and PR run https://github.com/Dridi06/PFSS/actions/runs/43734184257 both passed.
 - Remaining: visual QA on actual browser/device combinations, test invitation and signup round-trips against isolated staging, and verify full legal/accessibility acceptance. No Render deployment or live database/auth changes were performed.
+
+
+## Saved project checkpoint – 15 November 2026, 17:14 CET
+
+- Current branch head at save time: `c2d2ef08aa2b949f40273610749a8c999c3e6dd3`.
+- Executive Arena login/registration redesign is implemented on the feature branch, preserving the existing auth form contract and five registration routes.
+- Registration now has two guided steps, accessible progress/status announcements, return-to-selection navigation, focus management and reduced-motion-aware scrolling.
+- Brand hierarchy is consistent: Professional Football Management System is the full public-facing name; PFMS remains the abbreviation.
+- Push CI [43734246649](https://github.com/Dridi06/PFSS/actions/runs/43734246649) and PR CI [43734251084](https://github.com/Dridi06/PFSS/actions/runs/43734251084) both passed for the saved code checkpoint.
+- PR #1 remains open and Draft. No merge, Render deployment, live Supabase staging/production operation, or auth backend change was performed.
+- Current overall estimate remains **76% provisional**. No percentage increase is claimed because staging/runtime acceptance, browser/device visual QA and full product acceptance remain outstanding.

@@ -122,3 +122,16 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Standardized public-facing login and registration copy around the full product name Professional Football Management System; PFMS remains only a supporting abbreviation. Updated CSS/JS cache query versions.
 - Latest code checkpoint 8a7f6bb0da4d1ed66a32cdae3c5880860a6b498c passed both CI workflows: runs 43734178920 and 43734184257.
 - No authentication backend changes, live staging/database access, Render deployment or merge to main. Real auth round-trip and visual device QA remain release gates.
+
+
+## Saved checkpoint – 15 November 2026, 17:14 CET
+
+- Branch: `feature/pfss-complete-platform-build`
+- Saved code head: `c2d2ef08aa2b949f40273610749a8c999c3e6dd3`
+- Executive Arena visual redesign and guided two-step registration committed.
+- Existing auth DOM IDs, fields, invite handling, password/passkey recovery, registration paths and owner bootstrap remain intact.
+- Accessibility refinements: registration progress status, polite auth announcements, focus handling, and reduced-motion-aware scroll behavior.
+- Public brand wording standardized around the full name Professional Football Management System, with PFMS secondary.
+- CI push and PR workflows both passed: `43734246649` and `43734251084`.
+- PR #1 remains open and Draft. No production deployment or database changes.
+- Overall project estimate held at 76%; release readiness remains blocked by staging catalog audit, migration reconciliation, two-tenant runtime tests, device/browser visual QA and full product acceptance.
