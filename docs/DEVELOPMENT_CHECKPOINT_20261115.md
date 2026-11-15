@@ -61,3 +61,13 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Verified CI: [Push run 43730127752](https://github.com/Dridi06/PFSS/actions/runs/43730127752) and [PR run 43730132807](https://github.com/Dridi06/PFSS/actions/runs/43730132807). Both jobs passed in both runs.
 - Current feature branch head at this checkpoint update: `9d1daf16a845528cfafb6f02c14924163d5f2a1b`.
 - The inventory is static and repository-scoped. It does not prove that external consumers do not exist, nor does it establish live database grants or runtime authorization. Staging catalog review and two-tenant positive/negative tests remain open.
+
+
+## RPC reference inventory – SQL self-reference and dynamic-name correction
+
+- Corrected the SQL reference scanner so a function's own `CREATE FUNCTION` declaration does not count as an internal call. This materially improves the usefulness of definition-only candidates.
+- Added exact quoted-name detection across browser and Edge Function sources to recognize functions selected through a variable before the Supabase `.rpc(...)` call.
+- Latest verified inventory: 128 public function names; 77 statically referenced by frontend RPC calls; 2 statically referenced by Edge Functions; 36 internal SQL references; 28 trigger references; 5 definition-only review candidates; 2 computed RPC call expressions requiring manual review.
+- Five review candidates: `pfms_admin_list_legacy_org_members`, `pfms_admin_list_legacy_scouts`, `pfms_admin_search_legacy_organizations`, `pfms_create_legacy_team_event`, and `pfms_update_legacy_team_event`. The first three are older unpaginated directory RPCs and may be compatibility endpoints; the event RPCs require checking UI/integration usage. No deletion or privilege change was made.
+- Verified CI for commit `11117733a641c43d61169250d192845babc75f65`: [Push run 43730466429](https://github.com/Dridi06/PFSS/actions/runs/43730466429) and [PR run 43730471577](https://github.com/Dridi06/PFSS/actions/runs/43730471577); both Node project tests and Supabase Edge Function type-check jobs passed in both runs.
+- These counts describe static source references only. Confirm actual staging `pg_proc`, effective ACLs, external consumers and API usage before any deprecation decision.

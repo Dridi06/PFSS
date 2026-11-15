@@ -24,3 +24,12 @@ node tests/rpc-reference-inventory-smoke.mjs
 ```
 
 The test suite also runs this inventory as part of `npm test`.
+
+
+## Latest inventory interpretation
+
+The corrected scanner excludes each function's own `CREATE FUNCTION` declaration from SQL references and checks exact quoted function-name literals in browser/Edge sources. This helps identify RPC names selected through a variable before `.rpc(...)` is called.
+
+The latest CI inventory reports five definition-only review candidates: three older unpaginated administrator directory RPCs and two legacy team-event RPCs. These are not confirmed dead code. The older admin functions may be retained for external clients or compatibility; the event functions require a UI/integration review. No candidate is deleted or has privileges changed. Two computed `.rpc(...)` expressions remain explicitly listed for manual review.
+
+A name appearing in the source tree is not proof of live use, and absence from this repository is not proof of external non-use. Before deprecation, compare live `pg_proc`/ACL/trigger catalogs, API logs if available, external clients, and the staging migration ledger.
