@@ -2157,9 +2157,9 @@ function applyAdminPreviewMode(mode) {
       groups: []
     },
     scout: {
-      label: 'VORSCHAU: SCOUT',
-      target: 'scouts',
-      views: ['dashboard','scouts','players','reports','media'],
+      label: 'VORSCHAU: SCOUT WORKSPACE',
+      target: 'scout-workspace',
+      views: ['scout-workspace'],
       groups: []
     },
     agency: {
@@ -2228,12 +2228,17 @@ function applyAdminPreviewMode(mode) {
     .find(el => el.dataset.view === config.target && !el.hidden) || null;
 
   showView(config.target, nav, true);
+  if (mode === 'scout') {
+    window.pfmsActivateScoutWorkspacePreview?.();
+  } else {
+    window.pfmsResetScoutWorkspace?.();
+  }
 
   const pageTitle = document.getElementById('pageTitle');
   if (pageTitle) {
     const pageNames = {
       admin: 'Administration',
-      scout: 'Scouts',
+      scout: 'Scout Workspace',
       agency: 'Agenturen',
       club: 'Vereinsübersicht',
       member: 'Dashboard'
