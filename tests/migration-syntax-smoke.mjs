@@ -423,7 +423,7 @@ const legacyCoreHardening = migrationSources[
   migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
 ];
 assert.ok(legacyCoreHardening, "Legacy core SECURITY DEFINER hardening migration is missing.");
-const normalizedLegacyCoreHardening = legacyCoreHardening.toLowerCase().replace(/\\s+/g, " ");
+const normalizedLegacyCoreHardening = legacyCoreHardening.toLowerCase().replace(/\s+/g, " ");
 for (const signature of [
   "pfms_is_admin()",
   "pfms_is_org_member(uuid)",
