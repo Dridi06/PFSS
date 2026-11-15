@@ -155,7 +155,7 @@ const requiredFiles = [
   "supabase/migrations/20261204_pfms_legacy_team_event_participants.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_logistics.sql",
   "supabase/migrations/20261205_pfms_legacy_team_event_travel_plans.sql",
-  "supabase/migrations/20261118_pfms_legacy_org_manager_guard.sql",
+  "supabase/migrations/20261112_pfms_legacy_org_manager_guard.sql",
   "supabase/migrations/20261119_pfms_legacy_invitation_workspace.sql",
   "supabase/migrations/20261120_pfms_legacy_invitation_workspace_hardening.sql",
   "supabase/migrations/20261121_pfms_legacy_org_membership_management.sql",
