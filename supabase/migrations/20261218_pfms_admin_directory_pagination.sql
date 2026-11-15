@@ -5,6 +5,7 @@
 create or replace function public.pfms_admin_search_legacy_organizations_page(
   p_type text default null,
   p_query text default '',
+  p_id text default '',
   p_status text default null,
   p_limit integer default 25,
   p_offset integer default 0
@@ -25,6 +26,7 @@ set search_path = ''
 as $$
 declare
   v_query text := pg_catalog.trim(coalesce(p_query, ''));
+  v_id text := pg_catalog.trim(coalesce(p_id, ''));
 begin
   if not public.pfms_is_admin() then
     raise exception 'Not authorized' using errcode = '42501';
@@ -39,7 +41,7 @@ begin
      or p_offset is null or p_offset not between 0 and 1000000 then
     raise exception 'Invalid pagination window' using errcode = '22023';
   end if;
-  if pg_catalog.length(v_query) > 200 then
+  if pg_catalog.length(v_query) > 200 or pg_catalog.length(v_id) > 80 then
     raise exception 'Search query is too long' using errcode = '22023';
   end if;
 
@@ -59,7 +61,10 @@ begin
       and (
         v_query = ''
         or o.name ilike '%' || v_query || '%'
-        or o.id::text ilike '%' || v_query || '%'
+      )
+      and (
+        v_id = ''
+        or o.id::text ilike '%' || v_id || '%'
       )
     group by o.id
   )
@@ -254,7 +259,7 @@ begin
 end;
 $$;
 
-revoke all on function public.pfms_admin_search_legacy_organizations_page(text, text, text, integer, integer)
+revoke all on function public.pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)
   from public, anon;
 revoke all on function public.pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)
   from public, anon;
