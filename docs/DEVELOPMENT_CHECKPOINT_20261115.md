@@ -177,3 +177,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341) both passed.
 - PR #1 remains open and Draft. No merge, deployment, or database operation occurred.
 - Overall progress remains 76% provisional. Next priority: obtain/confirm dedicated STAGING project ref, reconcile the actual remote migration ledger, then execute approved two-tenant runtime acceptance.
+
+
+## Authorization migration dependency graph hardening – 15 November 2026
+
+- Extended the curated migration dependency manifest with five explicit ordering contracts for the latest authorization hardening migrations.
+- The contracts bind core search-path hardening to the organization foundation; browser write-ACL hardening to the organization-table foundation; and the final legacy-team access helpers to organization tables, team/staff tables, and the hardened active-organization manager predicate.
+- Extended the dependency-graph smoke test so these five security-critical edges cannot be silently removed while the graph still appears valid.
+- Code commit: `a89b3caa9dbe965ec1d97a295de758ab6ff1064a`.
+- GitHub Actions run [43736841953](https://github.com/Dridi06/PFSS/actions/runs/43736841953) completed successfully: project syntax/smoke checks and Supabase Edge Function type-check both passed.
+- No database migration was applied, no staging/production resource was accessed, no Render deployment occurred, and PR #1 remains Draft.
+- Overall project estimate remains 76% provisional; the actual staging migration ledger and two-tenant runtime acceptance remain release blockers.
