@@ -23,7 +23,7 @@
 - Das Read-only-Staging-Acceptance-Audit prüft die Organisationsstatusgrenze, SECURITY DEFINER, leeren `search_path` und EXECUTE-Rechte.
 - `tests/migration-syntax-smoke.mjs` prüft die neue Migration und den Audit-Prüfpunkt. Push-CI und Pull-Request-CI für Commit `b276d57caa5f336a54b0def33cfadfa660957707` vollständig erfolgreich: [Push 43718503133](https://github.com/Dridi06/PFSS/actions/runs/43718503133) · [PR 43718507764](https://github.com/Dridi06/PFSS/actions/runs/43718507764). Beide Jobs bestanden.
 - Die Migration ist ausschließlich im Feature-Branch. Sie wurde weder auf Supabase Staging noch auf Produktion angewendet. Kein Render-Deployment und kein Merge.
-- Integrationshinweis: `main` enthält den expliziten Revert der früher versehentlich auf dem Standardbranch gelandeten Migration `20261118_pfms_legacy_org_manager_guard.sql`; der Feature-Branch enthält sie als geordnete Voraussetzung für die nachfolgenden Einladungs-/Mitgliedschafts-RPCs. Vor Merge muss die vollständige Branch-Historie samt Migrationsledger abgeglichen werden. Der Draft-PR bleibt deshalb unverändert nicht mergebereit.
+- Integrationshinweis: `main` enthält den expliziten Revert der früher versehentlich auf dem Standardbranch gelandeten Migration `20261118_pfms_legacy_org_manager_guard.sql`; im Feature-Branch wurde dieselbe Helper-Definition nach Abgleich ihrer Voraussetzungen auf `20261112_pfms_legacy_org_manager_guard.sql` vorgezogen. Sie folgt damit auf das Legacy-Organisationsschema und liegt vor den nachfolgenden Einladungs-/Mitgliedschafts-RPCs. Vor Merge muss die vollständige Branch-Historie samt Migrationsledger abgeglichen werden. Der Draft-PR bleibt deshalb unverändert nicht mergebereit.
 
 ---
 
@@ -893,3 +893,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 - Ergänzende Frontend-Regression: Die Organisationsdetailansicht liest die Summenzeile auch dann korrekt, wenn eine Seite keine Mitgliedsdatensätze enthält, rendert die Zusammenfassungszeile nicht als Mitglied und trennt den Filtertrefferzähler von den Organisationssummen.
 - Vollständige CI für Commit `ec2fb2f3da99f587762bd0f07382865224e55d7b` erfolgreich: [Run 43717312723](https://github.com/Dridi06/PFSS/actions/runs/43717312723), beide Jobs bestanden.
+
+
+## Migrationsabhängigkeiten – Legacy-Organisationszugriff (15.11.2026)
+- Bei der chronologischen Prüfung wurde festgestellt, dass Einladungs-RPCs in Migrationen vom 11.11.2026 die Funktion `public.can_manage_org(uuid)` aufrufen, deren ursprüngliche Definition erst am 18.11.2026 lag.
+- Die Helper-Migration wurde in `20261112_pfms_legacy_org_manager_guard.sql` verschoben: nach `20261111_organizations_memberships_permissions.sql` (Tabellenbasis) und vor `20261119_pfms_legacy_invitation_workspace.sql` sowie `20261121_pfms_legacy_org_membership_management.sql`.
+- `tests/migration-syntax-smoke.mjs` prüft diese Reihenfolge nun ausdrücklich, einschließlich der gehärteten SECURITY-DEFINER-/leerer-search_path-Definition.
+- Die ursprüngliche Helper-Definition wurde inhaltlich nicht verändert; die spätere `20261222`-Migration ergänzt weiterhin den Status-Gate für freigegebene/aktive Organisationen.
+- Die Anpassung betrifft ausschließlich den Feature-Branch. Noch keine Migration auf Supabase ausgeführt; keine Staging-/Live-Daten geändert.
