@@ -796,3 +796,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 
 - Ergänzende Dashboard-Qualitätssicherung: Die Schaltfläche „Aktualisieren“ lädt jetzt Benutzer- und Plattformkennzahlen gemeinsam neu; die Kennzeichnung weist ausdrücklich auf geschützte Adminabfragen hin. CI für Commit `71b3b4c29889bb05a6079fd8ec988b29b45ce4ac` vollständig erfolgreich: [Push-CI 43714768472](https://github.com/Dridi06/PFSS/actions/runs/43714768472), beide Jobs grün.
+
+
+## Ergänzung 15.11.2026 – Organisationsbezogene Mitgliederverwaltung skaliert
+
+- Neue additive Migration `20261221_pfms_admin_org_member_pagination.sql`: `pfms_admin_list_legacy_org_members_page` liefert eine begrenzte Seite, serverseitige Suche nach Name/E-Mail/Benutzer-ID, Rollen- und Statusfilter sowie separate Statussummen für alle Mitgliedschaften der Organisation.
+- Die Administrator-Detailansicht zeigt Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler. Mitgliederlisten werden in 25er-Seiten geladen; die RPC begrenzt auf maximal 100 Einträge und validiert Organisations-ID, Filter und Offset.
+- Der Frontend-Request ist an Administrator, Benutzer-ID, Authentifizierungs-Generation, Organisations-Detail und die jeweils neueste Filter-/Seitenanfrage gebunden. Speichervorgänge prüfen dieselben Grenzen vor UI-Updates.
+- Das Read-only-Staging-Audit prüft SECURITY DEFINER, leeren search_path, Admin-Prüfung, EXECUTE-Rechte und Pagination. Regressionstests decken RPC-Nutzung, Filter, Zähler, Seiten und stale-response-Schutz ab.
+- Noch nicht auf Supabase Staging angewendet oder zur Laufzeit getestet. Keine Render-Änderung, kein Deployment, keine Produktionsmigration und keine Änderung an `main`.
