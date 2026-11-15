@@ -12,7 +12,7 @@ const [plan, scoutMigration, mediaMigration, acceptance, restoreGuide] = await P
 ]);
 
 // The documented storage inventory must match the checked-in schema.
-assert.match(scoutMigration, /id\s*=\s*'pfss-scout-private'[\s\S]*?public\s*=\s*false/i);
+assert.match(scoutMigration, /values\\s*\\(\\s*'pfss-scout-private'\\s*,\\s*'pfss-scout-private'\\s*,\\s*false/i);
 assert.match(scoutMigration, /create table if not exists public\.pfss_scout_media/i);
 assert.match(mediaMigration, /create table if not exists public\.pfms_main_media/i);
 assert.match(mediaMigration, /storage_path\s*~\s*\('\^\[0-9a-fA-F-\]\{36\}\/main\//i);
