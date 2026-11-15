@@ -96,6 +96,31 @@
       "before": "20261206_pfms_legacy_team_tasks.sql",
       "after": "20261207_pfms_in_app_notifications.sql",
       "reason": "Task notification triggers attach to task assignment and status changes."
+    },
+    {
+      "before": "20261111_organizations_memberships_permissions.sql",
+      "after": "20261224_pfms_legacy_core_search_path_hardening.sql",
+      "reason": "The search-path hardening migration alters core organization and admin helper functions introduced by the organization foundation."
+    },
+    {
+      "before": "20261111_organizations_memberships_permissions.sql",
+      "after": "20261225_pfms_organization_table_write_acl_hardening.sql",
+      "reason": "The browser write-ACL hardening targets the three organization tables created by the organization foundation."
+    },
+    {
+      "before": "20261111_organizations_memberships_permissions.sql",
+      "after": "20261227_pfms_legacy_team_access_null_guard.sql",
+      "reason": "The team authorization helpers join the organization and active organization-membership tables."
+    },
+    {
+      "before": "20261121_pfms_legacy_team_management.sql",
+      "after": "20261227_pfms_legacy_team_access_null_guard.sql",
+      "reason": "The team authorization helpers require the legacy team and team-staff tables."
+    },
+    {
+      "before": "20261222_pfms_legacy_org_manager_active_org_gate.sql",
+      "after": "20261227_pfms_legacy_team_access_null_guard.sql",
+      "reason": "The final team authorization helpers call the hardened active-organization manager predicate."
     }
   ]
 }
