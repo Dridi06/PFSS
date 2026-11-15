@@ -1,3 +1,9 @@
+## Ergänzung – Admin-Fehlerprotokoll und Support-Postfach
+
+- Fehlerprotokoll: nach Anwendung der Migration `20261220_pfms_admin_system_event_pagination.sql` als Admin Meldung/Pfad, Schweregrad, Status und Seitenwechsel prüfen. Die Audit-Prüfungen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds` müssen bestanden sein.
+- Support-Postfach: als Admin je Status (alle/offen/in Bearbeitung/erledigt) die Trefferzahl und Sortierung prüfen. Bei mehr als 25 Tickets Seite 2 öffnen, ein Ticket beantworten/abschließen und prüfen, dass die Aktualisierung erhalten bleibt und die Ansicht korrekt neu geladen wird.
+- Mit einem Nicht-Admin-Konto den Admin-Postfach-Routenaufruf sowie den direkten Tabellenzugriff testen. Erwartet: Route wird blockiert und RLS liefert keine fremden Tickets. Die bereits vorhandene Datenbankpolicy ist die Sicherheitsgrenze; die UI allein genügt nicht.
+
 ## Ergänzung – Staging-Abnahme des Admin-Fehlerprotokolls
 
 Die additive Migration `20261220_pfms_admin_system_event_pagination.sql` ergänzt die Admin-RPC `pfms_admin_list_system_events_page`. Nach Anwendung auf dem dedizierten Staging-Projekt:
