@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Render-Staging-Blueprint durch Regressionstest abgesichert
+
+- Der Build-Konfigurationstest prüft jetzt zusätzlich die Staging-Blueprint-Grenzen in `render.yaml`: genau ein Staging-Service, Static Runtime, ausschließlich der Feature-Branch, getesteter Build-/Publish-Pfad, explizites `staging`-Buildziel, private Render-Variablen, automatische Deployments erst nach erfolgreichen Checks sowie CSP und HSTS.
+- Damit werden versehentliche Änderungen an der Render-Blueprint-Konfiguration frühzeitig erkannt, bevor ein Staging-Deploy gestartet wird. Es werden keine Render-Einstellungen oder externen Umgebungsvariablen durch diesen Test verändert.
+- Der erste CI-Lauf machte einen veralteten Wortlaut in einem UI-Regressionstest sichtbar. Die Prüfung wurde auf die tatsächliche Modulübersicht angepasst; anschließend waren beide GitHub-Actions-Jobs erfolgreich: [GitHub Actions – Run 43710877349](https://github.com/Dridi06/PFSS/actions/runs/43710877349).
+- Verifizierter Commit: `e02a5115db98f224a16796e664d94dcbd1343abb`.
+- Die erfolgreiche CI ist ein Quellcode-/Build-Nachweis, keine echte Render- oder Supabase-Abnahme. Render-Blueprint wurde nicht im Konto angewendet; kein Deployment, keine Datenbankmigration und keine Änderung an `main` oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Navigationsschutz für Plattformadministration
 
 - Administrationsseiten sind zusätzlich gegen direkte oder veraltete UI-/History-Navigation abgesichert. Konten ohne bestätigte Plattform-Adminrolle werden auf das Dashboard zurückgeführt.
