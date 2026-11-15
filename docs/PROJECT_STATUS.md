@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – Admin-Pagination CI-Abnahme
+
+- Die Admin-Profilverwaltung, Organisationssuche, Scout-Verwaltung und globale Mitgliedschaftsverwaltung verwenden nun serverseitige Filter und begrenzte 25er-Seiten. Gesamtzähler der Profile werden unabhängig von Suchfiltern abgefragt.
+- Beide neuen Migrationen und die erweiterten Tests sind in GitHub Actions vollständig grün: Node-Syntax, Build, Projekt-Smoke-Tests, Barrierefreiheitsprüfung, SQL-Migrations-/RPC-/Grant-Verträge, Backup-Tests sowie Deno-Typprüfung.
+- Verifizierter Commit: `c421a213fe23c2032ca7a61b66944f72d61869d6`. [Push-CI](https://github.com/Dridi06/PFSS/actions/runs/43712597501) · [Pull-Request-CI](https://github.com/Dridi06/PFSS/actions/runs/43712603149).
+- Der CI-Nachweis ist statisch. Die neuen Migrationen sind noch nicht auf Supabase Staging angewendet; die read-only Staging-Audits und Tests mit Admin-/Nicht-Admin-Konten bleiben offen. Kein Render-Deployment, keine Änderung an `main` oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Serverseitige Admin-Verzeichnis-Pagination
 
 - Die globalen Benutzerprofile, Organisationen, Scouts und organisationsübergreifenden Mitgliedschaften werden nicht mehr vollständig in den Browser geladen und dort gefiltert. Neue RPCs übernehmen Filterung, stabile Sortierung, Gesamtzählung und begrenzte Seitenfenster in PostgreSQL.
