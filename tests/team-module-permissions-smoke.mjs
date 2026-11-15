@@ -271,7 +271,7 @@ assert.match(
 );
 assert.match(
   latestCalendarUpdate,
-  /v_existing_event_type in \('tournament', 'event'\)/,
+  /v_existing_event_type in \('tournament',\s*'event'\)/,
   "Calendar update RPC must refuse to mutate event-owned rows."
 );
 assert.match(
