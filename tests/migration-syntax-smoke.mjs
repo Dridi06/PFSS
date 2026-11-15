@@ -8,11 +8,11 @@ const stagingAuditSql = await readFile(
   "utf8"
 );
 const executableAuditSql = stagingAuditSql
-  .replace(/--[^\\n]*/g, "")
+  .replace(/--[^\n]*/g, "")
   .replace(/'(?:''|[^'])*'/g, "''")
   .trim();
-assert.match(executableAuditSql, /^WITH\\b/i, "Staging audit must begin with a read-only CTE query.");
-assert.match(executableAuditSql, /\\bSELECT\\s+section,\\s*object_name,\\s*details\\b[\\s\\S]*;$/i);
+assert.match(executableAuditSql, /^WITH\b/i, "Staging audit must begin with a read-only CTE query.");
+assert.match(executableAuditSql, /\bSELECT\s+section,\s*object_name,\s*details\b[\s\S]*;$/i);
 assert.equal(
   (executableAuditSql.match(/;/g) ?? []).length,
   1,
@@ -20,18 +20,18 @@ assert.equal(
 );
 assert.doesNotMatch(
   executableAuditSql,
-  /\\b(?:INSERT\\s+INTO|UPDATE\\s+[a-z_]|DELETE\\s+FROM|MERGE\\s+INTO|CREATE\\s+[A-Z]|ALTER\\s+[A-Z]|DROP\\s+[A-Z]|TRUNCATE|GRANT|REVOKE)\\b/i,
+  /\b(?:INSERT\s+INTO|UPDATE\s+[a-z_]|DELETE\s+FROM|MERGE\s+INTO|CREATE\s+[A-Z]|ALTER\s+[A-Z]|DROP\s+[A-Z]|TRUNCATE|GRANT|REVOKE)\b/i,
   "Staging audit must not contain data or schema mutations."
 );
-assert.match(stagingAuditSql, /FROM\\s+storage\\.buckets\\s*\\)/i);
+assert.match(stagingAuditSql, /FROM\s+storage\.buckets\s*\)/i);
 assert.doesNotMatch(
   stagingAuditSql,
-  /FROM\\s+storage\\.buckets\\s+WHERE\\s+id\\s+IN/i,
+  /FROM\s+storage\.buckets\s+WHERE\s+id\s+IN/i,
   "Staging audit must inventory all buckets, not only a hard-coded bucket."
 );
 assert.match(
   stagingAuditSql,
-  /to_regclass\\('supabase_migrations\\.schema_migrations'\\)\\s+IS\\s+NOT\\s+NULL/i,
+  /to_regclass\('supabase_migrations\.schema_migrations'\)\s+IS\s+NOT\s+NULL/i,
   "Staging audit must report whether the Supabase migration ledger exists."
 );
 
