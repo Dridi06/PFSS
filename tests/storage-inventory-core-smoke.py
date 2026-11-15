@@ -15,6 +15,7 @@ module = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(module)
 InventoryError = module.InventoryError
 build_inventory = module.build_inventory
+build_inventory_manifest = module.build_inventory_manifest
 
 
 def main() -> None:
@@ -46,6 +47,18 @@ def main() -> None:
     assert len(calls) == 5
     assert result[0]["size"] == 30
 
+    manifest = build_inventory_manifest(result)
+    assert manifest["object_count"] == 3
+    assert manifest["total_bytes"] == 60
+    assert len(manifest["manifest_sha256"]) == 64
+    assert manifest == build_inventory_manifest(list(reversed(result)))
+    try:
+        build_inventory_manifest([{"path": "unknown.bin", "size": None, "mime_type": None}])
+    except InventoryError:
+        pass
+    else:
+        raise AssertionError("Incomplete inventory was accepted as a complete manifest.")
+
     # A full page must trigger the next offset; a short page ends pagination.
     pages = {
         ("", 0): [{"name": "a.bin", "id": "1"}, {"name": "b.bin", "id": "2"}],
@@ -67,10 +80,11 @@ def main() -> None:
     expect_error(lambda *_: [{"name": "../escape", "id": "x"}])
     expect_error(lambda *_: [{"name": "folder/file", "id": "x"}])
     expect_error(lambda *_: [{"name": "bad", "id": "x", "metadata": {"size": -1}}])
+    expect_error(lambda *_: [{"name": "fractional", "id": "x", "metadata": {"size": 1.5}}])
     expect_error(lambda *_: [{"name": "a", "id": "same"}, {"name": "a", "id": "same"}])
     expect_error(lambda *_: [{"name": "x", "id": "x"}], page_size=0)
 
-    print("PFMS Storage inventory core tests passed: recursion, pagination, sorting, path safety, duplicates and metadata validation; no network.")
+    print("PFMS Storage inventory core tests passed: recursion, pagination, sorting, path safety, duplicates, metadata validation and deterministic manifest; no network.")
 
 
 if __name__ == "__main__":
