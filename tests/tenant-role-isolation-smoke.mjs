@@ -35,6 +35,11 @@ function assertHas(body, pattern, message) {
 const teamAccess = latestFunctionBody("pfms_can_access_legacy_team");
 assertHas(teamAccess, /auth\.uid\(\)\s+is\s+not\s+null/i, "Team access must require an authenticated user.");
 assertHas(teamAccess, /p_team_id\s+is\s+not\s+null/i, "Team access must fail closed for a NULL team ID.");
+assertHas(
+  teamAccess,
+  /p_team_id\s+is\s+not\s+null\s+and\s+exists\s*\(\s*select 1 from public\.pfms_legacy_teams t where t\.id = p_team_id\s*\)\s+and\s*\(/i,
+  "Platform-admin access must still require an existing team ID."
+);
 assertHas(teamAccess, /public\.is_admin\(\)/, "Platform administrators must retain the explicit global access path.");
 assertHas(teamAccess, /join public\.organizations o on o\.id = t\.organization_id/, "Team access must resolve the owning organization.");
 assertHas(teamAccess, /o\.status in \('approved', 'active'\)/, "Suspended or pending organizations must not grant team access.");
@@ -45,6 +50,11 @@ assertHas(teamAccess, /m\.role = s\.role/, "The current organization role must m
 const teamManage = latestFunctionBody("pfms_can_manage_legacy_team");
 assertHas(teamManage, /public\.can_manage_org\(o\.id\)/, "Organization managers must be authorized through the owning organization.");
 assertHas(teamManage, /p_team_id\s+is\s+not\s+null/i, "Team management must fail closed for a NULL team ID.");
+assertHas(
+  teamManage,
+  /p_team_id\s+is\s+not\s+null\s+and\s+exists\s*\(\s*select 1 from public\.pfms_legacy_teams t where t\.id = p_team_id\s*\)\s+and\s*\(/i,
+  "Platform-admin management must still require an existing team ID."
+);
 assertHas(teamManage, /s\.role = 'trainer'/, "Team-level management must be restricted to assigned trainers.");
 assertHas(teamManage, /m\.role = 'trainer'/, "Trainer management must also match the current organization role.");
 assertHas(teamManage, /m\.status = 'active'/, "Trainer management must require active organization membership.");
