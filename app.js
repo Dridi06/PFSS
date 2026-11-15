@@ -21,6 +21,18 @@ let pfmsMainMediaOwnerId = '';
 let pfmsMainMediaRequestId = 0;
 let pfmsAuthGeneration = 0;
 let pfmsAccessCheckGeneration = 0;
+let pfmsAdminUsersRequestId = 0;
+let pfmsAdminMembersRequestId = 0;
+let pfmsAdminErrorsRequestId = 0;
+
+function isCurrentPfmsAdminRequest(userId, generation) {
+  return Boolean(
+    window.pfssIsRealAdmin &&
+    userId &&
+    window.pfssCurrentUserId === userId &&
+    pfmsAuthGeneration === generation
+  );
+}
 let pfmsLastVisibilityAccessCheckAt = 0;
 let editingGlobalPlayerId = null;
 let editingMainReportId = null;
@@ -2333,9 +2345,13 @@ async function loadAdminUsers() {
     host.innerHTML = '';
     return;
   }
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsAdminUsersRequestId;
   message.textContent = 'Benutzer werden geladen …';
   try {
     const { data, error } = await pfssSupabase.rpc('pfss_admin_list_profiles');
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminUsersRequestId) return;
     if (error) throw error;
     const users = data || [];
     document.getElementById('adminTotalUsers').textContent = users.length;
@@ -2366,6 +2382,7 @@ async function loadAdminUsers() {
     }).join('') : '<div class="empty-state"><b>Keine Benutzer gefunden</b></div>';
     message.textContent = users.length ? 'Benutzerliste aktuell.' : 'Noch keine Benutzer vorhanden.';
   } catch (error) {
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminUsersRequestId) return;
     message.textContent = 'Benutzerverwaltung nicht verfügbar. Bitte zuerst die Admin-Datenbankmigration in Supabase ausführen.';
     host.innerHTML = '';
   }
@@ -2374,6 +2391,8 @@ async function loadAdminUsers() {
 async function saveAdminUser(button) {
   const card = button.closest('[data-user-id]');
   if (!card || !window.pfssIsRealAdmin) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
   const userId = card.dataset.userId;
   const role = card.querySelector('[data-role]').value;
   const status = card.querySelector('[data-status]').value;
@@ -2382,10 +2401,12 @@ async function saveAdminUser(button) {
     const { error } = await pfssSupabase.rpc('pfss_admin_update_profile', {
       p_user_id: userId, p_role: role, p_status: status
     });
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
     if (error) throw error;
     toast('Benutzerkonto aktualisiert.');
     await loadAdminUsers();
   } catch (error) {
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
     toast('Änderung fehlgeschlagen. Berechtigung und Datenbankmigration prüfen.');
     button.disabled = false;
   }
@@ -2432,12 +2453,22 @@ function setupPfmsAdminManagement() {
 }
 
 async function loadPfmsAdminDirectory(type,root) {
+  if (!root || !window.pfssIsRealAdmin) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = Number(root.dataset.pfmsRequestId || 0) + 1;
+  root.dataset.pfmsRequestId = String(requestId);
+  const isCurrentRequest = () =>
+    isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
+    root.dataset.pfmsRequestId === String(requestId);
   const message=root.querySelector('[data-pfms-message]'), results=root.querySelector('[data-pfms-results]');
   message.textContent='Daten werden geladen …'; results.innerHTML='';
   try {
     const rpc=type==='scout'?'pfms_admin_list_legacy_scouts':'pfms_admin_search_legacy_organizations';
     const args=type==='scout'?{p_query:''}:{p_type:type,p_query:''};
-    const {data,error}=await pfssSupabase.rpc(rpc,args); if(error)throw error;
+    const {data,error}=await pfssSupabase.rpc(rpc,args);
+    if (!isCurrentRequest()) return;
+    if(error)throw error;
     const nameQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-name]')?.value);
     const emailQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-email]')?.value);
     const idQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-id]')?.value);
@@ -2471,7 +2502,11 @@ async function loadPfmsAdminDirectory(type,root) {
       const item=filtered[Number(button.dataset.entryIndex)];
       if(type==='scout')showPfmsScoutDetails(root,item); else showPfmsOrganizationDetails(root,item);
     }));
-  } catch(error) { console.error('PFMS Admin Directory:',error); message.textContent='Suche fehlgeschlagen: '+(error?.message||'Unbekannter Datenbankfehler'); }
+  } catch(error) {
+    if (!isCurrentRequest()) return;
+    console.error('PFMS Admin Directory:',error);
+    message.textContent='Suche fehlgeschlagen: '+(error?.message||'Unbekannter Datenbankfehler');
+  }
 }
 
 async function showPfmsOrganizationDetails(root,org) {
@@ -7698,6 +7733,9 @@ async function loadPfmsAdminMembers() {
     return;
   }
 
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsAdminMembersRequestId;
   const query = document.getElementById('pfmsAdminMembersQuery')?.value.trim() || '';
   const organizationType = document.getElementById('pfmsAdminMembersOrgType')?.value || null;
   const role = document.getElementById('pfmsAdminMembersRole')?.value || null;
@@ -7713,6 +7751,7 @@ async function loadPfmsAdminMembers() {
       p_role: role,
       p_organization_type: organizationType
     });
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminMembersRequestId) return;
     if (error) throw error;
 
     const members = data || [];
@@ -7757,6 +7796,7 @@ async function loadPfmsAdminMembers() {
       '</article>';
     }).join('');
   } catch (error) {
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminMembersRequestId) return;
     console.error('PFMS admin member directory:', error);
     message.textContent = 'Mitglieder konnten nicht geladen werden. Bitte Datenbankmigration und Administratorrechte prüfen.';
     results.innerHTML = '';
@@ -7785,6 +7825,9 @@ async function loadPfmsAdminErrors() {
     return;
   }
 
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsAdminErrorsRequestId;
   const query = pfssNormalizeSearch(document.getElementById('pfmsAdminErrorsQuery')?.value);
   const severity = document.getElementById('pfmsAdminErrorsSeverity')?.value || '';
   const status = document.getElementById('pfmsAdminErrorsStatus')?.value || '';
@@ -7798,6 +7841,7 @@ async function loadPfmsAdminErrors() {
       .select('id,actor_id,severity,message,route,details,status,created_at,resolved_at,resolved_by')
       .order('created_at', { ascending: false })
       .limit(200);
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminErrorsRequestId) return;
     if (error) throw error;
 
     const events = (data || []).filter((item) =>
@@ -7844,6 +7888,7 @@ async function loadPfmsAdminErrors() {
       '</article>';
     }).join('');
   } catch (error) {
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminErrorsRequestId) return;
     console.error('PFMS system event directory:', error);
     message.textContent = 'Fehlerprotokoll konnte nicht geladen werden. Bitte Staging-Migration und Administratorrechte prüfen.';
     results.innerHTML = '';
