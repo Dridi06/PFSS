@@ -260,7 +260,7 @@ assert.match(
 const latestCalendarCreate = latestFunctionBody("pfms_create_legacy_team_calendar_event");
 assert.match(
   latestCalendarCreate,
-  /'calendar', 'edit'[\s\S]*?p_event_type not in \('match', 'meeting', 'other'\)/,
+  /'calendar', 'edit'[\s\S]*?p_event_type not in \('match',\s*'meeting',\s*'other'\)/,
   "Calendar create RPC must accept only calendar-owned entry types."
 );
 const latestCalendarUpdate = latestFunctionBody("pfms_update_legacy_team_calendar_event");
@@ -276,7 +276,7 @@ assert.match(
 );
 assert.match(
   latestCalendarUpdate,
-  /p_event_type not in \('match', 'meeting', 'other'\)/,
+  /p_event_type not in \('match',\s*'meeting',\s*'other'\)/,
   "Calendar update RPC must not convert calendar rows into event-owned rows."
 );
 const latestEventsList = latestFunctionBody("pfms_list_legacy_team_events");
