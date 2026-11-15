@@ -164,3 +164,67 @@ Start by rechecking the latest feature-branch HEAD and both CI workflows. Contin
 
 ### Resume instruction
 Recheck the latest feature branch and CI. Continue reviewing RPCs and direct table/storage writes for effective authorization, keeping all changes on the feature branch. Do not run migrations, rebase/merge, deploy, or alter production without explicit approval and backup-first staging reconciliation.
+
+
+## Continuation checkpoint – 15 November 2026, six-workstream autonomous review
+
+### Verified repository and CI state
+- Latest reviewed code HEAD: `62820eb6d832fef3bd460b4c68f0345f4c2b95f1`.
+- The feature branch still exists and PR #1 is open, Draft, targeting `main`; PR head matches the reviewed code HEAD.
+- Push workflow run [43743522922](https://github.com/Dridi06/PFSS/actions/runs/43743522922) and PR workflow run [43743517749](https://github.com/Dridi06/PFSS/actions/runs/43743517749) both completed successfully. Both jobs passed in each run: syntax/project smoke tests and Supabase Edge Function Deno type checks.
+- Branch comparison remains diverged: 1,417 commits ahead and 2 behind `main`; merge base `34b7a0f74dbddea225a9c1750f998e3c1c7ac5e8`. No rebase, merge or history rewrite was performed.
+
+### Six workstreams reviewed
+
+1. **RPC and authorization source review – static checks passed**
+   - CI inventory: 131 public SQL RPC names, 83 frontend RPC call sites checked against 131 SQL names, 110 SECURITY DEFINER signatures audited for effective source-level ACL constraints.
+   - The static reference inventory identified five definition-only compatibility review candidates: three older admin directory RPCs with paginated replacements, plus two team-event write RPCs without a direct call in the two current browser entry points.
+   - `docs/RPC_DEPRECATION_REVIEW.md` records the decision to retain all five. No function or privilege was removed. External clients and API traffic remain unverified.
+
+2. **Tenant table, RLS and Storage boundaries – static checks passed**
+   - Existing tests cover 9 protected RPC-only relations across both browser entry points, owner-scoped user data, private media UID-first paths, private bucket configuration, team membership/role gates and admin-only catalogue writes.
+   - Offline backup/Storage tests passed for inventory pagination, path safety, deterministic manifests, encryption/HMAC, no-overwrite restore behavior, staging target validation and the R2 adapter's endpoint/credential guards.
+   - No actual Storage bucket inventory, object download, backup transfer or restore was performed. No Storage object was read or changed.
+
+3. **Migration integrity – source checks passed; release blocker remains**
+   - Latest CI inventoried 66 timestamped SQL files, 50 distinct prefixes, 11 known duplicate prefixes and 16 additional colliding files.
+   - The dependency graph passed with 66 files and 30 reviewed dependency edges; no missing nodes, ordering violations or cycles were reported.
+   - The migration-ledger preflight regression suite passed using synthetic input only. The real dedicated staging ledger has not been retrieved or reconciled.
+   - `docs/MIGRATION_LEDGER_PREFLIGHT.md` was corrected to the current 66-file / 50-prefix inventory. Do not rename, repair or apply colliding migrations before backup-first reconciliation.
+
+4. **Two-tenant and live staging authorization – prepared, not executed**
+   - The repository contains a 70-check read-only staging acceptance query and a separate effective authorization catalog audit covering RLS policy combinations, triggers, RPC definitions/effective EXECUTE and table ACLs.
+   - These are SQL source/contract checks only. No live SQL query or authenticated two-tenant positive/negative test was run in this continuation because no authorized staging database execution session or credentials were available.
+   - Last-active-owner concurrency and system-event severity runtime tests remain pending. Do not infer staging acceptance from CI.
+
+5. **Authentication and UI contract tests – static CI passed**
+   - Auth/session lifecycle checks cover stale request invalidation, sign-out, account/role changes, token refresh, tab resume, admin request isolation and bounded admin pagination.
+   - Frontend/SQL RPC contract, tenant write-boundary, navigation smoke and accessibility checks passed. The project smoke test verified 21 navigation targets.
+   - This does not replace authenticated browser interaction tests or passkey end-to-end verification.
+
+6. **Browser/device QA and recovery validation – not executed**
+   - No interactive browser/device session was available in this continuation. Responsive layout, real login flows, navigation, uploads and browser console/network behavior remain unverified.
+   - Backup/restore utilities passed offline/fake-transport tests only. No real database-plus-Storage backup or isolated restore was performed.
+
+### CI test evidence
+The successful syntax/project job reported:
+- 66 SQL migrations and 145 SECURITY DEFINER definitions parsed by migration smoke checks.
+- 46 guarded team RPCs, 12 FORCE-RLS module tables and nine permission keys covered by team permission tests.
+- 131 declared RPC names, 140 EXECUTE grants and 110 SECURITY DEFINER signatures checked by function-grant tests.
+- 70 unique read-only staging acceptance checks.
+- All offline Storage/backup smoke tests passed.
+- Five definition-only RPC candidates were reported for compatibility review; the review test passed and retained them.
+
+### Repository documentation change
+- Updated `docs/MIGRATION_LEDGER_PREFLIGHT.md` to reflect the verified current inventory rather than the stale 64-file / 48-prefix figure.
+- No application code, database schema, data, grants, Storage objects, Render service or production resource was changed in this continuation.
+
+### Release and progress decision
+- PR #1 remains Draft; no merge, deployment or migration execution was performed.
+- The feature branch's divergence from `main` remains unresolved and must be handled through a reviewed integration plan.
+- Duplicate migration versions remain a hard release blocker pending a verified staging ledger and backup-first reconciliation.
+- Real staging catalog audits, two-tenant tests, owner concurrency, event severity runtime tests, browser/device QA, passkey E2E and real backup/restore remain outstanding.
+- Overall project progress remains **76% provisional**. No increase is justified by static CI results alone.
+
+### Resume instruction
+Recheck the branch HEAD, PR and both CI workflows first. Continue on `feature/pfss-complete-platform-build`. Preserve existing frontend/menu/RPC contracts and all tenant authorization boundaries. Do not apply migrations, run migration repair, rebase/merge, deploy, or alter production without a separately reviewed plan, verified backups and explicit approval.
