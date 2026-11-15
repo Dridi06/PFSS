@@ -566,3 +566,13 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - `build_inventory_manifest()` erzeugt aus einer vollständigen, sortierten Metadatenliste Objektanzahl, Gesamtbytes und einen deterministischen SHA-256-Fingerabdruck. Unbekannte Dateigrößen und unsichere relative Pfade werden nicht als vollständiges Manifest akzeptiert.
 - Offline-Regressionstests prüfen Adapter-Request, Host-/Bucket-Grenzen, Token-Rollen-Guard, Traversierung, Pagination, Limits, Pfadsicherheit und deterministische Manifeste. Kein Test kontaktiert Supabase.
 - **Noch nicht ausgeführt:** Es wurde kein reales Staging-Projekt identifiziert oder kontaktiert, kein Bucket-Inventar abgerufen und kein Storage-Objekt heruntergeladen. Vor dem ersten echten Lauf müssen Projektidentität, Benutzer-Leserechte und tatsächlicher Bucket-Bestand unabhängig im Supabase-Konto bestätigt werden.
+
+
+### Supabase Storage – Offline-Archivkern ergänzt – 15.11.2026
+
+- `scripts/storage_archive.py` paketiert lokal bereitgestellte Storage-Objekte in ein TAR-Archiv mit kanonischem Manifest und SHA-256 pro Objekt.
+- Vor Archivierung und Restore werden Pfade, Symlinks, Duplikate, Objektanzahl, Gesamtbytes, tatsächliche Dateigrößen und Hashes geprüft.
+- `verify_archive` validiert das komplette Archiv ohne Extraktion; `restore_archive` schreibt ausschließlich in ein leeres Zielverzeichnis und überschreibt keine vorhandenen Dateien.
+- `tests/storage-archive-smoke.py` ergänzt Offline-Tests für Round-trip, Manipulation, Traversal, Duplikate, leere Inventare und Ressourcenlimits. Der Test wird in `npm run test:backup` aufgenommen.
+- **Nicht enthalten:** Supabase-Download, R2-Transport, Verschlüsselung dieses Storage-Archivs, automatischer Workflow oder echter Restore. Das TAR ist bis zur separaten Verschlüsselung nicht für dauerhafte Ablage oder Übertragung geeignet.
+- Die Entwicklung bleibt ausschließlich im Feature-Branch; keine Migration, Supabase-Verbindung, R2-Aktion, Render-Änderung oder Produktionsänderung.
