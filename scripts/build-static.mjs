@@ -11,6 +11,8 @@ const publicFiles = [
   "styles.css",
   "pfms-auth-executive.css",
   "scout-workspace.css",
+  "PFSS_Black_Gold_Design_Update.css",
+  "pfms-design-system.css",
   "app.js",
   "scout-workspace.js",
   "pfms-logo.svg",
