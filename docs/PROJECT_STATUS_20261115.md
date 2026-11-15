@@ -106,3 +106,12 @@ No live Supabase migration was executed. No staging or production database was q
 - The baseline is deliberately marked `blocked-pending-staging-ledger-reconciliation`; it does not authorize migration repair, renaming, reordering, or application.
 - Current code checkpoint at this documentation update: `07b3bf28aa2d816124989ca11afbfc2697b65a95`. CI for this exact head is pending.
 - Overall project estimate remains 76% provisional. No live database, Render deployment, or merge was performed.
+
+
+## Staging acceptance SQL contract guard – 15 November 2026
+
+- Added `tests/staging-acceptance-sql-contract-smoke.mjs` to validate the 63 named checks in `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql`.
+- The test requires unique check identifiers, a stable `check_name / passed / details` output schema, a single read-only SQL statement and critical auth/tenant acceptance gates.
+- Integrated the contract test into `npm test`; the SQL audit itself remains read-only and has not been run against a live project.
+- Code head at documentation update: `483ed9182a374cfa14c25d43cdd04d4a7f2f4237`; CI pending.
+- Overall project estimate remains 76% provisional. The actual staging ledger and two-tenant runtime acceptance are still outstanding.
