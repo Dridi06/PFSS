@@ -39,6 +39,25 @@ for (const section of ["RELATIONS", "SEQUENCE_GRANTS", "SCHEMA_GRANTS", "DEFAULT
     "Read-only staging audit must include " + section + " inventory."
   );
 }
+const targetTablesInventory = stagingAuditSql.match(
+  /target_tables AS \(([\s\S]*?)\),\s*column_rows AS/i
+)?.[1] || "";
+assert.match(
+  targetTablesInventory,
+  /n\.nspname IN \('public', 'storage'\)/i,
+  "Read-only audit must inventory public and storage tables."
+);
+assert.doesNotMatch(
+  targetTablesInventory,
+  /c\.relname\s+IN\s*\(/i,
+  "Read-only audit must not silently omit new public/storage tables from policy and constraint inventory."
+);
+assert.match(
+  stagingAuditSql,
+  /FROM\s+pg_policies[\s\S]*?IN\s*\(SELECT table_name FROM target_tables\)/i,
+  "Read-only audit must inventory policies for every discovered public/storage table."
+);
+
 assert.match(stagingAuditSql, /pg_get_viewdef/i,
   "Read-only audit must expose view definitions for security review.");
 assert.match(stagingAuditSql, /security_invoker_view/,
