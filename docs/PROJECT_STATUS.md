@@ -1,3 +1,14 @@
+# Ergänzung 15.11.2026 – Sitzungsisolation der Plattformadministration
+
+- Die administrativen Leseansichten binden ihre Antworten jetzt an Benutzer-ID, Auth-Generation und bestätigten Adminstatus. Antworten nach Logout, Kontowechsel oder Rollenentzug werden verworfen, statt alte Verwaltungsdaten in eine neue Sitzung einzublenden.
+- Für Benutzer-, Mitgliedschafts-, Organisations-/Scout- und Systemereignislisten gilt zusätzlich „latest request wins“: Eine verspätete Antwort einer älteren Suche darf eine neuere Filterauswahl nicht überschreiben.
+- Organisationsdetails, Einladungsantworten und administrative Systemereignis-Aktionen werden ebenfalls gegen veraltete Sitzungen und Detailauswahlen abgesichert.
+- Neue Regressionstests in `tests/auth-session-lifecycle-smoke.mjs` schützen diese Verträge. Die Änderung ersetzt keine serverseitige Autorisierung: Supabase-RPC-Prüfungen, RLS und Datenbankrechte bleiben zwingend.
+- Implementierung: Commit `17acbdb4be5646ae63de06384273e4ec1740735b`; Detail-/Triage-Erweiterung: `e563bb8227bf3de1320182850b0328a2b72eaa04`; Regressionstests: `392cad3fccf6ebc2cce6035dddfc5f01ebb155b8`.
+- Noch nicht durch einen neuen CI-Lauf bestätigt. Keine Datenbankmigration, kein Staging-/Produktionsdeployment und keine Änderung an `main` oder Produktivdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Render-Staging-Blueprint durch Regressionstest abgesichert
 
 - Der Build-Konfigurationstest prüft jetzt zusätzlich die Staging-Blueprint-Grenzen in `render.yaml`: genau ein Staging-Service, Static Runtime, ausschließlich der Feature-Branch, getesteter Build-/Publish-Pfad, explizites `staging`-Buildziel, private Render-Variablen, automatische Deployments erst nach erfolgreichen Checks sowie CSP und HSTS.
