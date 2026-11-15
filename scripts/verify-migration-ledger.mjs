@@ -38,7 +38,7 @@ function assertUnique(values, label) {
 }
 
 async function main() {
-  const migrationDirectory = resolve(process.cwd(), "supabase/migrations");
+  const migrationDirectory = resolve(process.env.PFMS_MIGRATION_DIRECTORY || "supabase/migrations");
   const files = (await readdir(migrationDirectory))
     .map((name) => ({ name, match: name.match(MIGRATION_FILE) }))
     .filter((entry) => entry.match)
