@@ -95,7 +95,7 @@ assert.ok(migrationFiles.length > 0, "No Supabase migrations were found.");
 // before a migration can reach a staging or production deployment.
 const migrationVersionIds = new Set();
 for (const filename of migrationFiles) {
-  const match = filename.match(/^(\\d{8})_([a-z0-9][a-z0-9_]*)\\.sql$/);
+  const match = filename.match(/^(\d{8})_([a-z0-9][a-z0-9_]*)\.sql$/);
   assert.ok(
     match,
     filename + " must use the YYYYMMDD_description.sql migration naming convention."
