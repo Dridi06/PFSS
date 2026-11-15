@@ -298,7 +298,7 @@ assert.doesNotMatch(
   "Calendar UI must route event/tournament creation through the events module."
 );
 
-assert.match(indexHtml, /Die neun getrennten Bereiche[\\s\\S]*Teamaufgaben/, "Team-rights overview must describe all nine modules, including team tasks.");
+assert.match(indexHtml, /neun getrennte (?:Rechtebereiche|Bereiche)[\\s\\S]*Teamaufgaben/, "Team-rights overview must describe all nine modules, including team tasks.");
 assert.match(indexHtml, /Spiele, Besprechungen und sonstige Mannschaftstermine[\\s\\S]*Veranstaltungsbereich/, "Calendar module copy must not imply access to event/tournament records.");
 
 const appSource = await readFile(resolve(process.cwd(), "app.js"), "utf8");
