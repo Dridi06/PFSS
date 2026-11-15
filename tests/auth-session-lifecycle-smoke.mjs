@@ -102,6 +102,22 @@ assert.match(adminMembersLoader, /pfms_admin_list_legacy_members_page[\s\S]*?p_l
 assert.match(adminMembersLoader, /pfmsAdminPaginationMarkup/,
   "The global membership directory must expose page navigation.");
 
+
+const adminSupportLoader = app.match(/async function loadPfmsAdminSupportTickets\(\)[\s\S]*?(?=async function savePfmsAdminSupportTicket)/)?.[0] || "";
+assert.match(adminSupportLoader, /count: 'exact'[\s\S]*?\.range\(page \* pageSize, page \* pageSize \+ pageSize - 1\)/,
+  "The administrator support inbox must fetch a bounded database page with an exact total.");
+assert.match(adminSupportLoader, /requestId !== pfmsAdminSupportRequestId[\s\S]*?isCurrentPfmsAdminRequest/,
+  "The administrator support inbox must reject stale sessions and out-of-order requests.");
+assert.match(adminSupportLoader, /if \(status\) request = request\.eq\('status', status\)/,
+  "The support status filter must be applied by the database.");
+assert.match(adminSupportLoader, /pfmsAdminPaginationMarkup/,
+  "The administrator support inbox must render page navigation.");
+const adminSupportSetup = app.match(/function setupPfmsAdminSupport\(\)[\s\S]*?(?=function showView)/)?.[0] || "";
+assert.match(adminSupportSetup, /data-admin-page-action[\s\S]*?loadPfmsAdminSupportTickets/,
+  "The support inbox page controls must request the selected database page.");
+assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTickets = \[\]/,
+  "Signing out or changing accounts must invalidate pending support inbox requests.");
+
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
 
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
