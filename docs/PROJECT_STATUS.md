@@ -1,3 +1,14 @@
+# Ergänzung 15.11.2026 – RLS-Abdeckung aller Migrationstabellen automatisiert geprüft
+
+- Die CI prüft jetzt jede durch eine Repository-Migration neu angelegte öffentliche Tabelle: Sie muss im Read-only-Staging-Audit enthalten sein und RLS aktiviert haben.
+- FORCE RLS wird grundsätzlich verlangt. Eng begrenzte, geprüfte Ausnahmen sind dokumentiert: `organization_invitations`, `pfms_platform_owner` und `pfms_owner_bootstrap_requests` besitzen aktivierte RLS und widerrufene direkte Tabellenrechte für Browserrollen; die Legacy-Grundlagentabellen `pfms_organizations`, `pfms_memberships` und `pfms_scout_profiles` verwenden ihre expliziten authentifizierten SELECT-Policies ohne direkte Schreib-Policies. Die Tests schützen diese Ausnahmen gegen unbeabsichtigte Ausweitung.
+- Es wurde bewusst keine FORCE-RLS-Migration auf diese Bestandsmodelle gelegt: Die Ausnahmen werden nicht durch pauschale Schemaänderungen „repariert“, bevor die tatsächlichen Security-Definer-/Trigger-Ausführungspfade und die externe Staging-Datenbank geprüft sind.
+- Vollständiger GitHub-Actions-Lauf für Commit `0b06940b38e88405ce4ad92142e5d91b81c7588c` erfolgreich: Node-Projekt-/Build-/Smoke-/Backup-Prüfungen und Deno-Typprüfung. [GitHub Actions – Run 43660461337](https://github.com/Dridi06/PFSS/actions/runs/43660461337).
+- Dies ist ein statischer Migrations-/CI-Nachweis, kein Laufzeitbeweis für die reale Datenbank. Die read-only Staging-Abnahme mit tatsächlichen Rollen, Policies und getrennten Testkonten bleibt erforderlich.
+- Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung oder Migration, keine Änderung an `main` oder Produktivdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Vollständigkeit des Staging-Audits automatisch abgesichert
 
 - Der Migrationstest vergleicht jetzt jede in den Supabase-Migrationen neu angelegte Tabelle mit der expliziten Tabellenliste des Read-only-Staging-Audits. Fehlt künftig eine Tabelle im Audit, schlägt der CI-Test fehl, statt dass Schema-/RLS-/Policy-/Grant-Informationen unbemerkt fehlen.
