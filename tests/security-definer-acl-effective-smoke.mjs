@@ -168,13 +168,13 @@ for (const [signature, state] of aclState) {
 // individual function ACL statements, so they are forbidden for browser roles.
 assert.doesNotMatch(
   sql,
-  /\bgrant\s+(?:all(?:\s+privileges)?|execute)\s+on\s+all\s+functions\s+in\s+schema\s+public\s+to\s+(?:public|anon)\b/i,
+  /\bgrant\s+(?:all(?:\s+privileges)?|execute)\s+on\s+all\s+functions\s+in\s+schema\s+public\s+to\s+[^;]*\b(?:public|anon)\b/i,
   "A broad schema-level function grant must not expose SECURITY DEFINER RPCs."
 );
 for (const statement of sql.matchAll(/\balter\s+default\s+privileges\b[^;]*;/gi)) {
   assert.doesNotMatch(
     statement[0],
-    /\bgrant\s+(?:all(?:\s+privileges)?|execute)\s+on\s+functions\s+to\s+(?:public|anon)\b/i,
+    /\bgrant\s+(?:all(?:\s+privileges)?|execute)\s+on\s+functions\s+to\s+[^;]*\b(?:public|anon)\b/i,
     "Default privileges must not grant future functions to PUBLIC or anon."
   );
 }
