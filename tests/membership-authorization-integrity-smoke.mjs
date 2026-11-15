@@ -62,6 +62,32 @@ assert.ok(
   "Owner updates must lock the parent organization first, lock/re-read the membership second, revalidate its tenant, then enforce the owner invariant."
 );
 
+
+const managerMigration = (await readFile(
+  resolve(process.cwd(), "supabase/migrations/20261230_pfms_legacy_manager_admin_rpc_boundary.sql"),
+  "utf8"
+)).replace(/\s+/g, " ").toLowerCase();
+const managerUpdate = managerMigration.slice(
+  managerMigration.indexOf("create or replace function public.pfms_update_legacy_org_membership_for_manager"),
+  managerMigration.indexOf("revoke all on function public.pfms_update_legacy_org_membership_for_manager")
+);
+for (const [pattern, message] of [
+  [/security definer/, "Legacy manager RPC must remain SECURITY DEFINER."],
+  [/set search_path = ''/, "Legacy manager RPC must use an empty search_path."],
+  [/if public\.is_admin\(\) then raise exception/, "Platform administrators must be denied the legacy manager RPC."],
+  [/not public\.can_manage_org\(v_organization_id\)/, "Non-admin callers must pass the organization manager predicate."],
+  [/v_current_role in \('owner','club_admin','agency_admin'\)/, "Leadership memberships must be protected for every manager RPC caller."],
+  [/p_role is null[\s\S]*p_role not in/, "NULL and unsupported operational roles must be rejected."],
+  [/p_status is null[\s\S]*p_status not in/, "NULL and unsupported membership statuses must be rejected."],
+  [/revoke all on function/, "Default/public execution must be revoked."],
+  [/grant execute on function[\s\S]*to authenticated/, "The existing authenticated manager workflow must remain callable."]
+]) assert.match(managerUpdate, pattern, message);
+assert.doesNotMatch(
+  managerUpdate,
+  /not public\.is_admin\(\) and v_current_role/,
+  "Leadership protection must not be bypassed by a platform-admin exception."
+);
+
 const manifest = JSON.parse(await readFile(
   resolve(process.cwd(), "supabase/migrations/dependency-manifest.json"), "utf8"
 ));
@@ -71,6 +97,13 @@ assert.ok(
     edge.after === "20261229_pfms_membership_authorization_integrity.sql"
   ),
   "Migration dependency graph must place the PFMS membership hardening after its core schema."
+);
+assert.ok(
+  manifest.dependencies.some((edge) =>
+    edge.before === "20261222_pfms_legacy_org_manager_active_org_gate.sql" &&
+    edge.after === "20261230_pfms_legacy_manager_admin_rpc_boundary.sql"
+  ),
+  "Legacy manager RPC boundary must follow the active-organization authorization helper."
 );
 
 const acceptance = await readFile(
