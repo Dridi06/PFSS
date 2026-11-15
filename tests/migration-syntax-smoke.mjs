@@ -39,6 +39,22 @@ assert.match(
   "Staging audit must report whether the Supabase migration ledger exists."
 );
 
+assert.match(
+  stagingAcceptanceSql,
+  /'team_permission_matrix_read_write_security'/,
+  "Staging acceptance must verify the full team permission matrix read/write RPC security."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pfms_save_legacy_team_permissions\(uuid,jsonb\)[\s\S]*?v_can_edit and not v_can_view/,
+  "Staging acceptance must verify manager-only permission writes and edit-implies-view."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pfms_get_my_legacy_team_permissions\(uuid\)[\s\S]*?pfms_can_access_legacy_team\(p_team_id\)/,
+  "Staging acceptance must verify the current membership gate for the effective permission matrix."
+);
+
 const migrationsDirectory = resolve(process.cwd(), "supabase/migrations");
 const entries = await readdir(migrationsDirectory, { withFileTypes: true });
 const migrationFiles = entries
