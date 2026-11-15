@@ -66,7 +66,7 @@ assert.match(invalidUrl.stderr, /valid HTTPS Supabase project URL/);
 
 const renderBlueprint = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
 assert.equal((renderBlueprint.match(/^  - type:/gm) || []).length, 1, "Render blueprint must define exactly one service in this staging-only branch");
-assert.match(renderBlueprint, /^    name: pfms-staging-static$/m, "Render service must be explicitly named as staging");
+assert.match(renderBlueprint, /^    name: pfss-staging$/m, "Render blueprint must target the existing staging service name");
 assert.match(renderBlueprint, /^    runtime: static$/m, "Staging service must remain a static site");
 assert.match(renderBlueprint, /^    branch: feature\/pfss-complete-platform-build$/m, "Staging service must deploy only from the feature branch");
 assert.match(renderBlueprint, /^    buildCommand: npm run check:syntax && npm run build && npm run test:dist$/m, "Staging deploy must run syntax, build and distribution tests");
