@@ -489,8 +489,8 @@ for (const match of functionDefinitions) {
   const functionName = match[1].toLowerCase();
   assert.match(
     header,
-    /set\s+search_path\s*=/i,
-    functionName + " is SECURITY DEFINER but has no fixed search_path"
+    /set\s+search_path\s*=\s*''/i,
+    functionName + " is SECURITY DEFINER but must use an empty search_path"
   );
   assert.ok(
     normalizedMigrationSql.includes("revoke all on function public." + functionName),
