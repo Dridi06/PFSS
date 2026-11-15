@@ -68,7 +68,7 @@ assert.match(
 );
 assert.match(
   frontend,
-  /pfms_update_legacy_org_membership_for_manager[\s\S]*?pfssSupabase\.rpc\(rpc,/,
+  /const rpcName = window\.pfssIsRealAdmin[\s\S]*?pfms_update_legacy_org_membership_for_manager[\s\S]*?pfssSupabase\.rpc\(rpcName,/i,
   "Organization-manager membership changes must select the guarded manager RPC dynamically."
 );
 
