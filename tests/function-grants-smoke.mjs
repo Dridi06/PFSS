@@ -157,7 +157,7 @@ for (const signature of securityDefinerSignatures) {
 
 // Protect the legacy organization-manager authorization from privilege broadening.
 const managerGuard = await readFile(
-  resolve(directory, "20261118_pfms_legacy_org_manager_guard.sql"),
+  resolve(directory, "20261112_pfms_legacy_org_manager_guard.sql"),
   "utf8"
 );
 const normalizedManagerGuard = managerGuard.replace(/\s+/g, " ").toLowerCase();
