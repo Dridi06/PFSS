@@ -1589,6 +1589,40 @@ with checks as (
     ), false),
     'Platform admins must be denied the manager RPC; managers must pass can_manage_org and cannot alter leadership memberships'
 
+  union all
+  select
+    'system_event_client_severity_boundary',
+    coalesce((
+      exists (
+        select 1
+        from pg_catalog.pg_policies p
+        where p.schemaname = 'public'
+          and p.tablename = 'pfms_system_events'
+          and p.policyname = 'pfms_system_events_insert_own'
+          and p.with_check ilike '%severity = ''error''%'
+      )
+      and exists (
+        select 1
+        from pg_catalog.pg_trigger t
+        where t.tgrelid = pg_catalog.to_regclass('public.pfms_system_events')
+          and t.tgname = 'pfms_system_event_severity_guard'
+          and not t.tgisinternal
+          and t.tgenabled <> 'D'
+          and t.tgfoid = pg_catalog.to_regprocedure('public.pfms_system_event_severity_guard()')
+      )
+      and exists (
+        select 1
+        from pg_catalog.pg_proc p
+        where p.oid = pg_catalog.to_regprocedure('public.pfms_system_event_severity_guard()')
+          and not p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=pg_catalog%'
+          and pg_catalog.pg_get_functiondef(p.oid) ilike '%new.severity is distinct from ''error''%'
+          and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+          and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+      )
+    ), false),
+    'Authenticated frontend telemetry must be restricted to error severity by both INSERT RLS policy and an enabled invoker trigger; trigger function uses pg_catalog search_path and has no direct browser EXECUTE grant'
+
 
 )
 select check_name, passed, details
