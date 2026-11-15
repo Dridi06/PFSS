@@ -73,7 +73,7 @@ assert.match(renderBlueprint, /^    buildCommand: npm run check:syntax && npm ru
 assert.match(renderBlueprint, /^    staticPublishPath: \.\/dist$/m, "Only the tested dist directory may be published");
 assert.match(renderBlueprint, /^        value: staging$/m, "Render must build with the staging target");
 for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABASE_KEY"]) {
-  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\console.log("PFMS build configuration smoke tests passed: missing, mismatched, malformed, non-canonical and secret credentials fail closed.");");
+  const escapedKey = key;
   assert.match(
     renderBlueprint,
     new RegExp("      - key: " + escapedKey + "\\n        sync: false"),
