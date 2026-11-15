@@ -1021,6 +1021,10 @@ with checks as (
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_offset not between 0 and 1000000%'
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_org_id%'
         and pg_catalog.pg_get_functiondef(p.oid) ilike '%filtered_count%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%active_count%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%pending_count%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%suspended_count%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%left join page on true%'
       from pg_catalog.pg_proc p
       where p.oid = pg_catalog.to_regprocedure(
         'public.pfms_admin_list_legacy_org_members_page(uuid,text,text,text,integer,integer)'
