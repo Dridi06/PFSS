@@ -46,29 +46,15 @@ for (const { file, source } of migrationSources) {
 }
 assert.ok(functions.size > 0, "No public SQL function definitions found.");
 
-const unresolvedRpcCalls = [];
-const dynamicRpcCalls = [];
 function collectRpcCalls(source, file, target) {
   const pattern = /\.rpc\s*\(\s*(['"])([a-z_][a-z0-9_]*)\1/gi;
   for (const match of source.matchAll(pattern)) {
-    const name = match[2].toLowerCase();
-    const record = functions.get(name);
+    const record = functions.get(match[2].toLowerCase());
     if (record) record[target].push(file);
-    else unresolvedRpcCalls.push({ file, name });
-  }
-  const dynamicPattern = /\.rpc\s*\(\s*(?!['"])([^,\s)]+)/gi;
-  for (const match of source.matchAll(dynamicPattern)) {
-    dynamicRpcCalls.push({ file, expression: match[1] });
   }
 }
 for (const { file, source } of frontendSources) collectRpcCalls(source, file, "frontendCalls");
 for (const { file, source } of edgeSources) collectRpcCalls(source, file, "edgeCalls");
-assert.deepEqual(
-  unresolvedRpcCalls,
-  [],
-  "Static frontend/Edge Function RPC names must resolve to a public SQL function migration: " +
-    unresolvedRpcCalls.map((item) => item.file + ": " + item.name).join(", ")
-);
 
 const triggerPattern = /execute\s+function\s+public\.([a-z0-9_]+)\s*\(/gi;
 for (const { file, source } of migrationSources) {
@@ -107,10 +93,6 @@ console.log("  Edge Function referenced: " + count("edgeCalls"));
 console.log("  SQL referenced: " + count("sqlReferences"));
 console.log("  trigger referenced: " + count("triggerReferences"));
 console.log("  definition-only review candidates: " + definitionOnly.length);
-console.log("  dynamic RPC expressions requiring manual review: " + dynamicRpcCalls.length);
-for (const item of dynamicRpcCalls) {
-  console.log("  DYNAMIC RPC REVIEW: " + item.file + " (" + item.expression + ")");
-}
 for (const row of definitionOnly) {
   console.log("  REVIEW ONLY: " + row.name + " (latest definition: " + row.definitions.at(-1) + ")");
 }

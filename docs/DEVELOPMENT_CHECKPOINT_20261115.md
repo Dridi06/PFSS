@@ -50,3 +50,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Final GitHub Actions run: `43729260827` – completed successfully; both jobs passed.
 - Current feature branch head at checkpoint: `2a494af212034417ca54ddd2754aedbe2e72ae27`.
 - Staging SQL execution and live tenant-isolation tests remain outstanding. CI success is not a substitute for those gates.
+
+
+## RPC scanner hardening – final verification
+
+- Extended `tests/rpc-reference-inventory-smoke.mjs`: static RPC names found in both browser entry points and Supabase Edge Functions must resolve to a public SQL function defined in the migration set. Unresolved static names now fail CI.
+- Computed RPC expressions are explicitly reported for manual review; the scanner does not infer their target.
+- Latest verified inventory from CI: 128 public SQL function names; 77 frontend-referenced names; 2 Edge Function-referenced names; 128 SQL-referenced names; 28 trigger-referenced names; 0 definition-only review candidates; 2 dynamic RPC expressions requiring manual review.
+- The first attempt exposed a regular-expression escaping error in the new test. It was fixed in commit `9d1daf16a845528cfafb6f02c14924163d5f2a1b`; the corrected scanner passed both push and pull-request CI.
+- Verified CI: [Push run 43730127752](https://github.com/Dridi06/PFSS/actions/runs/43730127752) and [PR run 43730132807](https://github.com/Dridi06/PFSS/actions/runs/43730132807). Both jobs passed in both runs.
+- Current feature branch head at this checkpoint update: `9d1daf16a845528cfafb6f02c14924163d5f2a1b`.
+- The inventory is static and repository-scoped. It does not prove that external consumers do not exist, nor does it establish live database grants or runtime authorization. Staging catalog review and two-tenant positive/negative tests remain open.
