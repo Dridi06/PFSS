@@ -50,3 +50,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Final GitHub Actions run: `43729260827` – completed successfully; both jobs passed.
 - Current feature branch head at checkpoint: `2a494af212034417ca54ddd2754aedbe2e72ae27`.
 - Staging SQL execution and live tenant-isolation tests remain outstanding. CI success is not a substitute for those gates.
+
+
+## RPC reference inventory – follow-up
+
+- Added `tests/rpc-reference-inventory-smoke.mjs` to classify public SQL functions by statically visible browser RPC calls, Edge Function RPC calls, SQL references, and trigger targets.
+- Functions with no detected source reference are reported as review-only candidates. The scanner does not change grants, definitions, migrations, or delete functions.
+- Added `docs/RPC_REFERENCE_INVENTORY.md` with interpretation limits, especially external PostgREST clients, dynamic SQL, scheduled jobs, and integrations outside this repository.
+- Added the inventory to `npm run check:syntax` and `npm run test:dist`.
+- Implementation commit: `ad0802b4bfbe5b5d8d5fca74f396a0c794502a2c`.
+- GitHub Actions run `43729314906` completed successfully; both project smoke tests and Supabase Edge Function type-check jobs passed.
+- This is a static repository inventory only. The real staging RPC catalog/ACL output and live positive/negative tenant tests remain release gates.
