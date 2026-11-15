@@ -965,6 +965,37 @@ with checks as (
     ), false),
     'Jede Admin-Seitenabfrage muss 1–100 Zeilen und einen begrenzten Offset erzwingen sowie die Gesamtzahl liefern'
 
+
+  union all
+  select
+    'admin_system_event_pagination_security',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_is_admin()%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfms_admin_list_system_events_page(text,text,text,integer,integer)'
+      )
+    ), false),
+    'Systemereignis-Pagination muss SECURITY DEFINER mit leerem search_path, Admin-Prüfung und EXECUTE nur für authenticated besitzen'
+
+  union all
+  select
+    'admin_system_event_pagination_bounds',
+    coalesce((
+      select pg_catalog.pg_get_functiondef(p.oid) ilike '%p_limit not between 1 and 100%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_offset not between 0 and 1000000%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%count(*) over ()%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfms_admin_list_system_events_page(text,text,text,integer,integer)'
+      )
+    ), false),
+    'Systemereignis-Pagination muss Seiten auf 1–100 Zeilen begrenzen, Offsets validieren und Gesamtzahl liefern'
+
 )
 select check_name, passed, details
 from checks
