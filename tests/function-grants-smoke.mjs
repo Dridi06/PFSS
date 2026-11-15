@@ -131,6 +131,16 @@ for (const match of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public
   }
 }
 
+const searchPathOverrides = new Map();
+for (const match of sql.matchAll(/alter\s+function\s+public\.([a-z0-9_]+)\s*\(/gi)) {
+  const open = match.index + match[0].lastIndexOf("(");
+  const close = closingParen(sql, open);
+  const signature = match[1].toLowerCase() + "(" +
+    normalizeArguments(sql.slice(open + 1, close), false) + ")";
+  const tail = sql.slice(close + 1).match(/^\s*set\s+search_path\s*=\s*'([^']*)'\s*;/i);
+  if (tail) searchPathOverrides.set(signature, tail[1]);
+}
+
 const grants = [];
 for (const match of sql.matchAll(/grant\s+execute\s+on\s+function\s+public\.([a-z0-9_]+)\s*\(/gi)) {
   const open = match.index + match[0].lastIndexOf("(");
@@ -154,10 +164,14 @@ for (const match of sql.matchAll(/revoke\s+(?:all|execute)\s+on\s+function\s+pub
 
 for (const signature of securityDefinerSignatures) {
   const header = securityDefinerHeaders.get(signature) || "";
-  assert.match(
-    header,
-    /set\s+search_path\s*=\s*''/i,
-    "SECURITY DEFINER function must use an empty search_path: " + signature
+  const declaredSearchPath = header.match(/set\s+search_path\s*=\s*'([^']*)'/i)?.[1];
+  const effectiveSearchPath = searchPathOverrides.has(signature)
+    ? searchPathOverrides.get(signature)
+    : declaredSearchPath;
+  assert.equal(
+    effectiveSearchPath,
+    "",
+    "SECURITY DEFINER function must have an effective empty search_path: " + signature
   );
   assert.ok(
     revokes.has(signature),
