@@ -29,7 +29,7 @@ requirePattern(tasks, /alter table public\.pfms_personal_tasks force row level s
 for (const action of ["select", "insert", "update", "delete"]) {
   requirePattern(
     tasks,
-    new RegExp("create policy pfms_personal_tasks_" + action + "_own[\\\\s\\\\S]*?for " + action)
+    new RegExp("create policy pfms_personal_tasks_" + action + "_own[\\s\\S]*?for " + action)
   );
 }
 requirePattern(tasks, /owner_id = auth\.uid\(\) and public\.pfms_current_user_is_approved\(\)/);
