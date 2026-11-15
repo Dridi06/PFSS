@@ -1815,10 +1815,23 @@ document.getElementById('playerSearchForm').addEventListener('reset', () => wind
   playerSearchHasRun=false; renderPlayers();
 },0));
 document.getElementById('adminUserSearchForm').addEventListener('submit', event => {
-  event.preventDefault(); loadAdminUsers();
+  event.preventDefault();
+  document.getElementById('adminUserList').dataset.page = '0';
+  loadAdminUsers();
 });
-document.getElementById('adminUserSearchForm').addEventListener('reset', () => window.setTimeout(loadAdminUsers,0));
+document.getElementById('adminUserSearchForm').addEventListener('reset', () => window.setTimeout(() => {
+  document.getElementById('adminUserList').dataset.page = '0';
+  loadAdminUsers();
+},0));
 document.getElementById('refreshAdminButton').addEventListener('click',loadAdminUsers);
+document.getElementById('adminUserList').addEventListener('click', event => {
+  const pageButton = event.target.closest('[data-admin-page-action]');
+  if (!pageButton || pageButton.disabled) return;
+  const host = document.getElementById('adminUserList');
+  const page = Number(host.dataset.page || 0);
+  host.dataset.page = String(Math.max(0,page+(pageButton.dataset.adminPageAction==='next'?1:-1)));
+  loadAdminUsers();
+});
 
 document.getElementById('mediaInput')
   .addEventListener('change', e => {
@@ -2348,27 +2361,43 @@ async function loadAdminUsers() {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const requestId = ++pfmsAdminUsersRequestId;
+  const pageSize = 25;
+  const page = Math.max(0, Number(host.dataset.page || 0));
   message.textContent = 'Benutzer werden geladen …';
   try {
-    const { data, error } = await pfssSupabase.rpc('pfss_admin_list_profiles');
+    const nameQuery = document.getElementById('adminUserSearchName')?.value.trim() || '';
+    const idQuery = document.getElementById('adminUserSearchId')?.value.trim() || '';
+    const roleQuery = document.getElementById('adminUserSearchRole')?.value || null;
+    const statusQuery = document.getElementById('adminUserSearchStatus')?.value || null;
+    const [{ data, error }, { data: summaryData, error: summaryError }] = await Promise.all([
+      pfssSupabase.rpc('pfss_admin_list_profiles_page', {
+        p_query: nameQuery,
+        p_user_id: idQuery,
+        p_role: roleQuery,
+        p_status: statusQuery,
+        p_limit: pageSize,
+        p_offset: page * pageSize
+      }),
+      pfssSupabase.rpc('pfss_admin_profile_counts')
+    ]);
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminUsersRequestId) return;
     if (error) throw error;
+    if (summaryError) throw summaryError;
+
     const users = data || [];
-    document.getElementById('adminTotalUsers').textContent = users.length;
-    document.getElementById('adminPendingUsers').textContent = users.filter(x => x.status === 'pending').length;
-    document.getElementById('adminApprovedUsers').textContent = users.filter(x => x.status === 'approved').length;
-    document.getElementById('adminSuspendedUsers').textContent = users.filter(x => x.status === 'suspended').length;
-    const nameQuery=pfssNormalizeSearch(document.getElementById('adminUserSearchName')?.value);
-    const idQuery=pfssNormalizeSearch(document.getElementById('adminUserSearchId')?.value);
-    const roleQuery=document.getElementById('adminUserSearchRole')?.value||'';
-    const statusQuery=document.getElementById('adminUserSearchStatus')?.value||'';
-    const filtered=users.filter(user =>
-      (!nameQuery||pfssNormalizeSearch(user.username).includes(nameQuery)) &&
-      (!idQuery||pfssNormalizeSearch(user.id).includes(idQuery)) &&
-      (!roleQuery||user.role===roleQuery) &&
-      (!statusQuery||user.status===statusQuery)
-    ).sort((a,b)=>pfssNormalizeSearch(a.username).localeCompare(pfssNormalizeSearch(b.username),'de',{sensitivity:'base'}));
-    host.innerHTML = filtered.length ? filtered.map(user => {
+    const summary = summaryData?.[0] || {};
+    document.getElementById('adminTotalUsers').textContent = Number(summary.total_count || 0).toLocaleString('de-DE');
+    document.getElementById('adminPendingUsers').textContent = Number(summary.pending_count || 0).toLocaleString('de-DE');
+    document.getElementById('adminApprovedUsers').textContent = Number(summary.approved_count || 0).toLocaleString('de-DE');
+    document.getElementById('adminSuspendedUsers').textContent = Number(summary.suspended_count || 0).toLocaleString('de-DE');
+
+    const totalCount = Number(users[0]?.total_count || 0);
+    if (!users.length && page > 0) {
+      host.dataset.page = '0';
+      return loadAdminUsers();
+    }
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    host.innerHTML = users.length ? users.map(user => {
       const self = user.id === window.pfssCurrentUserId;
       return `<article class="admin-user-card" data-user-id="${escapeHtml(user.id)}">
         <div class="admin-user-info"><b>${escapeHtml(user.username || 'Ohne Benutzername')}</b><small>${escapeHtml(user.id)}</small><span class="tag">${escapeHtml(user.status)}</span></div>
@@ -2380,10 +2409,16 @@ async function loadAdminUsers() {
         ${self ? '<small class="admin-self-note">Eigenes Administratorkonto geschützt</small>' : ''}
       </article>`;
     }).join('') : '<div class="empty-state"><b>Keine Benutzer gefunden</b></div>';
-    message.textContent = users.length ? 'Benutzerliste aktuell.' : 'Noch keine Benutzer vorhanden.';
+    if (totalCount > 0) {
+      host.insertAdjacentHTML('beforeend', pfmsAdminPaginationMarkup(page,totalCount,pageSize));
+    }
+    message.textContent = totalCount
+      ? totalCount.toLocaleString('de-DE') + ' Benutzer gefunden · Seite ' + (page + 1) + ' von ' + totalPages + '.'
+      : 'Noch keine passenden Benutzer vorhanden.';
   } catch (error) {
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminUsersRequestId) return;
-    message.textContent = 'Benutzerverwaltung nicht verfügbar. Bitte zuerst die Admin-Datenbankmigration in Supabase ausführen.';
+    console.error('PFMS admin profile directory:', error);
+    message.textContent = 'Benutzerverwaltung nicht verfügbar. Bitte Admin-Paginierungs- und Datenbankmigration in Supabase prüfen.';
     host.innerHTML = '';
   }
 }
