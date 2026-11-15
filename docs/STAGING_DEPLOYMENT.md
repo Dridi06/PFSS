@@ -1,3 +1,14 @@
+## Ergänzung – Staging-Abnahme des Admin-Fehlerprotokolls
+
+Die additive Migration `20261220_pfms_admin_system_event_pagination.sql` ergänzt die Admin-RPC `pfms_admin_list_system_events_page`. Nach Anwendung auf dem dedizierten Staging-Projekt:
+
+1. Als Plattformadministrator die Fehleransicht öffnen. Prüfen, dass Meldung/Pfad, Schweregrad und Bearbeitungsstatus die Treffer serverseitig eingrenzen.
+2. Bei mehr als 25 Treffern auf Seite 2 wechseln; Gesamtzahl und Sortierung nach neuestem Ereignis prüfen.
+3. Einen Ereignisstatus ändern und prüfen, dass die Aktualisierung erhalten bleibt und die Liste korrekt neu geladen wird.
+4. Mit einem Nicht-Admin-Konto die RPC direkt aufrufen. Erwartet wird SQLSTATE `42501`.
+5. Seitengröße 1 und 100 prüfen; 0, 101, negative und übergroße Offsets müssen SQLSTATE `22023` auslösen.
+6. Im Read-only-Acceptance-Audit müssen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds` beide `passed = true` liefern.
+
 ## Ergänzung – Abnahme der Admin-Verzeichnis-Pagination
 
 Die Migrationen `20261218_pfms_admin_directory_pagination.sql` und `20261219_pfss_admin_profile_pagination.sql` ergänzen ausschließlich neue, admin-geschützte RPCs. Sie verändern keine vorhandenen Tabellen oder Datensätze. Vor der Anwendung müssen sie im Dry-Run in der korrekten Reihenfolge erscheinen.
