@@ -145,3 +145,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Push CI [43735267214](https://github.com/Dridi06/PFSS/actions/runs/43735267214) and PR CI [43735271634](https://github.com/Dridi06/PFSS/actions/runs/43735271634) both passed completely.
 - Inventory review found 62 timestamped SQL files, 46 distinct date prefixes and 11 duplicate prefixes. This is a migration-ledger blocker requiring reconciliation against the dedicated staging project's actual ledger; no filenames were changed.
 - No staging/production database operation, Render deployment or merge was performed. Overall project estimate remains 76% provisional.
+
+
+## Migration collision guard – 15 November 2026
+
+- Added a machine-readable baseline of the exact 11 known duplicate migration version prefixes.
+- Added a CI audit and smoke test that prevent new or silently changed migration collisions.
+- Added a documented backup-first staging reconciliation procedure.
+- Integrated the guard into `npm test`.
+- The collision baseline remains a blocker, not an approval to repair or rename migration history.
+- Code head at save time: `07b3bf28aa2d816124989ca11afbfc2697b65a95`; CI pending.
+- Overall progress remains 76% provisional; no live Supabase or production changes.
