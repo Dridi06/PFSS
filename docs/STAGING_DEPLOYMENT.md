@@ -1,3 +1,7 @@
+## Ergänzung – Navigation und Rollenwechsel
+
+Zusätzlich zur erneuten Profilprüfung wird die clientseitige Navigation gegen direkte bzw. veraltete History-Aufrufe abgesichert: Administrationsrouten werden für Konten ohne bestätigte Plattform-Adminrolle auf das Dashboard zurückgeführt. Die Navigationssperre ist ausdrücklich keine Datenbanksicherheit; RLS und serverseitige RPC-Berechtigungen bleiben maßgeblich.
+
 ## Ergänzung – Abnahme des Authentifizierungs- und Sitzungslebenszyklus
 
 Die folgenden Prüfungen sind nach Anwendung des vollständigen Staging-Migrationsstands mit getrennten Testkonten durchzuführen:
