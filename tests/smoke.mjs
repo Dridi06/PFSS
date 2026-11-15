@@ -98,6 +98,15 @@ const teamEventTravelMigration = await read("supabase/migrations/20261205_pfms_l
 const inAppNotificationsMigration = await read("supabase/migrations/20261207_pfms_in_app_notifications.sql");
 const supportNotificationsMigration = await read("supabase/migrations/20261208_pfms_support_ticket_notifications.sql");
 const stagingAcceptanceSql = await read("supabase/STAGING_ACCEPTANCE_READ_ONLY.sql");
+const auditTargetTables = stagingAudit.match(
+  /target_tables AS \(([\s\S]*?)\),\s*column_rows AS/i
+)?.[1] || "";
+const stagingAuditHasCompleteTableInventory =
+  auditTargetTables.includes("n.nspname IN ('public', 'storage')")
+  && auditTargetTables.includes("c.relkind IN ('r', 'p')")
+  && !/c\.relname\s+IN\s*\(/i.test(auditTargetTables)
+  && stagingAudit.includes("'RELATIONS'");
+
 const edgeFunctionGuide = await read("docs/EDGE_FUNCTION_CONFIGURATION.md");
 assert.ok(
   !/PFMS_ALLOWED_ORIGINS="[^"]*pfss-scouting\.onrender\.com/i.test(edgeFunctionGuide),
@@ -484,7 +493,7 @@ assert.ok(globalCatalogueMigration.includes("author_id = auth.uid() or public.pf
 assert.ok(globalCatalogueMigration.includes("on delete restrict"), "Player deletion must preserve report history");
 assert.ok(globalCatalogueMigration.includes("pfms_import_legacy_catalogue") && globalCatalogueMigration.includes("jsonb_array_length"), "Legacy import must be bounded and transactional");
 assert.ok(app.includes("pfms_import_legacy_catalogue") && app.includes("importLegacyLocalData"), "Legacy browser data must have an explicit safe cloud import path");
-assert.ok(stagingAudit.includes("'pfms_global_players'") && stagingAudit.includes("'pfms_main_scouting_reports'"), "Read-only audit must include the main catalogue tables");
+assert.ok(stagingAuditHasCompleteTableInventory && stagingAuditHasCompleteTableInventory, "Read-only audit must include the main catalogue tables");
 
 
 assert.ok(legacyInvitationWorkspaceMigration.includes("pfms_list_my_manageable_legacy_organizations()"), "Managed organization list RPC is missing");
@@ -507,10 +516,10 @@ assert.ok(supportTicketsMigration.includes("force row level security") && suppor
 assert.ok(supportTicketsMigration.includes("grant update (status, admin_response)") && supportTicketsMigration.includes("pfms_support_tickets_insert_own"), "Support tickets must restrict users to submission and admins to response/status updates");
 assert.ok(supportTicketsMigration.includes("pfms_enforce_support_ticket_rate_limit") && supportTicketsMigration.includes("v_recent_count >= 10"), "Support ticket submissions must be rate-limited per account");
 assert.ok(app.includes("document.getElementById('pfmsSupportTicketForm')?.reset()") && app.includes("document.getElementById('pfmsPersonalTaskForm')?.reset()"), "Support drafts must clear on account changes");
-assert.ok(stagingAudit.includes("'pfms_support_tickets'"), "Staging audit must include support tickets");
+assert.ok(stagingAuditHasCompleteTableInventory, "Staging audit must include support tickets");
 
 assert.ok(personalTasksMigration.includes("force row level security") && personalTasksMigration.includes("owner_id = auth.uid()") && personalTasksMigration.includes("pfms_current_user_is_approved()"), "Personal tasks must enforce approved owner-only access");
-assert.ok(stagingAudit.includes("'pfms_personal_tasks'"), "Staging schema audit must inspect personal task data");
+assert.ok(stagingAuditHasCompleteTableInventory, "Staging schema audit must inspect personal task data");
 assert.ok(app.includes(".eq('owner_id', requestUserId)") && app.includes("pfmsPersonalTasks = [];"), "Personal task reads and mutations must remain account-scoped");
 
 assert.ok(app.includes("data-pfms-club-nav") && app.includes("data-pfms-open-invitation"), "Club workspace navigation and invite actions are not wired");
@@ -559,7 +568,7 @@ assert.ok(app.includes("staff.filter(member => member.assignment_status === 'act
 assert.ok(app.includes("requestGeneration !== pfmsAuthGeneration") && app.includes("pfmsStaffDirectoryRequestId"), "Staff directory requests must be guarded against account changes and stale navigation");
 
 assert.ok(html.includes('id="pfmsTeamGrid"') && html.includes('id="pfmsMyTeamsGrid"') && html.includes('id="pfmsSelectedTeamPanel"'), "Club and personal team workspace UI is missing");
-assert.ok(stagingAudit.includes("'pfms_legacy_teams'") && stagingAudit.includes("'pfms_legacy_team_staff'"), "Staging audit must inspect team and staff data");
+assert.ok(stagingAuditHasCompleteTableInventory && stagingAuditHasCompleteTableInventory, "Staging audit must inspect team and staff data");
 assert.ok(legacyTeamRosterMigration.includes("public.pfms_legacy_team_players") && legacyTeamRosterMigration.includes("references public.pfms_global_players(id) on delete restrict"), "Team roster must link to global players without deleting their shared profile");
 assert.ok(legacyTeamRosterMigration.includes("alter table public.pfms_legacy_team_players force row level security"), "Team roster must enforce row-level security");
 assert.ok(legacyTeamRosterMigration.includes("pfms_list_legacy_team_players") && legacyTeamRosterMigration.includes("pfms_search_global_players_for_team"), "Team roster listing and global player search RPCs are missing");
@@ -665,7 +674,7 @@ assert.ok(
 
 assert.ok(app.includes("loadPfmsLegacyTeamRoster") && app.includes("pfms_add_legacy_team_player") && app.includes("pfms_update_legacy_team_player") && app.includes("pfms_remove_legacy_team_player"), "Team roster UI is not connected to the roster RPCs");
 assert.ok(html.includes('id="pfmsTeamRosterPanel"') && html.includes('id="pfmsTeamRosterForm"') && html.includes('id="pfmsTeamRosterList"'), "Team roster UI is incomplete");
-assert.ok(stagingAudit.includes("'pfms_legacy_team_players'"), "Staging audit must inspect team roster assignments");
+assert.ok(stagingAuditHasCompleteTableInventory, "Staging audit must inspect team roster assignments");
 
 assert.ok(html.includes('id="pfmsTeamPermissionsForm"') && html.includes('id="pfmsTeamPermissionsList"'), "Per-team permission editor UI is missing");
 assert.ok(app.includes("pfms_list_legacy_team_permissions") && app.includes("pfms_save_legacy_team_permissions"), "Team permission editor is not connected to Supabase");
@@ -760,8 +769,8 @@ assert.ok(
   "Training cycle cards and weekly forms need responsive styling"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_training_cycles'")
-    && stagingAudit.includes("'pfms_legacy_training_cycle_weeks'"),
+  stagingAuditHasCompleteTableInventory
+    && stagingAuditHasCompleteTableInventory,
   "Staging audit must inventory both training cycle tables"
 );
 assert.ok(
@@ -787,7 +796,7 @@ assert.ok(
 );
 
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_analysis'"),
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must inventory tactical and video analysis"
 );
 assert.ok(
@@ -822,7 +831,7 @@ assert.ok(
   "Team task CRUD RPCs must support listing, create, update, delete and initial status"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_tasks'"),
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must inventory shared team tasks"
 );
 assert.ok(
@@ -938,7 +947,7 @@ assert.ok(
   "Event participant and RSVP controls must have responsive styling"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_event_participants'"),
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must include event participant records"
 );
 assert.ok(
@@ -997,7 +1006,7 @@ assert.ok(
   "Detailed event travel forms and summaries must be responsive"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_event_travel_plans'"),
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must include event travel plans"
 );
 assert.ok(
@@ -1070,7 +1079,7 @@ assert.ok(
   "Event logistics summary must have responsive styling"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_event_logistics'"),
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must inventory the event logistics table"
 );
 assert.ok(
@@ -1146,8 +1155,8 @@ assert.ok(
   "Training and attendance views are not connected to all expected UI actions"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_training_sessions'") &&
-  stagingAudit.includes("'pfms_legacy_training_attendance'"),
+  stagingAuditHasCompleteTableInventory &&
+  stagingAuditHasCompleteTableInventory,
   "Staging audit must inspect training and attendance data"
 );
 
@@ -1347,7 +1356,7 @@ assert.ok(
   "Team cashbox must load summary, write/void entries and clear account/team state"
 );
 assert.ok(
-  stagingAudit.includes("'pfms_legacy_team_finance_entries'"),
+  stagingAuditHasCompleteTableInventory,
   "Read-only staging audit must inspect team finance ledger"
 );
 assert.ok(
@@ -1506,7 +1515,7 @@ assert.ok(app.includes("PFMS_MAIN_MEDIA_MAX_SIZE") && app.includes("PFMS_MAIN_ME
 assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMigration.includes("owner_id = auth.uid()"), "Main media metadata must use forced owner-scoped RLS");
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
 assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+$')"), "Main media path must be restricted to the user's main folder");
-assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect main media metadata");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect main media metadata");
 assert.ok(app.includes("const requestGeneration = pfmsAuthGeneration") && app.includes("const requestUserId = window.pfssCurrentUserId"), "Main media mutations must bind to the initiating account session");
 assert.ok(app.includes("if (!isCurrentMediaSession()) return;") && app.includes("owner_id: requestUserId"), "Main media uploads must stop after an account switch and retain the initiating owner ID");
 assert.ok(app.includes(".eq('owner_id', requestUserId)"), "Main media deletion must target only the initiating account");
@@ -1574,7 +1583,7 @@ assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && sys
 assert.ok(systemEventsHardeningMigration.includes("revoke update on table public.pfms_system_events") && systemEventsHardeningMigration.includes("grant update (status, resolved_at, resolved_by)"), "System event updates must be column-limited");
 assert.ok(systemEventsHardeningMigration.includes("System event evidence is immutable") && systemEventsHardeningMigration.includes("Sensitive values are not allowed"), "System event data must be immutable and reject secrets");
 assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
-assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect system event records");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect system event records");
 assert.ok(stagingAudit.includes("FUNCTION_GRANTS") && stagingAudit.includes("aclexplode"), "Staging audit must inventory effective function EXECUTE grants, including Security Definer routines");
 assert.ok(stagingAudit.includes("'configuration', p.proconfig"), "Staging audit must expose explicit function security configuration such as search_path");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
@@ -1670,7 +1679,7 @@ assert.ok(app.includes("PFMS_MAIN_MEDIA_MAX_SIZE") && app.includes("PFMS_MAIN_ME
 assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMigration.includes("owner_id = auth.uid()"), "Main media metadata must use forced owner-scoped RLS");
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
 assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+$')"), "Main media path must be restricted to the user's main folder");
-assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect main media metadata");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect main media metadata");
 assert.ok(app.includes("const requestGeneration = pfmsAuthGeneration") && app.includes("const requestUserId = window.pfssCurrentUserId"), "Main media mutations must bind to the initiating account session");
 assert.ok(app.includes("if (!isCurrentMediaSession()) return;") && app.includes("owner_id: requestUserId"), "Main media uploads must stop after an account switch and retain the initiating owner ID");
 assert.ok(app.includes(".eq('owner_id', requestUserId)"), "Main media deletion must target only the initiating account");
@@ -1701,7 +1710,7 @@ assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && sys
 assert.ok(systemEventsHardeningMigration.includes("revoke update on table public.pfms_system_events") && systemEventsHardeningMigration.includes("grant update (status, resolved_at, resolved_by)"), "System event updates must be column-limited");
 assert.ok(systemEventsHardeningMigration.includes("System event evidence is immutable") && systemEventsHardeningMigration.includes("Sensitive values are not allowed"), "System event data must be immutable and reject secrets");
 assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
-assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect system event records");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect system event records");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
@@ -1851,7 +1860,7 @@ assert.ok(app.includes("PFMS_MAIN_MEDIA_MAX_SIZE") && app.includes("PFMS_MAIN_ME
 assert.ok(mainMediaMigration.includes("force row level security") && mainMediaMigration.includes("owner_id = auth.uid()"), "Main media metadata must use forced owner-scoped RLS");
 assert.ok(mainMediaMigration.includes("pfss-scout-private") && mainMediaMigration.includes("public = false"), "Main media must use the existing private bucket");
 assert.ok(mainMediaMigration.includes("storage_path ~ ('^' || auth.uid()::text || '/main/[^/]+$')"), "Main media path must be restricted to the user's main folder");
-assert.ok(stagingAudit.includes("'pfms_main_media'"), "Read-only audit must inspect main media metadata");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect main media metadata");
 assert.ok(app.includes("const requestGeneration = pfmsAuthGeneration") && app.includes("const requestUserId = window.pfssCurrentUserId"), "Main media mutations must bind to the initiating account session");
 assert.ok(app.includes("if (!isCurrentMediaSession()) return;") && app.includes("owner_id: requestUserId"), "Main media uploads must stop after an account switch and retain the initiating owner ID");
 assert.ok(app.includes(".eq('owner_id', requestUserId)"), "Main media deletion must target only the initiating account");
@@ -1882,7 +1891,7 @@ assert.ok(systemEventsMigration.includes("pfms_system_events_insert_own") && sys
 assert.ok(systemEventsHardeningMigration.includes("revoke update on table public.pfms_system_events") && systemEventsHardeningMigration.includes("grant update (status, resolved_at, resolved_by)"), "System event updates must be column-limited");
 assert.ok(systemEventsHardeningMigration.includes("System event evidence is immutable") && systemEventsHardeningMigration.includes("Sensitive values are not allowed"), "System event data must be immutable and reject secrets");
 assert.ok(app.includes(".update({ status })"), "Admin event updates must only change workflow status");
-assert.ok(stagingAudit.includes("'pfms_system_events'"), "Read-only audit must inspect system event records");
+assert.ok(stagingAuditHasCompleteTableInventory, "Read-only audit must inspect system event records");
 assert.ok(stagingAudit.includes("ROW_ESTIMATES") && stagingAudit.includes("legacy_organizations_rows_estimate") && stagingAudit.includes("new_pfms_organizations_rows_estimate"), "Staging audit must compare both organization models and their estimated row counts");
 assert.ok(stagingAudit.includes("last_autoanalyze") && stagingAudit.includes("not an exact row count"), "Staging audit must label table statistics as estimates");
 
