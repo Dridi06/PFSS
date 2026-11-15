@@ -70,6 +70,27 @@ const adminEventActions = adminErrorsSetup.match(/results\.addEventListener\('cl
 assert.match(adminEventActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
   "System-event triage writes must not update stale or non-admin UI state.");
 
+
+const adminProfileLoader = app.match(/async function loadAdminUsers\(\)[\s\S]*?(?=async function saveAdminUser)/)?.[0] || "";
+assert.match(adminProfileLoader, /pfss_admin_list_profiles_page[\s\S]*?p_limit: pageSize[\s\S]*?p_offset: page \* pageSize/,
+  "The global profile directory must request a bounded database page.");
+assert.match(adminProfileLoader, /pfss_admin_profile_counts[\s\S]*?Promise\.all/,
+  "Global profile counters must be loaded separately from the filtered result page.");
+assert.match(adminProfileLoader, /requestId !== pfmsAdminUsersRequestId/,
+  "Out-of-order profile pages must not overwrite a newer filter or page selection.");
+assert.match(adminProfileLoader, /pfmsAdminPaginationMarkup/,
+  "The global profile directory must expose accessible page navigation.");
+assert.match(adminDirectoryLoader, /pfms_admin_search_legacy_organizations_page[\s\S]*?pfms_admin_list_legacy_scouts_page[\s\S]*?p_limit:pageSize[\s\S]*?p_offset:offset/,
+  "Organization and scout directories must use bounded server-side pagination.");
+assert.match(adminDirectoryLoader, /p_email:emailQuery[\s\S]*?p_user_id:idQuery[\s\S]*?p_status:statusQuery/,
+  "Scout search filters must be sent to the database instead of filtering a full client-side result set.");
+assert.match(adminDirectoryLoader, /pfmsAdminPaginationMarkup/,
+  "Organization and scout directories must expose page navigation.");
+assert.match(adminMembersLoader, /pfms_admin_list_legacy_members_page[\s\S]*?p_limit: pageSize[\s\S]*?p_offset: page \* pageSize/,
+  "The global membership directory must use bounded server-side pagination.");
+assert.match(adminMembersLoader, /pfmsAdminPaginationMarkup/,
+  "The global membership directory must expose page navigation.");
+
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
 
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
