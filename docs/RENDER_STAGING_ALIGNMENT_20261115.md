@@ -92,3 +92,16 @@ Damit sind die vier oben dokumentierten Build-Variablen für den neuen Staging-B
 ## Sicherheitsgrenze
 
 CI-Erfolg bestätigt nur die im Repository automatisierten Prüfungen. Er bestätigt weder die tatsächliche Render-Live-Konfiguration noch die Live-Supabase-Migrationshistorie, RLS-Laufzeit oder Mandantentrennung. Die dokumentierten read-only Staging-Audits und getrennten Rollen-/Tenant-Tests bleiben Release-Gates.
+
+
+## Verifizierte Supabase-Projektidentität (Screenshot vom 15.11.2026)
+
+- Dashboard-Projektname: `PFSS-Test`
+- Project ID / Reference: `oolvpbzbqioijoazsoun` (20 Zeichen; direkt aus dem vom Benutzer gesendeten Screenshot abgelesen)
+- Kanonische Projekt-URL: `https://oolvpbzbqioijoazsoun.supabase.co`
+- Angezeigte Supabase-Branch: `main` (Supabase-Projektbranch; nicht mit dem GitHub-Deploymentbranch verwechseln)
+- Region: `eu-west-1` (West EU / Ireland)
+- Im Screenshot ist der Benutzer als Project Owner aufgeführt.
+- Diese Identität ist damit für die Staging-Konfiguration bestätigt. Es wurden keine API-Schlüssel ausgelesen oder gespeichert.
+- Render-Umgebungsschlüssel müssen weiterhin privat im bestehenden Staging-Service gesetzt werden: `PFMS_STAGING_PROJECT_REF=oolvpbzbqioijoazsoun`, `PFSS_SUPABASE_URL=https://oolvpbzbqioijoazsoun.supabase.co` und ausschließlich der Supabase Publishable Key in `PFSS_SUPABASE_KEY`. Niemals Secret-/service_role-Key in den Browser-Build eintragen.
+- Render-Service-Typ und tatsächliche Blueprint-Zuordnung bleiben separat zu bestätigen; aus dem Supabase-Screenshot lassen sie sich nicht ableiten.
