@@ -47,6 +47,13 @@ assert.match(adminMembersLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminMemb
 const adminErrorsLoader = app.match(/async function loadPfmsAdminErrors\(\)[\s\S]*?(?=function setupPfmsAdminErrors)/)?.[0] || "";
 assert.match(adminErrorsLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminErrorsRequestId/,
   "The system event directory must reject stale and out-of-order responses.");
+assert.match(adminErrorsLoader, /pfms_admin_list_system_events_page[\s\S]*?p_limit: pageSize[\s\S]*?p_offset: page \* pageSize/,
+  "The system event directory must use bounded server-side pagination.");
+assert.match(adminErrorsLoader, /p_query: query[\s\S]*?p_severity: severity[\s\S]*?p_status: status/,
+  "System event search and filters must be applied in the database.");
+assert.match(adminErrorsLoader, /total_count[\s\S]*?pfmsAdminPaginationMarkup/,
+  "System event results must expose the database total and page navigation.");
+
 assert.match(app, /async function saveAdminUser\(button\)[\s\S]*?isCurrentPfmsAdminRequest/,
   "Admin profile changes must not update a different account's UI after a session switch.");
 
