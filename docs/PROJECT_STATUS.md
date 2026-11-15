@@ -840,3 +840,7 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Das read-only Staging-Audit prüft zusätzlich die vier Zähler und die leere-Seite-Verknüpfung.
 - CI vollständig erfolgreich für Commit `94330fa05449ecef97374254e89621b4f87adc20`: [Run 43717209391](https://github.com/Dridi06/PFSS/actions/runs/43717209391). Beide Jobs bestanden (Node-/Build-/Smoke-/Migrations-/Backup-Prüfungen und Deno-Typcheck).
 - Reale Staging-Laufzeittests sind weiterhin offen; keine Migration angewendet, kein Render-Deployment, kein Merge und keine Produktionsänderung.
+
+
+- Ergänzende Frontend-Regression: Die Organisationsdetailansicht liest die Summenzeile auch dann korrekt, wenn eine Seite keine Mitgliedsdatensätze enthält, rendert die Zusammenfassungszeile nicht als Mitglied und trennt den Filtertrefferzähler von den Organisationssummen.
+- Vollständige CI für Commit `ec2fb2f3da99f587762bd0f07382865224e55d7b` erfolgreich: [Run 43717312723](https://github.com/Dridi06/PFSS/actions/runs/43717312723), beide Jobs bestanden.
