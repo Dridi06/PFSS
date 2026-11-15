@@ -12,6 +12,11 @@ as $$
   select
     auth.uid() is not null
     and p_team_id is not null
+    and exists (
+      select 1
+      from public.pfms_legacy_teams t
+      where t.id = p_team_id
+    )
     and (
       public.is_admin()
       or exists (
@@ -51,6 +56,11 @@ as $$
   select
     auth.uid() is not null
     and p_team_id is not null
+    and exists (
+      select 1
+      from public.pfms_legacy_teams t
+      where t.id = p_team_id
+    )
     and (
       public.is_admin()
       or exists (
