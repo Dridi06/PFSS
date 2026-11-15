@@ -1,3 +1,10 @@
+## Ergänzung 15.11.2026 – Effektive letzte Definitionen kritischer Mandantenfunktionen
+
+- Neuer Regressionstest `tests/critical-function-effective-definition-smoke.mjs` verfolgt die letzte `CREATE OR REPLACE FUNCTION`-Definition zentraler Autorisierungsfunktionen über alle Migrationen in lexikografischer Reihenfolge.
+- Geschützt werden `can_manage_org(uuid)`, `pfms_can_access_legacy_team(uuid)` und `pfms_can_manage_legacy_team(uuid)`. Die letzte Definition muss SECURITY DEFINER, leeren `search_path`, aktive Organisations-/Mitgliedschaftsbedingungen, gültige Team-ID sowie die jeweiligen Rollenbedingungen enthalten.
+- Damit wird eine spätere Abschwächung einer zuvor sicheren Funktion erkannt, statt nur irgendeine historische Definition zu finden. Der Test ist in Syntaxprüfung und vollständigen Smoke-Test integriert.
+- Die Prüfung bleibt statisch und ersetzt weder PostgreSQL-Ausführung noch das echte Supabase-Staging-Audit. Keine Migration angewendet, kein Deployment, kein Merge und keine Live-Änderung.
+
 # Ergänzung 15.11.2026 – Sicherheits-Audit: Tabellenrechte, Auth-Trigger und Team-ID-Grenzen
 
 - Fortsetzung auf dem bestehenden Feature-Branch ohne Wiederholung abgeschlossener Produktbereiche. Letzter vollständig CI-geprüfter Code-Commit: `f70311e266ed9f4ea820b52b690f3d7701cf70f6` (CI-Run `43723953719`); beide Jobs bestanden. PR #1 bleibt Draft.
