@@ -30,7 +30,27 @@ assert.match(app, /!pfmsLegacyTeams\.some\(team => team\.team_id === pfmsSelecte
 assert.match(app, /pfmsTeamStaffDialog'\)\?\.close\(\)[\s\S]*?pfmsCloseSelectedTeam'\)\?\.click\(\)/,
   "Revoked team assignments must close team-management dialogs and clear the selected workspace.");
 
-console.log("PFMS auth/session lifecycle tests passed: stale-request protection, approval/role revalidation, sign-out invalidation, token refresh and tab-resume checks.");
+
+assert.match(app, /function isCurrentPfmsAdminRequest\(userId, generation\)/,
+  "Administrator requests must be bound to the active administrator session.");
+assert.match(app, /window\.pfssCurrentUserId === userId[\s\S]*?pfmsAuthGeneration === generation/,
+  "A stale administrator response must fail closed after logout, account switch or role reset.");
+const adminUsersLoader = app.match(/async function loadAdminUsers\(\)[\s\S]*?(?=async function saveAdminUser)/)?.[0] || "";
+assert.match(adminUsersLoader, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminUsersRequestId/,
+  "The global user directory must reject stale and out-of-order responses.");
+const adminDirectoryLoader = app.match(/async function loadPfmsAdminDirectory\(type,root\)[\s\S]*?(?=async function showPfmsOrganizationDetails)/)?.[0] || "";
+assert.match(adminDirectoryLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsRequestId/,
+  "Organization and scout searches must reject stale session and earlier search responses.");
+const adminMembersLoader = app.match(/async function loadPfmsAdminMembers\(\)[\s\S]*?(?=const PFMS_SYSTEM_EVENT_STATUSES)/)?.[0] || "";
+assert.match(adminMembersLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminMembersRequestId/,
+  "The global membership directory must reject stale and out-of-order responses.");
+const adminErrorsLoader = app.match(/async function loadPfmsAdminErrors\(\)[\s\S]*?(?=function setupPfmsAdminErrors)/)?.[0] || "";
+assert.match(adminErrorsLoader, /isCurrentPfmsAdminRequest[\s\S]*?pfmsAdminErrorsRequestId/,
+  "The system event directory must reject stale and out-of-order responses.");
+assert.match(app, /async function saveAdminUser\(button\)[\s\S]*?isCurrentPfmsAdminRequest/,
+  "Admin profile changes must not update a different account's UI after a session switch.");
+
+console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, approval/role revalidation, token refresh and tab-resume checks.");
 
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
   "The frontend must maintain an explicit list of platform-administrator-only routes.");
