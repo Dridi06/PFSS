@@ -188,3 +188,13 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - GitHub Actions run [43736841953](https://github.com/Dridi06/PFSS/actions/runs/43736841953) completed successfully: project syntax/smoke checks and Supabase Edge Function type-check both passed.
 - No database migration was applied, no staging/production resource was accessed, no Render deployment occurred, and PR #1 remains Draft.
 - Overall project estimate remains 76% provisional; the actual staging migration ledger and two-tenant runtime acceptance remain release blockers.
+
+
+## Staging browser security-header contract – 15 November 2026
+
+- Expanded `tests/build-config-smoke.mjs` to validate the full Render staging security-header contract: CSP directives, no inline/eval executable scripts, no inline script blocks in the HTML, HSTS, MIME sniffing protection, referrer policy, anti-framing headers and restrictive Permissions Policy.
+- The check deliberately permits the existing inline CSS policy while forbidding inline JavaScript and eval in `script-src`.
+- Code commit: `36eb895fd447036fe7a83ba41d52854416098098`.
+- GitHub Actions run [43737130315](https://github.com/Dridi06/PFSS/actions/runs/43737130315) passed both project syntax/smoke tests and Supabase Edge Function type checks.
+- No deployment or live database operation occurred. PR #1 remains Draft.
+- Overall progress remains 76% provisional; real staging migration-ledger reconciliation and two-tenant runtime acceptance are still required.
