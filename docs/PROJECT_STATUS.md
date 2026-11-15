@@ -548,3 +548,11 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die R2-Prüfung über `head-object` bestätigt nur, dass Backup und Manifest als Objekte vorhanden sind. Sie ist kein Download- oder Restore-Nachweis. Die vorhandene Restore-Anleitung verlangt deshalb HMAC-Prüfung vor Entschlüsselung und Wiederherstellung ausschließlich in eine neue isolierte Testdatenbank.
 - Wichtige Betriebsgrenzen sind jetzt in `docs/BACKUP_RESTORE.md` dokumentiert: GitHub-Schedule läuft nur aus der Standard-Branch-Version des Workflows; R2-Lifecycle/Aufbewahrung ist außerhalb des Workflows zu konfigurieren; PostgreSQL-Dumps sichern keine Supabase-Storage-Binärdateien.
 - Ein realer Backup-Lauf, R2-Upload, vollständiger Download und Restore wurden weiterhin nicht ausgeführt. Die benötigten Secrets und die tatsächliche Staging-Zielinstanz wurden nicht geprüft. Es gibt daher keinen belegten Backup-Restore-Erfolg und keine Zusage eines aktiven täglichen Backups aus dem Feature-Branch.
+
+
+### Private Supabase-Storage-Sicherung fachlich vorbereitet – 15.11.2026
+
+- Die geprüften Migrationen und Frontendmodule verwenden für Scout-Medien und die persönliche Haupt-Medienbibliothek denselben privaten Bucket `pfss-scout-private`. Die Scout-Medien liegen unter `<user-id>/<dateiname>`; die Haupt-Medienbibliothek unter `<user-id>/main/<dateiname>`. Die Metadaten liegen getrennt in `pfss_scout_media` und `pfms_main_media`.
+- Der PostgreSQL-Dump enthält keine Datei-Binärdaten. Deshalb wurde mit `docs/STORAGE_BACKUP_RESTORE.md` ein separater sicherer Zielprozess dokumentiert: read-only Quellzugriff, geschützte serverseitige Secrets, private Ablage, verschlüsselte Manifeste, rekursive Pagination, Objektgrößen-/SHA-256-Abgleich und Restore ausschließlich in ein isoliertes Staging-Projekt.
+- Vor Implementierung muss das tatsächliche Staging-Storage-Inventar read-only mit dem Repository abgeglichen werden. Ein gemeinsamer Backup-Zeitpunkt für Datenbank und Storage sowie Abgleich von Metadaten, Objekten und verwaisten Dateien sind Teil der späteren Abnahme.
+- Noch nicht umgesetzt oder nachgewiesen: kein Storage-Backup-Skript/Workflow, kein reales Bucket-Inventar, kein Download/Upload nach R2 und kein Storage-Restore. Es wurden keine Storage-Objekte oder Supabase-Einstellungen verändert.
