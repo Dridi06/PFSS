@@ -949,7 +949,7 @@ with checks as (
   select
     'admin_directory_pagination_bounds',
     coalesce((
-      select count(*) = 4
+      select count(*) = 5
         and pg_catalog.bool_and(
           pg_catalog.pg_get_functiondef(p.oid) ilike '%p_limit not between 1 and 100%'
           and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_offset not between 0 and 1000000%'
@@ -960,7 +960,8 @@ with checks as (
         pg_catalog.to_regprocedure('public.pfms_admin_search_legacy_organizations_page(text,text,text,text,integer,integer)'),
         pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_scouts_page(text,text,text,text,integer,integer)'),
         pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_members_page(text,text,text,text,integer,integer)'),
-        pg_catalog.to_regprocedure('public.pfss_admin_list_profiles_page(text,text,text,text,integer,integer)')
+        pg_catalog.to_regprocedure('public.pfss_admin_list_profiles_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_org_members_page(uuid,text,text,text,integer,integer)')
       )
     ), false),
     'Jede Admin-Seitenabfrage muss 1–100 Zeilen und einen begrenzten Offset erzwingen sowie die Gesamtzahl liefern'
@@ -995,6 +996,37 @@ with checks as (
       )
     ), false),
     'Systemereignis-Pagination muss Seiten auf 1–100 Zeilen begrenzen, Offsets validieren und Gesamtzahl liefern'
+
+  union all
+  select
+    'admin_org_member_pagination_security',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_is_admin()%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfms_admin_list_legacy_org_members_page(uuid,text,text,text,integer,integer)'
+      )
+    ), false),
+    'Organisationsmitglieder-Pagination muss SECURITY DEFINER, leeren search_path, Admin-Prüfung und EXECUTE nur für authenticated besitzen'
+
+  union all
+  select
+    'admin_org_member_pagination_bounds',
+    coalesce((
+      select pg_catalog.pg_get_functiondef(p.oid) ilike '%p_limit not between 1 and 100%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_offset not between 0 and 1000000%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_org_id%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%filtered_count%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure(
+        'public.pfms_admin_list_legacy_org_members_page(uuid,text,text,text,integer,integer)'
+      )
+    ), false),
+    'Organisationsmitglieder-Pagination muss Organisation, Filter und begrenzte Seiten samt Gesamtzahl prüfen'
 
 )
 select check_name, passed, details
