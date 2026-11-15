@@ -423,6 +423,37 @@ for (const signature of [
   );
 }
 
+const legacyProfileListSearchPath = migrationSources[
+  migrationFiles.indexOf("20261226_pfss_legacy_admin_profile_list_search_path.sql")
+];
+assert.ok(legacyProfileListSearchPath, "Legacy profile-list search_path hardening migration is missing.");
+const normalizedLegacyProfileListSearchPath = legacyProfileListSearchPath
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "alter function public.pfss_admin_list_profiles() set search_path = ''"
+  ),
+  "Legacy admin profile-list RPC must receive an empty effective search_path."
+);
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "revoke all on function public.pfss_admin_list_profiles() from public, anon"
+  ),
+  "Legacy admin profile-list RPC must revoke PUBLIC and anon EXECUTE."
+);
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "grant execute on function public.pfss_admin_list_profiles() to authenticated"
+  ),
+  "Legacy admin profile-list RPC must remain callable by authenticated admins."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'admin_legacy_profile_list_rpc_security'/,
+  "Read-only staging acceptance must verify the legacy profile-list RPC."
+);
+
 const organizationCoreAclMigration = migrationSources[
   migrationFiles.indexOf("20261225_pfms_organization_table_write_acl_hardening.sql")
 ];
