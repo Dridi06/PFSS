@@ -97,7 +97,7 @@ supabase db push
 
 Die CLI wendet alle noch ausstehenden, versionierten Migrationen in ihrer Reihenfolge an. Keine einzelne Migration überspringen.
 
-Die Migration `20261118_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit, den die Einladungs-RPC verwendet. Sie muss in der regulären chronologischen Migrationenfolge nach `20261111_fix_invitation_admin_access.sql` angewendet werden; nicht isoliert vorziehen oder auslassen.
+Die Migration `20261112_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit. Sie folgt auf die Basistabellen für `organizations` und `organization_memberships` vom 11. November und liegt bewusst vor den nachfolgenden Einladungs- und Mitgliederverwaltungs-RPCs. Die reguläre chronologische Migrationenfolge muss eingehalten werden; die Migration darf nicht ausgelassen werden.
 
 ## 3.1 Username-Login-Rate-Limit vorbereiten
 
