@@ -85,6 +85,16 @@ for (const source of migrationSources) {
     createdPublicTables.add(match[1].toLowerCase());
   }
 }
+assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
+for (const tableName of createdPublicTables) {
+  assert.ok(
+    auditedTableNames.has(tableName),
+    "Staging read-only audit omits migration-created table: public." + tableName
+  );
+}
+
+const combinedMigrationSql = migrationSources.join("\n");
+const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const expectedReadPolicies = new Map([
   ["pfms_organizations", "pfms_org_read"],
   ["pfms_memberships", "pfms_membership_read"],
@@ -103,16 +113,6 @@ for (const [tableName, policyName] of expectedReadPolicies) {
   );
 }
 
-assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
-for (const tableName of createdPublicTables) {
-  assert.ok(
-    auditedTableNames.has(tableName),
-    "Staging read-only audit omits migration-created table: public." + tableName
-  );
-}
-
-const combinedMigrationSql = migrationSources.join("\n");
-const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const forceRlsExceptions = new Map([
   [
     "organization_invitations",
