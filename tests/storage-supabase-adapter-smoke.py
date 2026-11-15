@@ -13,6 +13,8 @@ def load(name, path):
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     import sys
+    if str(ROOT / "scripts") not in sys.path:
+        sys.path.insert(0, str(ROOT / "scripts"))
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
