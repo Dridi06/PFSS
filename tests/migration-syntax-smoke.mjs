@@ -538,6 +538,38 @@ for (const functionName of ["pfss_sync_signup_username", "pfms_provision_new_acc
     "Auth trigger function must not be directly executable by browser roles: " + functionName
   );
 }
+const legacyAuthTriggerChecks = [
+  {
+    functionName: "pfms_register_owner_bootstrap_request",
+    migration: "20261116_pfms_owner_bootstrap_registration_guard.sql"
+  },
+  {
+    functionName: "pfms_apply_legacy_invitation",
+    migration: "20261201_pfms_legacy_invitation_status_guard.sql"
+  }
+];
+for (const item of legacyAuthTriggerChecks) {
+  const source = migrationSources[migrationFiles.indexOf(item.migration)];
+  assert.ok(source, "Auth trigger migration is missing: " + item.migration);
+  const normalized = source.replace(/\s+/g, " ").toLowerCase();
+  assert.ok(
+    normalized.includes(
+      "create or replace function public." + item.functionName + "() returns trigger language plpgsql security definer set search_path = '' as $"
+    ),
+    "Auth trigger function must be SECURITY DEFINER with an empty search_path: " + item.functionName
+  );
+  assert.ok(
+    normalized.includes(
+      "revoke all on function public." + item.functionName + "() from public, anon, authenticated"
+    ),
+    "Auth trigger function must not be directly executable by browser roles: " + item.functionName
+  );
+  assert.ok(
+    stagingAcceptanceSql.includes("public." + item.functionName + "()"),
+    "Staging acceptance must verify auth trigger function ACLs: " + item.functionName
+  );
+}
+
 assert.match(
   stagingAcceptanceSql,
   /'auth_trigger_function_acl'/,
