@@ -7965,7 +7965,20 @@ async function checkPfssAccess(user, options = {}) {
   // On a resumed tab / refreshed token, keep the current screen when the
   // account role is unchanged, but refresh the server-authoritative team list.
   if (refreshOnly && sameUser && sameRole) {
-    await loadPfmsLegacyTeams();
+    const teamsReloaded = await loadPfmsLegacyTeams();
+    if (teamsReloaded && pfmsSelectedLegacyTeam &&
+        !pfmsLegacyTeams.some(team => team.team_id === pfmsSelectedLegacyTeam.team_id)) {
+      // The user's team assignment was revoked or deactivated while the tab
+      // was idle. Close team-specific dialogs and clear the selected workspace.
+      document.getElementById('pfmsTeamStaffDialog')?.close();
+      document.getElementById('pfmsTeamPermissionsDialog')?.close();
+      document.getElementById('pfmsCloseSelectedTeam')?.click();
+      pfmsSelectedLegacyTeam = null;
+      pfmsSelectedTeamStaff = [];
+      pfmsSelectedTeamPermissionAssignment = null;
+      pfmsSelectedTeamPermissions = new Map();
+      toast('Deine Mannschaftszuordnung hat sich geändert. Der Team-Arbeitsbereich wurde aktualisiert.');
+    }
     return;
   }
 
