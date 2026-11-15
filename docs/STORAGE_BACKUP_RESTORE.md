@@ -86,7 +86,23 @@ python3 scripts/storage-staging-preflight.py --dry-run
 
 Das Skript führt ausdrücklich **keine Netzwerkverbindung** aus, liest keine Zugangsschlüssel und listet oder verändert keine Storage-Objekte. Es ist nur eine Schutzschicht für die spätere Implementierung, keine Bestätigung, dass das angegebene Projekt tatsächlich das PFMS-Staging-Projekt ist. Diese Identität muss unabhängig im Supabase-Projektkonto verifiziert werden.
 
-## 6. Noch nicht umgesetzt bzw. nicht nachgewiesen
+## 6. Implementierter Inventarisierungskern (offline getestet)
+
+Die reine Traversierungslogik liegt in `scripts/storage_inventory.py`. Sie nimmt eine Seitenabruf-Funktion entgegen und erledigt selbst keine Netzwerkaufrufe. Damit lassen sich rekursive Ordner und Pagination isoliert testen, bevor ein Supabase-Adapter überhaupt verbunden wird.
+
+Der Kern:
+
+- besucht Unterordner rekursiv und sortiert das Ergebnis nach Objektpfad;
+- fordert bei vollständig gefüllten Seiten die nächste Offset-Seite an;
+- prüft ungültige Pfadsegmente, doppelte Objektpfade und fehlerhafte Metadaten;
+- erfasst Pfad, Größe und MIME-Typ, ohne Dateiinhalt herunterzuladen;
+- bricht bei strukturellen Fehlern ab, statt ein unvollständiges Inventar als vollständig auszugeben.
+
+Die Regressionstests `tests/storage-inventory-core-smoke.py` verwenden ausschließlich lokale Testdaten. Sie prüfen verschachtelte Ordner, mehrseitige Ergebnisse, Sortierung, ungültige Pfade, Duplikate und fehlerhafte Größenangaben.
+
+**Wichtige Grenze:** Es gibt weiterhin keinen HTTP-Adapter und keinen Aufruf der Supabase-Storage-API. Die Pagination ist mit simulierten Antworten getestet, nicht gegen ein reales Projekt. Ein Benutzer-JWT mit passenden Leserechten wäre einer pauschalen Service-Role-Nutzung vorzuziehen; der tatsächliche Berechtigungsumfang muss vor einem echten Inventarlauf geklärt werden.
+
+## 7. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
 - Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen.
