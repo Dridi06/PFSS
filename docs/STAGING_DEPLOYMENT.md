@@ -377,3 +377,43 @@ Nach dem Migration-Dry-Run und der Anwendung ausschließlich auf dem dedizierten
 6. Plattformadministratoren prüfen ihre separaten Admin-RPCs weiterhin über `pfms_is_admin()` bzw. `is_admin()`; die Manager-Hilfsfunktion ist kein Ersatz für diese Prüfung.
 
 Der Read-only-Acceptance-Audit muss `legacy_org_manager_active_organization_gate` mit `passed = true` ausgeben. Dieser Quellcode-/Katalogcheck ersetzt nicht die Positiv- und Negativtests mit getrennten Staging-Konten.
+
+
+## Ergänzung – Sicherheits-Audit und neue Staging-Abnahmepunkte (15.11.2026)
+
+Der Feature-Branch enthält nun 62 SQL-Migrationen. Die automatisierten GitHub-Actions sind für den aktuellen Auditstand erfolgreich. Das ist ein statischer Repository-Nachweis, keine Bestätigung, dass die Migrationen bereits auf Supabase Staging angewendet wurden.
+
+### Vor jeder Migration
+
+1. Ausschließlich das ausdrücklich dedizierte Supabase-Staging-Projekt verwenden.
+2. `supabase/STAGING_READ_ONLY_AUDIT.sql` vollständig ausführen und das Ergebnis sichern. Die Abfrage erfasst dynamisch alle Tabellen und partitionierten Tabellen in `public` und `storage`, Views, Policies, Trigger, Constraints, Tabellen-/Sequenz-/Schema-ACLs, Funktionsdefinitionen und Default-Privileges.
+3. `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` ausführen. Keine Migration aus diesem Schritt heraus anwenden.
+4. Die tatsächlichen Staging-Migrationsversionen gegen alle 62 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
+5. Erst nach dokumentierter Freigabe die additive Migrationen einzeln in der vorgesehenen Reihenfolge anwenden. Live und Produktion bleiben unangetastet.
+
+### Neue Read-only-Acceptance-Prüfpunkte
+
+Folgende Prüfungen müssen jeweils `passed = true` liefern:
+
+- `organization_core_table_write_acl`: `pfms_organizations`, `pfms_memberships` und `pfms_scout_profiles` haben RLS aktiviert. `authenticated` darf lesen, aber nicht direkt schreiben; `anon` erhält keine Tabellenrechte. Serverzugriffe bleiben auf `service_role` beschränkt.
+- `owner_bootstrap_security_boundary`: Plattform-Owner- und Bootstrap-Anforderungstabellen sind RLS-geschützt und für Browserrollen nicht direkt zugänglich. Der initiale Signup-Trigger erzeugt die Bootstrap-Evidenz; die Claim-RPC ist ausschließlich für `service_role` ausführbar und muss die einzelne offene Anforderung unter Row Lock konsumieren.
+- `auth_trigger_function_acl`: Die vier Auth-Triggerfunktionen besitzen einen leeren `search_path` und sind nicht direkt durch `PUBLIC`, `anon` oder `authenticated` ausführbar.
+- `admin_legacy_profile_list_rpc_security`: Die alte Profil-Listen-RPC bleibt für autorisierte Administratoren kompatibel, besitzt aber einen leeren `search_path` und keine PUBLIC-/anon-Ausführungsrechte.
+- `legacy_team_access_requires_active_org_membership`: Die zentralen Teamzugriffs- und Verwaltungshelfer weisen NULL und nicht existente Team-IDs zurück. Nicht-Administratoren benötigen weiterhin eine aktive, passende Organisationsmitgliedschaft und Teamzuweisung.
+
+### Neue Positiv- und Negativtests mit getrennten Konten
+
+1. **Organisationstabellen:** Mit einem normalen angemeldeten Benutzer SELECT gemäß RLS prüfen. Direkte INSERT-, UPDATE-, DELETE- und TRUNCATE-Versuche auf allen drei Organisationstabellen müssen auf Datenbankebene scheitern. Mit `anon` dürfen auch SELECTs keine Tabellenrechte erhalten. Server-Schreibzugriffe ausschließlich über vertrauenswürdige Serverkontexte prüfen.
+2. **Owner-Bootstrap:** Setup-Verfügbarkeit als angemeldeter Benutzer prüfen. Direkte Ausführung der Trigger-/Claim-Funktionen als Browserrolle muss scheitern. Zwei parallele Claim-Versuche gegen dieselbe offene Anforderung simulieren; genau ein Claim darf erfolgreich sein. Wiederverwendung einer bereits konsumierten Anforderung muss scheitern.
+3. **Auth-Trigger:** Registrierungstests für Scout, Organisation und Legacy-Einladung durchführen. Trigger müssen weiter funktionieren, während direkte RPC-Aufrufe der Triggerfunktionen durch Browserrollen verweigert werden.
+4. **Legacy-Profil-Liste:** Administrator-Aufruf muss funktionieren. Nicht-Admin-Aufruf muss mit `42501` abgewiesen werden. Die paginierte Profil-RPC bleibt der bevorzugte Weg für neue Clients.
+5. **Teamgrenzen:** NULL und eine syntaktisch gültige, aber nicht existente Team-UUID müssen auch für Plattformadministratoren abgewiesen werden. Eine existierende Team-ID darf für Plattformadministratoren global zugänglich sein. Organisationsmanager und Trainer benötigen aktive, passende Organisationsmitgliedschaften und die jeweilige Teamrolle. Bei gesperrter Organisation verlieren normale Organisations-/Teammitglieder den Zugriff.
+6. **Regression:** Nach Änderung oder Suspendierung einer Organisationsmitgliedschaft alle relevanten Team-RPCs erneut prüfen. Eine noch aktive Teamzuweisung darf eine fehlende oder gesperrte Organisationsmitgliedschaft nicht ersetzen.
+
+### Neue additive Migrationen
+
+- `20261225_pfms_organization_table_write_acl_hardening.sql`: Browser-Schreibrechte auf den drei Organisationstabellen entziehen; RLS-gesteuerte SELECT-Rechte für `authenticated` erhalten.
+- `20261226_pfss_legacy_admin_profile_list_search_path.sql`: Legacy-Admin-Profil-Listen-RPC auf leeren `search_path` setzen.
+- `20261227_pfms_legacy_team_access_null_guard.sql`: NULL und nicht existente Team-IDs in den zentralen Teamzugriffs- und Verwaltungsfunktionen fail-closed behandeln.
+
+Keine dieser Migrationen ist durch die statische CI angewendet worden. Anwendung, Staging-Datenprüfung und Laufzeitabnahme bleiben separate, ausdrücklich freizugebende Schritte.
