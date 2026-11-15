@@ -23,7 +23,8 @@ const migrationFiles = [
   "20261213_pfms_training_cycle_session_date_guard.sql",
   "20261214_pfms_match_lineup_team_integrity.sql",
   "20261215_pfms_team_permission_membership_gate.sql",
-  "20261216_pfms_roster_select_permission_gate.sql"
+  "20261216_pfms_roster_select_permission_gate.sql",
+  "20261217_pfms_calendar_events_rpc_boundary.sql"
 ];
 const sources = await Promise.all(
   migrationFiles.map((file) => readFile(resolve(migrationDirectory, file), "utf8"))
@@ -247,6 +248,54 @@ assert.match(
   trainingList,
   /'training', 'view'[\s\S]*?'attendance', 'view'/,
   "Combined training view must independently gate attendance data."
+);
+
+
+const latestCalendarList = latestFunctionBody("pfms_list_legacy_team_calendar");
+assert.match(
+  latestCalendarList,
+  /'calendar', 'view'[\s\S]*?event_type not in \('tournament', 'event'\)/,
+  "Calendar read RPC must exclude event/tournament rows even though it is SECURITY DEFINER."
+);
+const latestCalendarCreate = latestFunctionBody("pfms_create_legacy_team_calendar_event");
+assert.match(
+  latestCalendarCreate,
+  /'calendar', 'edit'[\s\S]*?p_event_type not in \('match', 'meeting', 'other'\)/,
+  "Calendar create RPC must accept only calendar-owned entry types."
+);
+const latestCalendarUpdate = latestFunctionBody("pfms_update_legacy_team_calendar_event");
+assert.match(
+  latestCalendarUpdate,
+  /select team_id, event_type into v_team_id, v_existing_event_type/,
+  "Calendar update RPC must load the existing row type before authorization."
+);
+assert.match(
+  latestCalendarUpdate,
+  /v_existing_event_type in \('tournament', 'event'\)/,
+  "Calendar update RPC must refuse to mutate event-owned rows."
+);
+assert.match(
+  latestCalendarUpdate,
+  /p_event_type not in \('match', 'meeting', 'other'\)/,
+  "Calendar update RPC must not convert calendar rows into event-owned rows."
+);
+const latestEventsList = latestFunctionBody("pfms_list_legacy_team_events");
+assert.match(
+  latestEventsList,
+  /'events', 'view'[\s\S]*?event_type in \('tournament', 'event'\)/,
+  "Events read RPC must remain separately permission-gated and type-scoped."
+);
+
+const indexHtml = await readFile(resolve(process.cwd(), "index.html"), "utf8");
+const calendarForm = indexHtml.match(/<form id="pfmsTeamCalendarForm"[\s\S]*?<\/form>/)?.[0] || "";
+assert.ok(calendarForm, "Calendar form must exist.");
+assert.match(calendarForm, /value="match"/, "Calendar UI must retain match entries.");
+assert.match(calendarForm, /value="meeting"/, "Calendar UI must retain meeting entries.");
+assert.match(calendarForm, /value="other"/, "Calendar UI must retain other entries.");
+assert.doesNotMatch(
+  calendarForm,
+  /value="(?:event|tournament)"/,
+  "Calendar UI must route event/tournament creation through the events module."
 );
 
 console.log(
