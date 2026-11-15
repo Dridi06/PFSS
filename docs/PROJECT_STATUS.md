@@ -793,3 +793,6 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 
 - CI-Nachweis für die Plattformkennzahlen: Commit `a04b7da090f1ae91a7d05ee77005af9aefcc9dcd`, Push-Run [43714646029](https://github.com/Dridi06/PFSS/actions/runs/43714646029) vollständig erfolgreich (Node-/Build-/Smoke-Tests und Deno Edge-Function-Typprüfung).
+
+
+- Ergänzende Dashboard-Qualitätssicherung: Die Schaltfläche „Aktualisieren“ lädt jetzt Benutzer- und Plattformkennzahlen gemeinsam neu; die Kennzeichnung weist ausdrücklich auf geschützte Adminabfragen hin. CI für Commit `71b3b4c29889bb05a6079fd8ec988b29b45ce4ac` vollständig erfolgreich: [Push-CI 43714768472](https://github.com/Dridi06/PFSS/actions/runs/43714768472), beide Jobs grün.
