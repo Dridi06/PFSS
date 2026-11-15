@@ -230,7 +230,7 @@ assert.ok(
   "The administrator membership RPC must revoke default public/anon execution."
 );
 assert.ok(
-  ownerIntegrityMigration.replace(/\\s+/g, " ").toLowerCase().includes(
+  ownerIntegrityMigration.replace(/\s+/g, " ").toLowerCase().includes(
     "grant execute on function public.pfms_admin_update_legacy_membership(uuid, text, text) to authenticated"
   ),
   "The administrator membership RPC must explicitly grant execution to authenticated."
