@@ -1,3 +1,11 @@
+## Ergänzung – Abnahme des seitenweisen Admin-Support-Postfachs
+
+- Mit mindestens 26 Staging-Tickets die Seiten 1 und 2 prüfen. Die Trefferzahl muss dem exakten Datenbank-Count entsprechen; Sortierung: neueste zuerst, bei Zeitgleichheit Ticket-ID.
+- Statusfilter Offen, In Bearbeitung und Erledigt einzeln testen. Der Filter muss die Datenbankabfrage begrenzen; nach Filterwechsel muss Seite 1 angezeigt werden.
+- Ticketantwort und Statuswechsel speichern. Prüfen, dass bestehende Benachrichtigungen an den Ticketinhaber ausgelöst werden und die Antwort nach Neuladen erhalten bleibt.
+- Admin-Ansicht mit Nicht-Admin-Konto direkt aufrufen: Route muss blockiert bleiben und RLS darf keine fremden Tickets offenlegen.
+- Logout/Kontowechsel während eines Ladevorgangs testen; alte Antworten dürfen keine Daten in der neuen Sitzung anzeigen.
+
 ## Ergänzung – Admin-Fehlerprotokoll und Support-Postfach
 
 - Fehlerprotokoll: nach Anwendung der Migration `20261220_pfms_admin_system_event_pagination.sql` als Admin Meldung/Pfad, Schweregrad, Status und Seitenwechsel prüfen. Die Audit-Prüfungen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds` müssen bestanden sein.
