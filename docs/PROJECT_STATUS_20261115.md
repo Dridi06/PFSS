@@ -126,3 +126,13 @@ No live Supabase migration was executed. No staging or production database was q
 - Push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341) both passed all jobs.
 - PR #1 remains open and Draft. No merge, Render deployment, or live Supabase operation was performed.
 - Overall estimate remains 76% provisional. Staging ledger reconciliation and two-tenant runtime acceptance remain release blockers.
+
+
+## Authorization migration dependency graph hardening – 15 November 2026
+
+- Five additional reviewed dependency edges now protect the latest search-path, organization-table ACL and legacy-team authorization migrations.
+- The regression test requires each of those security-critical edges and continues to reject missing nodes, ordering violations and cycles.
+- Code commit verified: `a89b3caa9dbe965ec1d97a295de758ab6ff1064a`; GitHub Actions run [43736841953](https://github.com/Dridi06/PFSS/actions/runs/43736841953) passed both project smoke checks and Edge Function type checks.
+- Documentation-only checkpoint follows in commit `850fd9dff181a8203069cce8ca7f641fab415bb6`.
+- No live database, staging or production resource was changed; no Render deployment or merge was performed.
+- Overall project estimate remains 76% provisional. Live staging migration-ledger reconciliation and two-tenant runtime acceptance remain outstanding.
