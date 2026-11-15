@@ -196,7 +196,7 @@ const protectedProfileUpdate = extractSqlFunction(
   ownerIntegrityMigration, "pfss_admin_update_profile"
 );
 assert.ok(protectedProfileUpdate, "Protected administrator profile RPC is missing.");
-assert.match(protectedProfileUpdate, /security definer set search_path = '' as \\$\\$/,
+assert.match(protectedProfileUpdate, /security definer set search_path = '' as \$\$/,
   "Administrator profile changes must run with a locked-down SECURITY DEFINER context.");
 assert.match(protectedProfileUpdate, /p_user_id = auth\.uid\(\)/,
   "Administrators must not be able to modify their own administrator profile.");
@@ -211,7 +211,7 @@ const protectedMembershipUpdate = extractSqlFunction(
   ownerIntegrityMigration, "pfms_admin_update_legacy_membership"
 );
 assert.ok(protectedMembershipUpdate, "Serialized administrator membership RPC is missing.");
-assert.match(protectedMembershipUpdate, /security definer set search_path = '' as \\$\\$/,
+assert.match(protectedMembershipUpdate, /security definer set search_path = '' as \$\$/,
   "Administrator membership changes must run with a locked-down SECURITY DEFINER context.");
 assert.match(protectedMembershipUpdate, /public\.is_admin\(\)/,
   "Administrator membership changes must enforce the server-side administrator check.");
