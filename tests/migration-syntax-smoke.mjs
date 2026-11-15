@@ -232,30 +232,24 @@ assert.ok(organizationManagerGuardSource.toLowerCase().includes("security define
 // Every public table introduced by a repository migration must appear in
 // the read-only staging inventory. This prevents silent audit blind spots.
 const auditTargetTableBlock = stagingAuditSql.match(
-  /c\.relname\s+IN\s*\(([\s\S]*?)\n\s*\)/i
+  /target_tables AS \(([\s\S]*?)\),\s*column_rows AS/i
+)?.[1] || "";
+assert.ok(auditTargetTableBlock, "Staging audit must declare its dynamic public/storage table inventory.");
+assert.match(
+  auditTargetTableBlock,
+  /n\.nspname IN \('public', 'storage'\)/i,
+  "Staging audit must include all public and storage tables."
 );
-assert.ok(auditTargetTableBlock, "Staging audit must declare its public table inventory.");
-const auditedTableNames = new Set(
-  [...auditTargetTableBlock[1].matchAll(/'([a-z_][a-z0-9_]*)'/gi)].map((match) => match[1])
+assert.match(
+  auditTargetTableBlock,
+  /c\.relkind IN \('r', 'p'\)/i,
+  "Staging audit must include ordinary and partitioned tables."
 );
-const createdPublicTables = new Set();
-for (const source of migrationSources) {
-  const executableSource = source.replace(/--[^\n]*/g, "");
-  for (const match of executableSource.matchAll(
-    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?([a-z_][a-z0-9_]*)\b/gi
-  )) {
-    createdPublicTables.add(match[1].toLowerCase());
-  }
-}
-assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
-for (const tableName of createdPublicTables) {
-  assert.ok(
-    auditedTableNames.has(tableName),
-    "Staging read-only audit omits migration-created table: public." + tableName
-  );
-}
-
-
+assert.doesNotMatch(
+  auditTargetTableBlock,
+  /c\.relname\s+IN\s*\(/i,
+  "Staging audit must not use a hardcoded table-name allowlist that can omit new tables."
+);
 const adminDirectoryPagination = migrationSources[
   migrationFiles.indexOf("20261218_pfms_admin_directory_pagination.sql")
 ];
