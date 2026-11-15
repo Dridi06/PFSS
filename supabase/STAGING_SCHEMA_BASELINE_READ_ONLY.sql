@@ -79,7 +79,7 @@ with inventory as (
     'INDEX',
     n.nspname || '.' || c.relname || '.' || irel.relname,
     jsonb_build_object(
-      'definition', pg_catalog.pg_get_indexdef(i.oid),
+      'definition', pg_catalog.pg_get_indexdef(irel.oid),
       'valid', i.indisvalid,
       'ready', i.indisready,
       'unique', i.indisunique,
