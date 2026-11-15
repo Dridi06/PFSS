@@ -75,7 +75,7 @@ def create_storage_page_fetcher(
     endpoint = f"https://{project_ref}.supabase.co/storage/v1/object/list/{bucket}"
 
     def fetch_page(prefix: str, limit: int, offset: int) -> list[dict[str, Any]]:
-        if not isinstance(prefix, str) or prefix.startswith("/") or "\\\\" in prefix or "\x00" in prefix:
+        if not isinstance(prefix, str) or prefix.startswith("/") or "\\" in prefix or "\x00" in prefix:
             raise InventoryError("Invalid Storage prefix.")
         if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 1000:
             raise InventoryError("Invalid Storage page limit.")
