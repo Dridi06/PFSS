@@ -1447,6 +1447,37 @@ with checks as (
     'Organisationen, Mitgliedschaften und Scout-Profile sind für authenticated nur lesbar; anon hat keinen Zugriff und service_role behält die serverseitigen Schreibrechte'
 
 
+  union all
+  select
+    'ddl_rls_event_trigger_fail_closed',
+    coalesce((
+      select
+        e.evtevent = 'ddl_command_end'
+        and e.evtenabled = 'O'
+        and e.evttags @> array['CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO']::text[]
+        and e.evttags <@ array['CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO']::text[]
+        and p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))
+          ) acl
+          where acl.grantee = 0
+            and acl.privilege_type = 'EXECUTE'
+        )
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%raise exception%'
+        and pg_catalog.pg_get_functiondef(p.oid) not ilike '%when others then%'
+      from pg_catalog.pg_event_trigger e
+      join pg_catalog.pg_proc p on p.oid = e.evtfoid
+      where e.evtname = 'ensure_rls'
+        and e.evtfoid = pg_catalog.to_regprocedure('public.rls_auto_enable()')
+    ), false),
+    'ensure_rls muss aktiv auf ddl_command_end für genau die drei erwarteten DDL-Tags registriert sein; die SECURITY DEFINER-Funktion benötigt leeren search_path, darf nicht für PUBLIC/anon/authenticated ausführbar sein und muss bei RLS-Fehlern abbrechen'
+
+
 )
 select check_name, passed, details
 from checks
