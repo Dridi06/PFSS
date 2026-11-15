@@ -31,3 +31,8 @@ assert.match(app, /pfmsTeamStaffDialog'\)\?\.close\(\)[\s\S]*?pfmsCloseSelectedT
   "Revoked team assignments must close team-management dialogs and clear the selected workspace.");
 
 console.log("PFMS auth/session lifecycle tests passed: stale-request protection, approval/role revalidation, sign-out invalidation, token refresh and tab-resume checks.");
+
+assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
+  "The frontend must maintain an explicit list of platform-administrator-only routes.");
+assert.match(app, /if \(adminOnlyViews\.has\(view\) && !window\.pfssIsRealAdmin\)[\s\S]*?view = 'dashboard'/,
+  "Direct or stale navigation must not expose administrator screens to non-admin accounts.");
