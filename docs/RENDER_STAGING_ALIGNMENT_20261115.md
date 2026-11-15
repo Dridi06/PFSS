@@ -105,3 +105,17 @@ CI-Erfolg bestätigt nur die im Repository automatisierten Prüfungen. Er bestä
 - Diese Identität ist damit für die Staging-Konfiguration bestätigt. Es wurden keine API-Schlüssel ausgelesen oder gespeichert.
 - Render-Umgebungsschlüssel müssen weiterhin privat im bestehenden Staging-Service gesetzt werden: `PFMS_STAGING_PROJECT_REF=oolvpbzbqioijoazsoun`, `PFSS_SUPABASE_URL=https://oolvpbzbqioijoazsoun.supabase.co` und ausschließlich der Supabase Publishable Key in `PFSS_SUPABASE_KEY`. Niemals Secret-/service_role-Key in den Browser-Build eintragen.
 - Render-Service-Typ und tatsächliche Blueprint-Zuordnung bleiben separat zu bestätigen; aus dem Supabase-Screenshot lassen sie sich nicht ableiten.
+
+
+## Bestätigung des Render-Diensttyps (Benutzerbestätigung)
+
+Der Benutzer hat bestätigt, dass der bestehende Dienst weiterhin eine **Static Site** ist. Damit ist `runtime: static` im Blueprint grundsätzlich passend. Der Dienstname `pfss-staging` und die Projektverbindung `Dridi06/PFSS` stimmen mit dem Dashboard-Screenshot überein.
+
+**Noch nicht verifiziert bzw. nicht geändert:**
+- Ob der vorhandene Dienst tatsächlich mit einem Render Blueprint verknüpft ist.
+- Der aktuelle Dashboard-Branch bleibt `foundation/permissions-v1`, während der vorbereitete Blueprint `feature/pfss-complete-platform-build` vorsieht.
+- Build Command und Publish Directory müssen vor dem Branch-Wechsel auf den geprüften Build angepasst werden: `npm run check:syntax && npm run build && npm run test:dist` und `dist`.
+- Die vier Environment Variables müssen vor dem ersten Feature-Branch-Deploy gesetzt sein. Werte: `PFMS_BUILD_TARGET=staging`, `PFMS_STAGING_PROJECT_REF=oolvpbzbqioijoazsoun`, `PFSS_SUPABASE_URL=https://oolvpbzbqioijoazsoun.supabase.co`, `PFSS_SUPABASE_KEY` = Publishable-/anon-Key dieses Projekts (niemals secret/service_role).
+- Auto-Deploy steht laut Screenshot auf `On Commit`; ein Branch-Wechsel kann deshalb eine automatische Bereitstellung auslösen. Reihenfolge der Dashboard-Änderungen und Zeitpunkt des Branch-Wechsels sorgfältig steuern.
+
+Keine Render-Dashboard-Einstellung wurde durch den Assistenten verändert; kein Deploy wurde ausgelöst.
