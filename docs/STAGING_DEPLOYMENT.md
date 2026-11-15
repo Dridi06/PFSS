@@ -456,3 +456,16 @@ Nach Anwendung der Migration 20261230_pfms_legacy_manager_admin_rpc_boundary.sql
 6. Das read-only Acceptance-Audit muss legacy_manager_rpc_admin_boundary = true melden.
 
 Diese Prüfung ist noch nicht durchgeführt. Der neue Migrationsschritt ist ausschließlich für den kontrollierten Staging-Plan vorgesehen und darf nicht ungeprüft angewendet werden.
+
+
+## Ergänzung – Schutz der Systemfehler-Schweregrade
+
+Nach Anwendung der Migration 20261231_pfms_system_event_severity_boundary.sql ausschließlich im isolierten Staging prüfen:
+
+1. Mit einem freigegebenen normalen Benutzer einen regulären Frontend-Fehler mit \`severity = 'error'\` einreichen. Erwartet: erfolgreicher Insert und Sichtbarkeit nur im Admin-Systemereignisbereich.
+2. Mit demselben Benutzer direkt über die API einen Eintrag mit \`severity = 'critical'\` versuchen. Erwartet: Ablehnung durch INSERT-RLS und/oder den BEFORE-INSERT-Trigger; es darf kein kritisches Ereignis entstehen.
+3. Den Insert mit \`severity = 'warning'\` versuchen. Erwartet: Ablehnung; Browser-Telemetrie darf ausschließlich normale Fehler melden.
+4. Als Plattformadministrator prüfen, dass bestehende kritische Ereignisse weiterhin sichtbar und bearbeitbar sind, ohne dass der Ereignisbeleg (severity, message, actor_id, details) verändert werden kann.
+5. Das read-only Acceptance-Audit muss \`system_event_client_severity_boundary = true\` melden.
+
+Die Prüfung verändert Testdaten und ist noch nicht durchgeführt. Keine Migration außerhalb des dedizierten Staging-Projekts anwenden.
