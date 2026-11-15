@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – CI-Abnahme Admin-Fehlerprotokoll und Support-Postfach
+
+- Verifizierter Feature-Commit: `9da6e5f2991b7e8529c9e28df203c5972e5c49e7`.
+- GitHub Actions Push-Lauf erfolgreich: [Run 43713184896](https://github.com/Dridi06/PFSS/actions/runs/43713184896). Beide Jobs bestanden: vollständiger Node-/Build-/Smoke-Testlauf einschließlich Migrations-, RPC-, Sicherheits- und Sitzungsregressionen sowie Deno Edge-Function-Typprüfung.
+- Pull-Request-CI ist separat noch ausstehend; der erfolgreiche Push-Lauf prüft exakt denselben Feature-Commit.
+- Keine reale Supabase-Ausführung, kein Staging-Deploy und keine Änderung an `main` oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Admin-Postfach vollständig seitenweise
 
 - Das Admin-Support-Postfach verwendet jetzt Statusfilter direkt in Supabase, `count: exact`, deterministische Sortierung und 25er-Seiten via `range`. Die vorherige clientseitige Begrenzung auf 200 Tickets entfällt.
