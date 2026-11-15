@@ -140,6 +140,33 @@ assert.match(stagingAcceptanceSql, /'admin_directory_pagination_rpc_security'/,
   "The read-only staging acceptance audit must verify pagination RPC security.");
 assert.match(stagingAcceptanceSql, /'admin_directory_pagination_bounds'/,
   "The read-only staging acceptance audit must verify pagination limits.");
+const adminSystemEventsPagination = migrationSources[
+  migrationFiles.indexOf("20261220_pfms_admin_system_event_pagination.sql")
+];
+assert.ok(adminSystemEventsPagination, "Admin system event pagination migration is missing.");
+const systemEventsPageDefinition = extractSqlFunction(
+  adminSystemEventsPagination, "pfms_admin_list_system_events_page"
+);
+assert.ok(systemEventsPageDefinition, "Admin system event pagination RPC is missing.");
+assert.match(systemEventsPageDefinition, /security definer set search_path = '' as \$\$/,
+  "System event pagination must be SECURITY DEFINER with an empty search_path.");
+assert.match(systemEventsPageDefinition, /public\.pfms_is_admin\(\)/,
+  "System event pagination must enforce the canonical admin check.");
+assert.match(systemEventsPageDefinition, /p_limit is null or p_limit not between 1 and 100/,
+  "System event pagination must cap page size at 100.");
+assert.match(systemEventsPageDefinition, /p_offset is null or p_offset not between 0 and 1000000/,
+  "System event pagination must reject unbounded offsets.");
+assert.match(systemEventsPageDefinition, /count\(\*\) over \(\)/,
+  "System event pagination must return the total matching event count.");
+assert.ok(
+  adminSystemEventsPagination.includes("grant execute on function public.pfms_admin_list_system_events_page(text, text, text, integer, integer)"),
+  "System event pagination must explicitly grant its RPC to authenticated."
+);
+assert.ok(
+  adminSystemEventsPagination.includes("revoke all on function public.pfms_admin_list_system_events_page(text, text, text, integer, integer)"),
+  "System event pagination must revoke default public/anon execution."
+);
+
 for (const signature of [
   "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
   "pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)",
