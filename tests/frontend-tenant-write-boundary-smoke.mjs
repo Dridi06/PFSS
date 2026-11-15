@@ -52,22 +52,22 @@ const coreAcl = (
     resolve(process.cwd(), "supabase/migrations/20261225_pfms_organization_table_write_acl_hardening.sql"),
     "utf8"
   )
-).replace(/\\s+/g, " ").toLowerCase();
+).replace(/\s+/g, " ").toLowerCase();
 assert.match(
   coreAcl,
-  /revoke all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles from public, anon, authenticated/
+  /revoke all privileges on table public\.pfms_organizations, public\.pfms_memberships, public\.pfms_scout_profiles from public, anon, authenticated/
 );
 assert.match(
   coreAcl,
-  /grant select on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to authenticated/
+  /grant select on table public\.pfms_organizations, public\.pfms_memberships, public\.pfms_scout_profiles to authenticated/
 );
 assert.match(
   coreAcl,
-  /grant all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to service_role/
+  /grant all privileges on table public\.pfms_organizations, public\.pfms_memberships, public\.pfms_scout_profiles to service_role/
 );
 assert.doesNotMatch(
   coreAcl,
-  /grant (?:insert|update|delete|all(?: privileges)?) on table[\\s\\S]*?to authenticated/,
+  /grant (?:insert|update|delete|all(?: privileges)?) on table[\s\S]*?to authenticated/,
   "Authenticated browser roles must not receive direct write privileges on organization core tables."
 );
 
@@ -76,16 +76,16 @@ const teamAcl = (
     resolve(process.cwd(), "supabase/migrations/20261121_pfms_legacy_team_management.sql"),
     "utf8"
   )
-).replace(/\\s+/g, " ").toLowerCase();
+).replace(/\s+/g, " ").toLowerCase();
 for (const table of ["pfms_legacy_teams", "pfms_legacy_team_staff"]) {
   assert.match(
     teamAcl,
-    new RegExp("revoke all on table public\\\\." + table + " from public, anon, authenticated"),
+    new RegExp("revoke all on table public\\." + table + " from public, anon, authenticated"),
     "Browser roles must not write directly to " + table + "."
   );
   assert.match(
     teamAcl,
-    new RegExp("grant select on table public\\\\." + table + " to authenticated"),
+    new RegExp("grant select on table public\\." + table + " to authenticated"),
     "Authenticated team reads must remain explicitly scoped by RLS for " + table + "."
   );
 }
@@ -95,11 +95,11 @@ const invitationAcl = (
     resolve(process.cwd(), "supabase/migrations/20261111_legacy_organization_invitations.sql"),
     "utf8"
   )
-).replace(/\\s+/g, " ").toLowerCase();
-assert.match(invitationAcl, /alter table public\\.organization_invitations enable row level security/);
+).replace(/\s+/g, " ").toLowerCase();
+assert.match(invitationAcl, /alter table public\.organization_invitations enable row level security/);
 assert.match(
   invitationAcl,
-  /revoke all on table public\\.organization_invitations from public, anon, authenticated/,
+  /revoke all on table public\.organization_invitations from public, anon, authenticated/,
   "Invitation tokens must never be directly accessible to browser roles."
 );
 
