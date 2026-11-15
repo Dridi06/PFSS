@@ -427,3 +427,18 @@ Folgende Prüfungen müssen jeweils `passed = true` liefern:
 - `20261227_pfms_legacy_team_access_null_guard.sql`: NULL und nicht existente Team-IDs in den zentralen Teamzugriffs- und Verwaltungsfunktionen fail-closed behandeln.
 
 Keine dieser Migrationen ist durch die statische CI angewendet worden. Anwendung, Staging-Datenprüfung und Laufzeitabnahme bleiben separate, ausdrücklich freizugebende Schritte.
+
+
+## Ergänzung – parallele Organisationsinhaber-Änderungen
+
+Diese Prüfung ist ausschließlich mit einer isolierten Staging-Testorganisation und zwei eigens angelegten aktiven Inhaber-Testkonten durchzuführen. Keine echten Organisationskonten verwenden.
+
+1. Vorher sicherstellen, dass beide Testkonten aktive \`owner\`-Mitgliedschaften derselben Testorganisation besitzen und ein separates Plattform-Admin-Testkonto verfügbar ist.
+2. Zwei unabhängige authentifizierte Staging-Sitzungen vorbereiten. In beiden Sitzungen dieselbe Admin-RPC \`pfms_admin_update_membership\` aufrufen: Sitzung A stuft Inhaber A auf \`admin\` herab; Sitzung B stuft Inhaber B auf \`admin\` herab. Die Aufrufe zeitgleich starten.
+3. Erwartung: Die Datenbank serialisiert beide Änderungen über die Sperre des übergeordneten Organisationsdatensatzes. Höchstens eine Herabstufung darf erfolgreich sein; der zweite Aufruf muss wegen der letzten aktiven Inhaberschaft mit SQLSTATE \`23514\` abgewiesen werden.
+4. Anschließend direkt in der Datenbank verifizieren, dass mindestens eine aktive \`owner\`-Mitgliedschaft erhalten ist. Beide RPC-Ergebnisse und die verbleibende Mitgliedschaft dokumentieren.
+5. Zusätzlich ungültige Rollen, Statuswerte, NULL-Werte, nicht-objektförmige JSON-Payloads, unbekannte Berechtigungsschlüssel und Nicht-Boolean-Werte testen. Erwartet wird SQLSTATE \`22023\`.
+6. Mit einem Nicht-Admin-Konto die RPC direkt aufrufen. Erwartet wird SQLSTATE \`42501\`; die UI-Sperre allein ist keine Abnahme.
+7. Das read-only Acceptance-Audit muss \`pfms_membership_owner_lock_order\`, \`pfms_membership_input_validation\` und \`pfms_last_active_owner_is_protected\` jeweils mit \`passed = true\` melden.
+
+Die Prüfung verändert Testdaten und ist deshalb **kein** Teil des read-only SQL-Audits. Testorganisation und Konten nach dokumentierter Prüfung kontrolliert bereinigen. Diese Abnahme ist noch nicht durchgeführt und darf nicht aus statischen CI-Ergebnissen abgeleitet werden.
