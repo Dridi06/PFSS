@@ -80,7 +80,7 @@ for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABA
     "Staging environment value " + key + " must be supplied privately in Render, never committed to the blueprint"
   );
 }
-assert.match(renderBlueprint, /^    autoDeployTrigger: checksPass$/m, "Render auto-deploy must wait for successful checks");
+assert.match(renderBlueprint, /^    autoDeployTrigger: 'off'$/m, "Staging auto-deploy must remain disabled until an explicitly approved manual deployment.");
 assert.match(renderBlueprint, /name: Content-Security-Policy/, "Staging must retain its Content Security Policy");
 assert.match(renderBlueprint, /name: Strict-Transport-Security/, "Staging must retain HSTS");
 assert.match(renderBlueprint, /name: X-Content-Type-Options[\s\S]*?value: nosniff/, "Staging must prevent MIME-type sniffing.");
