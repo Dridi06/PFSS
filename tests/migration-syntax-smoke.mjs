@@ -611,7 +611,7 @@ const normalizedLegacyTeamNullGuard = legacyTeamNullGuard
 for (const functionName of ["pfms_can_access_legacy_team", "pfms_can_manage_legacy_team"]) {
   assert.ok(
     normalizedLegacyTeamNullGuard.includes(
-      "create or replace function public." + functionName + "(p_team_id uuid) returns boolean language sql stable security definer set search_path = '' as $ select auth.uid() is not null and p_team_id is not null"
+      "create or replace function public." + functionName + "(p_team_id uuid) returns boolean language sql stable security definer set search_path = '' as $$ select auth.uid() is not null and p_team_id is not null"
     ),
     "Central tenant authorization must reject NULL team IDs before evaluating roles: " + functionName
   );
