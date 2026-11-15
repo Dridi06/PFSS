@@ -1571,6 +1571,24 @@ with checks as (
     ), false),
     'Role, status and permission payload must reject NULL, unknown values, non-object JSON and non-boolean permission entries'
 
+  union all
+  select
+    'legacy_manager_rpc_admin_boundary',
+    coalesce((
+      select
+        p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%if public.is_admin() then%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%not public.can_manage_org(v_organization_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_current_role in (''owner'',''club_admin'',''agency_admin'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) not ilike '%not public.is_admin() and v_current_role%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_update_legacy_org_membership_for_manager(uuid,text,text)')
+    ), false),
+    'Platform admins must be denied the manager RPC; managers must pass can_manage_org and cannot alter leadership memberships'
+
 
 )
 select check_name, passed, details
