@@ -59,16 +59,16 @@ const organizationManagerGateMigration = await readFile(
   resolve(process.cwd(), "supabase/migrations/20261222_pfms_legacy_org_manager_active_org_gate.sql"),
   "utf8"
 );
-const normalizedOrganizationManagerGate = organizationManagerGateMigration.replace(/\\s+/g, " ").toLowerCase();
-assert.match(normalizedOrganizationManagerGate, /security definer set search_path = '' as \\$\\$/,
+const normalizedOrganizationManagerGate = organizationManagerGateMigration.replace(/\s+/g, " ").toLowerCase();
+assert.match(normalizedOrganizationManagerGate, /security definer set search_path = '' as \$\$/,
   "Legacy organization manager helper must remain SECURITY DEFINER with an empty search_path.");
-assert.match(normalizedOrganizationManagerGate, /join public\\.organizations o/,
+assert.match(normalizedOrganizationManagerGate, /join public\.organizations o/,
   "Legacy organization manager helper must load the authoritative organization row.");
-assert.match(normalizedOrganizationManagerGate, /o\\.status in \\('approved', 'active'\\)/,
+assert.match(normalizedOrganizationManagerGate, /o\.status in \('approved', 'active'\)/,
   "Suspended or unapproved organizations must not retain manager authority.");
-assert.match(normalizedOrganizationManagerGate, /m\\.status = 'active'/,
+assert.match(normalizedOrganizationManagerGate, /m\.status = 'active'/,
   "Legacy organization manager helper must require an active membership.");
-assert.match(normalizedOrganizationManagerGate, /m\\.role in \\('owner', 'club_admin', 'agency_admin'\\)/,
+assert.match(normalizedOrganizationManagerGate, /m\.role in \('owner', 'club_admin', 'agency_admin'\)/,
   "Only organization leadership roles may manage the legacy organization.");
 assert.match(
   stagingAcceptanceSql,
