@@ -77,7 +77,7 @@ with inventory as (
 
   select
     'INDEX',
-    n.nspname || '.' || c.relname || '.' || i.relname,
+    n.nspname || '.' || c.relname || '.' || irel.relname,
     jsonb_build_object(
       'definition', pg_catalog.pg_get_indexdef(i.oid),
       'valid', i.indisvalid,
