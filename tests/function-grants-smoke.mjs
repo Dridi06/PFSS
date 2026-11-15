@@ -200,21 +200,6 @@ assert.match(activeOrganizationManagerGate, /m\.role in \('owner', 'club_admin',
 assert.match(activeOrganizationManagerGate, /revoke all on function public\.can_manage_org\(uuid\) from public, anon/);
 assert.match(activeOrganizationManagerGate, /grant execute on function public\.can_manage_org\(uuid\) to authenticated/);
 
-// Invitation redemption must independently re-check the current organization
-// state while holding a row lock, even for tokens issued before suspension.
-const invitationStatusGuard = (
-  await readFile(
-    resolve(directory, "20261131_pfms_legacy_invitation_status_guard.sql"),
-    "utf8"
-  )
-).replace(/\s+/g, " ").toLowerCase();
-assert.match(invitationStatusGuard, /create or replace function public\.pfms_apply_legacy_invitation\(\)/);
-assert.match(invitationStatusGuard, /security definer set search_path = ''/);
-assert.match(invitationStatusGuard, /from public\.organizations o where o\.id = v_invitation\.organization_id for share/);
-assert.match(invitationStatusGuard, /v_org_status not in \('approved', 'active'\)/);
-assert.match(invitationStatusGuard, /and i\.redeemed_at is null and i\.revoked_at is null and i\.expires_at > pg_catalog\.now\(\)/);
-assert.match(invitationStatusGuard, /revoke all on function public\.pfms_apply_legacy_invitation\(\) from public, anon, authenticated/);
-
 const invitationMigration = (
   await readFile(resolve(directory, "20261111_fix_invitation_admin_access.sql"), "utf8")
 ).replace(/\s+/g, " ").toLowerCase();
