@@ -58,3 +58,35 @@
 
 ## Resume instruction
 Continue from branch `feature/pfss-complete-platform-build`, starting at HEAD `55844d0ef7f2cf20790479159e474e4f83f39e7c`. First re-check the live PR head and CI because this checkpoint may be superseded by later commits. Keep the PR Draft and do not touch `main`, Render production or the production Supabase project.
+
+
+## Continuation checkpoint – 15 November 2026, after autonomous authorization-audit extension
+
+### Verified GitHub state
+- Repository: \`Dridi06/PFSS\`.
+- Active feature branch: \`feature/pfss-complete-platform-build\`.
+- Code HEAD before this checkpoint documentation commit: \`e3aacf6c6fa970a01d970b2a2d9ac461e13d83a6\`.
+- Pull request #1 remains open and Draft, base \`main\`; no merge or approval requested.
+- GitHub Actions for code HEAD \`e3aacf6c6fa970a01d970b2a2d9ac461e13d83a6\`: push run \`43741450250\` and PR run \`43741455449\`; both completed successfully. Both jobs passed: syntax/project smoke tests and Supabase Edge Function Deno type checks.
+- Branch comparison against \`main\`: branch is diverged (1395 commits ahead, 2 behind; merge base \`34b7a0f74dbddea225a9c1750f998e3c1c7ac5e8\`). The two main-side commits were inspected: one temporarily added \`20261118_pfms_legacy_org_manager_guard.sql\`, the next reverted that addition. The feature branch retains the helper as part of its reviewed migration/dependency sequence. Do not automatically rebase, merge or rewrite migration history; resolve this divergence only through a separately reviewed integration plan.
+
+### Work completed in this continuation
+1. Extended \`supabase/STAGING_ACCEPTANCE_READ_ONLY.sql\` with two additional read-only checks:
+   - \`pfms_membership_owner_lock_order\`: verifies SECURITY DEFINER/empty search_path/EXECUTE ACL and the order parent organization lock → locked membership reread → tenant-key revalidation.
+   - \`pfms_membership_input_validation\`: verifies role/status allowlists, NULL rejection, JSON object validation, permitted permission keys and Boolean values.
+2. Extended \`tests/staging-acceptance-sql-contract-smoke.mjs\` to require both new audit checks and preserve the one-statement read-only audit contract.
+3. Extended \`tests/membership-authorization-integrity-smoke.mjs\` to assert NULL/unsupported role and status rejection, JSON type validation, Boolean permission values and exact parent-before-membership lock order before the last-owner invariant.
+4. Extended \`docs/STAGING_DEPLOYMENT.md\` with an isolated two-session concurrency acceptance procedure. It requires two temporary active owner accounts, expects at most one concurrent demotion to succeed, and requires SQLSTATE \`23514\` for the losing attempt. This is a future staging test, not a test that has been run.
+5. No production or staging operation was executed.
+
+### Safety and release gates remain unchanged
+- No Supabase migration has been applied; the new audit remains read-only.
+- No Supabase staging data/schema, Render configuration or deployment was changed.
+- No production resource was accessed or modified.
+- PR #1 remains Draft; no merge to \`main\`.
+- The dedicated PFSS-Test project remains the only intended staging target. Its actual migration ledger/schema still require backup-first reconciliation; existing duplicate migration-version prefixes remain a hard stop.
+- Two-tenant positive/negative runtime tests, real SQL audit execution, concurrency test, browser/device QA, passkey end-to-end verification and backup/restore validation remain outstanding.
+- Overall project estimate remains **76% provisional**. Do not increase it on the basis of static CI alone.
+
+### Resume instruction
+Continue from the newest branch HEAD after this checkpoint commit. Re-check branch and CI first. Preserve all existing features, auth flows, menu/DOM/RPC contracts, tenant boundaries and server-side authorization. Keep development on the feature branch; do not apply migrations, deploy, merge, rebase or alter production without explicit approval and a separately reviewed plan.
