@@ -88,7 +88,7 @@ const [
 ]);
 
 const authTriggerHardeningMigration = await read("supabase/migrations/20261130_pfms_auth_trigger_hardening.sql");
-const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql");
+const legacyInvitationLifecycleHardeningMigration = await read("supabase/migrations/20261201_pfms_legacy_invitation_status_guard.sql");
 const trainingCyclesMigration = await read("supabase/migrations/20261201_pfms_legacy_training_cycles.sql");
 const teamAnalysisMigration = await read("supabase/migrations/20261202_pfms_legacy_team_analysis.sql");
 const teamEventsMigration = await read("supabase/migrations/20261203_pfms_legacy_team_events.sql");
@@ -148,7 +148,7 @@ const requiredFiles = [
   "supabase/migrations/20261206_pfms_legacy_team_tasks.sql",
   "supabase/migrations/20261207_pfms_in_app_notifications.sql",
   "supabase/migrations/20261130_pfms_auth_trigger_hardening.sql",
-  "supabase/migrations/20261131_pfms_legacy_invitation_status_guard.sql",
+  "supabase/migrations/20261201_pfms_legacy_invitation_status_guard.sql",
   "supabase/migrations/20261201_pfms_legacy_training_cycles.sql",
   "supabase/migrations/20261202_pfms_legacy_team_analysis.sql",
   "supabase/migrations/20261203_pfms_legacy_team_events.sql",
