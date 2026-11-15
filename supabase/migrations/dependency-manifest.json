@@ -121,6 +121,11 @@
       "before": "20261222_pfms_legacy_org_manager_active_org_gate.sql",
       "after": "20261227_pfms_legacy_team_access_null_guard.sql",
       "reason": "The final team authorization helpers call the hardened active-organization manager predicate."
+    },
+    {
+      "before": "20261111_organizations_memberships_permissions.sql",
+      "after": "20261229_pfms_membership_authorization_integrity.sql",
+      "reason": "The PFMS membership editor is replaced with serialized active-owner protection; the legacy organization-role helper is tightened against the existing PFSS organization lifecycle."
     }
   ]
 }
