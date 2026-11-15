@@ -56,6 +56,11 @@ assert.match(adminOrganizationDetails, /isCurrentDetailRequest[\s\S]*?pfms_admin
   "Organization member details must be bound to the selected organization and active admin session.");
 assert.match(adminOrganizationDetails, /pfms_create_legacy_invitation[\s\S]*?isCurrentDetailRequest/,
   "Invitation results must not be rendered into a stale administrator view.");
+const adminScoutDetails = app.match(/function showPfmsScoutDetails\(root,scout\)[\s\S]*?(?=const PFMS_ADMIN_MEMBER_ROLES)/)?.[0] || "";
+assert.match(adminScoutDetails, /pfmsDetailRequestId/,
+  "Selecting a scout must invalidate any pending organization detail response.");
+assert.match(adminDirectoryLoader, /pfmsDetailRequestId[\s\S]*?previousDetail\.hidden = true/,
+  "Starting a new directory search must invalidate and hide the previous detail selection.");
 const adminMemberActions = app.match(/results\.addEventListener\('click',[\s\S]*?pfms_admin_update_legacy_membership[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
 assert.match(adminMemberActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
   "Global membership changes must remain bound to the administrator session that initiated them.");
