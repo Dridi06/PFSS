@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – Navigationsschutz für Plattformadministration
+
+- Administrationsseiten sind zusätzlich gegen direkte oder veraltete UI-/History-Navigation abgesichert. Konten ohne bestätigte Plattform-Adminrolle werden auf das Dashboard zurückgeführt.
+- Die Navigation bleibt eine reine Oberflächenbarriere: Sie ersetzt weder RLS noch serverseitige RPC-Prüfungen und darf nicht als alleiniger Zugriffsschutz verstanden werden.
+- Die Regressionstests für Authentifizierung und Sitzungslebenszyklus prüfen auch die Admin-Routen-Sperre. Die Staging-Abnahme muss zusätzlich den Versuch direkter Navigation mit einem Nicht-Admin-Testkonto enthalten.
+- Ausschließlich Feature-Branch; keine Render-/Supabase-Änderung, keine Migration, keine Änderung an `main` oder Produktivdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Authentifizierungs- und Sitzungslebenszyklus gehärtet
 
 - Profilstatus und Plattformrolle werden bei Token-Erneuerung und Benutzeraktualisierung erneut serverseitig aus `profiles` gelesen. Die Supabase-Auth-Callbacks werden nicht durch synchrone Folgeabfragen blockiert.
