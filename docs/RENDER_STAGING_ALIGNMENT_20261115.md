@@ -50,6 +50,15 @@ Keine Werte oder Secrets in GitHub/Chat eintragen. Insbesondere darf niemals ein
 
 Daher darf `render.yaml` nicht blind synchronisiert und der Render-Branch nicht ohne weiteren Abgleich umgestellt werden. Eine falsche Blueprint-Synchronisierung könnte einen zusätzlichen Dienst anlegen oder den bestehenden Dienst unbeabsichtigt verändern.
 
+## Ergänzung nach Render-Environment-Screenshot
+
+Der Screenshot des bestehenden Dienstes `pfss-staging` zeigt:
+- Environment Variables: keine Einträge sichtbar/vorhanden im gezeigten Abschnitt.
+- Secret Files: keine Einträge sichtbar/vorhanden im gezeigten Abschnitt.
+- Es wurden keine Werte oder Zugangsdaten offengelegt.
+
+Damit sind die vier oben dokumentierten Build-Variablen für den neuen Staging-Build noch nicht konfiguriert. Sie dürfen erst dann gesetzt werden, wenn der Dienst kontrolliert auf den passenden Build-Stand umgestellt werden soll. Die Werte müssen aus genau dem dedizierten Staging-Supabase-Projekt stammen. Niemals Secret-/Service-Role-Keys verwenden.
+
 ## Nächste sichere Schritte
 
 1. Im Render-Dashboard beim vorhandenen Dienst `pfss-staging` die Einstellungen für Repository, Branch, Build Command, Publish Directory und Blueprint-Verknüpfung abgleichen.
