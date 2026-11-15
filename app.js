@@ -2458,6 +2458,9 @@ async function loadPfmsAdminDirectory(type,root) {
   const requestGeneration = pfmsAuthGeneration;
   const requestId = Number(root.dataset.pfmsRequestId || 0) + 1;
   root.dataset.pfmsRequestId = String(requestId);
+  root.dataset.pfmsDetailRequestId = String(Number(root.dataset.pfmsDetailRequestId || 0) + 1);
+  const previousDetail = root.querySelector('[data-pfms-detail]');
+  if (previousDetail) previousDetail.hidden = true;
   const isCurrentRequest = () =>
     isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
     root.dataset.pfmsRequestId === String(requestId);
@@ -2652,6 +2655,8 @@ async function showPfmsOrganizationDetails(root,org) {
 }
 
 function showPfmsScoutDetails(root,scout) {
+  if (!root || !window.pfssIsRealAdmin) return;
+  root.dataset.pfmsDetailRequestId = String(Number(root.dataset.pfmsDetailRequestId || 0) + 1);
   const detail=root.querySelector('[data-pfms-detail]');
   root.querySelector('[data-pfms-detail-title]').textContent=
     (scout.full_name||scout.username||scout.email||'Scout')+' · '+scout.user_id;
