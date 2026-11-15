@@ -62,7 +62,31 @@ Ein Objekt ohne Metadaten darf nicht automatisch gelöscht werden: Es muss zunä
 8. Mit getrennten Testkonten positiv und negativ prüfen: Eigentümer kann eigene Medien lesen; fremde Konten können diese nicht lesen; signierte URLs funktionieren nur im vorgesehenen Berechtigungsfenster.
 9. Ergebnisse, Abweichungen, Backup-ID, Zielprojekt-Referenz und Prüfsummenprotokoll dokumentieren. Keine Zugangsdaten oder unnötigen personenbezogenen Daten in den Nachweis aufnehmen.
 
-## 5. Noch nicht umgesetzt bzw. nicht nachgewiesen
+## 5. Implementierte Vorprüfung (nur Dry-Run)
+
+Das Skript `scripts/storage-staging-preflight.py` prüft vor einer späteren Inventarisierung die explizite Staging-Freigabe und die kanonische Übereinstimmung von `PFMS_STAGING_PROJECT_REF` und `PFSS_SUPABASE_URL`.
+
+Ein Lauf ist nur mit allen folgenden Angaben möglich:
+
+- `PFMS_STORAGE_BACKUP_TARGET=staging`
+- `PFMS_STORAGE_BACKUP_ALLOW_STAGING=1`
+- `PFMS_STAGING_PROJECT_REF` mit exakt 20 Kleinbuchstaben/Ziffern
+- `PFSS_SUPABASE_URL=https://<projekt-ref>.supabase.co`
+- Aufruf ausschließlich mit `--dry-run`
+
+Beispiel für einen lokalen, rein lesenden Konfigurationscheck:
+
+```sh
+PFMS_STORAGE_BACKUP_TARGET=staging \\
+PFMS_STORAGE_BACKUP_ALLOW_STAGING=1 \\
+PFMS_STAGING_PROJECT_REF=abcdefghijklmnopqrst \\
+PFSS_SUPABASE_URL=https://abcdefghijklmnopqrst.supabase.co \\
+python3 scripts/storage-staging-preflight.py --dry-run
+```
+
+Das Skript führt ausdrücklich **keine Netzwerkverbindung** aus, liest keine Zugangsschlüssel und listet oder verändert keine Storage-Objekte. Es ist nur eine Schutzschicht für die spätere Implementierung, keine Bestätigung, dass das angegebene Projekt tatsächlich das PFMS-Staging-Projekt ist. Diese Identität muss unabhängig im Supabase-Projektkonto verifiziert werden.
+
+## 6. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
 - Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen.
