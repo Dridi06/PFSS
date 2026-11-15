@@ -38,6 +38,7 @@ for (const { file, source } of migrationSources) {
     const name = match[1].toLowerCase();
     const record = functions.get(name) || {
       name, definitions: [], frontendCalls: [], edgeCalls: [],
+      dynamicFrontendReferences: [], dynamicEdgeReferences: [],
       sqlReferences: [], triggerReferences: []
     };
     record.definitions.push(file);
@@ -55,6 +56,21 @@ function collectRpcCalls(source, file, target) {
 }
 for (const { file, source } of frontendSources) collectRpcCalls(source, file, "frontendCalls");
 for (const { file, source } of edgeSources) collectRpcCalls(source, file, "edgeCalls");
+
+// Dynamic .rpc(rpcName, ...) dispatch cannot be resolved at the call site.
+// Recognize exact string literals used to select the function name.
+function collectDynamicNameReferences(sources, target) {
+  for (const { file, source } of sources) {
+    for (const record of functions.values()) {
+      if (source.includes("'" + record.name + "'") ||
+          source.includes('"' + record.name + '"')) {
+        record[target].push(file);
+      }
+    }
+  }
+}
+collectDynamicNameReferences(frontendSources, "dynamicFrontendReferences");
+collectDynamicNameReferences(edgeSources, "dynamicEdgeReferences");
 
 const triggerPattern = /execute\s+function\s+public\.([a-z0-9_]+)\s*\(/gi;
 for (const { file, source } of migrationSources) {
@@ -86,6 +102,7 @@ for (const { file, source } of migrationSources) {
 const rows = [...functions.values()].sort((a, b) => a.name.localeCompare(b.name));
 const definitionOnly = rows.filter((row) =>
   row.frontendCalls.length === 0 && row.edgeCalls.length === 0 &&
+  row.dynamicFrontendReferences.length === 0 && row.dynamicEdgeReferences.length === 0 &&
   row.sqlReferences.length === 0 && row.triggerReferences.length === 0
 );
 const count = (key) => rows.filter((row) => row[key].length > 0).length;
@@ -96,6 +113,8 @@ console.log("PFMS RPC reference inventory:");
 console.log("  public function names: " + rows.length);
 console.log("  frontend referenced: " + count("frontendCalls"));
 console.log("  Edge Function referenced: " + count("edgeCalls"));
+console.log("  dynamic frontend name references: " + count("dynamicFrontendReferences"));
+console.log("  dynamic Edge Function name references: " + count("dynamicEdgeReferences"));
 console.log("  SQL referenced: " + count("sqlReferences"));
 console.log("  trigger referenced: " + count("triggerReferences"));
 console.log("  definition-only review candidates: " + definitionOnly.length);
