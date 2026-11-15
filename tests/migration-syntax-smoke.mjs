@@ -419,6 +419,25 @@ assert.match(legacyProfileListHardening, /grant execute on function public\.pfss
 assert.match(stagingAcceptanceSql, /'admin_legacy_profile_list_rpc_security'/,
   "The read-only staging acceptance audit must verify the legacy profile-list RPC ACL and search_path.");
 
+const legacyCoreHardening = migrationSources[
+  migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
+];
+assert.ok(legacyCoreHardening, "Legacy core SECURITY DEFINER hardening migration is missing.");
+const normalizedLegacyCoreHardening = legacyCoreHardening.toLowerCase().replace(/\\s+/g, " ");
+for (const signature of [
+  "pfms_is_admin()",
+  "pfms_is_org_member(uuid)",
+  "pfms_admin_search_organizations(text, text)",
+  "pfms_admin_list_org_members(uuid)",
+  "pfms_admin_update_membership(uuid, text, text, jsonb)",
+  "pfms_admin_list_scouts(text)"
+]) {
+  assert.ok(
+    normalizedLegacyCoreHardening.includes("alter function public." + signature + " set search_path = ''"),
+    "Legacy SECURITY DEFINER function must receive an empty effective search_path: " + signature
+  );
+}
+
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const expectedReadPolicies = new Map([
