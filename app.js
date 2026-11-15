@@ -7924,30 +7924,34 @@ async function loadPfmsAdminErrors() {
   const requestGeneration = pfmsAuthGeneration;
   const requestId = ++pfmsAdminErrorsRequestId;
   const query = pfssNormalizeSearch(document.getElementById('pfmsAdminErrorsQuery')?.value);
-  const severity = document.getElementById('pfmsAdminErrorsSeverity')?.value || '';
-  const status = document.getElementById('pfmsAdminErrorsStatus')?.value || '';
+  const severity = document.getElementById('pfmsAdminErrorsSeverity')?.value || null;
+  const status = document.getElementById('pfmsAdminErrorsStatus')?.value || null;
+  const pageSize = 25;
+  const page = Math.max(0, Number(results.dataset.page || 0));
 
   message.textContent = 'Systemereignisse werden geladen …';
   results.innerHTML = '';
 
   try {
-    const { data, error } = await pfssSupabase
-      .from('pfms_system_events')
-      .select('id,actor_id,severity,message,route,details,status,created_at,resolved_at,resolved_by')
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const { data, error } = await pfssSupabase.rpc('pfms_admin_list_system_events_page', {
+      p_query: query,
+      p_severity: severity,
+      p_status: status,
+      p_limit: pageSize,
+      p_offset: page * pageSize
+    });
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminErrorsRequestId) return;
     if (error) throw error;
 
-    const events = (data || []).filter((item) =>
-      (!severity || item.severity === severity) &&
-      (!status || item.status === status) &&
-      (!query || pfssNormalizeSearch(item.message).includes(query) ||
-        pfssNormalizeSearch(item.route).includes(query))
-    );
-
-    message.textContent = events.length
-      ? events.length + ' Ereignis(se) angezeigt (maximal 200 neueste Einträge).'
+    const events = data || [];
+    const totalCount = Number(events[0]?.total_count || 0);
+    if (!events.length && page > 0) {
+      results.dataset.page = '0';
+      return loadPfmsAdminErrors();
+    }
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    message.textContent = totalCount
+      ? totalCount.toLocaleString('de-DE') + ' Ereignis(se) gefunden · Seite ' + (page + 1) + ' von ' + totalPages + '.'
       : 'Keine passenden Systemereignisse gefunden.';
 
     if (!events.length) {
@@ -7981,7 +7985,7 @@ async function loadPfmsAdminErrors() {
         '<button type="button" class="btn btn-secondary" data-save-event-status>Status speichern</button></div>' +
         '<p class="admin-message" data-event-message role="status" aria-live="polite"></p>' +
       '</article>';
-    }).join('');
+    }).join('') + pfmsAdminPaginationMarkup(page, totalCount, pageSize);
   } catch (error) {
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminErrorsRequestId) return;
     console.error('PFMS system event directory:', error);
@@ -7999,14 +8003,25 @@ function setupPfmsAdminErrors() {
   if (!form.dataset.pfmsBound) {
     form.addEventListener('submit', (event) => {
       event.preventDefault();
+      results.dataset.page = '0';
       loadPfmsAdminErrors();
     });
-    form.addEventListener('reset', () => window.setTimeout(loadPfmsAdminErrors, 0));
+    form.addEventListener('reset', () => window.setTimeout(() => {
+      results.dataset.page = '0';
+      loadPfmsAdminErrors();
+    }, 0));
     form.dataset.pfmsBound = 'true';
   }
 
   if (!results.dataset.pfmsBound) {
     results.addEventListener('click', async (event) => {
+      const pageButton = event.target.closest('[data-admin-page-action]');
+      if (pageButton && !pageButton.disabled) {
+        const currentPage = Number(results.dataset.page || 0);
+        results.dataset.page = String(Math.max(0,currentPage+(pageButton.dataset.adminPageAction==='next'?1:-1)));
+        loadPfmsAdminErrors();
+        return;
+      }
       const button = event.target.closest('[data-save-event-status]');
       if (!button) return;
       const card = button.closest('[data-event-id]');
