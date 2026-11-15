@@ -10,6 +10,6 @@
     "test": "npm run check:syntax && npm run build:ci && npm run test:dist",
     "build:ci": "node scripts/build-ci.mjs",
     "test:dist": "node tests/smoke.mjs && node tests/build-config-smoke.mjs && node tests/build-smoke.mjs && node tests/accessibility-smoke.mjs && node tests/migration-syntax-smoke.mjs && node tests/function-grants-smoke.mjs && npm run test:backup && node tests/storage-backup-doc-smoke.mjs",
-    "test:backup": "python3 tests/backup-hmac-smoke.py && python3 tests/storage-staging-preflight-smoke.py && python3 tests/storage-inventory-core-smoke.py && python3 tests/storage-supabase-adapter-smoke.py"
+    "test:backup": "python3 tests/backup-hmac-smoke.py && python3 tests/storage-staging-preflight-smoke.py && python3 tests/storage-inventory-core-smoke.py && python3 tests/storage-supabase-adapter-smoke.py && python3 tests/storage-archive-smoke.py"
   }
 }
