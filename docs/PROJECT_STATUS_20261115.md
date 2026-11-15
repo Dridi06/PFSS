@@ -22,7 +22,7 @@ The percentages for partially completed product workstreams are engineering esti
 
 - Repository: `Dridi06/PFSS`
 - Branch: `feature/pfss-complete-platform-build`
-- Current checkpoint commit: `1b81ea1639a87b4ef3f7cb75599f0754f857e4b6`
+- Current checkpoint commit: `6b94cc348c1992e744a75143d5904657ae697898`
 - PR #1 remains open and Draft; do not merge or deploy without explicit approval.
 - CI push run [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357): both jobs passed.
 - CI pull-request run [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779): both jobs passed.
@@ -50,3 +50,16 @@ The percentages for partially completed product workstreams are engineering esti
 ## Safety boundary
 
 No live Supabase migration was executed. No staging or production database was queried or modified. No Render deployment occurred. No legacy function was deleted and no grant was changed by this checkpoint. CI success is repository-level evidence only and must not be represented as live tenant isolation or production readiness.
+
+
+## Executive Arena authentication redesign – 15 November 2026
+
+- Canonical product name is **Professional Football Management System**. PFMS is the concise abbreviation and must not displace the full product name in the public-facing brand presentation.
+- Added the Executive Arena login composition: editorial brand panel, tactical pitch visual, clear authentication panel, restrained Deep Black / Anthracite / Champagne Gold palette, responsive layout and reduced-motion handling.
+- Reworked the public-facing product name across the site header/footer/welcome identity and page metadata; the abbreviation remains secondary.
+- Existing authentication form IDs, field names, passkey/password-reset controls, registration choices, invite flow and owner bootstrap remain intact. No auth logic or role-grant behavior was replaced.
+- Added pfms-auth-executive.css as a published static asset in the build allowlist and added branding/compatibility assertions to the smoke suite.
+- Kept the five registration paths and the existing tariff-preview disclaimer. Registration packages remain vertically stacked for easier scanning; mobile layout is single-column.
+- Verified GitHub Actions for code checkpoint 6b94cc348c1992e744a75143d5904657ae697898: push run https://github.com/Dridi06/PFSS/actions/runs/43733576413 and PR run https://github.com/Dridi06/PFSS/actions/runs/43733571078 both passed.
+- No Render deployment, Supabase auth configuration change, live staging/production database operation, or merge to main occurred. Browser-level visual QA on actual devices and a real auth round-trip remain outstanding.
+- Overall provisional project estimate remains 76%; the design implementation is a code milestone, not a substitute for the still-open staging/runtime and release gates.

@@ -100,3 +100,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Full project smoke suite verified 21 navigation targets, 62 SQL migrations, 141 SECURITY DEFINER definitions, 128 public RPC names, 83 frontend RPC calls, tenant-write boundaries, grants, backup/restore safeguards and authorization audit contracts. These are static/CI checks, not live database acceptance.
 - Added `docs/PROJECT_STATUS_20261115.md` with a transparent weighted estimate of 76%. It explicitly marks staging/runtime acceptance as 0% and records all release gates; the overall percentage is provisional and not a production-readiness claim.
 - Verified branch head at this checkpoint: `1b81ea1639a87b4ef3f7cb75599f0754f857e4b6`.
+
+
+## Executive Arena login and registration presentation – 15 November 2026
+
+- User-confirmed brand hierarchy: **Professional Football Management System** is the full product name; **PFMS** is only the abbreviation.
+- Implemented a two-column Executive Arena access screen: left brand/tactical visual panel, right existing login/registration card. On mobile, the layout becomes a compact brand header followed by the access form.
+- Kept the existing auth DOM contract and handlers, including login, signup, passkey, password recovery, invitation-based member registration, club, agency, solo scout and guarded platform-owner bootstrap.
+- Added a dedicated stylesheet with the existing Deep Black / Anthracite / Champagne Gold palette, accessible focus treatment, reduced-motion behavior and responsive breakpoints.
+- Added the stylesheet to the static build allowlist and expanded smoke tests to check the auth contract, canonical brand spelling and published asset resolution.
+- CI passed for code checkpoint 6b94cc348c1992e744a75143d5904657ae697898: runs 43733576413 and 43733571078.
+- Remaining work: browser/device visual QA, registration-step UX refinement, test a real staging auth round-trip, and review copy/contrast with the complete legal and privacy flows. No live authentication or database changes were made.
