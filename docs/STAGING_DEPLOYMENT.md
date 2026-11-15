@@ -361,3 +361,19 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Regression: Filter entfernen und prüfen, dass die Mitgliederdaten wieder korrekt erscheinen; ein verspäteter Seitenaufruf darf keine vorherigen Zähler überschreiben.
 - Das Read-only-Audit `admin_org_member_pagination_bounds` prüft nun zusätzlich die vier Status-/Gesamtzähler und die Verknüpfung der Zusammenfassung mit einer möglicherweise leeren Ergebnisseite.
 - Die CI prüft diese SQL-Vertragsbedingungen statisch. Der echte Laufzeittest bleibt Teil der isolierten Supabase-Staging-Abnahme.
+
+
+## Ergänzung – Organisationsstatus bei Verwaltungsrechten
+
+Die additive Migration `20261222_pfms_legacy_org_manager_active_org_gate.sql` härtet die gemeinsame Hilfsfunktion `public.can_manage_org(uuid)`. Ein aktiver Owner/eine aktive Organisationsleitung erhält Verwaltungsrechte nur, wenn auch die Organisation selbst den Status `approved` oder `active` besitzt.
+
+Nach dem Migration-Dry-Run und der Anwendung ausschließlich auf dem dedizierten Staging-Projekt prüfen:
+
+1. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `active`: Verwaltungszugriff wird gewährt.
+2. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `approved`: Verwaltungszugriff wird gewährt.
+3. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `suspended` oder sonstiger nicht freigegebener Status: Verwaltungszugriff wird verweigert.
+4. Ausstehende oder gesperrte Mitgliedschaft: Verwaltungszugriff wird verweigert.
+5. Normales Mitglied ohne Führungsrolle: Verwaltungszugriff wird verweigert.
+6. Plattformadministratoren prüfen ihre separaten Admin-RPCs weiterhin über `pfms_is_admin()` bzw. `is_admin()`; die Manager-Hilfsfunktion ist kein Ersatz für diese Prüfung.
+
+Der Read-only-Acceptance-Audit muss `legacy_org_manager_active_organization_gate` mit `passed = true` ausgeben. Dieser Quellcode-/Katalogcheck ersetzt nicht die Positiv- und Negativtests mit getrennten Staging-Konten.
