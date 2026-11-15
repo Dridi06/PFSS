@@ -1279,6 +1279,18 @@
           <article class="stat-card"><div class="stat-top">FREIGEGEBEN</div><strong id="adminApprovedUsers">–</strong></article>
           <article class="stat-card"><div class="stat-top">GESPERRT</div><strong id="adminSuspendedUsers">–</strong></article>
         </div>
+        <section class="panel admin-panel" aria-labelledby="adminPlatformOverviewHeading">
+          <div class="panel-heading">
+            <div><div class="eyebrow">PLATTFORMSTATUS</div><h3 id="adminPlatformOverviewHeading">Organisations- und Systemübersicht</h3></div>
+            <span class="module-status">Datenbank live</span>
+          </div>
+          <div class="stats-grid admin-stats">
+            <article class="stat-card"><div class="stat-top">ORGANISATIONEN</div><strong id="adminTotalOrganizations" aria-live="polite">–</strong></article>
+            <article class="stat-card"><div class="stat-top">AKTIVE MITGLIEDSCHAFTEN</div><strong id="adminActiveMemberships" aria-live="polite">–</strong></article>
+            <article class="stat-card"><div class="stat-top">OFFENE SYSTEMEREIGNISSE</div><strong id="adminOpenSystemEvents" aria-live="polite">–</strong></article>
+          </div>
+          <p class="admin-message" id="adminPlatformOverviewMessage" role="status" aria-live="polite">Plattformkennzahlen werden geladen …</p>
+        </section>
         <div class="panel admin-panel">
           <div class="panel-heading"><div><div class="eyebrow">BENUTZERKONTEN</div><h3>Benutzerverwaltung</h3></div></div>
           <form id="adminUserSearchForm" class="pfss-search-form">
