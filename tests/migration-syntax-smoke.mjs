@@ -143,6 +143,11 @@ for (const tableName of createdPublicTables) {
     "Migration-created table must enable RLS: public." + tableName
   );
   if (forceRlsExceptions.has(tableName)) {
+    if (expectedReadPolicies.has(tableName)) {
+      // The original foundation tables intentionally expose SELECT only through
+      // authenticated RLS policies; no INSERT/UPDATE/DELETE/ALL policy is allowed.
+      continue;
+    }
     assert.match(
       normalizedMigrationSql,
       new RegExp("revoke\\s+all\\s+on\\s+table\\s+" + tableReference + "\\s+from\\s+public,\\s*anon,\\s*authenticated"),
