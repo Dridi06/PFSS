@@ -135,3 +135,13 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - CI push and PR workflows both passed: `43734246649` and `43734251084`.
 - PR #1 remains open and Draft. No production deployment or database changes.
 - Overall project estimate held at 76%; release readiness remains blocked by staging catalog audit, migration reconciliation, two-tenant runtime tests, device/browser visual QA and full product acceptance.
+
+
+## Migration ledger preflight hardening – 15 November 2026
+
+- Added a read-only CLI/repository migration ledger comparison with strict prefix-order checking and fail-closed duplicate detection.
+- Added isolated automated regression cases and integrated them into `npm test`.
+- Current code checkpoint: `0471bd0bb908df40fde85612bec497a75b01bbce`.
+- Push CI [43735267214](https://github.com/Dridi06/PFSS/actions/runs/43735267214) and PR CI [43735271634](https://github.com/Dridi06/PFSS/actions/runs/43735271634) both passed completely.
+- Inventory review found 62 timestamped SQL files, 46 distinct date prefixes and 11 duplicate prefixes. This is a migration-ledger blocker requiring reconciliation against the dedicated staging project's actual ledger; no filenames were changed.
+- No staging/production database operation, Render deployment or merge was performed. Overall project estimate remains 76% provisional.
