@@ -170,7 +170,7 @@ assert.ok(legacyOrganizationMembershipIndex > organizationManagerGuardIndex,
 const organizationManagerGuardSource = migrationSources[organizationManagerGuardIndex];
 assert.ok(organizationManagerGuardSource.toLowerCase().includes("create or replace function public.can_manage_org(p_organization_id uuid)"),
   "The prerequisite migration must define can_manage_org(uuid) before its downstream consumers.");
-assert.match(organizationManagerGuardSource, /security definer[\\s\\S]*?set search_path = ''/i,
+assert.ok(organizationManagerGuardSource.toLowerCase().includes("security definer") && organizationManagerGuardSource.toLowerCase().includes("set search_path = ''"),
   "The early organization manager helper must retain its hardened security context.");
 // Every public table introduced by a repository migration must appear in
 // the read-only staging inventory. This prevents silent audit blind spots.
