@@ -7,11 +7,11 @@
   <meta name="description" content="Professional Football Management System – die Plattform für Fußballmanagement, Scouting und fundierte Entscheidungen.">
   <title>Professional Football Management System | Sicherer Zugang</title>
   <link rel="stylesheet" href="styles.css?v=pfms-staff-status-hsts-20261114-4">
-  <link rel="stylesheet" href="pfms-auth-executive.css?v=20261115-1">
+  <link rel="stylesheet" href="pfms-auth-executive.css?v=20261115-2">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script src="pfms-config.js" defer></script>
-  <script src="app.js?v=pfms-csv-export-20261114-1" defer></script>
+  <script src="app.js?v=pfms-auth-guided-registration-20261115-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -33,7 +33,7 @@
       </section>
       <section class="auth-card">
       <div class="auth-brand">
-        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="PFMS">
+        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="Professional Football Management System">
         <div class="auth-brand-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
       </div>
       <div class="auth-tagline">Die zentrale Plattform für Fußballmanagement, Scouting und Analyse.</div>
@@ -126,14 +126,14 @@
               <li>✓ Vergabe von Administratorrechten</li>
               <li>✓ Nur mit einmaligem Inhabercode aktivierbar</li>
             </ul>
-            <div class="member-invite-note">Dieser Zugang ist ausschließlich für die erstmalige PFMS-Inhaberschaft vorgesehen.</div>
+            <div class="member-invite-note">Dieser Zugang ist ausschließlich für die erstmalige Inhaberschaft des Professional Football Management System vorgesehen.</div>
             <button type="button" class="btn btn-secondary choice-select" data-registration-choice="owner_bootstrap">Inhaberzugang einrichten</button>
           </article>
 
           <article class="registration-choice-card pricing-card solo-scout-card">
             <div class="pricing-card-head"><span class="pricing-icon">⌕</span><span class="pricing-label">FÜR EINZELSCOUTS</span></div>
             <h3>Einzelscout</h3>
-            <p class="pricing-subtitle">Dein persönlicher Zugang zur globalen PFMS-Spielersuche.</p>
+            <p class="pricing-subtitle">Dein persönlicher Zugang zur globalen Spielersuche des Professional Football Management System.</p>
             <ul class="pricing-features">
               <li>✓ Globale Spielerdatenbank durchsuchen und lesen</li>
               <li>✓ Globale Datenbankabfragen</li>
@@ -202,7 +202,7 @@
           </label>
           <p class="registration-note">Deine Auswahl wird bei der Registrierung vorgemerkt. Die tatsächliche Rollenvergabe und die Freigabe der jeweiligen Bereiche erfolgen erst nach serverseitiger Prüfung.</p>
           <section id="orderSummary" class="order-summary" hidden aria-live="polite">
-            <div class="order-summary-top"><span class="pricing-label">DEINE BESTELLÜBERSICHT</span><span class="order-secure">✦ PFMS PREMIUM</span></div>
+            <div class="order-summary-top"><span class="pricing-label">DEINE BESTELLÜBERSICHT</span><span class="order-secure">✦ PREMIUM-ZUGANG</span></div>
             <h3 id="orderPlanName">Verein</h3>
             <div class="order-price-line"><strong id="orderPrice">99,99 €</strong><span id="orderPeriod">pro Monat</span></div>
             <div class="order-detail-row"><span>Ausgewählter Tarifentwurf</span><b id="orderPlanDetail">Verein · monatlich</b></div>
@@ -262,7 +262,7 @@
 
       </form>
 
-      <small class="auth-footnote">Geschützter Zugang · PFMS · © 2026 PFMS</small>
+      <small class="auth-footnote">Geschützter Zugang · Professional Football Management System · © 2026</small>
     </section>
     </div>
     <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 Professional Football Management System</span></footer>
@@ -299,7 +299,7 @@
         Abmelden
       </button>
     </section>
-    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 PFMS</span></footer>
+    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 Professional Football Management System</span></footer>
   </main>
 
   <section id="welcomeSequence" class="welcome-sequence hidden" aria-live="polite">
@@ -308,7 +308,7 @@
       <div class="welcome-line"></div>
       <div class="welcome-title">WILLKOMMEN</div>
       <div id="welcomeUser" class="welcome-user">Willkommen!</div>
-      <div class="welcome-subtitle">PFMS · FOOTBALL INTELLIGENCE</div>
+      <div class="welcome-subtitle">FOOTBALL INTELLIGENCE</div>
     </div>
   </section>
 
@@ -447,7 +447,7 @@
         <section class="first-login-intro" id="firstLoginIntro" hidden>
           <div class="eyebrow">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
           <h2>Herzlich Willkommen bei PFMS!</h2>
-          <p>Schön, dass du dabei bist. PFMS ist deine zentrale Plattform für die professionelle Organisation und Verwaltung des Fußballs – vom Spieler- und Kadermanagement über Scouting und Leistungsberichte bis hin zur Zusammenarbeit von Vereinen, Trainern, Scouts und Agenturen.</p>
+          <p>Schön, dass du dabei bist. Professional Football Management System ist deine zentrale Plattform für die professionelle Organisation und Verwaltung des Fußballs – vom Spieler- und Kadermanagement über Scouting und Leistungsberichte bis hin zur Zusammenarbeit von Vereinen, Trainern, Scouts und Agenturen.</p>
           <div class="first-login-features">
             <div><b>Spielermanagement</b><span>Spielerprofile, Stammdaten und Kader übersichtlich verwalten.</span></div>
             <div><b>Scouting & Analyse</b><span>Talente entdecken, beobachten, bewerten und Berichte erstellen.</span></div>

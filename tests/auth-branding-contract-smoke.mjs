@@ -7,6 +7,9 @@ const ids=["authScreen","authForm","authTitle","authIntro","chooseLogin","choose
 for(const id of ids)assert.match(html,new RegExp('id="'+id+'"'),"Missing auth contract id: "+id);
 for(const choice of ["user","club","agency","owner_bootstrap","scout"])assert.match(html,new RegExp('data-registration-choice="'+choice+'"'),"Missing registration choice: "+choice);
 assert.match(html,/Professional Football Management System/);
+assert.match(html,/alt="Professional Football Management System"/);
+assert.doesNotMatch(html,/Geschützter Zugang · PFMS/);
+assert.doesNotMatch(html,/PFMS PREMIUM/);
 assert.match(html,/class="auth-layout"/);assert.match(html,/class="auth-visual"/);
 assert.match(html,/id="registrationProgress"/);
 assert.match(html,/aria-labelledby="registrationChoiceTitle"/);
