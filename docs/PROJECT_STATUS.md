@@ -625,3 +625,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Zielüberschreibung wird verhindert; Passphrase wird ausschließlich aus einer Umgebungsvariable gelesen und nicht als Prozessargument übergeben.
 - `tests/storage-archive-crypto-smoke.py` prüft Round-trip, manipulierten Chiffretext, falsches HMAC und Zielkonflikte. Der Test ist in `npm run test:backup` eingebunden.
 - **Noch nicht umgesetzt:** Supabase-Dateidownload, R2-Upload/Download, R2-Retention, automatischer Workflow und echter Staging-Restore. Es wurden keine externen Dienste kontaktiert.
+
+
+### Team-Modulrechte: zentrale Regressionstests über alle neun Bereiche – 15.11.2026
+
+- Die Datenbank-RPCs der Bereiche Kader, Training, Anwesenheit, Finanzen, Veranstaltungen, Kalender, Spiele, Analyse und Aufgaben wurden systematisch gegen ihre jeweilige View-/Edit-Berechtigung geprüft.
+- Ein neuer CI-Test sichert die aktuellsten Definitionen der Lese- und Schreib-RPCs ab, verlangt FORCE RLS und eine modulbezogene SELECT-Policy für die geschützten Modultabellen und prüft, dass Anwesenheit zusätzlich zum Training separat berechtigt wird.
+- Die neunte Berechtigung `tasks` wird ausdrücklich gegen die Tabellen-Constraint, die vollständige Neun-Einträge-Payload und die zentrale aktuelle Organisationsmitgliedschaftsprüfung abgesichert. Die Regression verhindert, dass spätere Änderungen den zentralen Teamzugriff wieder umgehen.
+- Der Test ist in Syntax- und vollständige Projekt-Testläufe eingebunden. Dies ist ein statischer Quelltext-/Migrationsschutz; reale Rollen- und Mandantentests gegen Supabase-Staging bleiben verpflichtend.
+- Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration und keine Änderung an `main` oder Produktivdaten.
