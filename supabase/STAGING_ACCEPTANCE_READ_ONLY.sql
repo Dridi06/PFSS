@@ -921,6 +921,50 @@ with checks as (
     ), false),
     'Organisationsmanager dürfen keine Führungsrollen vergeben oder bestehende Inhaber-/Adminrollen ändern'
 
+
+  union all
+  select
+    'admin_directory_pagination_rpc_security',
+    coalesce((
+      select count(*) = 5
+        and pg_catalog.bool_and(
+          p.prosecdef
+          and coalesce(p.proconfig::text, '') like '%search_path=""%'
+          and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_is_admin()%'
+          and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+          and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        )
+      from pg_catalog.pg_proc p
+      where p.oid in (
+        pg_catalog.to_regprocedure('public.pfms_admin_search_legacy_organizations_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_scouts_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_members_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfss_admin_list_profiles_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfss_admin_profile_counts()')
+      )
+    ), false),
+    'Alle fünf neuen Admin-Paginierungs-/Zähler-RPCs müssen SECURITY DEFINER mit leerem search_path, pfms_is_admin-Prüfung und EXECUTE nur für authenticated besitzen'
+
+  union all
+  select
+    'admin_directory_pagination_bounds',
+    coalesce((
+      select count(*) = 4
+        and pg_catalog.bool_and(
+          pg_catalog.pg_get_functiondef(p.oid) ilike '%p_limit not between 1 and 100%'
+          and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_offset not between 0 and 1000000%'
+          and pg_catalog.pg_get_functiondef(p.oid) ilike '%count(*) over ()%'
+        )
+      from pg_catalog.pg_proc p
+      where p.oid in (
+        pg_catalog.to_regprocedure('public.pfms_admin_search_legacy_organizations_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_scouts_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfms_admin_list_legacy_members_page(text,text,text,text,integer,integer)'),
+        pg_catalog.to_regprocedure('public.pfss_admin_list_profiles_page(text,text,text,text,integer,integer)')
+      )
+    ), false),
+    'Jede Admin-Seitenabfrage muss 1–100 Zeilen und einen begrenzten Offset erzwingen sowie die Gesamtzahl liefern'
+
 )
 select check_name, passed, details
 from checks
