@@ -84,13 +84,13 @@ const removeStaff = latestFunctionBody("pfms_remove_legacy_team_staff");
 assertHas(removeStaff, /public\.pfms_can_manage_legacy_team\(v_team_id\)/, "Removing staff must require authority over the assignment's actual team.");
 
 const updateMembership = latestFunctionBody("pfms_update_legacy_org_membership_for_manager");
-assertHas(updateMembership, /if public\\.is_admin\\(\\) then raise exception/, "Platform administrators must use the dedicated last-active-owner-protected RPC.");
-assertHas(updateMembership, /not public\\.can_manage_org\\(v_organization_id\\)/, "Non-admin membership changes must be scoped to managers of the owning organization.");
-assertHas(updateMembership, /p_role is null or p_role not in \\('scout',\\s*'trainer',\\s*'co_trainer',\\s*'betreuer',\\s*'member'\\)/, "Organization managers must reject NULL and leadership role changes.");
+assertHas(updateMembership, /if public\.is_admin\(\) then raise exception/, "Platform administrators must use the dedicated last-active-owner-protected RPC.");
+assertHas(updateMembership, /not public\.can_manage_org\(v_organization_id\)/, "Non-admin membership changes must be scoped to managers of the owning organization.");
+assertHas(updateMembership, /p_role is null or p_role not in \('scout',\s*'trainer',\s*'co_trainer',\s*'betreuer',\s*'member'\)/, "Organization managers must reject NULL and leadership role changes.");
 assertHas(updateMembership, /p_status is null or p_status not in/, "Organization managers must reject NULL and unsupported membership statuses.");
-assertHas(updateMembership, /v_current_role in \\('owner','club_admin','agency_admin'\\)/, "Leadership memberships must remain protected from organization-manager changes.");
-assertHas(updateMembership, /v_user_id = auth\\.uid\\(\\) and p_status = 'suspended'/, "Self-suspension through the manager RPC must remain blocked.");
-assert.doesNotMatch(updateMembership, /not public\\.is_admin\\(\\) and v_current_role/, "The manager RPC must not retain a platform-admin bypass around the leadership invariant.");
+assertHas(updateMembership, /v_current_role in \('owner','club_admin','agency_admin'\)/, "Leadership memberships must remain protected from organization-manager changes.");
+assertHas(updateMembership, /v_user_id = auth\.uid\(\) and p_status = 'suspended'/, "Self-suspension through the manager RPC must remain blocked.");
+assert.doesNotMatch(updateMembership, /not public\.is_admin\(\) and v_current_role/, "The manager RPC must not retain a platform-admin bypass around the leadership invariant.");
 
 const teamManagementMigration = migrations[0].toLowerCase();
 assertHas(teamManagementMigration, /revoke all on table public\.pfms_legacy_team_staff from public, anon, authenticated/, "Browser roles must not write team staff directly.");
