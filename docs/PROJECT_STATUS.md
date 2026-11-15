@@ -981,3 +981,61 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 ## Startpunkt für den nächsten Chat
 Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platform-build`, ab Commit `c4a448a1dce9daa01f61e0733d7390fb808bca5f` (bzw. dem nachfolgenden Sicherungs-Commit dieser Datei). Zuerst den vollständigen Migrations-/RPC-/RLS-/Tenant-Isolationsaudit fortsetzen und die Ergebnisse als additive Tests/Dokumentation absichern. In größeren zusammenhängenden Arbeitspaketen selbstständig vorgehen, nur den Nutzer bei nicht reversiblen externen Aktionen um Freigabe bitten. Live bleibt unangetastet.
+
+
+---
+
+## Ergänzung 15.11.2026 – SQL-, RPC-, RLS- und Mandantenaudit
+
+**Fortsetzungspunkt:** Sicherungsstand des Nutzers `a9985277ab4f9ff435b044d362991563153f2414`; Arbeitsbranch `feature/pfss-complete-platform-build`.
+
+### Abgeschlossener Entwicklungsabschnitt
+
+- Der statische Audit umfasst jetzt **62 SQL-Migrationen** und **141 SECURITY DEFINER-Definitionen**.
+- Die effektive Berechtigungsprüfung umfasst **108 eindeutige SECURITY DEFINER-Funktionssignaturen**. PUBLIC und anon erhalten für diese Funktionen kein EXECUTE.
+- Der Funktionsinventar-Test prüft **128 deklarierte RPC-Signaturen** und **137 EXECUTE-Grants**; Änderungen über `ALTER FUNCTION ... SET search_path` werden bei der Ermittlung des effektiven Suchpfads berücksichtigt.
+- Die Frontend-/SQL-Vertragsprüfung gleicht **83 Frontend-RPC-Aufrufe** mit **128 SQL-RPC-Namen** ab.
+- Team- und Rollenregressionen prüfen **46 geschützte RPCs**, **12 FORCE-RLS-Modultabellen** und **9 Permission-Keys**.
+- Die Tenant-/Rollenprüfung deckt aktive Organisationsmitgliedschaft, Rollenabgleich, Trainerberechtigung, Staff-Zuordnung, Leitungsschutz und RPC-only-Schreibzugriffe ab.
+
+### Neue additive Sicherheitsmigrationen
+
+1. `20261224_pfms_legacy_core_search_path_hardening.sql`
+   - Setzt den effektiven `search_path` der sechs zentralen Legacy-Admin- und Organisationshelfer auf leer.
+   - Erhält die Funktionskörper und reassertiert die EXECUTE-Grenze für authenticated gegenüber PUBLIC/anon.
+
+2. `20261225_pfms_organization_table_write_acl_hardening.sql`
+   - `pfms_organizations`, `pfms_memberships` und `pfms_scout_profiles`: authenticated erhält nur SELECT unter RLS; anon erhält keinen Zugriff; service_role behält serverseitige Vollrechte.
+   - Die Abnahme prüft zusätzlich spaltenbezogene Privilegien.
+
+3. `20261226_pfss_legacy_admin_profile_list_search_path.sql`
+   - Härtet die verbliebene Legacy-Profillisten-RPC ohne Änderung ihres Funktionskörpers.
+
+4. `20261227_pfms_legacy_team_access_null_guard.sql`
+   - Die zentralen Team-Zugriffs- und Verwaltungshelfer lehnen NULL-Team-IDs ab.
+   - Auch Plattformadministratoren erhalten über diese Helfer nur Zugriff auf tatsächlich existierende Team-IDs.
+
+### Audit- und Abnahmeinstrumente
+
+- `supabase/STAGING_READ_ONLY_AUDIT.sql` inventarisiert öffentliche und Storage-Relationen, `auth.users`, Views, Trigger, alle öffentlichen Funktionen, Tabellen- und Spalten-ACLs, Sequenzrechte, Schema-Grants und Default-Privileges.
+- `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` enthält jetzt **62 gezielte Abnahmeprüfungen**, darunter Auth-Trigger-ACLs, SECURITY DEFINER-Suchpfade, Legacy-Team-Guards und Schreibrechte der Organisationskerntabellen.
+- Die vier relevanten Auth-Registrierungstrigger werden auf SECURITY DEFINER, leeren Suchpfad und fehlende direkte Browser-EXECUTE-Rechte geprüft.
+- Regressionstests wurden um die effektive Suchpfad-Auswertung, Spalten-ACLs und die Existenzprüfung für Team-IDs ergänzt.
+
+### CI-Ergebnis
+
+<badge color="success">CI vollständig erfolgreich</badge>
+
+- Workflow: `43723649878`
+- **Syntax and project smoke tests:** erfolgreich
+- **Type-check Supabase Edge Functions:** erfolgreich
+- Backup-, Storage-, RLS-, RPC-, ACL-, Teamrollen- und Tenant-Isolationstests erfolgreich.
+
+### Grenzen und nächster Arbeitsschritt
+
+- Es wurde **keine** Migration auf Staging oder Produktion ausgeführt.
+- Es erfolgte **kein** Deployment, Merge oder Eingriff in Live-/Produktivdaten.
+- Die historischen Migrationen wurden nicht umgeschrieben; die Härtung erfolgt additiv, damit ein bereits vorhandenes Migration-Ledger nicht durch geänderte Altdateien inkonsistent wird.
+- Implementierungsstand bleibt vorerst bei ca. **78 %**, Release-Reife bei ca. **55 %**. Die CI-Abdeckung ersetzt keine reale Staging-Abnahme.
+
+**Nächste offene Aufgabe:** Das Read-only-Audit und die 62 Acceptance-Prüfungen in der isolierten Staging-Umgebung ausführen, den Remote-Migrationsstand mit den 62 Repository-Migrationen vergleichen und Abweichungen dokumentieren. Erst danach die negativen RLS-/Tenant-Tests und die Browser-/Edge-Ende-zu-Ende-Prüfung vorbereiten. Jede Datenbankmigration und jedes Deployment bleiben bis zur ausdrücklichen Freigabe des Nutzers gesperrt.
