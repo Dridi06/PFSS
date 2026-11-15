@@ -2413,22 +2413,33 @@ async function saveAdminUser(button) {
 }
 
 
+function pfmsAdminPaginationMarkup(page, totalCount, pageSize = 25) {
+  const totalPages = Math.max(1, Math.ceil(Number(totalCount || 0) / pageSize));
+  if (totalPages <= 1) return '';
+  const currentPage = Math.min(Math.max(0, Number(page) || 0), totalPages - 1);
+  return `<nav class="pfms-admin-pagination" aria-label="Ergebnisseiten">
+    <button type="button" class="btn btn-secondary" data-admin-page-action="previous" ${currentPage === 0 ? 'disabled' : ''}>Zurück</button>
+    <span>Seite ${currentPage + 1} von ${totalPages} · ${Number(totalCount).toLocaleString('de-DE')} Einträge</span>
+    <button type="button" class="btn btn-secondary" data-admin-page-action="next" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Weiter</button>
+  </nav>`;
+}
+
 function pfmsAdminToolsMarkup(type) {
   const title=type==='club'?'Vereine':type==='agency'?'Agenturen':'Scouts';
   const fields=type==='scout'
     ? `<label class="field">Scout-Name<input type="search" data-pfms-name placeholder="Vor- oder Nachname"></label>
        <label class="field">E-Mail<input type="search" data-pfms-email placeholder="E-Mail-Adresse"></label>
        <label class="field">User-ID<input type="text" data-pfms-id placeholder="Scout-ID"></label>
-       <label class="field">Status<select data-pfms-status><option value="">Alle Status</option><option value="active">Aktiv</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`
+       <label class="field">Profilstatus<select data-pfms-status><option value="">Alle Status</option><option value="approved">Freigegeben</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`
     : `<label class="field">${type==='club'?'Vereinsname':'Agenturname'}<input type="search" data-pfms-name placeholder="Name eingeben"></label>
        <label class="field">Organisations-ID<input type="text" data-pfms-id placeholder="Organisations-ID"></label>
-       <label class="field">Status<select data-pfms-status><option value="">Alle Status</option><option value="active">Aktiv</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`;
+       <label class="field">Status<select data-pfms-status><option value="">Alle Status</option><option value="active">Aktiv</option><option value="approved">Freigegeben</option><option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option></select></label>`;
   return `<div class="panel">
     <div class="panel-heading"><div><div class="eyebrow">LIVE-DATENBANKVERWALTUNG</div><h3>${title} suchen</h3></div><span class="module-status">Verwaltung</span></div>
     <form class="pfss-search-form" data-pfms-search-form><div class="pfss-search-fields">${fields}</div>
       <div class="pfss-search-actions"><button class="btn btn-primary" type="submit">Suchen</button><button class="btn btn-secondary" type="reset">Zurücksetzen</button></div>
     </form>
-    <p class="admin-message" data-pfms-message>Suchkriterien eingeben und Suche starten.</p><div data-pfms-results class="admin-org-results"></div>
+    <p class="admin-message" data-pfms-message>Suchkriterien eingeben und Suche starten.</p><div data-pfms-results class="admin-org-results"></div><div data-pfms-pagination></div>
   </div>
   <div class="panel" data-pfms-detail hidden><div class="panel-heading"><div><div class="eyebrow">DETAILS</div><h3 data-pfms-detail-title>Auswahl</h3></div></div><div data-pfms-detail-body></div></div>`;
 }
@@ -2446,8 +2457,15 @@ function setupPfmsAdminManagement() {
     root.innerHTML=pfmsAdminToolsMarkup(type);
     root.dataset.pfmsReady='true';
     const form=root.querySelector('[data-pfms-search-form]');
-    form.addEventListener('submit',event=>{event.preventDefault();loadPfmsAdminDirectory(type,root);});
-    form.addEventListener('reset',()=>window.setTimeout(()=>loadPfmsAdminDirectory(type,root),0));
+    form.addEventListener('submit',event=>{event.preventDefault();root.dataset.pfmsPage='0';loadPfmsAdminDirectory(type,root);});
+    form.addEventListener('reset',()=>window.setTimeout(()=>{root.dataset.pfmsPage='0';loadPfmsAdminDirectory(type,root);},0));
+    root.addEventListener('click',event=>{
+      const pageButton=event.target.closest('[data-admin-page-action]');
+      if(!pageButton || pageButton.disabled) return;
+      const currentPage=Number(root.dataset.pfmsPage || 0);
+      root.dataset.pfmsPage=String(Math.max(0,currentPage+(pageButton.dataset.adminPageAction==='next'?1:-1)));
+      loadPfmsAdminDirectory(type,root);
+    });
     loadPfmsAdminDirectory(type,root);
   });
 }
@@ -2457,6 +2475,9 @@ async function loadPfmsAdminDirectory(type,root) {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const requestId = Number(root.dataset.pfmsRequestId || 0) + 1;
+  const pageSize = 25;
+  const page = Math.max(0, Number(root.dataset.pfmsPage || 0));
+  const offset = page * pageSize;
   root.dataset.pfmsRequestId = String(requestId);
   root.dataset.pfmsDetailRequestId = String(Number(root.dataset.pfmsDetailRequestId || 0) + 1);
   const previousDetail = root.querySelector('[data-pfms-detail]');
@@ -2464,35 +2485,40 @@ async function loadPfmsAdminDirectory(type,root) {
   const isCurrentRequest = () =>
     isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
     root.dataset.pfmsRequestId === String(requestId);
-  const message=root.querySelector('[data-pfms-message]'), results=root.querySelector('[data-pfms-results]');
-  message.textContent='Daten werden geladen …'; results.innerHTML='';
+  const message=root.querySelector('[data-pfms-message]');
+  const results=root.querySelector('[data-pfms-results]');
+  const pagination=root.querySelector('[data-pfms-pagination]');
+  message.textContent='Daten werden geladen …';
+  results.innerHTML='';
+  if (pagination) pagination.innerHTML='';
   try {
-    const rpc=type==='scout'?'pfms_admin_list_legacy_scouts':'pfms_admin_search_legacy_organizations';
-    const args=type==='scout'?{p_query:''}:{p_type:type,p_query:''};
+    const nameQuery=root.querySelector('[data-pfms-name]')?.value.trim() || '';
+    const emailQuery=root.querySelector('[data-pfms-email]')?.value.trim() || '';
+    const idQuery=root.querySelector('[data-pfms-id]')?.value.trim() || '';
+    const statusQuery=root.querySelector('[data-pfms-status]')?.value || null;
+    const rpc=type==='scout'?'pfms_admin_list_legacy_scouts_page':'pfms_admin_search_legacy_organizations_page';
+    const args=type==='scout'
+      ? {p_query:nameQuery,p_email:emailQuery,p_user_id:idQuery,p_status:statusQuery,p_limit:pageSize,p_offset:offset}
+      : {p_type:type,p_query:nameQuery || idQuery,p_status:statusQuery,p_limit:pageSize,p_offset:offset};
     const {data,error}=await pfssSupabase.rpc(rpc,args);
     if (!isCurrentRequest()) return;
     if(error)throw error;
-    const nameQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-name]')?.value);
-    const emailQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-email]')?.value);
-    const idQuery=pfssNormalizeSearch(root.querySelector('[data-pfms-id]')?.value);
-    const statusQuery=root.querySelector('[data-pfms-status]')?.value||'';
-    const filtered=(data||[]).filter(item=>{
-      const name=type==='scout'?(item.full_name||item.username||''):(item.name||'');
-      const email=type==='scout'?(item.email||''):'';
-      const id=type==='scout'?(item.user_id||''):(item.id||'');
-      const status=item.profile_status||item.status||'';
-      return (!nameQuery||pfssNormalizeSearch(name).includes(nameQuery)) &&
-        (!emailQuery||pfssNormalizeSearch(email).includes(emailQuery)) &&
-        (!idQuery||pfssNormalizeSearch(id).includes(idQuery)) &&
-        (!statusQuery||status===statusQuery);
-    }).sort((a,b)=>{
-      const left=type==='scout'?(a.full_name||a.username||a.email||''):(a.name||'');
-      const right=type==='scout'?(b.full_name||b.username||b.email||''):(b.name||'');
-      return String(left).localeCompare(String(right),'de',{sensitivity:'base'});
-    });
-    if(!filtered.length){message.textContent='Keine Einträge gefunden.';return;}
-    message.textContent=filtered.length+' Einträge gefunden.';
-    results.innerHTML=filtered.map((item,index)=>{
+    const entries=data||[];
+    const totalCount=Number(entries[0]?.total_count || 0);
+    if (!entries.length && page > 0) {
+      root.dataset.pfmsPage='0';
+      return loadPfmsAdminDirectory(type,root);
+    }
+    root.dataset.pfmsTotalCount=String(totalCount);
+    const totalPages=Math.max(1,Math.ceil(totalCount/pageSize));
+    message.textContent=totalCount
+      ? totalCount+' Einträge gefunden · Seite '+(page+1)+' von '+totalPages+'.'
+      : 'Keine Einträge gefunden.';
+    if(!entries.length){
+      results.innerHTML='<div class="empty-state">Keine passenden Einträge gefunden.</div>';
+      return;
+    }
+    results.innerHTML=entries.map((item,index)=>{
       const id=type==='scout'?item.user_id:item.id;
       const name=type==='scout'?(item.full_name||item.username||item.email||'Scout'):(item.name||'Organisation');
       const meta=type==='scout'?(item.email||item.username||'Einzelscout'):item.organization_type;
@@ -2501,8 +2527,9 @@ async function loadPfmsAdminDirectory(type,root) {
         <span class="tag">${escapeHtml(item.profile_status||item.status||'')}</span>
       </button>`;
     }).join('');
+    if (pagination) pagination.innerHTML=pfmsAdminPaginationMarkup(page,totalCount,pageSize);
     results.querySelectorAll('[data-entry-index]').forEach(button=>button.addEventListener('click',()=>{
-      const item=filtered[Number(button.dataset.entryIndex)];
+      const item=entries[Number(button.dataset.entryIndex)];
       if(type==='scout')showPfmsScoutDetails(root,item); else showPfmsOrganizationDetails(root,item);
     }));
   } catch(error) {
@@ -7768,18 +7795,28 @@ async function loadPfmsAdminMembers() {
   results.innerHTML = '';
 
   try {
-    const { data, error } = await pfssSupabase.rpc('pfms_admin_list_legacy_members', {
+    const pageSize = 25;
+    const page = Math.max(0, Number(results.dataset.page || 0));
+    const { data, error } = await pfssSupabase.rpc('pfms_admin_list_legacy_members_page', {
       p_query: query,
       p_status: status,
       p_role: role,
-      p_organization_type: organizationType
+      p_organization_type: organizationType,
+      p_limit: pageSize,
+      p_offset: page * pageSize
     });
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminMembersRequestId) return;
     if (error) throw error;
 
     const members = data || [];
-    message.textContent = members.length
-      ? members.length + ' Mitgliedschaft(en) gefunden.'
+    const totalCount = Number(members[0]?.total_count || 0);
+    if (!members.length && page > 0) {
+      results.dataset.page = '0';
+      return loadPfmsAdminMembers();
+    }
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    message.textContent = totalCount
+      ? totalCount + ' Mitgliedschaft(en) gefunden · Seite ' + (page + 1) + ' von ' + totalPages + '.'
       : 'Keine passenden Mitgliedschaften gefunden.';
 
     if (!members.length) {
@@ -7817,7 +7854,7 @@ async function loadPfmsAdminMembers() {
         '<button type="button" class="btn btn-secondary" data-save-global-membership>Änderungen speichern</button>' +
         '<p class="admin-message" data-global-member-message role="status" aria-live="polite"></p>' +
       '</article>';
-    }).join('');
+    }).join('') + pfmsAdminPaginationMarkup(page,totalCount,pageSize);
   } catch (error) {
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminMembersRequestId) return;
     console.error('PFMS admin member directory:', error);
@@ -7977,14 +8014,25 @@ function setupPfmsAdminMembers() {
   if (!form.dataset.pfmsBound) {
     form.addEventListener('submit', (event) => {
       event.preventDefault();
+      results.dataset.page = '0';
       loadPfmsAdminMembers();
     });
-    form.addEventListener('reset', () => window.setTimeout(loadPfmsAdminMembers, 0));
+    form.addEventListener('reset', () => window.setTimeout(() => {
+      results.dataset.page = '0';
+      loadPfmsAdminMembers();
+    }, 0));
     form.dataset.pfmsBound = 'true';
   }
 
   if (!results.dataset.pfmsBound) {
     results.addEventListener('click', async (event) => {
+      const pageButton = event.target.closest('[data-admin-page-action]');
+      if (pageButton && !pageButton.disabled) {
+        const currentPage = Number(results.dataset.page || 0);
+        results.dataset.page = String(Math.max(0,currentPage+(pageButton.dataset.adminPageAction==='next'?1:-1)));
+        loadPfmsAdminMembers();
+        return;
+      }
       const button = event.target.closest('[data-save-global-membership]');
       if (!button) return;
       const card = button.closest('[data-membership-id]');
