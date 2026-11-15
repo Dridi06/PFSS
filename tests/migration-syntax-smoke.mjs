@@ -186,9 +186,8 @@ assert.match(
   /left join page on true/,
   "Organization summary counters must remain available even when a requested page has no rows."
 );
-assert.match(
-  organizationMembersPageDefinition,
-  /from stats[\\s\\S]*?left join page on true/,
+assert.ok(
+  organizationMembersPageDefinition.includes("from stats left join page on true"),
   "The page result must be anchored on the unfiltered organization summary."
 );
 assert.match(organizationMembersPageDefinition, /count\(\*\) as total_count/,
