@@ -829,3 +829,14 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Die SQL-Smoke-Tests prüfen weiterhin 56 Migrationen und 137 SECURITY-DEFINER-Definitionen; zusätzlich sind die Inhaber-/Plattforminhaber-Schutzverträge jetzt explizit Teil der Regression.
 - Das Read-only-Staging-Audit prüft die beiden neuen Integritätsbedingungen bei der späteren Datenbankabnahme. Es wurde in dieser Runde nicht gegen eine reale Supabase-Datenbank ausgeführt.
 - Kein Merge, keine Render-Veröffentlichung, keine Migration und keine Änderung an `main` oder Produktionsdaten.
+
+
+---
+
+# Ergänzung 15.11.2026 – Organisationsmitglieder-Pagination: Leerseiten und Zähler
+
+- Die Regression prüft jetzt ausdrücklich, dass die organisationsweiten Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler auch bei einer leeren Filter-/Suchseite oder einem Offset hinter dem letzten Datensatz erhalten bleiben.
+- Die RPC ist dafür auf eine unfiltrierte Statuszusammenfassung verankert und verbindet die paginierte Ergebnismenge per `LEFT JOIN`; die gefilterte Trefferzahl bleibt separat.
+- Das read-only Staging-Audit prüft zusätzlich die vier Zähler und die leere-Seite-Verknüpfung.
+- CI vollständig erfolgreich für Commit `94330fa05449ecef97374254e89621b4f87adc20`: [Run 43717209391](https://github.com/Dridi06/PFSS/actions/runs/43717209391). Beide Jobs bestanden (Node-/Build-/Smoke-/Migrations-/Backup-Prüfungen und Deno-Typcheck).
+- Reale Staging-Laufzeittests sind weiterhin offen; keine Migration angewendet, kein Render-Deployment, kein Merge und keine Produktionsänderung.
