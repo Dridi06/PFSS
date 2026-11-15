@@ -33,30 +33,44 @@ policy_rows AS (
   FROM target_relations r
   JOIN pg_catalog.pg_policy p ON p.polrelid = r.oid
 ),
+commands AS (
+  SELECT command_code, command_name
+  FROM (VALUES
+    ('r'::"char", 'SELECT'::text),
+    ('a'::"char", 'INSERT'::text),
+    ('w'::"char", 'UPDATE'::text),
+    ('d'::"char", 'DELETE'::text)
+  ) AS command_map(command_code, command_name)
+),
 policy_summary AS (
   SELECT
     'RLS_EFFECTIVE_SUMMARY'::text AS section,
-    r.schema_name || '.' || r.relation_name AS object_name,
+    r.schema_name || '.' || r.relation_name || '.' || cmd.command_name AS object_name,
     jsonb_build_object(
+      'command', cmd.command_name,
       'owner', pg_catalog.pg_get_userbyid(r.relowner),
       'rls_enabled', r.relrowsecurity,
       'rls_forced', r.relforcerowsecurity,
       'policy_count', count(p.oid),
       'permissive_policy_count', count(p.oid) FILTER (WHERE p.polpermissive),
       'restrictive_policy_count', count(p.oid) FILTER (WHERE NOT p.polpermissive),
-      'policy_combination', 'PERMISSIVE policies OR together; RESTRICTIVE policies AND together; at least one permissive policy must grant access',
+      'policy_combination', 'Applicable permissive policies OR together; applicable restrictive policies AND together; at least one applicable permissive policy must grant access',
       'no_policy_effect', CASE
         WHEN r.relrowsecurity AND count(p.oid) = 0
           THEN 'RLS denies all rows to roles subject to RLS'
         WHEN NOT r.relrowsecurity
           THEN 'RLS is disabled; table grants are not row-filtered'
-        ELSE 'Review command-specific policy rows and role applicability'
+        ELSE 'Review role applicability and individual USING/WITH CHECK expressions'
       END
     ) AS details
   FROM target_relations r
-  LEFT JOIN pg_catalog.pg_policy p ON p.polrelid = r.oid
+  CROSS JOIN commands cmd
+  LEFT JOIN pg_catalog.pg_policy p
+    ON p.polrelid = r.oid
+   AND p.polcmd IN ('*'::"char", cmd.command_code)
   GROUP BY r.oid, r.schema_name, r.relation_name, r.relowner,
-           r.relrowsecurity, r.relforcerowsecurity
+           r.relrowsecurity, r.relforcerowsecurity,
+           cmd.command_code, cmd.command_name
 ),
 trigger_rows AS (
   SELECT
