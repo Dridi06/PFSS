@@ -100,12 +100,28 @@ Der Kern:
 
 Die Regressionstests `tests/storage-inventory-core-smoke.py` verwenden ausschließlich lokale Testdaten. Sie prüfen verschachtelte Ordner, mehrseitige Ergebnisse, Sortierung, ungültige Pfade, Duplikate und fehlerhafte Größenangaben.
 
-**Wichtige Grenze:** Es gibt weiterhin keinen HTTP-Adapter und keinen Aufruf der Supabase-Storage-API. Die Pagination ist mit simulierten Antworten getestet, nicht gegen ein reales Projekt. Ein Benutzer-JWT mit passenden Leserechten wäre einer pauschalen Service-Role-Nutzung vorzuziehen; der tatsächliche Berechtigungsumfang muss vor einem echten Inventarlauf geklärt werden.
+### Injizierter Supabase-Adapter (offline getestet)
+
+`scripts/storage_supabase_adapter.py` ergänzt den Traversierungskern um einen Adapter für den Supabase-Storage-Listing-Endpunkt. Er baut den POST-Aufruf mit `prefix`, `limit`, `offset` und stabiler Namenssortierung auf. Der HTTP-Transport wird zwingend von außen injiziert; das Modul importiert keinen HTTP-Client und baut selbst keine Verbindung auf.
+
+Sicherheitsprüfungen vor Erzeugung des Adapters:
+
+- Projekt-URL muss exakt zum angegebenen 20-stelligen Projekt-Ref passen und HTTPS verwenden.
+- Es wird ausschließlich der bekannte private Bucket `pfss-scout-private` akzeptiert.
+- Ein Publishable-/Anon-Key sowie ein JWT mit `authenticated`-Rolle sind erforderlich; erkannte `service_role`-Tokens werden abgewiesen.
+- Der Adapter führt keine Token-Ausgabe und kein Logging von Headern aus. Transportfehler werden ohne möglicherweise vertrauliche Request-Details weitergegeben.
+- Ungültige Präfixe, Limits und Offsets werden vor dem Transportaufruf abgewiesen.
+
+Die Prüfung des JWT-Rollenfelds ist nur eine zusätzliche Schutzschicht und ersetzt keine Signaturprüfung. Supabase muss das Token weiterhin serverseitig verifizieren. Der Benutzer benötigt passende Storage-Leserechte; das Inventar ist dann auf den sichtbaren Berechtigungsumfang beschränkt.
+
+`tests/storage-supabase-adapter-smoke.py` verwendet einen Fake-Transport und prüft Request-Form, Host-/Bucket-Grenzen, Token-Rollen-Guard und ungültige Parameter. Es wird kein Netzwerkzugriff ausgeführt.
+
+**Wichtige Grenze:** Der Adapter ist vorbereitet und offline getestet, aber noch nicht gegen ein reales Supabase-Projekt ausgeführt. Es wurden weder Zugangsdaten verwendet noch Objekte aufgelistet.
 
 ## 7. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
-- Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen.
+- Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen; der Adapter wurde ausschließlich mit einem Fake-Transport getestet.
 - Kein Storage-Objekt wurde heruntergeladen, verschlüsselt oder nach R2 übertragen.
 - Kein Storage-Restore oder Eigentümer-/Fremdzugriffstest wurde ausgeführt.
 - Die tatsächliche Größe, Objektzahl, R2-Aufbewahrung und Wiederherstellungsdauer sind unbekannt.
