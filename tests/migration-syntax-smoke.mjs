@@ -33,6 +33,23 @@ assert.doesNotMatch(
   /FROM\s+storage\.buckets\s+WHERE\s+id\s+IN/i,
   "Staging audit must inventory all buckets, not only a hard-coded bucket."
 );
+for (const section of ["RELATIONS", "SEQUENCE_GRANTS", "SCHEMA_GRANTS", "DEFAULT_PRIVILEGES"]) {
+  assert.ok(
+    stagingAuditSql.includes("'" + section + "'"),
+    "Read-only staging audit must include " + section + " inventory."
+  );
+}
+assert.match(stagingAuditSql, /pg_get_viewdef/i,
+  "Read-only audit must expose view definitions for security review.");
+assert.match(stagingAuditSql, /security_invoker_view/,
+  "Read-only audit must identify security-invoker view options.");
+assert.match(stagingAuditSql, /acldefault\('S'/i,
+  "Read-only audit must inspect sequence ACL defaults.");
+assert.match(stagingAuditSql, /acldefault\('n'/i,
+  "Read-only audit must inspect schema ACL defaults.");
+assert.match(stagingAuditSql, /FROM\s+pg_default_acl/i,
+  "Read-only audit must inspect configured default privileges.");
+
 assert.match(
   stagingAuditSql,
   /to_regclass\('supabase_migrations\.schema_migrations'\)\s+IS\s+NOT\s+NULL/i,
