@@ -108,6 +108,7 @@ const sources = await Promise.all(files.map((file) => readFile(resolve(directory
 const sql = sources.join("\n");
 const definitions = new Set();
 const securityDefinerSignatures = new Set();
+const securityDefinerHeaders = new Map();
 
 for (const match of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)\s*\(/gi)) {
   const open = match.index + match[0].lastIndexOf("(");
@@ -124,7 +125,10 @@ for (const match of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public
   const bodyStart = tail.search(/\bas\s+(?:\$\$|\$[a-z_][a-z0-9_]*\$)/i);
   assert.notEqual(bodyStart, -1, "Function body delimiter not found for " + signature);
   const header = sql.slice(match.index, close + 1) + tail.slice(0, bodyStart);
-  if (/security\s+definer/i.test(header)) securityDefinerSignatures.add(signature);
+  if (/security\s+definer/i.test(header)) {
+    securityDefinerSignatures.add(signature);
+    securityDefinerHeaders.set(signature, header);
+  }
 }
 
 const grants = [];
@@ -149,6 +153,12 @@ for (const match of sql.matchAll(/revoke\s+(?:all|execute)\s+on\s+function\s+pub
 }
 
 for (const signature of securityDefinerSignatures) {
+  const header = securityDefinerHeaders.get(signature) || "";
+  assert.match(
+    header,
+    /set\s+search_path\s*=\s*''/i,
+    "SECURITY DEFINER function must use an empty search_path: " + signature
+  );
   assert.ok(
     revokes.has(signature),
     "SECURITY DEFINER function has no signature-matched EXECUTE revoke: " + signature
