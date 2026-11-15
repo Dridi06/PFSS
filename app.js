@@ -22,6 +22,7 @@ let pfmsMainMediaRequestId = 0;
 let pfmsAuthGeneration = 0;
 let pfmsAccessCheckGeneration = 0;
 let pfmsAdminUsersRequestId = 0;
+let pfmsAdminOverviewRequestId = 0;
 let pfmsAdminMembersRequestId = 0;
 let pfmsAdminErrorsRequestId = 0;
 
@@ -844,6 +845,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'support' && window.pfssCurrentUserId) void loadPfmsSupportTickets();
   if (view === 'admin-inbox' && window.pfssIsRealAdmin) void loadPfmsAdminSupportTickets();
   if (view === 'admin') loadAdminUsers();
+  if (view === 'admin' && window.pfssIsRealAdmin) void loadPfmsAdminOverview();
   if (view === 'admin-members') loadPfmsAdminMembers();
   if (view === 'admin-errors') loadPfmsAdminErrors();
 }
@@ -2384,6 +2386,54 @@ async function showAuthenticatedApp(user, profile) {
   } else {
     // Ein normaler Seiten-Reload stellt die App sofort wieder her.
     finishAuthentication();
+  }
+}
+
+async function loadPfmsAdminOverview() {
+  if (!window.pfssIsRealAdmin || !window.pfssCurrentUserId) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsAdminOverviewRequestId;
+  const message = document.getElementById('adminPlatformOverviewMessage');
+  const targets = {
+    organizations: document.getElementById('adminTotalOrganizations'),
+    memberships: document.getElementById('adminActiveMemberships'),
+    events: document.getElementById('adminOpenSystemEvents')
+  };
+  if (!message || Object.values(targets).some(target => !target)) return;
+  const isCurrentRequest = () =>
+    isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
+    requestId === pfmsAdminOverviewRequestId;
+  message.textContent = 'Plattformkennzahlen werden geladen …';
+  Object.values(targets).forEach(target => { target.textContent = '–'; });
+
+  try {
+    const [organizations, memberships, events] = await Promise.all([
+      pfssSupabase.rpc('pfms_admin_search_legacy_organizations_page', {
+        p_type: null, p_query: '', p_id: '', p_status: null, p_limit: 1, p_offset: 0
+      }),
+      pfssSupabase.rpc('pfms_admin_list_legacy_members_page', {
+        p_query: '', p_status: 'active', p_role: null, p_organization_type: null,
+        p_limit: 1, p_offset: 0
+      }),
+      pfssSupabase.rpc('pfms_admin_list_system_events_page', {
+        p_query: '', p_severity: null, p_status: 'open', p_limit: 1, p_offset: 0
+      })
+    ]);
+    if (!isCurrentRequest()) return;
+    const failure = [organizations, memberships, events].find(result => result.error);
+    if (failure?.error) throw failure.error;
+    const count = result => Number(result.data?.[0]?.total_count || 0).toLocaleString('de-DE');
+    targets.organizations.textContent = count(organizations);
+    targets.memberships.textContent = count(memberships);
+    targets.events.textContent = count(events);
+    message.textContent = 'Kennzahlen aus den geschützten Administratorabfragen. Stand: ' +
+      new Date().toLocaleString('de-DE') + '.';
+  } catch (error) {
+    if (!isCurrentRequest()) return;
+    console.error('PFMS administrator overview could not be loaded:', error);
+    message.textContent = 'Die Plattformkennzahlen konnten nicht geladen werden. Prüfe die freigegebenen Admin-RPCs in der Staging-Datenbank.';
+    Object.values(targets).forEach(target => { target.textContent = '–'; });
   }
 }
 
@@ -8211,6 +8261,7 @@ async function checkPfssAccess(user, options = {}) {
 
 function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
+  pfmsAdminOverviewRequestId += 1;
   pfmsNotifications = [];
   renderPfmsNotifications();
   pfmsStaffDirectoryRequestId += 1;
