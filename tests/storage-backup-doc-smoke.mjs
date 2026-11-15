@@ -23,7 +23,7 @@ assert.match(plan, /<user-id>\/main\//);
 assert.match(plan, /<user-id>\/<dateiname>/);
 
 // Storage security is read-only and integrity-oriented; destructive sync is forbidden.
-for (const phrase of ["read-only", "SHA-256", "isoliertes Testprojekt", "keine Quellobjekte löschen", "keine öffentlichen URLs"]) {
+for (const phrase of ["read-only", "SHA-256", "isoliertes Supabase-Testprojekt", "keine Quellobjekte löschen", "keine öffentlichen URLs"]) {
   assert.ok(plan.toLowerCase().includes(phrase.toLowerCase()), "Storage backup plan is missing: " + phrase);
 }
 assert.match(plan, /niemals Quellobjekte bereinigen/i);
