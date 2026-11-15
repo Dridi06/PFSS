@@ -418,6 +418,8 @@ assert.match(legacyProfileListHardening, /revoke all on function public\.pfss_ad
 assert.match(legacyProfileListHardening, /grant execute on function public\.pfss_admin_list_profiles\(\)\s+to authenticated/i);
 assert.match(stagingAcceptanceSql, /'admin_legacy_profile_list_rpc_security'/,
   "The read-only staging acceptance audit must verify the legacy profile-list RPC ACL and search_path.");
+assert.match(stagingAcceptanceSql, /'legacy_core_security_definer_search_path'/,
+  "The read-only staging acceptance audit must verify legacy core authorization helper ACLs and search_path.");
 
 const legacyCoreHardening = migrationSources[
   migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
