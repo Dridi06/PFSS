@@ -243,6 +243,45 @@ assert.match(
   "Permission settings must not be readable through stale team assignments."
 );
 
+const latestPermissionRead = latestFunctionBody("pfms_get_my_legacy_team_permissions");
+assert.match(
+  latestPermissionRead,
+  /public\.pfms_can_access_legacy_team\s*\(p_team_id\)/,
+  "The current user's permission matrix must require current central team access."
+);
+assert.match(
+  latestPermissionRead,
+  /'squad'[\s\S]*?'tasks'/,
+  "The current user's permission matrix must expose all nine modules, including tasks."
+);
+assert.match(
+  latestPermissionList,
+  /'squad'[\s\S]*?'tasks'/,
+  "The manager permission editor must expose all nine modules, including tasks."
+);
+
+const latestPermissionSave = latestFunctionBody("pfms_save_legacy_team_permissions");
+assert.match(
+  latestPermissionSave,
+  /public\.pfms_can_manage_legacy_team\s*\(v_team_id\)/,
+  "Only a currently authorized team manager may change the permission matrix."
+);
+assert.match(
+  latestPermissionSave,
+  /jsonb_array_length\(p_permissions\)\s*<>\s*9/,
+  "Permission writes must include exactly nine module entries."
+);
+assert.match(
+  latestPermissionSave,
+  /'squad'[\s\S]*?'tasks'/,
+  "Permission writes must explicitly allow the ninth tasks module."
+);
+assert.match(
+  latestPermissionSave,
+  /v_can_edit and not v_can_view/,
+  "Permission writes must reject edit access without view access."
+);
+
 const trainingList = latestFunctionBody("pfms_list_legacy_team_training");
 assert.match(
   trainingList,
