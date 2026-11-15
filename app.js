@@ -2534,7 +2534,7 @@ async function loadPfmsAdminDirectory(type,root) {
     const rpc=type==='scout'?'pfms_admin_list_legacy_scouts_page':'pfms_admin_search_legacy_organizations_page';
     const args=type==='scout'
       ? {p_query:nameQuery,p_email:emailQuery,p_user_id:idQuery,p_status:statusQuery,p_limit:pageSize,p_offset:offset}
-      : {p_type:type,p_query:nameQuery || idQuery,p_status:statusQuery,p_limit:pageSize,p_offset:offset};
+      : {p_type:type,p_query:nameQuery,p_id:idQuery,p_status:statusQuery,p_limit:pageSize,p_offset:offset};
     const {data,error}=await pfssSupabase.rpc(rpc,args);
     if (!isCurrentRequest()) return;
     if(error)throw error;
