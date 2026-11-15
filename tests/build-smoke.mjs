@@ -5,6 +5,7 @@ import { dirname, resolve, sep } from "node:path";
 const outputDirectory = resolve(process.cwd(), "dist");
 const renderConfig = await readFile(resolve(process.cwd(), "render.yaml"), "utf8");
 const authStyles = await readFile(resolve(outputDirectory, "styles.css"), "utf8");
+const executiveAuthStyles = await readFile(resolve(outputDirectory, "pfms-auth-executive.css"), "utf8");
 
 // Guard the Render blueprint as configuration, without contacting or changing Render.
 assert.ok(renderConfig.includes("name: pfms-staging-static"));
@@ -21,6 +22,7 @@ assert.ok(!/branch: main/.test(renderConfig), "Staging blueprint must never depl
 assert.ok(!/name: pfms-production/.test(renderConfig), "Staging blueprint must not define a production service");
 assert.match(authStyles, /#authScreen \.pricing-grid\{grid-template-columns:minmax\(0,1fr\)/, "Subscription packages must remain vertically stacked");
 assert.ok(!authStyles.includes("#authScreen .pricing-grid{grid-template-columns:repeat(2"), "Desktop styles must not override the vertical package layout");
+assert.match(executiveAuthStyles, /\.registration-choice-grid\{grid-template-columns:minmax\(0,1fr\)\}/, "Executive auth must keep package cards easy to scan in a vertical layout");
 
 assert.ok(renderConfig.includes("Content-Security-Policy"), "Render staging must publish a Content-Security-Policy header");
 assert.ok(renderConfig.includes("Strict-Transport-Security") && renderConfig.includes("max-age=31536000; includeSubDomains"), "Render staging must enforce HTTPS with HSTS");
@@ -31,6 +33,7 @@ const requiredFiles = [
   "index.html",
   "rechtliches.html",
   "styles.css",
+  "pfms-auth-executive.css",
   "scout-workspace.css",
   "app.js",
   "scout-workspace.js",
@@ -86,7 +89,7 @@ for (const page of ["index.html", "rechtliches.html"]) {
 }
 
 
-for (const stylesheet of ["styles.css", "scout-workspace.css"]) {
+for (const stylesheet of ["styles.css", "pfms-auth-executive.css", "scout-workspace.css"]) {
   const stylesheetPath = resolve(outputDirectory, stylesheet);
   const source = await readFile(stylesheetPath, "utf8");
 

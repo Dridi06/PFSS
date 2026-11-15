@@ -48,7 +48,7 @@
 #authScreen .auth-link-button{color:#d6b56d;font-size:12px}#authScreen .auth-footnote{border-color:#ffffff17;color:#88867f}
 #authScreen .registration-choice{margin:22px 0}#authScreen .pricing-intro h2{color:#f1eee7;font-size:23px;line-height:1.2}
 #authScreen .pricing-intro>p{color:#aaa69d;font-size:12px;line-height:1.65}
-#authScreen .registration-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#authScreen .registration-choice-grid{grid-template-columns:minmax(0,1fr);gap:12px}
 #authScreen .registration-choice-card{min-width:0;padding:16px;border:1px solid #d6b56d2b;border-radius:12px;background:linear-gradient(150deg,#202225,#151719);box-shadow:none}
 #authScreen .registration-choice-card h3{color:#eee9df;font-size:15px}#authScreen .registration-choice-card p,#authScreen .pricing-features{color:#aaa69d}
 #authScreen .registration-choice-card .btn{width:100%;min-height:42px;font-size:11px}

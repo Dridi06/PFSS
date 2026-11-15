@@ -9,6 +9,7 @@ const publicFiles = [
   "index.html",
   "rechtliches.html",
   "styles.css",
+  "pfms-auth-executive.css",
   "scout-workspace.css",
   "app.js",
   "scout-workspace.js",
