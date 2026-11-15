@@ -388,7 +388,10 @@ async function loadPfmsPersonalTasks() {
   pfmsNotifications = [];
   renderPfmsNotifications();
   pfmsSupportTickets = [];
+  pfmsAdminSupportRequestId += 1;
   pfmsAdminSupportTickets = [];
+  document.getElementById('pfmsAdminSupportList')?.removeAttribute('data-page');
+  document.getElementById('pfmsAdminSupportList')?.removeAttribute('data-total-count');
   document.getElementById('pfmsPersonalTaskForm')?.reset();
   document.getElementById('pfmsSupportTicketForm')?.reset();
   const supportFormMessage = document.getElementById('pfmsSupportTicketFormMessage');
@@ -610,10 +613,10 @@ async function createPfmsSupportTicket(event) {
 function renderPfmsAdminSupportTickets() {
   const host = document.getElementById('pfmsAdminSupportList');
   if (!host) return;
-  const filter = document.getElementById('pfmsAdminSupportStatus')?.value || '';
   const labels = { open: 'Offen', in_progress: 'In Bearbeitung', resolved: 'Erledigt' };
-  const items = pfmsAdminSupportTickets.filter(ticket => !filter || ticket.status === filter);
-  host.innerHTML = items.length ? items.map(ticket =>
+  const page = Math.max(0, Number(host.dataset.page || 0));
+  const totalCount = Number(host.dataset.totalCount || 0);
+  host.innerHTML = pfmsAdminSupportTickets.length ? pfmsAdminSupportTickets.map(ticket =>
     '<article class="pfms-support-ticket-card" data-pfms-admin-ticket="' + escapeHtml(ticket.id) + '">' +
       '<div class="pfms-support-ticket-head"><strong>' + escapeHtml(ticket.subject) + '</strong><span>' + escapeHtml(labels[ticket.status] || ticket.status) + '</span></div>' +
       '<div class="pfms-support-ticket-meta"><span>' + escapeHtml(ticket.owner_id) + '</span><span>' + escapeHtml(ticket.category) + '</span><span>' + escapeHtml(new Date(ticket.created_at).toLocaleString('de-DE')) + '</span></div>' +
@@ -621,30 +624,54 @@ function renderPfmsAdminSupportTickets() {
       '<label class="field">Antwort<textarea rows="3" maxlength="5000" data-pfms-ticket-response>' + escapeHtml(ticket.admin_response || '') + '</textarea></label>' +
       '<div class="pfms-support-ticket-actions"><select data-pfms-ticket-status><option value="open"' + (ticket.status === 'open' ? ' selected' : '') + '>Offen</option><option value="in_progress"' + (ticket.status === 'in_progress' ? ' selected' : '') + '>In Bearbeitung</option><option value="resolved"' + (ticket.status === 'resolved' ? ' selected' : '') + '>Erledigt</option></select><button type="button" class="btn btn-primary" data-pfms-ticket-save>Änderungen speichern</button><span class="admin-message" data-pfms-ticket-feedback></span></div>' +
     '</article>'
-  ).join('') : '<div class="empty-state"><b>Keine passenden Supportanfragen</b><p>Für den gewählten Status liegen keine Tickets vor.</p></div>';
+  ).join('') + pfmsAdminPaginationMarkup(page, totalCount, 25)
+    : '<div class="empty-state"><b>Keine passenden Supportanfragen</b><p>Für den gewählten Status liegen keine Tickets vor.</p></div>';
 }
 
 async function loadPfmsAdminSupportTickets() {
   const host = document.getElementById('pfmsAdminSupportList');
   const message = document.getElementById('pfmsAdminSupportMessage');
-  if (!host || !message || !window.pfssIsRealAdmin) return;
+  if (!host || !message) return;
+  if (!window.pfssIsRealAdmin) {
+    message.textContent = 'Administratoranmeldung erforderlich.';
+    host.replaceChildren();
+    return;
+  }
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
+  const requestId = ++pfmsAdminSupportRequestId;
+  const pageSize = 25;
+  const page = Math.max(0, Number(host.dataset.page || 0));
+  const status = document.getElementById('pfmsAdminSupportStatus')?.value || '';
   message.textContent = 'Supportanfragen werden geladen …';
+  host.replaceChildren();
   try {
-    const { data, error } = await pfssSupabase.from('pfms_support_tickets')
-      .select('id,owner_id,subject,category,message,status,admin_response,created_at,updated_at,resolved_at')
+    let request = pfssSupabase.from('pfms_support_tickets')
+      .select('id,owner_id,subject,category,message,status,admin_response,created_at,updated_at,resolved_at', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(200);
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+      .order('id', { ascending: true })
+      .range(page * pageSize, page * pageSize + pageSize - 1);
+    if (status) request = request.eq('status', status);
+    const { data, error, count } = await request;
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminSupportRequestId) return;
     if (error) throw error;
-    pfmsAdminSupportTickets = data || [];
+    const tickets = data || [];
+    if (!tickets.length && page > 0) {
+      host.dataset.page = '0';
+      return loadPfmsAdminSupportTickets();
+    }
+    pfmsAdminSupportTickets = tickets;
+    host.dataset.totalCount = String(Number(count || 0));
     renderPfmsAdminSupportTickets();
-    message.textContent = pfmsAdminSupportTickets.length + ' Supportanfrage(n) geladen.';
+    const totalPages = Math.max(1, Math.ceil(Number(count || 0) / pageSize));
+    message.textContent = count
+      ? Number(count).toLocaleString('de-DE') + ' Supportanfrage(n) · Seite ' + (page + 1) + ' von ' + totalPages + '.'
+      : 'Keine Supportanfragen für diesen Filter vorhanden.';
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration) || requestId !== pfmsAdminSupportRequestId) return;
     console.error('PFMS admin support inbox failed:', error);
     message.textContent = 'Support-Postfach konnte nicht geladen werden. Prüfe Administratorrechte und Migration.';
+    host.replaceChildren();
   }
 }
 
@@ -694,8 +721,18 @@ function setupPfmsAdminSupport() {
   const host = document.getElementById('pfmsAdminSupportList');
   if (!refresh || !status || !host) return;
   refresh.addEventListener('click', loadPfmsAdminSupportTickets);
-  status.addEventListener('change', renderPfmsAdminSupportTickets);
+  status.addEventListener('change', () => {
+    host.dataset.page = '0';
+    loadPfmsAdminSupportTickets();
+  });
   host.addEventListener('click', event => {
+    const pageButton = event.target.closest('[data-admin-page-action]');
+    if (pageButton && !pageButton.disabled) {
+      const currentPage = Number(host.dataset.page || 0);
+      host.dataset.page = String(Math.max(0,currentPage+(pageButton.dataset.adminPageAction==='next'?1:-1)));
+      loadPfmsAdminSupportTickets();
+      return;
+    }
     const button = event.target.closest('[data-pfms-ticket-save]');
     if (button) savePfmsAdminSupportTicket(button.closest('[data-pfms-admin-ticket]'));
   });
@@ -2796,6 +2833,7 @@ let pfmsSupportTickets = [];
 let pfmsAdminSupportTickets = [];
 let pfmsSupportTicketsBound = false;
 let pfmsAdminSupportBound = false;
+let pfmsAdminSupportRequestId = 0;
 let pfmsPersonalTasksBound = false;
 let pfmsNotifications = [];
 let pfmsNotificationsBound = false;
