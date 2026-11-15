@@ -22,7 +22,7 @@ assert.ok(!/branch: main/.test(renderConfig), "Staging blueprint must never depl
 assert.ok(!/name: pfms-production/.test(renderConfig), "Staging blueprint must not define a production service");
 assert.match(authStyles, /#authScreen \.pricing-grid\{grid-template-columns:minmax\(0,1fr\)/, "Subscription packages must remain vertically stacked");
 assert.ok(!authStyles.includes("#authScreen .pricing-grid{grid-template-columns:repeat(2"), "Desktop styles must not override the vertical package layout");
-assert.match(executiveAuthStyles, /\.registration-choice-grid\{grid-template-columns:minmax\(0,1fr\)\}/, "Executive auth must keep package cards easy to scan in a vertical layout");
+assert.match(executiveAuthStyles, /\.registration-choice-grid\{grid-template-columns:minmax\(0,1fr\);/, "Executive auth must keep package cards easy to scan in a vertical layout");
 
 assert.ok(renderConfig.includes("Content-Security-Policy"), "Render staging must publish a Content-Security-Policy header");
 assert.ok(renderConfig.includes("Strict-Transport-Security") && renderConfig.includes("max-age=31536000; includeSubDomains"), "Render staging must enforce HTTPS with HSTS");
