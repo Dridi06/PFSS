@@ -28,18 +28,19 @@ with tempfile.TemporaryDirectory() as tmp:
     assert all(env["AWS_EC2_METADATA_DISABLED"] == "true" for _, env in calls)
     assert all("--acl" not in args for args, _ in calls)
 
-calls.clear()
-def collision_runner(args, env):
-    calls.append(args)
-    return SimpleNamespace(returncode=0 if "head-object" in args else 1)
-try:
-    mod.upload_encrypted_pair(endpoint="https://account.r2.cloudflarestorage.com",
-        bucket="pfms-backups", access_key="a", secret_key="b",
-        encrypted_file=encrypted, runner=collision_runner)
-    raise AssertionError("existing key must be rejected")
-except mod.R2TransportError:
-    pass
-assert len(calls) == 1
+    calls.clear()
+    def collision_runner(args, env):
+        calls.append(args)
+        return SimpleNamespace(returncode=0 if "head-object" in args else 1)
+
+    try:
+        mod.upload_encrypted_pair(endpoint="https://account.r2.cloudflarestorage.com",
+            bucket="pfms-backups", access_key="a", secret_key="b",
+            encrypted_file=encrypted, runner=collision_runner)
+        raise AssertionError("existing key must be rejected")
+    except mod.R2TransportError:
+        pass
+    assert len(calls) == 1
 
 for endpoint in ("http://account.r2.cloudflarestorage.com", "https://user:pass@account.r2.cloudflarestorage.com",
                  "https://account.r2.cloudflarestorage.com/path", "https://account.r2.cloudflarestorage.com/?x=1"):
