@@ -423,6 +423,44 @@ for (const signature of [
   );
 }
 
+const organizationCoreAclMigration = migrationSources[
+  migrationFiles.indexOf("20261225_pfms_organization_table_write_acl_hardening.sql")
+];
+assert.ok(organizationCoreAclMigration, "Organization core table write-ACL hardening migration is missing.");
+const normalizedOrganizationCoreAcl = organizationCoreAclMigration
+  .replace(/\\s+/g, " ")
+  .toLowerCase();
+for (const tableName of [
+  "pfms_organizations",
+  "pfms_memberships",
+  "pfms_scout_profiles"
+]) {
+  assert.ok(
+    normalizedOrganizationCoreAcl.includes("public." + tableName),
+    "Organization core table ACL migration must cover " + tableName
+  );
+}
+assert.match(
+  normalizedOrganizationCoreAcl,
+  /revoke all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles from public, anon, authenticated/,
+  "Organization core tables must revoke all direct browser-role table privileges."
+);
+assert.match(
+  normalizedOrganizationCoreAcl,
+  /grant select on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to authenticated/,
+  "Authenticated users must retain RLS-governed read access to organization core tables."
+);
+assert.match(
+  normalizedOrganizationCoreAcl,
+  /grant all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to service_role/,
+  "Trusted server-side service_role must retain organization core table write access."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'organization_core_table_write_acl'/,
+  "Read-only staging acceptance must verify organization core table ACL isolation."
+);
+
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const expectedReadPolicies = new Map([
