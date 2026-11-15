@@ -10,6 +10,8 @@ spec.loader.exec_module(mod)
 calls = []
 def runner(args, env):
     calls.append((args, dict(env)))
+    if "head-object" in args and sum(1 for old, _ in calls if "head-object" in old) <= 2:
+        return SimpleNamespace(returncode=1, not_found=True)
     return SimpleNamespace(returncode=0)
 
 with tempfile.TemporaryDirectory() as tmp:
