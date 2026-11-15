@@ -2510,6 +2510,14 @@ async function loadPfmsAdminDirectory(type,root) {
 }
 
 async function showPfmsOrganizationDetails(root,org) {
+  if (!root || !window.pfssIsRealAdmin) return;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const requestId = Number(root.dataset.pfmsDetailRequestId || 0) + 1;
+  root.dataset.pfmsDetailRequestId = String(requestId);
+  const isCurrentDetailRequest = () =>
+    isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
+    root.dataset.pfmsDetailRequestId === String(requestId);
   const detail=root.querySelector('[data-pfms-detail]');
   const body=root.querySelector('[data-pfms-detail-body]');
   root.querySelector('[data-pfms-detail-title]').textContent=org.name+' · '+org.id;
@@ -2520,9 +2528,11 @@ async function showPfmsOrganizationDetails(root,org) {
     const {data,error}=await pfssSupabase.rpc(
       'pfms_admin_list_legacy_org_members',{p_org_id:org.id}
     );
+    if (!isCurrentDetailRequest()) return;
     if(error)throw error;
     members=data||[];
   } catch(error) {
+    if (!isCurrentDetailRequest()) return;
     console.error('PFMS members:',error);
     body.innerHTML='<p class="admin-message">Mitglieder konnten nicht geladen werden.</p>';
     return;
@@ -2587,6 +2597,7 @@ async function showPfmsOrganizationDetails(root,org) {
         p_role:body.querySelector('[data-invite-role]').value,
         p_expires_in_days:Number(body.querySelector('[data-invite-days]').value)
       });
+      if (!isCurrentDetailRequest()) return;
       if(error)throw error;
       const url=new URL(window.location.href);
       url.searchParams.set('invite',data);
@@ -2594,9 +2605,12 @@ async function showPfmsOrganizationDetails(root,org) {
       result.hidden=false;
       message.textContent='Einladung erstellt. Der Code wird nur jetzt angezeigt – bitte den Link sicher weitergeben.';
     } catch(error) {
+      if (!isCurrentDetailRequest()) return;
       console.error('PFMS invitation creation:',error);
       message.textContent='Einladung fehlgeschlagen: '+(error?.message||'Berechtigung oder Organisation prüfen.');
-    } finally {createButton.disabled=false;}
+    } finally {
+      if (isCurrentDetailRequest()) createButton.disabled=false;
+    }
   });
   body.querySelector('[data-copy-invite]').addEventListener('click',async()=>{
     const input=body.querySelector('[data-invite-url]');
@@ -2623,12 +2637,16 @@ async function showPfmsOrganizationDetails(root,org) {
             p_status:card.querySelector('[data-member-status]').value
           }
         );
+        if (!isCurrentDetailRequest()) return;
         if(error)throw error;
         card.querySelector('[data-member-message]').textContent='Änderungen gespeichert.';
       } catch(error) {
+        if (!isCurrentDetailRequest()) return;
         console.error('PFMS membership update:',error);
         card.querySelector('[data-member-message]').textContent='Speichern fehlgeschlagen: Berechtigung oder Eingaben prüfen.';
-      } finally {save.disabled=false;}
+      } finally {
+        if (isCurrentDetailRequest()) save.disabled=false;
+      }
     });
   });
 }
@@ -7917,6 +7935,8 @@ function setupPfmsAdminErrors() {
       const card = button.closest('[data-event-id]');
       if (!card) return;
 
+      const requestUserId = window.pfssCurrentUserId;
+      const requestGeneration = pfmsAuthGeneration;
       const status = card.querySelector('[data-event-status]').value;
       const message = card.querySelector('[data-event-message]');
       button.disabled = true;
@@ -7926,10 +7946,12 @@ function setupPfmsAdminErrors() {
           .from('pfms_system_events')
           .update({ status })
           .eq('id', card.dataset.eventId);
+        if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
         if (error) throw error;
         message.textContent = 'Status gespeichert.';
         await loadPfmsAdminErrors();
       } catch (error) {
+        if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
         console.error('PFMS system event status update:', error);
         message.textContent = 'Status konnte nicht gespeichert werden: ' + (error?.message || 'Berechtigung oder Datenbank prüfen.');
         button.disabled = false;
