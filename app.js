@@ -692,12 +692,12 @@ async function savePfmsAdminSupportTicket(card) {
     const { error } = await pfssSupabase.from('pfms_support_tickets')
       .update({ status, admin_response: adminResponse })
       .eq('id', ticketId);
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
     if (error) throw error;
     feedback.textContent = 'Gespeichert.';
     await loadPfmsAdminSupportTickets();
   } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
     console.error('PFMS support ticket update failed:', error);
     feedback.textContent = 'Speichern fehlgeschlagen.';
     button.disabled = false;
