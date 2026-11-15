@@ -643,3 +643,6 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Der neue Regressionstest prüft die jeweils neueste SELECT-Policy, FORCE RLS, modulbezogene RPC-Lese-/Schreibrechte und die vollständigen Aufgabenrechte einschließlich Löschen. Trainings- und Anwesenheitsrechte bleiben getrennt geprüft.
 - Noch nicht in Supabase angewendet. Vor Freigabe ist in Staging mit zwei Konten zu testen: gleicher aktiver Teamzugriff, aber einmal mit und einmal ohne `squad.view`; direkte Tabellenabfrage muss ohne Recht leer/abgewiesen sein, die berechtigte Abfrage muss funktionieren.
 - Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration und keine Änderung an `main` oder Produktivdaten.
+
+
+- In derselben Prüfung wurde außerdem die gemeinsame Tabelle für Kalender- und Veranstaltungseinträge betrachtet: Die bisherige direkte SELECT-Policy ließ `calendar.view` auch Zeilen des Typs `event` und `tournament` lesen, obwohl dafür separat `events.view` vorgesehen ist. Die neue Policy trennt den Zugriff jetzt anhand von `event_type`; Kalenderrecht gilt für sonstige Kalendereinträge, Veranstaltungsrecht für Events und Turniere. Die Regression prüft beide Rechte in der jeweils neuesten Policy.
