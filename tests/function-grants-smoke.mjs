@@ -559,7 +559,7 @@ assert.match(authTriggerHardening, /v_type in \('club','agency'\)/);
 assert.match(authTriggerHardening, /elsif v_type='scout'/);
 
 const invitationStatusGuard = (
-  await readFile(resolve(directory, "20261131_pfms_legacy_invitation_status_guard.sql"), "utf8")
+  await readFile(resolve(directory, "20261201_pfms_legacy_invitation_status_guard.sql"), "utf8")
 ).replace(/\s+/g, " ").toLowerCase();
 assert.match(invitationStatusGuard, /registration_type', ''\)\) <> 'user'/);
 assert.match(invitationStatusGuard, /i\.redeemed_at is null/);
