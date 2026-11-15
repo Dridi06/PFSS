@@ -34,9 +34,33 @@ for (const [pattern, message] of [
   [/from public\.pfms_memberships m[\s\S]*for update/, "Target membership must be locked before changing it."],
   [/v_current_role = 'owner'[\s\S]*v_current_status = 'active'/, "The active-owner invariant must be checked."],
   [/other_owner\.member_role = 'owner'[\s\S]*other_owner\.status = 'active'/, "Another active owner must exist before demoting the final owner."],
+  [/p_member_role is null[\s\S]*p_member_role not in/, "NULL and unsupported membership roles must be rejected."],
+  [/p_status is null[\s\S]*p_status not in/, "NULL and unsupported membership statuses must be rejected."],
+  [/p_permissions is null[\s\S]*jsonb_typeof\(p_permissions\) is distinct from 'object'/, "NULL and non-object permission payloads must be rejected."],
+  [/jsonb_typeof\(e.value\) is distinct from 'boolean'/, "Permission values must be booleans."],
   [/using errcode = '23514'/, "Owner invariant violations must return a constraint error."],
   [/set member_role = p_member_role[\s\S]*permissions = v_permissions/, "Validated role, status and permissions must be persisted together."]
 ]) assert.match(update, pattern, message);
+
+
+const parentLock = update.indexOf("perform 1 from public.pfms_organizations o");
+const parentLockClause = update.indexOf("for update", parentLock);
+const lockedMembershipRead = update.indexOf(
+  "select m.organization_id, m.member_role, m.status",
+  parentLockClause
+);
+const membershipLockClause = update.indexOf("for update", lockedMembershipRead);
+const tenantRecheck = update.indexOf("v_locked_org_id is distinct from v_org_id");
+const ownerInvariant = update.indexOf("v_current_role = 'owner'");
+assert.ok(
+  parentLock >= 0 &&
+  parentLockClause > parentLock &&
+  lockedMembershipRead > parentLockClause &&
+  membershipLockClause > lockedMembershipRead &&
+  tenantRecheck > membershipLockClause &&
+  ownerInvariant > tenantRecheck,
+  "Owner updates must lock the parent organization first, lock/re-read the membership second, revalidate its tenant, then enforce the owner invariant."
+);
 
 const manifest = JSON.parse(await readFile(
   resolve(process.cwd(), "supabase/migrations/dependency-manifest.json"), "utf8"
