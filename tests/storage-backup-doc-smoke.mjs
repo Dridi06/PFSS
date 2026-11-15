@@ -16,7 +16,10 @@ assert.match(scoutMigration, /values\s*\(\s*'pfss-scout-private'\s*,\s*'pfss-sco
 assert.match(scoutMigration, /create table if not exists public\.pfss_scout_media/i);
 assert.match(mediaMigration, /create table if not exists public\.pfms_main_media/i);
 assert.match(mediaMigration, /storage_path\s*~\s*\('\^\[0-9a-fA-F-\]\{36\}\/main\//i);
-assert.match(plan, /pfss-scout-private/);\nassert.match(plan, /scripts\\/storage_archive\\.py/);\nassert.match(plan, /restore_archive/);\nassert.match(plan, /SHA-256 je Datei/);
+assert.match(plan, /pfss-scout-private/);
+assert.match(plan, /scripts\\/storage_archive\\.py/);
+assert.match(plan, /restore_archive/);
+assert.match(plan, /SHA-256 je Datei/);
 assert.match(plan, /pfss_scout_media/);
 assert.match(plan, /pfms_main_media/);
 assert.match(plan, /<user-id>\/main\//);
