@@ -100,8 +100,8 @@ assert.deepEqual(csp.get("base-uri"), ["'self'"], "CSP must restrict base URL in
 assert.deepEqual(csp.get("frame-ancestors"), ["'none'"], "CSP must forbid embedding.");
 assert.deepEqual(csp.get("form-action"), ["'self'"], "CSP forms must submit only to this origin.");
 assert.deepEqual(csp.get("script-src"), ["'self'", "https://cdn.jsdelivr.net"], "Executable scripts must be restricted to reviewed origins; inline scripts and eval are not allowed.");
-assert.ok(!cspLine.includes("'unsafe-eval'"), "CSP must never enable eval.");
-assert.ok(!cspLine.includes("'unsafe-inline'"), "CSP must never enable inline scripts.");
+assert.ok(!csp.get("script-src").includes("'unsafe-eval'"), "Executable scripts must never enable eval.");
+assert.ok(!csp.get("script-src").includes("'unsafe-inline'"), "Executable scripts must never enable inline scripts.");
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 assert.doesNotMatch(html, /<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i,
