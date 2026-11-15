@@ -1522,29 +1522,29 @@ with checks as (
         and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
         and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
         and pg_catalog.strpos(
-          pg_catalog.substring(
-            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
-            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          pg_catalog.substr(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)),
+            pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
           ),
           'for update'
         ) > 0
         and pg_catalog.strpos(
-          pg_catalog.substring(
-            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
-            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          pg_catalog.substr(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)),
+            pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
           ),
           'for update'
         ) < pg_catalog.strpos(
-          pg_catalog.substring(
-            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
-            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          pg_catalog.substr(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)),
+            pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
           ),
           'select m.organization_id, m.member_role, m.status'
         )
         and pg_catalog.strpos(
-          pg_catalog.substring(
-            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
-            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'select m.organization_id, m.member_role, m.status')
+          pg_catalog.substr(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)),
+            pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'select m.organization_id, m.member_role, m.status')
           ),
           'for update'
         ) > 0
