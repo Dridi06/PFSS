@@ -7,6 +7,8 @@ reads credentials, downloads objects, or mutates remote/local storage.
 from __future__ import annotations
 
 from collections.abc import Callable
+import hashlib
+import json
 from typing import Any
 
 PageFetcher = Callable[[str, int, int], list[dict[str, Any]]]
@@ -76,7 +78,7 @@ def build_inventory(
                     size = metadata.get("size")
                     mime_type = metadata.get("mimetype")
                     if size is not None and (
-                        isinstance(size, bool) or not isinstance(size, (int, float)) or size < 0
+                        isinstance(size, bool) or not isinstance(size, int) or size < 0
                     ):
                         raise InventoryError("Storage object size is invalid.")
                     if mime_type is not None and not isinstance(mime_type, str):
@@ -94,3 +96,37 @@ def build_inventory(
 
     walk("")
     return sorted(files, key=lambda item: item["path"])
+
+
+def build_inventory_manifest(inventory: list[dict[str, Any]]) -> dict[str, Any]:
+    """Create a deterministic integrity summary for a complete inventory."""
+    if not isinstance(inventory, list):
+        raise InventoryError("Inventory must be an array.")
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    total_bytes = 0
+    for item in inventory:
+        if not isinstance(item, dict):
+            raise InventoryError("Inventory contains a malformed item.")
+        path = item.get("path")
+        size = item.get("size")
+        mime_type = item.get("mime_type")
+        if not isinstance(path, str) or not path or path in seen:
+            raise InventoryError("Inventory paths must be unique non-empty strings.")
+        if isinstance(size, bool) or not isinstance(size, int) or size < 0:
+            raise InventoryError("A complete manifest requires a known non-negative byte size.")
+        if mime_type is not None and not isinstance(mime_type, str):
+            raise InventoryError("Inventory MIME type is invalid.")
+        seen.add(path)
+        total_bytes += size
+        normalized.append({"path": path, "size": size, "mime_type": mime_type})
+
+    normalized.sort(key=lambda item: item["path"])
+    canonical = json.dumps(
+        normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return {
+        "object_count": len(normalized),
+        "total_bytes": total_bytes,
+        "manifest_sha256": hashlib.sha256(canonical).hexdigest(),
+    }
