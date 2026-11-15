@@ -2673,27 +2673,25 @@ async function showPfmsOrganizationDetails(root,org) {
   const isCurrentDetailRequest = () =>
     isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
     root.dataset.pfmsDetailRequestId === String(requestId);
-  const detail=root.querySelector('[data-pfms-detail]');
-  const body=root.querySelector('[data-pfms-detail-body]');
-  root.querySelector('[data-pfms-detail-title]').textContent=org.name+' · '+org.id;
-  detail.hidden=false;
-  body.innerHTML='<p class="admin-message">Mitglieder werden geladen …</p>';
-  let members=[];
-  try {
-    const {data,error}=await pfssSupabase.rpc(
-      'pfms_admin_list_legacy_org_members',{p_org_id:org.id}
-    );
-    if (!isCurrentDetailRequest()) return;
-    if(error)throw error;
-    members=data||[];
-  } catch(error) {
-    if (!isCurrentDetailRequest()) return;
-    console.error('PFMS members:',error);
-    body.innerHTML='<p class="admin-message">Mitglieder konnten nicht geladen werden.</p>';
-    return;
-  }
-
-  body.innerHTML=`
+  const detail = root.querySelector('[data-pfms-detail]');
+  const body = root.querySelector('[data-pfms-detail-body]');
+  const title = root.querySelector('[data-pfms-detail-title]');
+  if (!detail || !body || !title) return;
+  title.textContent = org.name + ' · ' + org.id;
+  detail.hidden = false;
+  body.innerHTML = `
+    <section class="admin-user-card pfms-org-detail-summary">
+      <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSSTATUS</div><b>${escapeHtml(org.name || 'Organisation')}</b></div>
+        <span class="tag">${escapeHtml(org.status || 'Unbekannt')}</span>
+      </div>
+      <div class="stats-grid admin-stats">
+        <article class="stat-card"><div class="stat-top">MITGLIEDER GESAMT</div><strong data-org-total-count>–</strong></article>
+        <article class="stat-card"><div class="stat-top">AKTIV</div><strong data-org-active-count>–</strong></article>
+        <article class="stat-card"><div class="stat-top">AUSSTEHEND</div><strong data-org-pending-count>–</strong></article>
+        <article class="stat-card"><div class="stat-top">GESPERRT</div><strong data-org-suspended-count>–</strong></article>
+      </div>
+      <small>Typ: ${escapeHtml(org.organization_type || '–')} · Angelegt: ${org.created_at ? escapeHtml(new Date(org.created_at).toLocaleDateString('de-DE')) : '–'}</small>
+    </section>
     <section class="admin-user-card" data-invitation-tools>
       <b>Neue Einladung erstellen</b>
       <div class="admin-user-controls">
@@ -2722,88 +2720,187 @@ async function showPfmsOrganizationDetails(root,org) {
       </div>
       <small>Der Link ist einmalig verwendbar und läuft nach der gewählten Frist ab.</small>
     </section>
-    <h4>Mitglieder</h4>
-    <div data-org-members>
-      ${members.length ? members.map((m,i)=>`<article class="admin-user-card" data-member-index="${i}">
-        <div class="admin-user-info">
-          <b>${escapeHtml(m.full_name||m.username||m.email||'Mitglied')}</b>
-          <small>${escapeHtml(m.email||m.user_id)}</small>
-          <span class="tag">${escapeHtml(m.member_role)} · ${escapeHtml(m.status)}</span>
-        </div>
-        <div class="admin-user-controls">
-          <label>Rolle<select data-member-role>${['owner','club_admin','agency_admin','scout','trainer','co_trainer','betreuer','member'].map(v=>`<option value="${v}" ${m.member_role===v?'selected':''}>${v}</option>`).join('')}</select></label>
-          <label>Status<select data-member-status>${['pending','active','suspended'].map(v=>`<option value="${v}" ${m.status===v?'selected':''}>${v}</option>`).join('')}</select></label>
-        </div>
-        <button type="button" class="btn btn-secondary" data-save-member>Änderungen speichern</button>
-        <p class="admin-message" data-member-message></p>
-      </article>`).join('') : '<p class="admin-message">Noch keine Mitglieder zugeordnet.</p>'}
-    </div>`;
+    <section class="admin-user-card">
+      <div class="panel-heading"><div><div class="eyebrow">MITGLIEDERVERWALTUNG</div><h4>Mitglieder der Organisation</h4></div></div>
+      <form data-org-member-search class="admin-user-controls">
+        <label>Suche<input type="search" data-org-member-query maxlength="200" placeholder="Name, E-Mail oder Benutzer-ID"></label>
+        <label>Rolle<select data-org-member-role>
+          <option value="">Alle Rollen</option>
+          <option value="owner">Inhaber</option><option value="club_admin">Vereinsleitung</option>
+          <option value="agency_admin">Agenturleitung</option><option value="scout">Scout</option>
+          <option value="trainer">Trainer</option><option value="co_trainer">Co-Trainer</option>
+          <option value="betreuer">Betreuer</option><option value="member">Mitglied</option>
+        </select></label>
+        <label>Status<select data-org-member-status>
+          <option value="">Alle Status</option><option value="active">Aktiv</option>
+          <option value="pending">Ausstehend</option><option value="suspended">Gesperrt</option>
+        </select></label>
+        <button type="submit" class="btn btn-secondary">Suchen</button>
+      </form>
+      <p class="admin-message" data-org-member-message role="status" aria-live="polite">Mitglieder werden geladen …</p>
+      <div data-org-members></div>
+      <div data-org-member-pagination></div>
+    </section>`;
 
-  const createButton=body.querySelector('[data-create-invite]');
-  createButton.addEventListener('click',async()=>{
-    const message=body.querySelector('[data-invite-message]');
-    const result=body.querySelector('[data-invite-result]');
-    createButton.disabled=true;
-    message.textContent='Einladung wird erstellt …';
-    result.hidden=true;
+  let members = [];
+  let memberPage = 0;
+  const pageSize = 25;
+  let memberRequestId = 0;
+  const memberMessage = body.querySelector('[data-org-member-message]');
+  const memberList = body.querySelector('[data-org-members]');
+  const pagination = body.querySelector('[data-org-member-pagination]');
+  const summaryTargets = {
+    total: body.querySelector('[data-org-total-count]'),
+    active: body.querySelector('[data-org-active-count]'),
+    pending: body.querySelector('[data-org-pending-count]'),
+    suspended: body.querySelector('[data-org-suspended-count]')
+  };
+
+  async function loadMembers() {
+    if (!isCurrentDetailRequest()) return;
+    const currentRequestId = ++memberRequestId;
+    const query = body.querySelector('[data-org-member-query]').value.trim();
+    const role = body.querySelector('[data-org-member-role]').value || null;
+    const status = body.querySelector('[data-org-member-status]').value || null;
+    memberMessage.textContent = 'Mitglieder werden geladen …';
+    memberList.innerHTML = '';
+    pagination.innerHTML = '';
     try {
-      const {data,error}=await pfssSupabase.rpc('pfms_create_legacy_invitation',{
-        p_organization_id:org.id,
-        p_role:body.querySelector('[data-invite-role]').value,
-        p_expires_in_days:Number(body.querySelector('[data-invite-days]').value)
+      const {data,error} = await pfssSupabase.rpc('pfms_admin_list_legacy_org_members_page', {
+        p_org_id: org.id,
+        p_query: query,
+        p_status: status,
+        p_role: role,
+        p_limit: pageSize,
+        p_offset: memberPage * pageSize
+      });
+      if (!isCurrentDetailRequest() || currentRequestId !== memberRequestId) return;
+      if (error) throw error;
+      const summary = data?.[0] || {};
+      members = (data || []).filter(row => row.membership_id);
+      summaryTargets.total.textContent = Number(summary.total_count || 0).toLocaleString('de-DE');
+      summaryTargets.active.textContent = Number(summary.active_count || 0).toLocaleString('de-DE');
+      summaryTargets.pending.textContent = Number(summary.pending_count || 0).toLocaleString('de-DE');
+      summaryTargets.suspended.textContent = Number(summary.suspended_count || 0).toLocaleString('de-DE');
+      const filteredCount = Number(summary.filtered_count || 0);
+      if (!members.length && memberPage > 0 && filteredCount > 0) {
+        memberPage = 0;
+        return loadMembers();
+      }
+      memberList.innerHTML = members.length ? members.map((member,index) => `
+        <article class="admin-user-card" data-member-index="${index}">
+          <div class="admin-user-info">
+            <b>${escapeHtml(member.full_name || member.username || member.email || 'Mitglied')}</b>
+            <small>${escapeHtml(member.email || member.user_id)}</small>
+            <span class="tag">${escapeHtml(PFMS_ADMIN_MEMBER_ROLES[member.member_role] || member.member_role)} · ${escapeHtml(PFMS_MEMBERSHIP_STATUSES[member.status] || member.status)}</span>
+          </div>
+          <div class="admin-user-controls">
+            <label>Rolle<select data-member-role>${Object.entries(PFMS_ADMIN_MEMBER_ROLES).map(([value,label]) => `<option value="${value}" ${member.member_role===value?'selected':''}>${escapeHtml(label)}</option>`).join('')}</select></label>
+            <label>Status<select data-member-status>${Object.entries(PFMS_MEMBERSHIP_STATUSES).map(([value,label]) => `<option value="${value}" ${member.status===value?'selected':''}>${escapeHtml(label)}</option>`).join('')}</select></label>
+          </div>
+          <button type="button" class="btn btn-secondary" data-save-member>Änderungen speichern</button>
+          <p class="admin-message" data-member-message></p>
+        </article>`).join('') : '<p class="admin-message">Keine passenden Mitgliedschaften gefunden.</p>';
+      pagination.innerHTML = pfmsAdminPaginationMarkup(memberPage, filteredCount, pageSize);
+      memberMessage.textContent = filteredCount.toLocaleString('de-DE') + ' passende Mitgliedschaft(en).';
+    } catch(error) {
+      if (!isCurrentDetailRequest() || currentRequestId !== memberRequestId) return;
+      console.error('PFMS organization member page:', error);
+      memberMessage.textContent = 'Mitglieder konnten nicht geladen werden. Prüfe die Staging-Migration für die Mitglieder-Pagination.';
+      memberList.innerHTML = '';
+    }
+  }
+
+  const createButton = body.querySelector('[data-create-invite]');
+  createButton.addEventListener('click', async () => {
+    const message = body.querySelector('[data-invite-message]');
+    const result = body.querySelector('[data-invite-result]');
+    createButton.disabled = true;
+    message.textContent = 'Einladung wird erstellt …';
+    result.hidden = true;
+    try {
+      const {data,error} = await pfssSupabase.rpc('pfms_create_legacy_invitation', {
+        p_organization_id: org.id,
+        p_role: body.querySelector('[data-invite-role]').value,
+        p_expires_in_days: Number(body.querySelector('[data-invite-days]').value)
       });
       if (!isCurrentDetailRequest()) return;
-      if(error)throw error;
-      const url=new URL(window.location.href);
-      url.searchParams.set('invite',data);
-      body.querySelector('[data-invite-url]').value=url.toString();
-      result.hidden=false;
-      message.textContent='Einladung erstellt. Der Code wird nur jetzt angezeigt – bitte den Link sicher weitergeben.';
+      if (error) throw error;
+      const url = new URL(window.location.href);
+      url.searchParams.set('invite', data);
+      body.querySelector('[data-invite-url]').value = url.toString();
+      result.hidden = false;
+      message.textContent = 'Einladung erstellt. Der Code wird nur jetzt angezeigt – bitte den Link sicher weitergeben.';
     } catch(error) {
       if (!isCurrentDetailRequest()) return;
-      console.error('PFMS invitation creation:',error);
-      message.textContent='Einladung fehlgeschlagen: '+(error?.message||'Berechtigung oder Organisation prüfen.');
+      console.error('PFMS invitation creation:', error);
+      message.textContent = 'Einladung fehlgeschlagen: ' + (error?.message || 'Berechtigung oder Organisation prüfen.');
     } finally {
-      if (isCurrentDetailRequest()) createButton.disabled=false;
+      if (isCurrentDetailRequest()) createButton.disabled = false;
     }
   });
-  body.querySelector('[data-copy-invite]').addEventListener('click',async()=>{
-    const input=body.querySelector('[data-invite-url]');
+
+  body.querySelector('[data-copy-invite]').addEventListener('click', async () => {
+    const input = body.querySelector('[data-invite-url]');
     try {
       await navigator.clipboard.writeText(input.value);
-      body.querySelector('[data-invite-message]').textContent='Einladungslink kopiert.';
+      body.querySelector('[data-invite-message]').textContent = 'Einladungslink kopiert.';
     } catch(error) {
       input.focus();
       input.select();
-      body.querySelector('[data-invite-message]').textContent='Link markieren und kopieren.';
+      body.querySelector('[data-invite-message]').textContent = 'Link markieren und kopieren.';
     }
   });
 
-  body.querySelectorAll('[data-member-index]').forEach(card=>{
-    const m=members[Number(card.dataset.memberIndex)];
-    card.querySelector('[data-save-member]').addEventListener('click',async()=>{
-      const save=card.querySelector('[data-save-member]');
-      save.disabled=true;
-      try {
-        const {error}=await pfssSupabase.rpc(
-          'pfms_admin_update_legacy_membership',{
-            p_membership_id:m.membership_id,
-            p_role:card.querySelector('[data-member-role]').value,
-            p_status:card.querySelector('[data-member-status]').value
-          }
-        );
-        if (!isCurrentDetailRequest()) return;
-        if(error)throw error;
-        card.querySelector('[data-member-message]').textContent='Änderungen gespeichert.';
-      } catch(error) {
-        if (!isCurrentDetailRequest()) return;
-        console.error('PFMS membership update:',error);
-        card.querySelector('[data-member-message]').textContent='Speichern fehlgeschlagen: Berechtigung oder Eingaben prüfen.';
-      } finally {
-        if (isCurrentDetailRequest()) save.disabled=false;
-      }
-    });
+  body.querySelector('[data-org-member-search]').addEventListener('submit', event => {
+    event.preventDefault();
+    memberPage = 0;
+    void loadMembers();
   });
+  body.querySelector('[data-org-member-role]').addEventListener('change', () => {
+    memberPage = 0;
+    void loadMembers();
+  });
+  body.querySelector('[data-org-member-status]').addEventListener('change', () => {
+    memberPage = 0;
+    void loadMembers();
+  });
+
+  body.addEventListener('click', async event => {
+    const pageButton = event.target.closest('[data-admin-page-action]');
+    if (pageButton && !pageButton.disabled && pagination.contains(pageButton)) {
+      memberPage = Math.max(0, memberPage + (pageButton.dataset.adminPageAction === 'next' ? 1 : -1));
+      await loadMembers();
+      return;
+    }
+    const saveButton = event.target.closest('[data-save-member]');
+    if (!saveButton) return;
+    const card = saveButton.closest('[data-member-index]');
+    const member = members[Number(card?.dataset.memberIndex)];
+    if (!member || !isCurrentDetailRequest()) return;
+    const saveRequestId = memberRequestId;
+    saveButton.disabled = true;
+    card.querySelector('[data-member-message]').textContent = 'Änderungen werden gespeichert …';
+    try {
+      const {error} = await pfssSupabase.rpc('pfms_admin_update_legacy_membership', {
+        p_membership_id: member.membership_id,
+        p_role: card.querySelector('[data-member-role]').value,
+        p_status: card.querySelector('[data-member-status]').value
+      });
+      if (!isCurrentDetailRequest() || saveRequestId !== memberRequestId) return;
+      if (error) throw error;
+      toast('Mitgliedschaft gespeichert.');
+      await loadMembers();
+    } catch(error) {
+      if (!isCurrentDetailRequest() || saveRequestId !== memberRequestId) return;
+      console.error('PFMS membership update:', error);
+      card.querySelector('[data-member-message]').textContent = 'Speichern fehlgeschlagen: Berechtigung oder Eingaben prüfen.';
+    } finally {
+      if (isCurrentDetailRequest() && saveRequestId === memberRequestId) saveButton.disabled = false;
+    }
+  });
+
+  await loadMembers();
 }
 
 function showPfmsScoutDetails(root,scout) {
