@@ -136,6 +136,8 @@ assert.match(adminOverviewLoader, /isCurrentPfmsAdminRequest[\s\S]*?requestId ==
   "The admin overview must reject stale sessions and out-of-order responses.");
 assert.match(app, /pfmsAdminOverviewRequestId \+= 1/,
   "Authentication reset must invalidate pending admin overview requests.");
+assert.match(app, /refreshAdminButton[\s\S]*?loadAdminUsers\(\)[\s\S]*?loadPfmsAdminOverview\(\)/,
+  "The administrator refresh action must refresh both user and platform metrics.");
 assert.match(app, /if \(view === 'admin' && window\.pfssIsRealAdmin\) void loadPfmsAdminOverview\(\)/,
   "The platform overview must load only inside the administrator view.");
 
