@@ -106,3 +106,11 @@ In der isolierten Umgebung mindestens prüfen:
 Datum, Backup-Dateiname, Zielprojekt-Referenz, Ergebnis von `pg_restore`, Plausibilitätsprüfungen und festgestellte Abweichungen dokumentieren. Keine Passphrase, Datenbank-URL, Access-Keys oder personenbezogene Daten in den Nachweis aufnehmen.
 
 Erst nach einem erfolgreichen Restore-Test darf das Backup als wiederherstellbar bewertet werden. Der Upload und die Prüfung eines R2-Objekts allein sind kein Restore-Nachweis.
+
+## 6. Betriebsgrenzen und Aufbewahrung
+
+- Der tägliche Zeitplan in `.github/workflows/pfss-database-backup.yml` wird von GitHub Actions nur für die Standard-Branch-Version des Workflows ausgeführt. Solange diese Arbeit ausschließlich im Feature-Branch liegt und nicht freigegeben/integriert ist, ist der Zeitplan kein aktiver täglicher Backup-Dienst. Ein manueller `workflow_dispatch`-Lauf ist auf dem ausgewählten Branch möglich, sofern die erforderlichen GitHub-Secrets dort verfügbar sind.
+- Die Workflow-Prüfung nach dem Upload verwendet `head-object`. Das bestätigt die Existenz und Metadaten beider R2-Objekte, ersetzt aber weder einen vollständigen Download noch einen Restore-Test.
+- Eine R2-Aufbewahrungs- bzw. Lifecycle-Regel ist in diesem Repository-Workflow nicht konfiguriert. Vor dem produktiven Betrieb müssen Aufbewahrungsdauer, Versionierung/Schutz vor versehentlichem Löschen, Zugriffsbeschränkung und ein zweiter unabhängiger Wiederherstellungsweg festgelegt und in Cloudflare R2 separat eingerichtet werden.
+- Die Sicherung umfasst den PostgreSQL-Datenbankdump. Supabase-Storage-Binärdateien sind nicht Bestandteil dieses Dumps; für private Scout-Medien und weitere Uploads ist ein eigener, getesteter Storage-Backup- und Restore-Prozess erforderlich.
+- Ein erfolgreicher GitHub-Workflow ist nur ein Backup-Erstellungs- und Upload-Nachweis. Erst ein vollständiger Restore in eine neue isolierte Testdatenbank einschließlich fachlicher Prüfung belegt die Wiederherstellbarkeit.
