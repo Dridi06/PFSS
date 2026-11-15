@@ -156,6 +156,72 @@ grant_rows AS (
   WHERE table_schema IN ('public','storage')
     AND table_name IN (SELECT table_name FROM target_tables)
 ),
+relation_inventory_rows AS (
+  SELECT 'RELATIONS'::text AS section,
+         n.nspname || '.' || c.relname AS object_name,
+         jsonb_build_object(
+           'kind', c.relkind,
+           'owner', pg_get_userbyid(c.relowner),
+           'rls_enabled', c.relrowsecurity,
+           'rls_forced', c.relforcerowsecurity,
+           'relation_options', c.reloptions,
+           'security_invoker_view', coalesce(c.reloptions @> ARRAY['security_invoker=true'], false),
+           'view_definition', CASE WHEN c.relkind IN ('v', 'm') THEN pg_get_viewdef(c.oid, true) ELSE NULL END
+         ) AS details
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname IN ('public', 'storage')
+    AND c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
+),
+sequence_grant_rows AS (
+  SELECT 'SEQUENCE_GRANTS'::text AS section,
+         n.nspname || '.' || c.relname AS object_name,
+         jsonb_build_object(
+           'owner', pg_get_userbyid(c.relowner),
+           'grantee', coalesce(gr.rolname, 'PUBLIC'),
+           'privilege', acl.privilege_type,
+           'is_grantable', acl.is_grantable
+         ) AS details
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(
+    coalesce(c.relacl, acldefault('S', c.relowner))
+  ) AS acl
+  LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
+  WHERE n.nspname = 'public'
+    AND c.relkind = 'S'
+),
+schema_grant_rows AS (
+  SELECT 'SCHEMA_GRANTS'::text AS section,
+         n.nspname AS object_name,
+         jsonb_build_object(
+           'grantee', coalesce(gr.rolname, 'PUBLIC'),
+           'privilege', acl.privilege_type,
+           'is_grantable', acl.is_grantable
+         ) AS details
+  FROM pg_namespace n
+  CROSS JOIN LATERAL aclexplode(
+    coalesce(n.nspacl, acldefault('n', n.nspowner))
+  ) AS acl
+  LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
+  WHERE n.nspname IN ('public', 'storage', 'auth')
+),
+default_acl_rows AS (
+  SELECT 'DEFAULT_PRIVILEGES'::text AS section,
+         coalesce(n.nspname, 'GLOBAL') || '.' || pg_get_userbyid(d.defaclrole) AS object_name,
+         jsonb_build_object(
+           'object_type', d.defaclobjtype,
+           'grantee', coalesce(gr.rolname, 'PUBLIC'),
+           'privilege', acl.privilege_type,
+           'is_grantable', acl.is_grantable
+         ) AS details
+  FROM pg_default_acl d
+  LEFT JOIN pg_namespace n ON n.oid = d.defaclnamespace
+  CROSS JOIN LATERAL aclexplode(d.defaclacl) AS acl
+  LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
+  WHERE n.nspname IN ('public', 'storage')
+     OR d.defaclnamespace = 0
+),
 bucket_rows AS (
   SELECT 'STORAGE_BUCKETS'::text AS section, 'storage.buckets'::text AS object_name,
          jsonb_build_object(
@@ -219,6 +285,10 @@ FROM (
   UNION ALL SELECT * FROM function_rows
   UNION ALL SELECT * FROM function_grant_rows
   UNION ALL SELECT * FROM grant_rows
+  UNION ALL SELECT * FROM relation_inventory_rows
+  UNION ALL SELECT * FROM sequence_grant_rows
+  UNION ALL SELECT * FROM schema_grant_rows
+  UNION ALL SELECT * FROM default_acl_rows
   UNION ALL SELECT * FROM bucket_rows
   UNION ALL SELECT * FROM row_estimate_rows
   UNION ALL SELECT * FROM migration_table
