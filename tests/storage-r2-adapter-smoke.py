@@ -42,17 +42,29 @@ with tempfile.TemporaryDirectory() as tmp:
         pass
     assert len(calls) == 1
 
-for endpoint in ("http://account.r2.cloudflarestorage.com", "https://user:pass@account.r2.cloudflarestorage.com",
-                 "https://account.r2.cloudflarestorage.com/path", "https://account.r2.cloudflarestorage.com/?x=1"):
+assert mod._config("https://ACCOUNT.r2.cloudflarestorage.com", "pfms-backups", "a", "b")[0] == "https://account.r2.cloudflarestorage.com"
+
+for endpoint in (
+    "http://account.r2.cloudflarestorage.com",
+    "https://user:pass@account.r2.cloudflarestorage.com",
+    "https://account.r2.cloudflarestorage.com/path",
+    "https://account.r2.cloudflarestorage.com/?x=1",
+    "https://account.r2.cloudflarestorage.com:8443",
+    "https://account.r2.cloudflarestorage.com:99999",
+    "https://attacker.example",
+    "https://account.r2.cloudflarestorage.com.attacker.example",
+    " https://account.r2.cloudflarestorage.com",
+):
     try:
         mod._config(endpoint, "pfms-backups", "a", "b")
-        raise AssertionError("unsafe endpoint accepted")
+        raise AssertionError("unsafe endpoint accepted: " + endpoint)
     except mod.R2TransportError:
         pass
+
 for filename in ("../../database.dump", "pfms-storage-latest.tar.enc", "backup.tar.enc"):
     try:
         mod._key(filename)
         raise AssertionError("unsafe key accepted")
     except mod.R2TransportError:
         pass
-print("Storage R2 adapter smoke tests passed (fake runner; no network).")
+print("Storage R2 adapter smoke tests passed: Cloudflare endpoint allowlist, canonical URL, collision and credential handling (fake runner; no network).")
