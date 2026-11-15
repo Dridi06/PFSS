@@ -442,3 +442,17 @@ Diese Prüfung ist ausschließlich mit einer isolierten Staging-Testorganisation
 7. Das read-only Acceptance-Audit muss \`pfms_membership_owner_lock_order\`, \`pfms_membership_input_validation\` und \`pfms_last_active_owner_is_protected\` jeweils mit \`passed = true\` melden.
 
 Die Prüfung verändert Testdaten und ist deshalb **kein** Teil des read-only SQL-Audits. Testorganisation und Konten nach dokumentierter Prüfung kontrolliert bereinigen. Diese Abnahme ist noch nicht durchgeführt und darf nicht aus statischen CI-Ergebnissen abgeleitet werden.
+
+
+## Ergänzung – Trennung der Legacy-Manager- und Plattform-Admin-RPCs
+
+Nach Anwendung der Migration 20261230_pfms_legacy_manager_admin_rpc_boundary.sql ausschließlich im isolierten Staging prüfen:
+
+1. Mit einem aktiven Organisationsmanager eine operative Mitgliedschaft (Scout/Trainer/Betreuer/Mitglied) ändern. Erwartet: erfolgreicher Aufruf über pfms_update_legacy_org_membership_for_manager.
+2. Mit demselben Organisationsmanager versuchen, eine Owner-, Club-Admin- oder Agentur-Admin-Mitgliedschaft zu ändern. Erwartet: SQLSTATE 42501.
+3. Mit einem Plattformadministrator die ältere Manager-RPC direkt aufrufen. Erwartet: SQLSTATE 42501 und keine Änderung an der Mitgliedschaft.
+4. Dieselbe administrative Änderung über pfms_admin_update_legacy_membership durchführen. Erwartet: Erfolg, sofern der letzte aktive Owner erhalten bleibt; andernfalls SQLSTATE 23514.
+5. Die Frontend-Verwaltung mit Manager- und Admin-Konten testen. Manager müssen weiterhin den bisherigen operativen Workflow nutzen; Plattformadministratoren müssen die dedizierte Admin-RPC verwenden.
+6. Das read-only Acceptance-Audit muss legacy_manager_rpc_admin_boundary = true melden.
+
+Diese Prüfung ist noch nicht durchgeführt. Der neue Migrationsschritt ist ausschließlich für den kontrollierten Staging-Plan vorgesehen und darf nicht ungeprüft angewendet werden.
