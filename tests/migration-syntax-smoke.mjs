@@ -142,6 +142,22 @@ assert.match(
   /'legacy_invitation_table_acl'/,
   "The read-only staging acceptance audit must verify that invitation tokens are not directly accessible to browser roles."
 );
+assert.match(
+  stagingAcceptanceSql,
+  /has_column_privilege\('anon'[\\s\\S]*?has_column_privilege\('authenticated'/i,
+  "Invitation ACL acceptance must inspect column-level privileges separately from table ACLs."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /aclexplode\\([\\s\\S]*?acl\\.grantee = 0[\\s\\S]*?organization_invitations/i,
+  "Invitation ACL acceptance must reject direct PUBLIC table grants."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pg_catalog\\.pg_policies[\\s\\S]*?organization_invitations/i,
+  "Invitation ACL acceptance must fail closed if a direct table policy is added."
+);
+
 
 const migrationsDirectory = resolve(process.cwd(), "supabase/migrations");
 const entries = await readdir(migrationsDirectory, { withFileTypes: true });
