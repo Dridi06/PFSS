@@ -4,7 +4,7 @@
 - Für Benutzer-, Mitgliedschafts-, Organisations-/Scout- und Systemereignislisten gilt zusätzlich „latest request wins“: Eine verspätete Antwort einer älteren Suche darf eine neuere Filterauswahl nicht überschreiben.
 - Organisationsdetails, Einladungsantworten, globale Mitgliedschaftsänderungen und administrative Systemereignis-Aktionen werden ebenfalls gegen veraltete Sitzungen und Detailauswahlen abgesichert. Ein Wechsel zwischen Organisation und Scout bzw. eine neue Suche entwertet außerdem ausstehende Detailantworten.
 - Neue Regressionstests in `tests/auth-session-lifecycle-smoke.mjs` schützen diese Verträge. Die Änderung ersetzt keine serverseitige Autorisierung: Supabase-RPC-Prüfungen, RLS und Datenbankrechte bleiben zwingend.
-- Implementierung: Commit `17acbdb4be5646ae63de06384273e4ec1740735b`; Detail-/Triage-Erweiterung: `e563bb8227bf3de1320182850b0328a2b72eaa04`; globale Mitgliedschaftsänderungen: `ac1eafa6fbb3c982977164ce13a774bc3fbd823a`; Detailauswahl-Rennen: `4c82105ba9264d0cc5b5f560f413a84067609cfd`; Regressionstests: `c4a67ecaeb00e18ef4a72700d48e2a21e0a092d5`.
+- Implementierung: Commit `17acbdb4be5646ae63de06384273e4ec1740735b`; Detail-/Triage-Erweiterung: `e563bb8227bf3de1320182850b0328a2b72eaa04`; globale Mitgliedschaftsänderungen: `ac1eafa6fbb3c982977164ce13a774bc3fbd823a`; Detailauswahl-Rennen: `4c82105ba9264d0cc5b5f560f413a84067609cfd`; Regressionstests: `c4a67ecaeb00e18ef4a72700d48e2a21e0a092d5`; präzisierte Handler-Prüfungen: `0478ea64b52333b43df4cef8de9627f9e5c65a94`.
 - Noch nicht durch einen neuen CI-Lauf bestätigt. Keine Datenbankmigration, kein Staging-/Produktionsdeployment und keine Änderung an `main` oder Produktivdaten.
 
 ---
