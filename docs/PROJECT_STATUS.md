@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Berechtigungsarchitektur: Rechte-Matrix und Staging-Abnahme erweitert
+
+- Feature-Änderungen: `4a7689bf3e50eb984fe4d100ec24242fbe0f90c7` (neun-Modul-Regressionsprüfung), `d3e876d9e5dae400209b78b1600d599a6b3d0423` (read-only Staging-Audit für Rechte lesen/speichern) und `5c131d484eda3ffd34f3f9cba1a9f40a3df0d276` (Audit-Vertragstest).
+- Die Testmatrix deckt nun die effektiven Rechte, die Manageransicht und den Schreibpfad ab: aktuelle Organisations-/Teammitgliedschaft, alle neun Module einschließlich `tasks`, Manager-only-Schreibrecht, genau neun Einträge, Duplikatabwehr und „edit erfordert view“.
+- Das echte Staging-Acceptance-SQL prüft diese drei Datenbankfunktionen zusätzlich anhand der effektiven PostgreSQL-Funktionsdefinitionen, SECURITY DEFINER, leerem `search_path` und EXECUTE-Rechten für `authenticated` bei gleichzeitigem Ausschluss von `anon`.
+- GitHub Actions erfolgreich: [Run 43717791743](https://github.com/Dridi06/PFSS/actions/runs/43717791743). Beide Jobs bestanden: Node-/Build-/Smoke-/SQL-/Berechtigungs-/Backup-Prüfungen und Deno-Typprüfung.
+- Ausschließlich Feature-Branch. Keine reale Supabase-Ausführung, keine Migration, kein Render-Deployment und keine Änderung an `main`, Staging-Daten oder Produktionsdaten.
+
+---
+
 # Ergänzung 15.11.2026 – Neun-Modul-Berechtigungsmatrix zusätzlich abgesichert
 
 - Feature-Commit: `4a7689bf3e50eb984fe4d100ec24242fbe0f90c7`.
