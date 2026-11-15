@@ -1,3 +1,12 @@
+# Ergänzung 15.11.2026 – Effektive Organisations- und Einladungsrechte als Regressionstest
+
+- `tests/function-grants-smoke.mjs` prüft nun zusätzlich die zuletzt wirksame Definition von `can_manage_org(uuid)`: Organisationsstatus `approved/active`, aktive Führungsmitgliedschaft, SECURITY DEFINER, leerer `search_path` und explizite EXECUTE-Rechte.
+- Der Test prüft außerdem die Einladungs-Einlösung: aktueller Organisationsstatus wird bei der Registrierung erneut unter `FOR SHARE`-Sperre kontrolliert; bereits ausgestellte Tokens können nach Sperrung der Organisation nicht mehr eingelöst werden.
+- Damit werden sowohl die Verwaltungs- als auch die Registrierungskante abgesichert. Die tatsächliche PostgreSQL-Laufzeit bleibt Teil der Staging-Abnahme.
+- CI für diesen neuen Regressionstest läuft; keine Datenbankmigration wurde ausgeführt.
+
+---
+
 # Ergänzung 15.11.2026 – Organisationsstatus als zusätzliche Berechtigungsgrenze
 
 - Bei der Integrationsprüfung wurde festgestellt, dass `can_manage_org(uuid)` bisher nur aktive Führungsmitgliedschaften prüfte, nicht jedoch den Status der zugehörigen Organisation.
