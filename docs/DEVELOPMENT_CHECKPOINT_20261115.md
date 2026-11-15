@@ -80,3 +80,14 @@ A green CI run proves repository checks, not the live PostgreSQL authorization b
 - Current branch head at checkpoint closure: `fa347431b49f7fe12126b0ac12ec1c3b5ab3c215`.
 - Pull request #1 remains open and Draft. GitHub currently reports it as mergeable/clean, but that is not a release approval and does not resolve migration-ledger or runtime staging acceptance.
 - Next safe work: inspect the five review-only RPC candidates against their effective latest SQL definitions and current UI workflows; preserve legacy endpoints until external-client usage is excluded. Then execute read-only catalog audits and isolated two-tenant runtime tests only after the dedicated Staging project is explicitly confirmed.
+
+
+## RPC deprecation review – completed 15 November 2026
+
+- Reviewed all five definition-only candidates against their migration definitions and the current browser frontend.
+- Three legacy admin directory RPCs have newer paginated replacements, and the current frontend calls those page RPCs. Legacy definitions and authenticated grants remain intact.
+- The two legacy team-event create/update RPCs have no direct exact-name call in the current browser entry points. Similar event-participant APIs are separate functions; this is not evidence of non-use by external/older clients.
+- Identified a compatibility/security item: legacy directory RPCs check `public.is_admin()`, while their paginated replacements check `public.pfms_is_admin()`. Effective helper equivalence must be tested in isolated staging before any retirement decision.
+- Added `docs/RPC_DEPRECATION_REVIEW.md` and `tests/rpc-deprecation-review-smoke.mjs`. The test protects all five functions against accidental DROP, checks their authenticated grants, verifies the three paginated replacements and current frontend calls, and keeps the review report synchronized.
+- No SQL migration, function definition, grant, database, deployment, or production resource was changed.
+- Remaining release gates: effective staging catalog audit, migration-ledger reconciliation, helper-equivalence tests, two-tenant positive/negative runtime tests, and external-consumer/API-usage verification.
