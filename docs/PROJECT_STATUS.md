@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Admin-Fehlerprotokoll und Support-Postfach skaliert
+
+- Fehlerprotokoll: neue additive RPC `pfms_admin_list_system_events_page` in `20261220_pfms_admin_system_event_pagination.sql`. Suche über Meldung/Pfad, Schweregrad und Status erfolgt serverseitig; 25er-Seiten, Gesamtzahl und stabile Sortierung.
+- Support-Postfach: Statusfilter und Pagination werden direkt in Supabase abgefragt (`count: exact`, `range`), statt bis zu 200 Tickets vollständig in den Browser zu laden. Bestehende RLS- und Admin-Policies bleiben maßgeblich; keine zusätzliche Tabellenmigration.
+- Beide Ansichten binden Antworten an Benutzer-ID/Auth-Generation und Request-ID. Konto-/Sitzungswechsel invalidiert ausstehende Support-Postfachabfragen; Statuswechsel und Seitenwechsel laden die Datenbankansicht neu.
+- Regressionen ergänzt in `tests/auth-session-lifecycle-smoke.mjs`; RPC-Signatur, SQL-Sicherheit, Grants und Staging-Audit werden durch `tests/migration-syntax-smoke.mjs` und `tests/frontend-rpc-contract-smoke.mjs` abgedeckt.
+- Die neue Systemereignis-Migration ist noch nicht in Staging angewendet. CI-Lauf für den aktuellen Stand wird geprüft; keine Live-/Produktionsänderung.
+
+---
+
 # Ergänzung 15.11.2026 – Fehlerprotokoll mit serverseitiger Suche und Pagination
 
 - Das Admin-Fehlerprotokoll lädt nicht länger pauschal die 200 neuesten Ereignisse und filtert diese nur im Browser. Eine neue RPC filtert Meldung/Pfad, Schweregrad und Bearbeitungsstatus direkt in PostgreSQL und liefert 25er-Seiten mit Gesamtzahl.
