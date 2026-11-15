@@ -428,7 +428,7 @@ const organizationCoreAclMigration = migrationSources[
 ];
 assert.ok(organizationCoreAclMigration, "Organization core table write-ACL hardening migration is missing.");
 const normalizedOrganizationCoreAcl = organizationCoreAclMigration
-  .replace(/\\s+/g, " ")
+  .replace(/\s+/g, " ")
   .toLowerCase();
 for (const tableName of [
   "pfms_organizations",
@@ -440,19 +440,22 @@ for (const tableName of [
     "Organization core table ACL migration must cover " + tableName
   );
 }
-assert.match(
-  normalizedOrganizationCoreAcl,
-  /revoke all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles from public, anon, authenticated/,
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "revoke all privileges on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles from public, anon, authenticated"
+  ),
   "Organization core tables must revoke all direct browser-role table privileges."
 );
-assert.match(
-  normalizedOrganizationCoreAcl,
-  /grant select on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to authenticated/,
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "grant select on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles to authenticated"
+  ),
   "Authenticated users must retain RLS-governed read access to organization core tables."
 );
-assert.match(
-  normalizedOrganizationCoreAcl,
-  /grant all privileges on table public\\.pfms_organizations, public\\.pfms_memberships, public\\.pfms_scout_profiles to service_role/,
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "grant all privileges on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles to service_role"
+  ),
   "Trusted server-side service_role must retain organization core table write access."
 );
 assert.match(
