@@ -101,3 +101,123 @@
  #authScreen .registration-progress-step strong{font-size:9px}
  #authScreen .registration-progress-step small{font-size:8px;white-space:normal}
 }
+
+
+/* PFMS login reference implementation — stadium command centre + focused access card.
+   CSS-only refinement; existing form IDs, registration flow and auth handlers remain intact. */
+#authScreen.auth-screen{
+  min-height:100svh;padding:clamp(18px,2.2vw,34px) clamp(14px,2.2vw,34px) 12px;
+  background:#07090c url('pfms-welcome.webp') center/cover fixed no-repeat;
+  position:relative;isolation:isolate;
+}
+#authScreen.auth-screen:before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,5,8,.26) 0%,rgba(3,5,8,.46) 55%,rgba(3,5,8,.82) 100%),
+    linear-gradient(0deg,rgba(2,3,5,.72),transparent 28%,rgba(2,3,5,.24));
+}
+#authScreen .auth-layout{
+  width:min(100%,1500px);grid-template-columns:minmax(0,1.55fr) minmax(430px,.95fr);
+  gap:clamp(18px,2.2vw,34px);align-items:center;
+}
+#authScreen .auth-visual{
+  min-height:min(84svh,790px);padding:clamp(24px,3vw,44px);
+  border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;
+}
+#authScreen .auth-visual:before{display:none}
+#authScreen .auth-visual-top{gap:22px;align-items:center}
+#authScreen .auth-monogram{width:112px;height:112px;flex-basis:112px;border:0;border-radius:0;
+  color:transparent;background:url('pfms-logo.svg') center/contain no-repeat;box-shadow:none;font-size:0}
+#authScreen .auth-visual-brand{font-size:clamp(20px,2.45vw,38px);letter-spacing:-.035em;line-height:1.03;gap:0}
+#authScreen .auth-visual-brand strong{font-weight:750}
+#authScreen .auth-visual-brand span{display:inline-flex;align-items:center;gap:18px;margin-top:12px;
+  color:#e0bd70;font-size:clamp(14px,1.6vw,22px);letter-spacing:.13em}
+#authScreen .auth-visual-brand span:before,#authScreen .auth-visual-brand span:after{
+  content:"";height:1px;width:clamp(35px,6vw,100px);background:linear-gradient(90deg,#9c773c,#e7c77e)}
+#authScreen .auth-visual-main{max-width:760px;margin:auto 0 0;padding:0 0 10px}
+#authScreen .auth-visual-kicker{display:none}
+#authScreen .auth-visual-main h2{font-size:clamp(26px,3.1vw,45px);line-height:1.12;letter-spacing:-.025em;margin:0 0 12px}
+#authScreen .auth-visual-main h2 em{color:#f0cf83}
+#authScreen .auth-visual-main>p{max-width:620px;font-size:clamp(14px,1.4vw,19px);line-height:1.45;color:#f0eee8}
+#authScreen .auth-pitch-stage{
+  margin-top:24px;padding:0;border:0;border-radius:0;background:transparent;backdrop-filter:none;
+  max-width:760px;min-height:0;
+}
+#authScreen .auth-pitch{aspect-ratio:2.35/1;border:1px solid #d6b56d7a;background:linear-gradient(90deg,#07090b33,#07090b05);
+  box-shadow:0 12px 34px #0008,inset 0 0 42px #e2b85c16}
+#authScreen .auth-pitch-caption{font-size:9px;color:#e1c783}
+#authScreen .auth-visual-bottom{gap:12px;margin-top:22px;color:#f0e6d1;font-size:12px;letter-spacing:.02em}
+#authScreen .auth-visual-bottom span{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;
+  border:1px solid #d6b56d30;border-radius:12px;background:#090b0ed9}
+#authScreen .auth-visual-bottom span:first-child:before{content:"◎";font-size:23px;color:#e5c174}
+#authScreen .auth-visual-bottom span:nth-of-type(2):before{content:"▥";font-size:23px;color:#e5c174}
+#authScreen .auth-visual-bottom span:nth-of-type(3):before{content:"♟";font-size:23px;color:#e5c174}
+#authScreen .auth-card{
+  max-width:570px;padding:clamp(26px,3vw,42px);border:1px solid rgba(220,184,111,.78);
+  border-radius:17px;background:linear-gradient(150deg,rgba(12,15,19,.97),rgba(5,7,10,.97));
+  box-shadow:0 22px 65px #000b,0 0 26px #d6b56d12,inset 0 1px #fff1;
+}
+#authScreen .auth-brand,#authScreen .auth-tagline{display:none}
+#authScreen .auth-card h1{margin:28px 0 4px;font-size:clamp(27px,2.6vw,38px);letter-spacing:-.03em;color:#f8f7f4}
+#authScreen .auth-intro{margin:0 0 22px;color:#c2c2c4;font-size:15px}
+#authScreen .auth-mode-switch{margin:0 0 25px;padding:3px;gap:4px;border:1px solid #35383d;border-radius:12px;background:#171a1f}
+#authScreen .auth-mode-option{min-height:52px;border-radius:9px;font-size:14px;color:#a9abb0}
+#authScreen .auth-mode-option.active{border-color:#b58a43;background:linear-gradient(180deg,#292a2c,#111316);
+  color:#fff;box-shadow:inset 0 -3px #e9bd61,0 4px 14px #0008}
+#authScreen .auth-card .field{position:relative;display:grid;gap:8px;margin:16px 0;color:#d6d6d8;font-size:0}
+#authScreen .auth-card .field>span,#authScreen .auth-card .field:not(#signupEmailField):not(#signupPasswordField){font-size:12px}
+#authScreen #signupEmailField input,#authScreen #signupPasswordField input{
+  min-height:60px;padding:14px 16px 14px 58px;border:1px solid #4b4e54;border-radius:12px;
+  background-color:rgba(22,25,30,.94);font-size:15px;color:#f7f5ef;
+  box-shadow:inset 0 1px #ffffff08;
+}
+#authScreen #signupEmailField:after,#authScreen #signupPasswordField:after{
+  position:absolute;left:19px;top:50%;transform:translateY(-50%);font-size:22px;color:#e3bd69;pointer-events:none;
+}
+#authScreen #signupEmailField:after{content:"✉"}
+#authScreen #signupPasswordField:after{content:"♙"}
+#authScreen #signupEmailField input::placeholder,#authScreen #signupPasswordField input::placeholder{color:#aeb0b5}
+#authScreen .auth-actions{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px 16px;margin-top:20px}
+#authScreen #loginButton{grid-column:1/-1;grid-row:2;min-height:58px;border:0;border-radius:11px;
+  background:linear-gradient(110deg,#f5d47f,#d7a94e 70%,#9e6d2b);color:#17120a;
+  font-size:17px;font-weight:750;box-shadow:0 7px 22px #d5a54a2b}
+#authScreen #loginButton:after{content:"›";font-size:25px;margin-left:14px;vertical-align:-2px}
+#authScreen #forgotPasswordButton{grid-column:2;grid-row:1;justify-self:end;padding:5px 0}
+#authScreen #passkeyLoginButton{grid-column:1/-1;grid-row:3;min-height:54px;border:1px solid #4c4f55;border-radius:11px;
+  background:#111418;color:#f1f0ec;font-size:14px}
+#authScreen #signupButton{grid-column:1/-1;grid-row:4}
+#authScreen .auth-actions .btn-secondary{background:#111418;border-color:#4c4f55;color:#f1f0ec}
+#authScreen .auth-message{margin:12px 0}
+#authScreen .auth-footnote{display:block;text-align:center;margin-top:20px;padding-top:15px}
+#authScreen .site-footer{color:#aaa}
+@media(max-width:900px){
+ #authScreen .auth-layout{grid-template-columns:minmax(0,1fr) minmax(360px,.95fr)}
+ #authScreen .auth-visual{min-height:700px;padding:20px}
+ #authScreen .auth-monogram{width:76px;height:76px;flex-basis:76px}
+ #authScreen .auth-visual-brand{font-size:clamp(18px,2.6vw,27px)}
+}
+@media(max-width:760px){
+ #authScreen.auth-screen{background-attachment:scroll;padding:14px 12px}
+ #authScreen.auth-screen:before{background:linear-gradient(180deg,#05070ad9,#05070a85 50%,#05070af2)}
+ #authScreen .auth-layout{grid-template-columns:minmax(0,1fr);gap:12px}
+ #authScreen .auth-visual{min-height:0;padding:16px 12px 6px}
+ #authScreen .auth-visual-top{gap:12px}
+ #authScreen .auth-monogram{width:58px;height:58px;flex-basis:58px}
+ #authScreen .auth-visual-brand{font-size:clamp(17px,5vw,24px)}
+ #authScreen .auth-visual-brand span{font-size:12px;margin-top:8px}
+ #authScreen .auth-visual-main{padding:20px 0 0;margin:0}
+ #authScreen .auth-visual-main h2{font-size:25px}
+ #authScreen .auth-visual-main>p{font-size:13px}
+ #authScreen .auth-pitch-stage{display:none}
+ #authScreen .auth-visual-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:15px}
+ #authScreen .auth-visual-bottom span{justify-content:center;flex-direction:column;gap:3px;padding:8px 4px;text-align:center;font-size:9px}
+ #authScreen .auth-card{max-width:620px;padding:22px 18px;border-radius:15px}
+ #authScreen .auth-card h1{margin-top:18px}
+ #authScreen .site-footer{padding-top:10px}
+}
+@media(max-width:390px){
+ #authScreen .auth-visual-brand{font-size:15px}
+ #authScreen .auth-visual-brand span{font-size:10px}
+ #authScreen .auth-card{padding:19px 15px}
+ #authScreen .auth-mode-option{min-height:46px}
+ #authScreen #signupEmailField input,#authScreen #signupPasswordField input{min-height:54px}
+}
