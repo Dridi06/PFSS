@@ -805,3 +805,5 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Der Frontend-Request ist an Administrator, Benutzer-ID, Authentifizierungs-Generation, Organisations-Detail und die jeweils neueste Filter-/Seitenanfrage gebunden. Speichervorgänge prüfen dieselben Grenzen vor UI-Updates.
 - Das Read-only-Staging-Audit prüft SECURITY DEFINER, leeren search_path, Admin-Prüfung, EXECUTE-Rechte und Pagination. Regressionstests decken RPC-Nutzung, Filter, Zähler, Seiten und stale-response-Schutz ab.
 - Noch nicht auf Supabase Staging angewendet oder zur Laufzeit getestet. Keine Render-Änderung, kein Deployment, keine Produktionsmigration und keine Änderung an `main`.
+
+- CI-Nachweis für diesen Entwicklungsschritt: Commit `a485cddc407aadffc09ae03d6d5ce3df4ab19d41`, Push-Run [43715340949](https://github.com/Dridi06/PFSS/actions/runs/43715340949) und PR-Run [43715344055](https://github.com/Dridi06/PFSS/actions/runs/43715344055) erfolgreich; Node-/Build-/Regressionstests und Deno Edge-Function-Typprüfung bestanden.
