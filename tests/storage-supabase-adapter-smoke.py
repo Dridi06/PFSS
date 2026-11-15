@@ -67,7 +67,7 @@ def main():
     reject(**{**base, "user_access_token": "not-a-jwt"})
 
     before = len(calls)
-    for prefix, limit, offset in [("../", 10, 0), ("/absolute", 10, 0),
+    for prefix, limit, offset in [("../", 10, 0), ("\\\\escape", 10, 0), ("/absolute", 10, 0),
                                   ("ok/", 0, 0), ("ok/", 10, -1)]:
         try:
             fetch(prefix, limit, offset)
