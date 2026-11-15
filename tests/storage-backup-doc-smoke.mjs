@@ -12,7 +12,7 @@ const [plan, scoutMigration, mediaMigration, acceptance, restoreGuide] = await P
 ]);
 
 // The documented storage inventory must match the checked-in schema.
-assert.match(scoutMigration, /values\\s*\\(\\s*'pfss-scout-private'\\s*,\\s*'pfss-scout-private'\\s*,\\s*false/i);
+assert.match(scoutMigration, /values\s*\(\s*'pfss-scout-private'\s*,\s*'pfss-scout-private'\s*,\s*false/i);
 assert.match(scoutMigration, /create table if not exists public\.pfss_scout_media/i);
 assert.match(mediaMigration, /create table if not exists public\.pfms_main_media/i);
 assert.match(mediaMigration, /storage_path\s*~\s*\('\^\[0-9a-fA-F-\]\{36\}\/main\//i);
@@ -20,7 +20,7 @@ assert.match(plan, /pfss-scout-private/);
 assert.match(plan, /pfss_scout_media/);
 assert.match(plan, /pfms_main_media/);
 assert.match(plan, /<user-id>\/main\//);
-assert.match(plan, /<user-id>\/\<dateiname\>/);
+assert.match(plan, /<user-id>\/<dateiname>/);
 
 // Storage security is read-only and integrity-oriented; destructive sync is forbidden.
 for (const phrase of ["read-only", "SHA-256", "isoliertes Testprojekt", "keine Quellobjekte löschen", "keine öffentlichen URLs"]) {
