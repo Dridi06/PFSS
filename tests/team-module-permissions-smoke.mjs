@@ -298,6 +298,15 @@ assert.doesNotMatch(
   "Calendar UI must route event/tournament creation through the events module."
 );
 
+const appSource = await readFile(resolve(process.cwd(), "app.js"), "utf8");
+const calendarTypeMap = appSource.match(/const PFMS_TEAM_CALENDAR_TYPES = \\{([\\s\\S]*?)\\};/)?.[1] || "";
+assert.ok(calendarTypeMap, "Calendar UI type map must exist.");
+assert.doesNotMatch(
+  calendarTypeMap,
+  /\\b(?:event|tournament)\\s*:/,
+  "Calendar UI type map must not treat event-owned types as calendar entries."
+);
+
 console.log(
   "PFMS team permission regression tests passed: " +
     rpcCount +
