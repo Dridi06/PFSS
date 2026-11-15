@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090a0c">
-  <meta name="description" content="PFMS – Professionell Football Management System">
-  <title>PFMS | Professionell Football Management System</title>
+  <meta name="description" content="Professional Football Management System – die Plattform für Fußballmanagement, Scouting und fundierte Entscheidungen.">
+  <title>Professional Football Management System | Sicherer Zugang</title>
   <link rel="stylesheet" href="styles.css?v=pfms-staff-status-hsts-20261114-4">
+  <link rel="stylesheet" href="pfms-auth-executive.css?v=20261115-1">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script src="pfms-config.js" defer></script>
@@ -16,14 +17,28 @@
 <body>
 
   <main id="authScreen" class="auth-screen">
-    <section class="auth-card">
+    <div class="auth-layout">
+      <section class="auth-visual" aria-label="Professional Football Management System – Scouting und Fußballanalyse">
+        <div class="auth-visual-top">
+          <span class="auth-monogram" aria-hidden="true">P</span>
+          <div class="auth-visual-brand"><strong>PROFESSIONAL FOOTBALL</strong><strong>MANAGEMENT SYSTEM</strong><span>PFMS · FOOTBALL INTELLIGENCE</span></div>
+        </div>
+        <div class="auth-visual-main">
+          <span class="auth-visual-kicker">THE INTELLIGENCE BEHIND THE GAME</span>
+          <h2>Understand the game.<br><em>Manage the future.</em></h2>
+          <p>Die zentrale Arbeitsumgebung für professionelles Fußballmanagement, Scouting und fundierte Entscheidungen.</p>
+          <div class="auth-pitch-stage" aria-hidden="true"><div class="auth-pitch"><span class="auth-pitch-half"></span><span class="auth-pitch-circle"></span><span class="auth-pitch-box auth-pitch-box-left"></span><span class="auth-pitch-box auth-pitch-box-right"></span><i class="auth-pitch-node node-one"></i><i class="auth-pitch-node node-two"></i><i class="auth-pitch-node node-three"></i><span class="auth-pitch-route route-one"></span><span class="auth-pitch-route route-two"></span></div><div class="auth-pitch-caption"><span>TACTICAL OVERVIEW</span><span>SCOUTING INTELLIGENCE</span></div></div>
+        </div>
+        <div class="auth-visual-bottom"><span>PRECISION</span><i></i><span>PERFORMANCE</span><i></i><span>PROGRESS</span></div>
+      </section>
+      <section class="auth-card">
       <div class="auth-brand">
         <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="PFMS">
-        <div class="auth-brand-name">PROFESSIONELL FOOTBALL MANAGEMENT SYSTEM</div>
+        <div class="auth-brand-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
       </div>
-      <div class="auth-tagline">Die perfekte Lösung für Vereine, Agenturen und Scouts</div>
+      <div class="auth-tagline">Die zentrale Plattform für Fußballmanagement, Scouting und Analyse.</div>
 
-      <h1 id="authTitle">Willkommen bei PFMS.</h1>
+      <h1 id="authTitle">Willkommen zurück.</h1>
       <p id="authIntro" class="auth-intro">
         Wähle, ob du dich anmelden oder ein neues Konto registrieren möchtest.
       </p>
@@ -240,7 +255,8 @@
 
       <small class="auth-footnote">Geschützter Zugang · PFMS · © 2026 PFMS</small>
     </section>
-    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 PFMS · Logo- und Markenhinweis</span></footer>
+    </div>
+    <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 Professional Football Management System</span></footer>
   </main>
 
   <main id="pendingScreen" class="auth-screen hidden">
@@ -279,11 +295,11 @@
 
   <section id="welcomeSequence" class="welcome-sequence hidden" aria-live="polite">
     <div class="welcome-sequence-content">
-      <div class="welcome-brand">PFMS</div>
+      <div class="welcome-brand">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
       <div class="welcome-line"></div>
-      <div class="welcome-title">WILLKOMMEN BEI PFMS</div>
+      <div class="welcome-title">WILLKOMMEN</div>
       <div id="welcomeUser" class="welcome-user">Willkommen!</div>
-      <div class="welcome-subtitle">Professionell Football Management System</div>
+      <div class="welcome-subtitle">PFMS · FOOTBALL INTELLIGENCE</div>
     </div>
   </section>
 

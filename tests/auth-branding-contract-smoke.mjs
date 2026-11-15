@@ -1,0 +1,12 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const html=fs.readFileSync(new URL("../index.html",import.meta.url),"utf8");
+const css=fs.readFileSync(new URL("../pfms-auth-executive.css",import.meta.url),"utf8");
+const ids=["authScreen","authForm","authTitle","authIntro","chooseLogin","chooseRegister","registrationChoice","registrationType","selectedRegistrationLabel","changeRegistrationChoice","signupUsernameField","signupEmailField","signupPasswordField","loginButton","signupButton","passkeyLoginButton","forgotPasswordButton","authMessage","ownerBootstrapForm","pendingScreen"];
+for(const id of ids)assert.match(html,new RegExp('id="'+id+'"'),"Missing auth contract id: "+id);
+for(const choice of ["user","club","agency","owner_bootstrap","scout"])assert.match(html,new RegExp('data-registration-choice="'+choice+'"'),"Missing registration choice: "+choice);
+assert.match(html,/Professional Football Management System/);
+assert.match(html,/class="auth-layout"/);assert.match(html,/class="auth-visual"/);
+assert.match(html,/pfms-auth-executive\.css/);assert.match(css,/prefers-reduced-motion/);
+assert.match(css,/:focus-visible/);assert.match(css,/@media\(max-width:760px\)/);
+console.log("PFMS executive auth branding and compatibility contract: OK");
