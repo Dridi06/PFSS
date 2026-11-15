@@ -1050,3 +1050,11 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Der statische Migrationstest schützt diese drei zusätzlichen Prüfungen gegen spätere unbeabsichtigte Entfernung.
 - Änderung ausschließlich auf `feature/pfss-complete-platform-build`; keine Migration ausgeführt, keine Datenbankverbindung, kein Deployment, kein Merge und keine Live-Änderung.
 - CI für den neuen Commit wird separat ausgewertet; der Staging-Laufzeittest bleibt offen.
+
+
+### CI-Nachweis zur Einladungstabellen-Abnahme
+
+- Nach Korrektur der neu ergänzten Test-Regulärausdrücke ist der vollständige Push-Workflow für Commit `f4e7e0088de67df3c34d47f2d1ae0621538902b6` erfolgreich durchgelaufen.
+- GitHub Actions: [Run 43724290432](https://github.com/Dridi06/PFSS/actions/runs/43724290432) – **Syntax and project smoke tests: success**, **Type-check Supabase Edge Functions: success**.
+- Der vorherige Lauf schlug ausschließlich an fehlerhaft escapten Test-Regulärausdrücken fehl; die Ursache wurde behoben und der korrigierte Stand erneut vollständig geprüft.
+- Weiterhin kein echter Supabase-Staging-Lauf und keine externe Änderung.
