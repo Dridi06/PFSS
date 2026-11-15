@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: pfms-staging-static
+    name: pfss-staging
     runtime: static
     branch: feature/pfss-complete-platform-build
     buildCommand: npm run check:syntax && npm run build && npm run test:dist
