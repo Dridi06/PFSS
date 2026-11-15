@@ -388,10 +388,12 @@ Der Feature-Branch enthält nun 62 SQL-Migrationen. Die automatisierten GitHub-A
 1. Ausschließlich das ausdrücklich dedizierte Supabase-Staging-Projekt verwenden.
 2. `supabase/STAGING_READ_ONLY_AUDIT.sql` vollständig ausführen und das Ergebnis sichern. Die Abfrage erfasst dynamisch alle Tabellen und partitionierten Tabellen in `public` und `storage`, Views, Policies, Trigger, Constraints, Tabellen-/Sequenz-/Schema-ACLs, Funktionsdefinitionen und Default-Privileges.
 3. `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` ausführen. Keine Migration aus diesem Schritt heraus anwenden.
-4. Die tatsächlichen Staging-Migrationsversionen gegen alle 62 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
+4. Die tatsächlichen Staging-Migrationsversionen gegen alle 63 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
 5. Erst nach dokumentierter Freigabe die additive Migrationen einzeln in der vorgesehenen Reihenfolge anwenden. Live und Produktion bleiben unangetastet.
 
 ### Neue Read-only-Acceptance-Prüfpunkte
+
+- `ddl_rls_event_trigger_fail_closed`: Der aktive `ensure_rls`-Event-Trigger muss auf `ddl_command_end` mit genau den erwarteten DDL-Tags registriert sein. Seine SECURITY-DEFINER-Funktion muss einen leeren `search_path` verwenden, darf nicht für `PUBLIC`, `anon` oder `authenticated` ausführbar sein und muss bei Fehlern während der RLS-Aktivierung die Tabellenerstellung abbrechen.
 
 Folgende Prüfungen müssen jeweils `passed = true` liefern:
 
@@ -412,6 +414,8 @@ Folgende Prüfungen müssen jeweils `passed = true` liefern:
 6. **Regression:** Nach Änderung oder Suspendierung einer Organisationsmitgliedschaft alle relevanten Team-RPCs erneut prüfen. Eine noch aktive Teamzuweisung darf eine fehlende oder gesperrte Organisationsmitgliedschaft nicht ersetzen.
 
 ### Neue additive Migrationen
+
+- `20261228_pfms_ddl_rls_fail_closed.sql`: DDL-Event-Trigger für neue öffentliche Tabellen erhält einen leeren `search_path`, entzieht direkte Browser-EXECUTE-Rechte und bricht die DDL-Transaktion ab, wenn RLS nicht aktiviert werden kann.
 
 - `20261225_pfms_organization_table_write_acl_hardening.sql`: Browser-Schreibrechte auf den drei Organisationstabellen entziehen; RLS-gesteuerte SELECT-Rechte für `authenticated` erhalten.
 - `20261226_pfss_legacy_admin_profile_list_search_path.sql`: Legacy-Admin-Profil-Listen-RPC auf leeren `search_path` setzen.
