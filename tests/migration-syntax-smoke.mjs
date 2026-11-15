@@ -95,6 +95,21 @@ for (const tableName of createdPublicTables) {
 
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
+const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
+for (const tableName of createdPublicTables) {
+  const tableReference = "public\\." + tableName;
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+enable\\s+row\\s+level\\s+security"),
+    "Migration-created table must enable RLS: public." + tableName
+  );
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+force\\s+row\\s+level\\s+security"),
+    "Migration-created table must force RLS: public." + tableName
+  );
+}
+
 const functionDefinitions = combinedMigrationSql.matchAll(
   /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)\s*\([\s\S]*?\bas\s+\$\$[\s\S]*?\$\$;/gi
 );
