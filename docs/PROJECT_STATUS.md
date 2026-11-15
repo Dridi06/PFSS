@@ -655,3 +655,13 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - CI-Ergebnis: 78 Frontend-RPC-Aufrufe gegen 121 SQL-RPC-Namen aus 51 Migrationen geprüft; keine Schnittstellenabweichung. Der Test ist in `npm test` integriert.
 - Zusammen mit den Team-Berechtigungsregressionen sind damit die Datenbankfunktionsnamen und expliziten Frontend-Parameter sowie die granularen Modulrechte automatisiert gegen spätere Regressionen abgesichert. Dies ersetzt weiterhin keine echten Browser-/Supabase-Staging-Abläufe.
 - Letzter bestätigter Testlauf für den RPC-Vertragstest: GitHub Actions Run `43661228054`, beide Jobs erfolgreich. Ausschließlich Feature-Branch; kein Render-Deployment, keine Supabase-Verbindung oder Migration und keine Änderung an `main` oder Produktivdaten.
+
+
+### Kalender-/Veranstaltungsgrenze auch in SECURITY-DEFINER-RPCs geschlossen – 15.11.2026
+
+- Die erneute Rollenprüfung hat eine echte Umgehung der zuvor gehärteten SELECT-Policy aufgedeckt: `pfms_list_legacy_team_calendar` läuft als SECURITY DEFINER und gab bislang auch Event-/Turnierzeilen zurück, sobald nur `calendar.view` vorhanden war. Die direkte RLS-Policy allein konnte diesen RPC-Pfad nicht begrenzen.
+- Neue Migration `20261217_pfms_calendar_events_rpc_boundary.sql`: Kalender-Lese-RPC filtert Event-/Turnierzeilen aus; Kalender-Schreib-RPCs akzeptieren ausschließlich `match`, `meeting` und `other`; der Update-RPC prüft zuerst den bestehenden Datensatztyp und verweigert Event-/Turnierzeilen sowie jede Umklassifizierung in Event-/Turnierarten. Die Events-RPCs bleiben separat an `events.view/edit` gebunden.
+- Die Kalenderoberfläche zeigt die drei zulässigen Kalendertypen an. Veranstaltungen und Turniere werden ausschließlich über den Veranstaltungsbereich verwaltet.
+- `tests/team-module-permissions-smoke.mjs` schützt jetzt die neuesten SECURITY-DEFINER-Funktionskörper sowie die erlaubten UI-Optionen gegen Regression. `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` prüft zusätzlich die installierten Funktionsdefinitionen, search_path und EXECUTE-Grants anhand der tatsächlichen Staging-Kataloge.
+- Die Staging-Abnahme wurde entsprechend präzisiert: `calendar.view` sieht keine Event-/Turnierzeilen; weder Erstellen noch Aktualisieren über Kalender-RPCs darf Events/Turniere umgehen. Die vorherige pauschale Erwartung, `calendar.view` decke den vollständigen gemeinsamen Kalender ab, ist damit ausdrücklich ersetzt.
+- Statischer Code- und CI-Nachweis; noch nicht in Supabase angewendet oder zur Laufzeit getestet. Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration und keine Änderung an `main` oder Produktivdaten.
