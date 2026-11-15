@@ -31,7 +31,7 @@ Die Branches dürfen nicht blind zusammengeführt, rebased oder in Render umgesc
 ## Build- und Blueprint-Konfiguration des Entwicklungsbranches
 
 Die Datei `render.yaml` auf dem Feature-Branch definiert derzeit:
-- Blueprint-Service-Name: `pfms-staging-static`
+- Blueprint-Service-Name: `pfss-staging` (an den bereits existierenden Render-Dienst angeglichen)
 - Runtime: `static`
 - Deployment-Branch: `feature/pfss-complete-platform-build`
 - Build: `npm run check:syntax && npm run build && npm run test:dist`
@@ -46,7 +46,7 @@ Der statische Build erwartet für Staging diese Variablennamen:
 
 Keine Werte oder Secrets in GitHub/Chat eintragen. Insbesondere darf niemals ein Supabase Secret-/Service-Role-Key in eine statische Browser-App gelangen.
 
-**Wichtige Abweichung zum Live-Dienst:** Das Dashboard zeigt den existierenden Dienst `pfss-staging`, nicht `pfms-staging-static`, und er verfolgt derzeit `foundation/permissions-v1`, nicht den Feature-Branch. Ein `render.yaml` wurde auf `foundation/permissions-v1` nicht gefunden. Ob der Live-Dienst blueprint-verwaltet ist, ist nicht belegt.
+**Wichtige Abweichung zum Live-Dienst:** Der Blueprint-Service-Name wurde inzwischen auf `pfss-staging` angeglichen; der Dienstname allein bestätigt jedoch noch keine Blueprint-Verknüpfung. Das Dashboard zeigt außerdem `pfss-staging`, und er verfolgt derzeit `foundation/permissions-v1`, nicht den Feature-Branch. Ein `render.yaml` wurde auf `foundation/permissions-v1` nicht gefunden. Ob der Live-Dienst blueprint-verwaltet ist, ist nicht belegt.
 
 Daher darf `render.yaml` nicht blind synchronisiert und der Render-Branch nicht ohne weiteren Abgleich umgestellt werden. Eine falsche Blueprint-Synchronisierung könnte einen zusätzlichen Dienst anlegen oder den bestehenden Dienst unbeabsichtigt verändern.
 
