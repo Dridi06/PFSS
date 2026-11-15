@@ -12,25 +12,7 @@ target_tables AS (
   FROM pg_class c
   JOIN pg_namespace n ON n.oid = c.relnamespace
   WHERE n.nspname IN ('public', 'storage')
-    AND c.relkind IN ('r','p')
-    AND (
-      n.nspname = 'storage'
-      OR c.relname IN (
-        'profiles', 'organizations', 'organization_memberships',
-        'organization_invitations',
-        'pfms_organizations', 'pfms_memberships', 'pfms_scout_profiles',
-        'pfms_platform_owner',
-        'pfms_owner_bootstrap_requests',
-        'pfms_global_players', 'pfms_main_scouting_reports', 'pfms_main_media', 'pfms_system_events',
-        'pfss_scout_players', 'pfss_scout_reports', 'pfss_scout_media', 'pfms_legacy_org_membership_permissions',
-        'pfms_legacy_teams', 'pfms_legacy_team_staff', 'pfms_legacy_team_permissions', 'pfms_legacy_team_players',
-        'pfms_legacy_team_calendar_events', 'pfms_legacy_team_matches', 'pfms_legacy_team_match_lineup', 'pfms_legacy_training_sessions', 'pfms_legacy_training_attendance',
-        'pfms_legacy_team_training_exercises', 'pfms_legacy_training_session_exercises',
-        'pfms_legacy_team_analysis', 'pfms_legacy_team_tasks', 'pfms_legacy_team_event_participants', 'pfms_legacy_team_event_logistics', 'pfms_legacy_team_event_travel_plans',
-        'pfms_legacy_training_cycles', 'pfms_legacy_training_cycle_weeks',
-        'pfms_legacy_team_finance_entries', 'pfms_personal_tasks', 'pfms_support_tickets', 'pfms_notifications'
-      )
-    )
+    AND c.relkind IN ('r', 'p')
 ),
 column_rows AS (
   SELECT 'COLUMNS'::text AS section, t.schema_name || '.' || t.table_name AS object_name,
