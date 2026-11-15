@@ -1862,7 +1862,10 @@ document.getElementById('adminUserSearchForm').addEventListener('reset', () => w
   document.getElementById('adminUserList').dataset.page = '0';
   loadAdminUsers();
 },0));
-document.getElementById('refreshAdminButton').addEventListener('click',loadAdminUsers);
+document.getElementById('refreshAdminButton').addEventListener('click', () => {
+  loadAdminUsers();
+  void loadPfmsAdminOverview();
+});
 document.getElementById('adminUserList').addEventListener('click', event => {
   const pageButton = event.target.closest('[data-admin-page-action]');
   if (!pageButton || pageButton.disabled) return;
