@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "purpose": "Explicit temporary baseline of pre-existing duplicate Supabase migration version prefixes. This inventory prevents new collisions or silent renames while a dedicated staging migration ledger and schema are reconciled. It is not approval to apply, rename, reorder, or repair migrations.",
+  "status": "blocked-pending-staging-ledger-reconciliation",
+  "migrationDirectory": "supabase/migrations",
+  "knownDuplicateVersions": {
+    "20261110": [
+      "20261110_admin_control_center.sql",
+      "20261110_username_registration.sql"
+    ],
+    "20261111": [
+      "20261111_admin_legacy_organization_management.sql",
+      "20261111_fix_admin_scout_search_types.sql",
+      "20261111_fix_invitation_admin_access.sql",
+      "20261111_legacy_organization_invitations.sql",
+      "20261111_organizations_memberships_permissions.sql"
+    ],
+    "20261112": [
+      "20261112_pfms_legacy_org_manager_guard.sql",
+      "20261112_private_scout_workspaces.sql"
+    ],
+    "20261115": [
+      "20261115_admin_global_member_directory.sql",
+      "20261115_pfms_global_player_catalogue.sql",
+      "20261115_pfms_platform_owner_bootstrap.sql"
+    ],
+    "20261116": [
+      "20261116_pfms_legacy_admin_compat.sql",
+      "20261116_pfms_owner_bootstrap_registration_guard.sql",
+      "20261116_pfms_system_event_monitoring.sql"
+    ],
+    "20261117": [
+      "20261117_pfms_main_media_library.sql",
+      "20261117_pfms_system_event_hardening.sql"
+    ],
+    "20261118": [
+      "20261118_pfms_legacy_org_manager_guard.sql",
+      "20261118_pfms_scout_force_rls.sql"
+    ],
+    "20261121": [
+      "20261121_pfms_legacy_org_membership_management.sql",
+      "20261121_pfms_legacy_team_management.sql"
+    ],
+    "20261122": [
+      "20261122_pfms_legacy_team_permissions.sql",
+      "20261122_pfms_legacy_team_roster.sql"
+    ],
+    "20261201": [
+      "20261201_pfms_legacy_invitation_status_guard.sql",
+      "20261201_pfms_legacy_training_cycles.sql"
+    ],
+    "20261205": [
+      "20261205_pfms_legacy_team_event_logistics.sql",
+      "20261205_pfms_legacy_team_event_travel_plans.sql"
+    ]
+  }
+}
