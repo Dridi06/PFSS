@@ -50,17 +50,17 @@ assertHas(teamManage, /o\.status in \('approved', 'active'\)/, "Trainer manageme
 const permissionHelper = latestFunctionBody("pfms_has_legacy_team_permission");
 assertHas(permissionHelper, /public\.pfms_can_access_legacy_team\(p_team_id\)/, "Module rights must be subordinate to current tenant/team access.");
 assertHas(permissionHelper, /p_module_key in/, "Module permission helper must use an explicit module allowlist.");
-assertHas(permissionHelper, /p_action in \('view', 'edit'\)/, "Module permission helper must use an explicit action allowlist.");
+assertHas(permissionHelper, /p_action in \('view',\s*'edit'\)/, "Module permission helper must use an explicit action allowlist.");
 
 const staffCandidates = latestFunctionBody("pfms_list_legacy_team_staff_candidates");
 assertHas(staffCandidates, /public\.pfms_can_manage_legacy_team\(p_team_id\)/, "Only team managers may enumerate staff candidates.");
 assertHas(staffCandidates, /m\.organization_id = v_organization_id/, "Staff candidates must be limited to the team's organization.");
 assertHas(staffCandidates, /m\.status = 'active'/, "Staff candidates must have active organization membership.");
-assertHas(staffCandidates, /m\.role in \('trainer', 'co_trainer', 'betreuer'\)/, "Only operational staff roles may be assigned.");
+assertHas(staffCandidates, /m\.role in \('trainer',\s*'co_trainer',\s*'betreuer'\)/, "Only operational staff roles may be assigned.");
 
 const assignStaff = latestFunctionBody("pfms_assign_legacy_team_staff");
 assertHas(assignStaff, /public\.pfms_can_manage_legacy_team\(p_team_id\)/, "Staff assignment must require team management authority.");
-assertHas(assignStaff, /p_role not in \('trainer', 'co_trainer', 'betreuer'\)/, "Staff assignment must reject leadership and unrelated roles.");
+assertHas(assignStaff, /p_role not in \('trainer',\s*'co_trainer',\s*'betreuer'\)/, "Staff assignment must reject leadership and unrelated roles.");
 assertHas(assignStaff, /m\.organization_id = v_organization_id/, "Staff assignment must use the team's organization, not a caller-supplied organization.");
 assertHas(assignStaff, /m\.user_id = p_user_id/, "Staff assignment must bind the selected user.");
 assertHas(assignStaff, /m\.status = 'active'/, "Staff assignment must require active membership.");
@@ -71,8 +71,8 @@ assertHas(removeStaff, /public\.pfms_can_manage_legacy_team\(v_team_id\)/, "Remo
 
 const updateMembership = latestFunctionBody("pfms_update_legacy_org_membership_for_manager");
 assertHas(updateMembership, /public\.is_admin\(\) or public\.can_manage_org\(v_organization_id\)/, "Membership changes must be scoped to platform admins or managers of the owning organization.");
-assertHas(updateMembership, /p_role not in \('scout','trainer','co_trainer','betreuer','member'\)/, "Organization managers must not promote users into leadership roles.");
-assertHas(updateMembership, /v_current_role in \('owner','club_admin','agency_admin'\)/, "Leadership memberships must remain protected from organization-manager changes.");
+assertHas(updateMembership, /p_role not in \('scout',\s*'trainer',\s*'co_trainer',\s*'betreuer',\s*'member'\)/, "Organization managers must not promote users into leadership roles.");
+assertHas(updateMembership, /v_current_role in \('owner',\s*'club_admin',\s*'agency_admin'\)/, "Leadership memberships must remain protected from organization-manager changes.");
 assertHas(updateMembership, /v_user_id = auth\.uid\(\) and p_status = 'suspended'/, "Self-suspension through the manager RPC must remain blocked.");
 
 const teamManagementMigration = migrations[0].toLowerCase();
