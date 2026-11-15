@@ -157,7 +157,7 @@ relation_inventory_rows AS (
          ) AS details
   FROM pg_class c
   JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname IN ('public', 'storage')
+  WHERE (n.nspname IN ('public', 'storage') OR (n.nspname = 'auth' AND c.relname = 'users'))
     AND c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
 ),
 sequence_grant_rows AS (
@@ -175,7 +175,7 @@ sequence_grant_rows AS (
     coalesce(c.relacl, acldefault('S', c.relowner))
   ) AS acl
   LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
-  WHERE n.nspname = 'public'
+  WHERE n.nspname IN ('public', 'storage', 'auth')
     AND c.relkind = 'S'
 ),
 schema_grant_rows AS (
@@ -206,7 +206,7 @@ default_acl_rows AS (
   LEFT JOIN pg_namespace n ON n.oid = d.defaclnamespace
   CROSS JOIN LATERAL aclexplode(d.defaclacl) AS acl
   LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
-  WHERE n.nspname IN ('public', 'storage')
+  WHERE n.nspname IN ('public', 'storage', 'auth')
      OR d.defaclnamespace = 0
 ),
 bucket_rows AS (
