@@ -1,3 +1,18 @@
+# Ergänzung 15.11.2026 – Sicherheits-Audit: effektive Funktionsrechte und erweitertes Read-only-Inventar
+
+- Fortsetzung exakt ab dem bestätigten Sicherungs-Commit `a9985277ab4f9ff435b044d362991563153f2414` auf `feature/pfss-complete-platform-build`. Keine abgeschlossenen Produktbereiche wurden erneut implementiert.
+- Neuer Regressionstest `tests/security-definer-acl-effective-smoke.mjs`: wertet die effektiven EXECUTE-Rechte in der lexikografischen Migrationsreihenfolge aus, berücksichtigt PostgreSQLs standardmäßiges EXECUTE für PUBLIC und erkennt spätere GRANTs, die frühere REVOKEs wieder aufheben würden. PUBLIC und anon müssen für jede SECURITY-DEFINER-Signatur ausgeschlossen sein. Schemaweite Funktionsfreigaben und gefährliche Default-Privileges für PUBLIC/anon werden ebenfalls abgewiesen.
+- Der neue Test ist in `npm run check:syntax` und `npm test` integriert.
+- `supabase/STAGING_READ_ONLY_AUDIT.sql` bleibt eine einzelne rein lesende SQL-Abfrage. Das Inventar erfasst zusätzlich alle Relationen in public/storage einschließlich Views, Materialized Views, Foreign Tables und Sequenzen, View-Definitionen und die Option `security_invoker`; außerdem Sequenz-ACLs, Schema-ACLs für public/storage/auth und globale bzw. schemaweite Default-Privileges.
+- `tests/migration-syntax-smoke.mjs` schützt die neuen Inventarbereiche und die Read-only-Grenze gegen Regression.
+- Vollständiger GitHub-Actions-Lauf für den Code-/Auditstand erfolgreich: [Run 43720950999](https://github.com/Dridi06/PFSS/actions/runs/43720950999). Beide Jobs bestanden. CI-Protokoll: 58 SQL-Migrationen, 139 SECURITY-DEFINER-Definitionen, 108 eindeutige SECURITY-DEFINER-Signaturen mit effektiv gesperrtem PUBLIC-/anon-EXECUTE, 128 deklarierte Funktionssignaturen und 128 EXECUTE-Grants, 83 Frontend-RPC-Aufrufe gegen 128 SQL-RPC-Namen, 46 Team-RPC-Berechtigungsprüfungen und 12 FORCE-RLS-Modultabellen.
+- Das sind statische Repository-/CI-Nachweise. Die neue Read-only-Abfrage wurde nicht gegen eine externe Supabase-Datenbank ausgeführt; es wurden keine Migrationen angewendet und keine Daten gelesen oder verändert.
+- Keine Änderung an `main`, kein Merge, kein Render-Deployment, keine Supabase-Verbindung und keine Produktionsänderung. PR #1 bleibt Draft.
+- Nächste Audit-Etappe: Migrationsabhängigkeiten und die effektiven letzten Definitionen aller kritischen RPCs/Policies/Trigger weiter fachlich prüfen; danach den tatsächlichen Staging-Migrationsledger und das Schema ausschließlich lesend abgleichen. Die bekannte Branch-Divergenz zu `main` (Feature deutlich voraus, zwei Commits hinterher) bleibt ein separater Integrationsblocker.
+- Fortschrittsschätzung unverändert: ca. 78 % Implementierung und ca. 55 % Release-Reife; die zusätzliche CI-Abdeckung ersetzt keine echte Staging-Abnahme.
+
+---
+
 # Ergänzung 15.11.2026 – Einlösesperre für alte Organisationseinladungen im Staging-Audit
 
 - Das read-only Acceptance-Audit prüft jetzt zusätzlich `legacy_invitation_redemption_status_gate`: Der Auth-Registrierungstrigger muss den aktuellen Status der Zielorganisation unter Row Lock kontrollieren, abgelaufene/eingelöste/widerrufene Tokens ablehnen und darf nicht direkt von Browserrollen ausführbar sein.
