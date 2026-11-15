@@ -137,7 +137,30 @@ Das Modul `scripts/storage_archive.py` erstellt aus einem bereits lokal bereitge
 
 **Wichtige Grenze:** Dieses Archiv ist noch Klartext. Vor jeglicher dauerhaften Ablage oder Übertragung muss es mit dem bestehenden, separat geprüften Verschlüsselungs-/HMAC-Prozess geschützt werden. Es wurde weder ein Supabase-Download noch ein R2-Upload oder ein produktiver Restore ausgeführt.
 
-## 8. Noch nicht umgesetzt bzw. nicht nachgewiesen
+## 8. Authentifizierte Verschlüsselung des Storage-Archivs (neu)
+
+`scripts/storage_archive_crypto.py` ergänzt die Archivierung um einen lokalen Verschlüsselungs- und Entschlüsselungsschritt. Es verwendet dieselbe etablierte Kombination wie der bestehende Datenbank-Backup-Prozess:
+
+- OpenSSL AES-256-CBC mit Salt, PBKDF2 und 600.000 Iterationen.
+- HMAC-SHA-256 über den Chiffretext mit der bestehenden domain-separierten Schlüsselableitung aus `backup-hmac.py`.
+- Bei der Entschlüsselung wird das HMAC-Manifest zwingend **vor** dem OpenSSL-Entschlüsselungsaufruf geprüft.
+- Fehlerausgaben aus OpenSSL/HMAC werden nicht ungefiltert ausgegeben, damit keine vertraulichen Details aus Prozessausgaben durchsickern.
+- Quellarchive bleiben unverändert; bestehende Zielarchive/Manifeste werden nicht überschrieben. Temporäre Dateien werden nach dem Lauf entfernt.
+- Das Passwort wird ausschließlich aus `PFSS_BACKUP_ENCRYPTION_PASSPHRASE` gelesen; es wird nicht als CLI-Argument übergeben.
+
+Aufruf lokal nach Erstellung eines TAR-Archivs:
+
+```sh
+python3 scripts/storage_archive_crypto.py encrypt backup/storage.tar backup/storage.tar.enc
+python3 scripts/storage_archive_crypto.py decrypt backup/storage.tar.enc backup/storage.tar.enc.hmac backup/storage-restored.tar
+python3 scripts/storage_archive.py verify backup/storage-restored.tar
+```
+
+`tests/storage-archive-crypto-smoke.py` prüft den Round-trip, falsches/ manipuliertes HMAC, Chiffretext-Manipulation und das Verbot des Überschreibens. Die Tests nutzen lokale temporäre Dateien und benötigen OpenSSL; sie greifen nicht auf Supabase oder R2 zu.
+
+**Kryptografische Einordnung:** Das Verfahren folgt dem bestehenden Datenbank-Backup-Standard und schützt den Chiffretext durch HMAC. AES-CBC ist kein AEAD-Verfahren; die Authentizität wird daher durch den separaten HMAC vor der Entschlüsselung gewährleistet. Ein späterer Algorithmuswechsel muss für Datenbank- und Storage-Backups gemeinsam geplant und getestet werden.
+
+## 9. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
 - Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen; der Adapter wurde ausschließlich mit einem Fake-Transport getestet.
