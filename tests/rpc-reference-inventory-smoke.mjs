@@ -49,14 +49,14 @@ assert.ok(functions.size > 0, "No public SQL function definitions found.");
 const unresolvedRpcCalls = [];
 const dynamicRpcCalls = [];
 function collectRpcCalls(source, file, target) {
-  const pattern = /\\.rpc\\s*\\(\\s*(['"])([a-z_][a-z0-9_]*)\\1/gi;
+  const pattern = /\.rpc\s*\(\s*(['"])([a-z_][a-z0-9_]*)\1/gi;
   for (const match of source.matchAll(pattern)) {
     const name = match[2].toLowerCase();
     const record = functions.get(name);
     if (record) record[target].push(file);
     else unresolvedRpcCalls.push({ file, name });
   }
-  const dynamicPattern = /\\.rpc\\s*\\(\\s*(?!['"])([^,\\s)]+)/gi;
+  const dynamicPattern = /\.rpc\s*\(\s*(?!['"])([^,\s)]+)/gi;
   for (const match of source.matchAll(dynamicPattern)) {
     dynamicRpcCalls.push({ file, expression: match[1] });
   }
