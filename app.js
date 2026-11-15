@@ -5724,8 +5724,6 @@ async function savePfmsLegacyTeamMatchLineup() {
 const PFMS_TEAM_CALENDAR_TYPES = {
   match: 'Spiel',
   meeting: 'Besprechung',
-  tournament: 'Turnier',
-  event: 'Veranstaltung',
   other: 'Sonstiges'
 };
 
