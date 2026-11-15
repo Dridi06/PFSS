@@ -125,6 +125,22 @@ assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTicket
 
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
 
+const organizationDetailLoader = app.match(/async function showPfmsOrganizationDetails\(root,org\)[\s\S]*?(?=function showPfmsScoutDetails)/)?.[0] || "";
+assert.match(organizationDetailLoader, /pfms_admin_list_legacy_org_members_page/,
+  "Organization details must use the new bounded administrator membership RPC.");
+assert.match(organizationDetailLoader, /p_limit: pageSize[\s\S]*?p_offset: memberPage \* pageSize/,
+  "Organization membership details must load bounded database pages.");
+assert.match(organizationDetailLoader, /p_query: query[\s\S]*?p_status: status[\s\S]*?p_role: role/,
+  "Organization membership search, status and role filters must be applied server-side.");
+assert.match(organizationDetailLoader, /active_count[\s\S]*?pending_count[\s\S]*?suspended_count/,
+  "Organization details must display accurate membership status totals.");
+assert.match(organizationDetailLoader, /currentRequestId !== memberRequestId[\s\S]*?isCurrentDetailRequest/,
+  "Organization member pages must reject stale requests after filter, page or organization changes.");
+assert.match(organizationDetailLoader, /pfmsAdminPaginationMarkup/,
+  "Organization member details must expose accessible page navigation.");
+assert.doesNotMatch(organizationDetailLoader, /pfms_admin_list_legacy_org_members['"]/,
+  "Organization details must not fall back to the unbounded legacy membership RPC.");
+
 const adminOverviewLoader = app.match(/async function loadPfmsAdminOverview\(\)[\s\S]*?(?=async function loadAdminUsers)/)?.[0] || "";
 assert.match(adminOverviewLoader, /pfms_admin_search_legacy_organizations_page[\s\S]*?p_limit: 1[\s\S]*?p_offset: 0/,
   "The admin overview must count organizations through the bounded, protected directory RPC.");
