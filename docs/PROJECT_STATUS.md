@@ -670,3 +670,13 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - Abschließender GitHub-Actions-Lauf nach der Ergänzung der Kalender-/Event-RPC-Regressionen erfolgreich: Commit `54d7adc08baceb0ec44280a6b0850dc388e36178`, Run [43661689408](https://github.com/Dridi06/PFSS/actions/runs/43661689408). Beide Jobs erfolgreich.
 - Laufprotokoll: 52 SQL-Migrationen und 130 SECURITY-DEFINER-Definitionen geprüft; 46 Team-RPC-Berechtigungsprüfungen, 12 FORCE-RLS-Modultabellen, 78 Frontend-RPC-Aufrufe gegen 121 SQL-RPC-Namen sowie Funktionsrechte erfolgreich. Build-, Accessibility-, Backup-/Storage- und Edge-Function-Prüfungen ebenfalls erfolgreich.
 - Die statische Abnahme beweist nicht, dass die Migration bereits in der externen Staging-Datenbank installiert ist. Die neue read-only Staging-Katalogprüfung und die getrennten Rollen-Negativtests sind vor jeder Staging-Freigabe weiterhin auszuführen.
+
+
+## Ergänzung 15.11.2026 – Mandanten- und Rollenisolierung als CI-Regressionsschutz
+
+- Neue Datei `tests/tenant-role-isolation-smoke.mjs`: prüft die effektiven Definitionen der Teamzugriffs- und Verwaltungshelfer, die aktive Organisationsmitgliedschaft, Rollenübereinstimmung zwischen Organisation und Teamzuordnung, die Trainer-Verwaltungsrolle, die organisationsgebundene Kandidatensuche und Teammitarbeiter-Zuordnung, den Schutz von Inhaber-/Adminrollen sowie die ausschließlichen RPC-Schreibrechte auf Teammitarbeiter.
+- Der Test läuft in `npm test` und schützt die zentralen Mandantengrenzen gegen spätere unbeabsichtigte Änderungen.
+- `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` enthält vier zusätzliche Katalogprüfungen für Teamzugriff, Trainer-Verwaltungsrecht, organisationsgebundene Teammitarbeiter-Zuordnung und den Schutz von Führungsrollen.
+- `docs/STAGING_DEPLOYMENT.md` ergänzt konkrete Positiv-/Negativfälle: aktive und gesperrte Mitgliedschaften, Rollenwechsel, zweite Organisation, Co-Trainer-/Betreuergrenzen, direkte Tabellen-Schreibversuche und Führungsrollen.
+- Vollständiger CI-Lauf erfolgreich: [Run 43662180691](https://github.com/Dridi06/PFSS/actions/runs/43662180691). Die neuen Mandanten-/Rollentests und sämtliche bestehenden Node-/Build-/SQL-/Storage-Prüfungen sowie die Edge-Function-Typprüfung sind erfolgreich.
+- Statischer Repository-Nachweis; die externen Staging-Rollen müssen weiterhin mit getrennten Testkonten praktisch abgenommen werden. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration, keine Produktivdatenänderung und keine Änderung an `main`.
