@@ -901,3 +901,49 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - `tests/migration-syntax-smoke.mjs` prüft diese Reihenfolge nun ausdrücklich, einschließlich der gehärteten SECURITY-DEFINER-/leerer-search_path-Definition.
 - Die ursprüngliche Migration `20261118_pfms_legacy_org_manager_guard.sql` bleibt zusätzlich als idempotente Wiederholung erhalten, damit ein eventuell bereits vorhandener Remote-Migrationsledger-Eintrag nicht verwaist. Die frühere `20261112`-Migration stellt sicher, dass die Funktion bereits vor den nachfolgenden RPC-Verbrauchern existiert. Die spätere `20261222`-Migration ergänzt weiterhin den Status-Gate für freigegebene/aktive Organisationen.
 - Die Anpassung betrifft ausschließlich den Feature-Branch. Noch keine Migration auf Supabase ausgeführt; keine Staging-/Live-Daten geändert.
+
+
+---
+
+# Projekt-Sicherung / Übergabepunkt – 15.11.2026, 12:xx Uhr
+
+## Verbindlicher Arbeitsstand
+- Repository: `Dridi06/PFSS`
+- Arbeitsbranch: `feature/pfss-complete-platform-build`
+- Letzter verifizierter Entwicklungsstand vor dieser Sicherung: `c4a448a1dce9daa01f61e0733d7390fb808bca5f`
+- Pull Request: #1 – `PFMS — Integrationsprüfung des Entwicklungsstands`, weiterhin **Draft / offen**.
+- Live-URL: https://pfss-scouting.onrender.com/ (nicht verändert).
+- CI am oben genannten Commit: Push-Workflow und PR-Workflow erfolgreich, jeweils beide Jobs bestanden. Dies belegt Quellcode-/Build-/Testverträge, nicht die reale Supabase- oder Render-Laufzeit.
+- Feature-Branch enthält 58 SQL-Migrationsdateien. Die vorgezogene Hilfsfunktion `can_manage_org(uuid)` liegt in `20261112_pfms_legacy_org_manager_guard.sql`; die idempotente Migration vom 18.11. bleibt für Ledger-Kompatibilität bestehen. Die spätere aktive/freigegebene Organisationsstatusgrenze liegt in `20261222_pfms_legacy_org_manager_active_org_gate.sql`.
+
+## Inhaltlich erreichte Bereiche
+- Frontend-/Plattformbasis, Navigation und modulare Organisations-/Teamverwaltung.
+- Authentifizierung, Profil-/Rollenprüfung, Sitzungswechsel- und Request-Isolation.
+- Organisations- und Teammitgliedschaften, Einladungen und Berechtigungsprüfungen.
+- Team-Module einschließlich Kader, Training, Kalender, Spiele, Analyse, Veranstaltungen, Aufgaben, Finanzen und Benachrichtigungen.
+- Plattformadministration mit Benutzer-/Organisations-/Mitgliedersuche, Support-Postfach und Systemereignisprotokoll; mehrere Admin-Listen serverseitig paginiert.
+- RLS-/RPC-/Grant-Verträge, Migrationssyntax- und Abhängigkeitsprüfungen, Tenant-/Rollenregressionen und Read-only-Staging-Audits.
+- Backup-/Restore- und Storage-Archivierungsbausteine samt statischen Tests/Dokumentation.
+- Render-Staging-Blueprint und Deployment-Dokumentation sind vorbereitet, aber noch nicht real im Staging abgenommen.
+
+## Prozentuale Einschätzung (Arbeitsplanung, keine technische Messgröße)
+- **Implementierung im Feature-Branch: ca. 78 %.** Die wesentlichen Plattform-, Team-, Admin-, Sicherheits- und Backup-Bausteine sind weitgehend implementiert und CI-geprüft.
+- **Gesamte Release-/Produktionsreife: ca. 55 %.** Der Abstand entsteht vor allem durch noch ausstehende reale Staging-Integration, Datenbank-/Migrationsledger-Abgleich, Ende-zu-Ende-Rollentests, Render-Konfiguration/Deployment-Abnahme und anschließende Fehlerkorrekturen.
+- Prozentwerte sind eine transparente Schätzung nach Arbeitsblöcken; sie sind keine Aussage, dass 78 % aller denkbaren Produktanforderungen vollständig erfüllt sind.
+
+## Offene Arbeit – Reihenfolge für die Fortsetzung
+1. Vollständige statische Prüfung der 58 Migrationen und ihrer Abhängigkeiten: Tabellen, Funktionen/RPCs, Trigger, Policies, Grants, Storage-Objekte und Reihenfolge.
+2. Branch-/Historienabgleich mit `main`: Der Vergleich meldet **diverged**, Feature-Branch **1.199 Commits voraus und 2 zurück**. Nicht blind mergen, rebasen oder force-pushen. Vor Integration die beiden Main-only-Commits und die Migration-Historie einzeln bewerten.
+3. Remote Supabase-Migrationsledger und tatsächliches Staging-Schema read-only erfassen und mit dem geplanten Migrationssatz abgleichen. Bisher wurde der externe Ledger nicht direkt geprüft.
+4. Read-only-Staging-Audits ausführen; danach mit getrennten Testkonten Admin, Organisationsleitung, Scout, Teammitglied und Nichtmitglied testen (Tenant-Trennung, direkte RPC-Aufrufe, RLS, Einladungen, Statussperren).
+5. Render-Staging-Blueprint und Umgebungsvariablen prüfen, erst danach kontrolliertes Staging-Deployment und Browser-/Mobil-/E2E-Abnahme.
+6. Fehler beheben, CI erneut vollständig grün bestätigen, Restore-/Backup-Probe durchführen und erst dann Integrations-/Release-Entscheidung treffen.
+
+## Unveränderliche Sicherheitsgrenzen
+- **Keine Änderungen an Live/Produktion**: kein Render-Produktionsdeployment, keine produktiven Supabase-Migrationen, keine Datenänderungen.
+- Keine Supabase-Migration automatisch anwenden; keine Datenbankänderungen ohne explizite Freigabe und vorherigen Backup-/Rollback-Plan.
+- PR #1 bleibt Draft, bis Branch-Historie, Migrationsledger und Staging-Abnahme geklärt sind.
+- CI-Erfolg niemals als Ersatz für echte Datenbank-/Staging-Abnahme darstellen.
+
+## Startpunkt für den nächsten Chat
+Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platform-build`, ab Commit `c4a448a1dce9daa01f61e0733d7390fb808bca5f` (bzw. dem nachfolgenden Sicherungs-Commit dieser Datei). Zuerst den vollständigen Migrations-/RPC-/RLS-/Tenant-Isolationsaudit fortsetzen und die Ergebnisse als additive Tests/Dokumentation absichern. In größeren zusammenhängenden Arbeitspaketen selbstständig vorgehen, nur den Nutzer bei nicht reversiblen externen Aktionen um Freigabe bitten. Live bleibt unangetastet.
