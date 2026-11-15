@@ -22,7 +22,7 @@ The percentages for partially completed product workstreams are engineering esti
 
 - Repository: `Dridi06/PFSS`
 - Branch: `feature/pfss-complete-platform-build`
-- Current code checkpoint commit: `07b3bf28aa2d816124989ca11afbfc2697b65a95`
+- Current code checkpoint commit: `931c832747f2c7d5bdc9b7bd3b6037d332795831`
 - PR #1 remains open and Draft; do not merge or deploy without explicit approval.
 - CI push run [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357): both jobs passed.
 - CI pull-request run [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779): both jobs passed.
@@ -113,5 +113,16 @@ No live Supabase migration was executed. No staging or production database was q
 - Added `tests/staging-acceptance-sql-contract-smoke.mjs` to validate the 63 named checks in `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql`.
 - The test requires unique check identifiers, a stable `check_name / passed / details` output schema, a single read-only SQL statement and critical auth/tenant acceptance gates.
 - Integrated the contract test into `npm test`; the SQL audit itself remains read-only and has not been run against a live project.
-- Code head at documentation update: `483ed9182a374cfa14c25d43cdd04d4a7f2f4237`; CI pending.
+- The acceptance contract and all preceding changes passed push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341), both jobs successful on code head `931c832747f2c7d5bdc9b7bd3b6037d332795831`.
 - Overall project estimate remains 76% provisional. The actual staging ledger and two-tenant runtime acceptance are still outstanding.
+
+
+## Latest verified development state – 15 November 2026
+
+- Canonical package metadata now spells the product name **Professional Football Management System** correctly.
+- The migration collision baseline and staging acceptance SQL contract are both integrated into `npm test`.
+- The read-only staging acceptance SQL contains 63 unique named checks. CI verifies the result contract and mutation-free single-statement boundary; it does not run the SQL against a live database.
+- Final verified code head: `931c832747f2c7d5bdc9b7bd3b6037d332795831`.
+- Push CI [43735736544](https://github.com/Dridi06/PFSS/actions/runs/43735736544) and PR CI [43735742341](https://github.com/Dridi06/PFSS/actions/runs/43735742341) both passed all jobs.
+- PR #1 remains open and Draft. No merge, Render deployment, or live Supabase operation was performed.
+- Overall estimate remains 76% provisional. Staging ledger reconciliation and two-tenant runtime acceptance remain release blockers.
