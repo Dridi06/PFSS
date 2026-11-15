@@ -56,6 +56,9 @@ assert.match(adminOrganizationDetails, /isCurrentDetailRequest[\s\S]*?pfms_admin
   "Organization member details must be bound to the selected organization and active admin session.");
 assert.match(adminOrganizationDetails, /pfms_create_legacy_invitation[\s\S]*?isCurrentDetailRequest/,
   "Invitation results must not be rendered into a stale administrator view.");
+const adminMemberActions = app.match(/results\.addEventListener\('click',[\s\S]*?pfms_admin_update_legacy_membership[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
+assert.match(adminMemberActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
+  "Global membership changes must remain bound to the administrator session that initiated them.");
 const adminEventActions = app.match(/results\.addEventListener\('click',[\s\S]*?(?=results\.dataset\.pfmsBound)/)?.[0] || "";
 assert.match(adminEventActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?isCurrentPfmsAdminRequest/,
   "System-event triage writes must not update stale or non-admin UI state.");
