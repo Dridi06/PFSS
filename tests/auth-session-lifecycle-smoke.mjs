@@ -108,6 +108,10 @@ assert.match(adminSupportLoader, /count: 'exact'[\s\S]*?\.range\(page \* pageSiz
   "The administrator support inbox must fetch a bounded database page with an exact total.");
 assert.match(adminSupportLoader, /requestId !== pfmsAdminSupportRequestId[\s\S]*?isCurrentPfmsAdminRequest/,
   "The administrator support inbox must reject stale sessions and out-of-order requests.");
+const adminSupportSave = app.match(/async function savePfmsAdminSupportTicket\(card\)[\s\S]*?(?=function setupPfmsSupportTickets)/)?.[0] || "";
+assert.match(adminSupportSave, /isCurrentPfmsAdminRequest/,
+  "Support ticket writes must remain bound to a currently authorized administrator session.");
+
 assert.match(adminSupportLoader, /if \(status\) request = request\.eq\('status', status\)/,
   "The support status filter must be applied by the database.");
 const adminSupportRenderer = app.match(/function renderPfmsAdminSupportTickets\(\)[\s\S]*?(?=async function loadPfmsAdminSupportTickets)/)?.[0] || "";
