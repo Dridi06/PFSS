@@ -339,3 +339,15 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Negativtest: Organisationsstatus wird auf `suspended` gesetzt. Normale Teammitarbeiter dürfen keine Modulrechte oder Berechtigungslisten mehr abrufen.
 - Positivtest: Aktive Organisationsmitgliedschaft, aktiver Teamstaff-Eintrag und passende Modulrechte müssen weiterhin den vorgesehenen Zugriff erlauben.
 - Tests mit getrennten Nutzerkonten für Organisationsmanager, Trainer, Mitarbeiter und Plattformadministrator durchführen. Noch nicht in einer echten Staging-Datenbank ausgeführt.
+
+
+### Organisationsbezogene Mitgliederverwaltung: Pagination und Statusübersicht
+
+- Neue additive Migration: `supabase/migrations/20261221_pfms_admin_org_member_pagination.sql`.
+- Die Plattformadministration lädt Organisationsmitglieder über `pfms_admin_list_legacy_org_members_page` in begrenzten Seiten (Standard 25, Maximum 100) und filtert Suche, Rolle und Status serverseitig.
+- Die RPC liefert zusätzlich Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler für die gewählte Organisation. Eine leere Ergebnis-Seite darf die Statussummen nicht verfälschen.
+- Read-only-Abnahme: `admin_org_member_pagination_security` und `admin_org_member_pagination_bounds` müssen `passed = true` melden; die bestehende `admin_directory_pagination_bounds` muss nun fünf geschützte Seiten-RPCs prüfen.
+- Positivtest: Plattformadministrator öffnet eine Organisation, wechselt Seiten und filtert nach Name/E-Mail/Benutzer-ID, Rolle und Status. Die Summen bleiben unabhängig vom aktiven Filter korrekt.
+- Negativtest: Nicht-Admin-Aufruf der RPC muss mit `42501` abgewiesen werden. Ungültige Status-/Rollenwerte, fehlende Organisations-ID, übergroße Seiten und Offsets müssen abgewiesen werden.
+- Regression: Während eine Seite lädt, Organisation wechseln oder abmelden; verspätete Antworten dürfen weder Details noch Mitgliederdaten der neuen Sitzung überschreiben.
+- Diese Migration ist noch nicht auf Supabase Staging angewendet. Erst nach read-only Schema-Audit anwenden und mit getrennten Admin-/Nicht-Admin-Testkonten abnehmen.
