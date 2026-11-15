@@ -144,6 +144,34 @@ for (const filename of migrationFiles) {
 const migrationSources = await Promise.all(
   migrationFiles.map((filename) => readFile(resolve(migrationsDirectory, filename), "utf8"))
 );
+
+// Legacy invitation RPCs depend on can_manage_org(uuid). The organization
+// and membership tables must exist before the helper is installed, and the
+// helper must be present before later invitation/member-management RPCs use it.
+const legacyOrganizationSchemaIndex = migrationFiles.indexOf(
+  "20261111_organizations_memberships_permissions.sql"
+);
+const organizationManagerGuardIndex = migrationFiles.indexOf(
+  "20261112_pfms_legacy_org_manager_guard.sql"
+);
+const legacyInvitationWorkspaceIndex = migrationFiles.indexOf(
+  "20261119_pfms_legacy_invitation_workspace.sql"
+);
+const legacyOrganizationMembershipIndex = migrationFiles.indexOf(
+  "20261121_pfms_legacy_org_membership_management.sql"
+);
+assert.ok(legacyOrganizationSchemaIndex >= 0, "Legacy organization and membership schema migration is missing.");
+assert.ok(organizationManagerGuardIndex > legacyOrganizationSchemaIndex,
+  "Organization manager guard must follow creation of organizations and organization_memberships.");
+assert.ok(legacyInvitationWorkspaceIndex > organizationManagerGuardIndex,
+  "Invitation workspace RPCs must not precede the can_manage_org(uuid) helper.");
+assert.ok(legacyOrganizationMembershipIndex > organizationManagerGuardIndex,
+  "Organization membership management RPCs must not precede the can_manage_org(uuid) helper.");
+const organizationManagerGuardSource = migrationSources[organizationManagerGuardIndex];
+assert.match(organizationManagerGuardSource, /create or replace function public\\.can_manage_org\\(p_organization_id uuid\\)/i,
+  "The prerequisite migration must define can_manage_org(uuid) before its downstream consumers.");
+assert.match(organizationManagerGuardSource, /security definer[\\s\\S]*?set search_path = ''/i,
+  "The early organization manager helper must retain its hardened security context.");
 // Every public table introduced by a repository migration must appear in
 // the read-only staging inventory. This prevents silent audit blind spots.
 const auditTargetTableBlock = stagingAuditSql.match(
