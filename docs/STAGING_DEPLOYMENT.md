@@ -1,3 +1,21 @@
+## Ergänzung – Abnahme der Admin-Verzeichnis-Pagination
+
+Die Migrationen `20261218_pfms_admin_directory_pagination.sql` und `20261219_pfss_admin_profile_pagination.sql` ergänzen ausschließlich neue, admin-geschützte RPCs. Sie verändern keine vorhandenen Tabellen oder Datensätze. Vor der Anwendung müssen sie im Dry-Run in der korrekten Reihenfolge erscheinen.
+
+Nach dem Staging-Deploy mit einem echten Plattform-Admin-Konto prüfen:
+
+1. Benutzerverwaltung: Gesamt-/Statuszähler mit dem vollständigen Profilbestand vergleichen. Nach Name, User-ID, Rolle und Status suchen; Treffer müssen serverseitig korrekt gefiltert werden.
+2. Organisationsverwaltung: Vereins-/Agenturname, Organisations-ID und Status einzeln und kombiniert prüfen.
+3. Scout-Verzeichnis: Name, E-Mail, User-ID und Profilstatus prüfen.
+4. Globale Mitgliedschaften: Suchbegriff, Organisationstyp, Rolle und Status prüfen.
+5. Bei mehr als 25 Treffern auf Seite 2 wechseln und prüfen, dass kein Datensatz doppelt oder ausgelassen wird. Filter ändern und sicherstellen, dass die Ansicht wieder auf Seite 1 beginnt.
+6. Mit einem Nicht-Admin-Konto jede neue RPC direkt aufrufen. Die Datenbank muss den Zugriff mit `42501` ablehnen; ein ausgeblendeter Menüpunkt reicht nicht.
+7. Grenzwerte prüfen: Seitengröße 1 und 100 müssen funktionieren; 0, 101, negative und übergroße Offsets müssen mit `22023` abgewiesen werden.
+
+Der Read-only-Acceptance-Audit enthält jetzt die Prüfpunkte `admin_directory_pagination_rpc_security` und `admin_directory_pagination_bounds`. Beide müssen in der echten Staging-Datenbank `passed = true` liefern. Die CI kann die tatsächliche Datenbankausführung nicht ersetzen.
+
+---
+
 ## Ergänzung – Navigation und Rollenwechsel
 
 Zusätzlich zur erneuten Profilprüfung wird die clientseitige Navigation gegen direkte bzw. veraltete History-Aufrufe abgesichert: Administrationsrouten werden für Konten ohne bestätigte Plattform-Adminrolle auf das Dashboard zurückgeführt. Die Navigationssperre ist ausdrücklich keine Datenbanksicherheit; RLS und serverseitige RPC-Berechtigungen bleiben maßgeblich.
