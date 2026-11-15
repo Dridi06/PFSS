@@ -2,9 +2,9 @@
 
 - Die administrativen Leseansichten binden ihre Antworten jetzt an Benutzer-ID, Auth-Generation und bestätigten Adminstatus. Antworten nach Logout, Kontowechsel oder Rollenentzug werden verworfen, statt alte Verwaltungsdaten in eine neue Sitzung einzublenden.
 - Für Benutzer-, Mitgliedschafts-, Organisations-/Scout- und Systemereignislisten gilt zusätzlich „latest request wins“: Eine verspätete Antwort einer älteren Suche darf eine neuere Filterauswahl nicht überschreiben.
-- Organisationsdetails, Einladungsantworten und administrative Systemereignis-Aktionen werden ebenfalls gegen veraltete Sitzungen und Detailauswahlen abgesichert.
+- Organisationsdetails, Einladungsantworten, globale Mitgliedschaftsänderungen und administrative Systemereignis-Aktionen werden ebenfalls gegen veraltete Sitzungen und Detailauswahlen abgesichert.
 - Neue Regressionstests in `tests/auth-session-lifecycle-smoke.mjs` schützen diese Verträge. Die Änderung ersetzt keine serverseitige Autorisierung: Supabase-RPC-Prüfungen, RLS und Datenbankrechte bleiben zwingend.
-- Implementierung: Commit `17acbdb4be5646ae63de06384273e4ec1740735b`; Detail-/Triage-Erweiterung: `e563bb8227bf3de1320182850b0328a2b72eaa04`; Regressionstests: `392cad3fccf6ebc2cce6035dddfc5f01ebb155b8`.
+- Implementierung: Commit `17acbdb4be5646ae63de06384273e4ec1740735b`; Detail-/Triage-Erweiterung: `e563bb8227bf3de1320182850b0328a2b72eaa04`; globale Mitgliedschaftsänderungen: `ac1eafa6fbb3c982977164ce13a774bc3fbd823a`; Regressionstests: `4fbae7f13f89150988eadc9c6daf3770801549a9`.
 - Noch nicht durch einen neuen CI-Lauf bestätigt. Keine Datenbankmigration, kein Staging-/Produktionsdeployment und keine Änderung an `main` oder Produktivdaten.
 
 ---
