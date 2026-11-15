@@ -39,7 +39,8 @@ for (const required of [
   "legacy_invitation_table_acl",
   "legacy_team_access_requires_active_org_membership",
   "pfms_membership_owner_lock_order",
-  "pfms_membership_input_validation"
+  "pfms_membership_input_validation",
+  "legacy_manager_rpc_admin_boundary"
 ]) {
   assert.ok(checkNames.includes(required),
     "Required staging acceptance gate is missing: " + required);
