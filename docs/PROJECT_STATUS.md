@@ -646,3 +646,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 
 
 - In derselben Prüfung wurde außerdem die gemeinsame Tabelle für Kalender- und Veranstaltungseinträge betrachtet: Die bisherige direkte SELECT-Policy ließ `calendar.view` auch Zeilen des Typs `event` und `tournament` lesen, obwohl dafür separat `events.view` vorgesehen ist. Die neue Policy trennt den Zugriff jetzt anhand von `event_type`; Kalenderrecht gilt für sonstige Kalendereinträge, Veranstaltungsrecht für Events und Turniere. Die Regression prüft beide Rechte in der jeweils neuesten Policy.
+
+
+### Frontend-/Datenbank-Verträge: RPC-Schnittstellen automatisch abgeglichen – 15.11.2026
+
+- Neuer CI-Test `tests/frontend-rpc-contract-smoke.mjs` liest alle SQL-Migrationen automatisch ein und gleicht die RPC-Aufrufe in `app.js` und `scout-workspace.js` mit den jeweils vorhandenen SQL-Funktionssignaturen ab.
+- Geprüft werden fehlende SQL-Funktionsdefinitionen, unbekannte oder falsch geschriebene Frontend-Parameter sowie fehlende erforderliche Parameter bei vollständig ausgeschriebenen Argumentobjekten. Spread-/dynamische Argumentobjekte werden bewusst konservativ behandelt: ihre expliziten Schlüssel werden geprüft, aber nicht als vollständige Argumentliste ausgegeben.
+- CI-Ergebnis: 78 Frontend-RPC-Aufrufe gegen 121 SQL-RPC-Namen aus 51 Migrationen geprüft; keine Schnittstellenabweichung. Der Test ist in `npm test` integriert.
+- Zusammen mit den Team-Berechtigungsregressionen sind damit die Datenbankfunktionsnamen und expliziten Frontend-Parameter sowie die granularen Modulrechte automatisiert gegen spätere Regressionen abgesichert. Dies ersetzt weiterhin keine echten Browser-/Supabase-Staging-Abläufe.
+- Letzter bestätigter Testlauf für den RPC-Vertragstest: GitHub Actions Run `43661228054`, beide Jobs erfolgreich. Ausschließlich Feature-Branch; kein Render-Deployment, keine Supabase-Verbindung oder Migration und keine Änderung an `main` oder Produktivdaten.
