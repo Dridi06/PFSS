@@ -127,3 +127,40 @@ Continue from the newest branch HEAD after this checkpoint commit. Re-check bran
 
 ### Resume instruction
 Start by rechecking the latest feature-branch HEAD and both CI workflows. Continue source-level review of every legacy and PFMS membership/profile write path for authorization bypasses. Preserve all existing frontend contracts and tenant boundaries. Keep changes on the feature branch; do not apply migrations, deploy, merge or alter production without explicit approval.
+
+
+## Continuation checkpoint – 15 November 2026, tenant data and system-event hardening
+
+### Verified GitHub state
+- Repository: \`Dridi06/PFSS\`.
+- Feature branch: \`feature/pfss-complete-platform-build\`.
+- Code HEAD before this checkpoint note: \`bd6ccca411af1bacf94a8d4c8066ff3db894f9d8\`.
+- Push workflow run \`43743461552\` and PR workflow run \`43743456635\` both completed successfully on this code HEAD. Syntax/project smoke tests and Supabase Edge Function Deno type checks passed.
+- PR #1 remains open and Draft against \`main\`. No merge or deployment was performed.
+
+### Tenant membership / role isolation
+- Updated \`tests/tenant-role-isolation-smoke.mjs\` to include the latest \`20261230_pfms_legacy_manager_admin_rpc_boundary.sql\` definition, replacing stale assertions that allowed platform admins through the manager RPC.
+- The test now verifies: platform admins are rejected by the manager RPC; non-admin callers must pass \`can_manage_org\`; NULL/unsupported operational roles and statuses are rejected; leadership roles are protected; self-suspension is blocked; no admin exception bypass remains.
+- Fixed regex escaping found by CI; subsequent push and PR runs passed.
+
+### User-owned data security contracts
+- Added \`tests/user-owned-data-rls-smoke.mjs\` and wired it into both syntax checking and the full \`npm test\` pipeline.
+- It covers FORCE RLS and owner/approval policies for personal tasks; submitter/admin separation, column-limited updates and rate limiting for support tickets; private media ownership and UID-first object paths; approved-user read/admin-only writes for the global player catalogue; author-scoped scouting reports.
+- The new test passed in GitHub Actions.
+
+### System event severity boundary
+- Added additive migration \`20261231_pfms_system_event_severity_boundary.sql\`.
+- Authenticated browser-submitted frontend telemetry is now restricted to \`severity = 'error'\` in both INSERT RLS and an enabled BEFORE INSERT invoker trigger. Browser roles have no direct EXECUTE grant on the trigger function. Existing event evidence immutability and secret-redaction protections remain intact.
+- Added migration dependency edges after the system event base and hardening migrations.
+- Extended \`supabase/STAGING_ACCEPTANCE_READ_ONLY.sql\` with \`system_event_client_severity_boundary\`, and made the staging SQL contract smoke test require it.
+- Added a manual isolated-staging procedure for normal error inserts, rejected warning/critical attempts and administrator visibility. This runtime procedure has not yet been executed.
+
+### Current migration / release status
+- Local migration source inventory has grown from 65 to 67 SQL migrations. The 11 known duplicate version-prefix groups remain unchanged; collision baseline remains a hard release blocker pending real staging ledger reconciliation.
+- The new migrations are source changes only. No Supabase migration was applied to staging or production.
+- No Render service, production environment, or live data was changed.
+- Two-tenant runtime isolation, real catalog audits, owner concurrency test, system-event severity runtime test, browser/device QA, passkey E2E and backup/restore validation remain outstanding.
+- Overall progress remains **76% provisional**; do not increase based on static CI alone.
+
+### Resume instruction
+Recheck the latest feature branch and CI. Continue reviewing RPCs and direct table/storage writes for effective authorization, keeping all changes on the feature branch. Do not run migrations, rebase/merge, deploy, or alter production without explicit approval and backup-first staging reconciliation.
