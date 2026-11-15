@@ -98,6 +98,8 @@ Der Kern:
 - erfasst Pfad, Größe und MIME-Typ, ohne Dateiinhalt herunterzuladen;
 - bricht bei strukturellen Fehlern ab, statt ein unvollständiges Inventar als vollständig auszugeben.
 
+Zusätzlich erzeugt `build_inventory_manifest()` eine deterministische Zusammenfassung mit Objektanzahl, Gesamtbytes und SHA-256 über die kanonisch sortierte Metadatenliste. Ein Manifest wird verweigert, wenn auch nur eine Dateigröße unbekannt oder ungültig ist. Größen werden als ganzzahlige Bytewerte behandelt.
+
 Die Regressionstests `tests/storage-inventory-core-smoke.py` verwenden ausschließlich lokale Testdaten. Sie prüfen verschachtelte Ordner, mehrseitige Ergebnisse, Sortierung, ungültige Pfade, Duplikate und fehlerhafte Größenangaben.
 
 ### Injizierter Supabase-Adapter (offline getestet)
