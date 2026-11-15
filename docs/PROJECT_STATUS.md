@@ -1,3 +1,13 @@
+# Ergänzung 15.11.2026 – Admin-Postfach vollständig seitenweise
+
+- Das Admin-Support-Postfach verwendet jetzt Statusfilter direkt in Supabase, `count: exact`, deterministische Sortierung und 25er-Seiten via `range`. Die vorherige clientseitige Begrenzung auf 200 Tickets entfällt.
+- Request-IDs und Auth-Generation verhindern, dass Antworten älterer Abfragen oder einer abgemeldeten Sitzung die Adminansicht überschreiben. Seitenwechsel, Statusfilter und Aktualisierung fragen die Datenbank erneut ab.
+- Fehlerprotokoll und Support-Postfach sind damit beide serverseitig begrenzt. Das Fehlerprotokoll verwendet die neue Admin-RPC aus `20261220_pfms_admin_system_event_pagination.sql`; das Support-Postfach nutzt seine bestehenden RLS-geschützten Tabellenrechte.
+- Tests ergänzt: `tests/auth-session-lifecycle-smoke.mjs` prüft Datenbank-Pagination, Statusfilter, Request-Isolation und Navigation. SQL-/RPC-Vertrag wird durch die bestehenden Migrationstests mitgeprüft.
+- Aktueller Code-Commit: `c3b2dbc15d56ddcd6719bfd90feab5ac10af801a`. CI läuft; Ergebnis wird vor Abschluss verifiziert. Staging-/Produktionsdaten bleiben unangetastet.
+
+---
+
 # Ergänzung 15.11.2026 – Admin-Fehlerprotokoll und Support-Postfach skaliert
 
 - Fehlerprotokoll: neue additive RPC `pfms_admin_list_system_events_page` in `20261220_pfms_admin_system_event_pagination.sql`. Suche über Meldung/Pfad, Schweregrad und Status erfolgt serverseitig; 25er-Seiten, Gesamtzahl und stabile Sortierung.
