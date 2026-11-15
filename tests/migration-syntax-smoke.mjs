@@ -499,7 +499,7 @@ assert.ok(
 );
 assert.match(
   normalizedOwnerBootstrapMigration,
-  /for update[\s\S]*?claimed_at is null/,
+  /claimed_at is null[\s\S]*?for update/,
   "Owner claim must lock and consume a single unused registration request."
 );
 const ownerTableMigration = migrationSources[
