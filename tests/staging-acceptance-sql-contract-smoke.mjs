@@ -19,6 +19,16 @@ assert.equal((executable.match(/;/g) ?? []).length, 1,
   "Acceptance audit must contain exactly one terminal SQL statement.");
 assert.doesNotMatch(
   executable,
+  /pg_catalog\\.substring\\s*\\([^)]*\\s+from\\s+/i,
+  "Schema-qualified substring special syntax is not accepted by PostgreSQL; use pg_catalog.substr(value, start)."
+);
+assert.match(
+  executable,
+  /pg_catalog\\.substr\\s*\\(/i,
+  "Position-based function-definition checks must use the portable schema-qualified substr function."
+);
+assert.doesNotMatch(
+  executable,
   /\b(?:INSERT\s+INTO|UPDATE\s+[a-z_]|DELETE\s+FROM|MERGE\s+INTO|CREATE\s+[A-Z]|ALTER\s+[A-Z]|DROP\s+[A-Z]|TRUNCATE|GRANT|REVOKE|CALL\s+)\b/i,
   "Staging acceptance audit must never mutate data, schema, privileges or invoke procedures."
 );
