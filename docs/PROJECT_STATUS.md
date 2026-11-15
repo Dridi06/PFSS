@@ -1,3 +1,14 @@
+# Ergänzung 15.11.2026 – Organisationsstatus als zusätzliche Berechtigungsgrenze
+
+- Bei der Integrationsprüfung wurde festgestellt, dass `can_manage_org(uuid)` bisher nur aktive Führungsmitgliedschaften prüfte, nicht jedoch den Status der zugehörigen Organisation.
+- Neue additive Migration `20261222_pfms_legacy_org_manager_active_org_gate.sql`: Die Hilfsfunktion verlangt nun zusätzlich, dass die Organisation den Status `approved` oder `active` hat. Gesperrte oder nicht freigegebene Organisationen behalten dadurch keine Verwaltungsrechte über ihre aktiven Mitgliedschaftszeilen.
+- Das Read-only-Staging-Acceptance-Audit prüft die Organisationsstatusgrenze, SECURITY DEFINER, leeren `search_path` und EXECUTE-Rechte.
+- `tests/migration-syntax-smoke.mjs` prüft die neue Migration und den Audit-Prüfpunkt. Der CI-Lauf für den aktualisierten Stand ist vor dieser Dokumentation noch ausstehend.
+- Die Migration ist ausschließlich im Feature-Branch. Sie wurde weder auf Supabase Staging noch auf Produktion angewendet. Kein Render-Deployment und kein Merge.
+- Integrationshinweis: `main` enthält den expliziten Revert der früher versehentlich auf dem Standardbranch gelandeten Migration `20261118_pfms_legacy_org_manager_guard.sql`; der Feature-Branch enthält sie als geordnete Voraussetzung für die nachfolgenden Einladungs-/Mitgliedschafts-RPCs. Vor Merge muss die vollständige Branch-Historie samt Migrationsledger abgeglichen werden. Der Draft-PR bleibt deshalb unverändert nicht mergebereit.
+
+---
+
 # Ergänzung 15.11.2026 – Berechtigungsarchitektur: Rechte-Matrix und Staging-Abnahme erweitert
 
 - Feature-Änderungen: `4a7689bf3e50eb984fe4d100ec24242fbe0f90c7` (neun-Modul-Regressionsprüfung), `d3e876d9e5dae400209b78b1600d599a6b3d0423` (read-only Staging-Audit für Rechte lesen/speichern) und `5c131d484eda3ffd34f3f9cba1a9f40a3df0d276` (Audit-Vertragstest).
