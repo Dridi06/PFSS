@@ -173,10 +173,16 @@ for (const signature of securityDefinerSignatures) {
     undefined,
     "SECURITY DEFINER function must have a fixed search_path: " + signature
   );
-  assert.doesNotMatch(
-    effectiveSearchPath,
-    /(^|,\\s*)(?:"?\\$user"?|pg_temp(?:_\\d+)?)(\\s*,|$)/i,
-    "SECURITY DEFINER function must not use caller-controlled or temporary schemas: " + signature
+  const searchPathSchemas = effectiveSearchPath
+    .split(",")
+    .map((schema) => schema.trim().replace(/^"|"$/g, "").toLowerCase());
+  assert.ok(
+    !searchPathSchemas.includes("$user"),
+    "SECURITY DEFINER function must not use the caller-controlled $user schema: " + signature
+  );
+  assert.ok(
+    !searchPathSchemas.some((schema) => /^pg_temp(?:_\d+)?$/.test(schema)),
+    "SECURITY DEFINER function must not use a temporary schema: " + signature
   );
   assert.ok(
     revokes.has(signature),
