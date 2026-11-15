@@ -781,3 +781,12 @@ Diese Prüfungen sind Repository-/CI-Nachweise. Sie ersetzen weder das tatsächl
 - `docs/STAGING_DEPLOYMENT.md` ergänzt konkrete Positiv-/Negativfälle: aktive und gesperrte Mitgliedschaften, Rollenwechsel, zweite Organisation, Co-Trainer-/Betreuergrenzen, direkte Tabellen-Schreibversuche und Führungsrollen.
 - Vollständiger CI-Lauf erfolgreich: [Run 43662180691](https://github.com/Dridi06/PFSS/actions/runs/43662180691). Die neuen Mandanten-/Rollentests und sämtliche bestehenden Node-/Build-/SQL-/Storage-Prüfungen sowie die Edge-Function-Typprüfung sind erfolgreich.
 - Statischer Repository-Nachweis; die externen Staging-Rollen müssen weiterhin mit getrennten Testkonten praktisch abgenommen werden. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung/Migration, keine Produktivdatenänderung und keine Änderung an `main`.
+
+
+## Ergänzung 15.11.2026 – Zentrale Plattformkennzahlen im Adminbereich
+
+- Die Administrationsansicht zeigt zusätzlich zur Profilübersicht drei Live-Kennzahlen: Gesamtzahl der Organisationen, aktive Mitgliedschaften und offene Systemereignisse.
+- Die Werte werden ausschließlich über bereits vorhandene, serverseitig geschützte Administrator-RPCs geladen. Die Abfragen begrenzen die Rückgabe auf jeweils einen Datensatz und lesen den serverseitigen Gesamtzähler; es werden keine vollständigen Organisations-, Mitglieder- oder Ereignislisten in den Browser geladen.
+- Die Kennzahlenabfrage ist an Administratorrolle, Benutzer-ID und Authentifizierungs-Generation gebunden. Neuere Abfragen gewinnen gegen ältere; ein Logout oder Kontowechsel invalidiert laufende Antworten.
+- Regressionstests prüfen RPC-Auswahl, Filter, begrenzte Abfragen, Sitzungsisolation und Invalidierung.
+- Die Funktion ist implementiert, aber noch nicht gegen die externe Supabase-Staging-Datenbank praktisch abgenommen. Falls die erforderlichen Admin-RPC-Migrationen dort fehlen, zeigt die Ansicht einen klaren Ladehinweis statt erfundener Zahlen. Keine Staging-Migration, kein Render-Deployment und keine Produktionsänderung.
