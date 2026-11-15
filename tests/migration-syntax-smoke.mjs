@@ -137,6 +137,11 @@ assert.match(
   /'legacy_invitation_redemption_status_gate'/,
   "The read-only staging acceptance audit must verify that old invitations cannot be redeemed after an organization is suspended."
 );
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_invitation_table_acl'/,
+  "The read-only staging acceptance audit must verify that invitation tokens are not directly accessible to browser roles."
+);
 
 const migrationsDirectory = resolve(process.cwd(), "supabase/migrations");
 const entries = await readdir(migrationsDirectory, { withFileTypes: true });
