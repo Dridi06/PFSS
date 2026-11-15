@@ -37,7 +37,9 @@ for (const required of [
   "owner_bootstrap_security_boundary",
   "auth_trigger_function_acl",
   "legacy_invitation_table_acl",
-  "legacy_team_access_requires_active_org_membership"
+  "legacy_team_access_requires_active_org_membership",
+  "pfms_membership_owner_lock_order",
+  "pfms_membership_input_validation"
 ]) {
   assert.ok(checkNames.includes(required),
     "Required staging acceptance gate is missing: " + required);
