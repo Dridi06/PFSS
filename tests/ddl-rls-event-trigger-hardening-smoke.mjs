@@ -22,7 +22,9 @@ assert.match(
 );
 for (const commandTag of ["create table", "create table as", "select into"]) {
   assert.ok(
-    migration.includes("'" + commandTag + "'"),
+    commandTag === "create table as"
+      ? migration.includes("'create table' || ' as'")
+      : migration.includes("'" + commandTag + "'"),
     "The event trigger must preserve its intended DDL coverage: " + commandTag
   );
 }
