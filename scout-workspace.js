@@ -35,7 +35,8 @@
     reports: [],
     media: [],
     editingPlayerId: null,
-    editingReportId: null
+    editingReportId: null,
+    previewMode: false
   };
 
   const el = (id) => document.getElementById(id);
@@ -529,6 +530,10 @@
 
   async function savePlayer(event) {
     event.preventDefault();
+    if (state.previewMode) {
+      showMessage('In der Designvorschau sind Änderungen deaktiviert.');
+      return;
+    }
     const requestGeneration = state.generation;
     const requestUserId = window.pfssCurrentUserId;
     if (!requestUserId) {
@@ -576,6 +581,10 @@
 
   async function saveReport(event) {
     event.preventDefault();
+    if (state.previewMode) {
+      showMessage('In der Designvorschau sind Änderungen deaktiviert.');
+      return;
+    }
     const requestGeneration = state.generation;
     const requestUserId = window.pfssCurrentUserId;
     if (!requestUserId) {
@@ -667,6 +676,7 @@
   }
 
   async function uploadFiles(files) {
+    if (state.previewMode) return;
     const selected = [...(files || [])];
     if (!selected.length) return;
     const userId = window.pfssCurrentUserId;
@@ -797,12 +807,14 @@
 
       const action = event.target.closest('[data-scout-action]');
       if (action) {
+        if (state.previewMode) return;
         if (action.dataset.scoutAction === 'new-player') openPlayerDialog(null);
         if (action.dataset.scoutAction === 'new-report') openReportDialog(null);
         if (action.dataset.scoutAction === 'refresh') loadData();
         return;
       }
 
+      if (state.previewMode) return;
       const editPlayer = event.target.closest('[data-scout-edit-player]');
       if (editPlayer) openPlayerDialog(state.players.find((player) => player.id === editPlayer.dataset.scoutEditPlayer));
       const deletePlayerButton = event.target.closest('[data-scout-delete-player]');
@@ -830,11 +842,49 @@
     el('scoutReportForm')?.addEventListener('submit', saveReport);
   }
 
+  function renderPreviewData() {
+    const today = new Date();
+    const date = (daysAgo) => {
+      const value = new Date(today);
+      value.setDate(value.getDate() - daysAgo);
+      return value.toISOString().slice(0, 10);
+    };
+    state.players = [
+      { id: 'preview-player-1', name: 'Leon', surname: 'Berger', birth: '2006-04-18', club: 'Berlin Academy', position: 'Mittelfeld', foot: 'Rechts', nationality: 'Deutschland', height: 180 },
+      { id: 'preview-player-2', name: 'Yanis', surname: 'Haddad', birth: '2007-09-02', club: 'FC Nord', position: 'Sturm', foot: 'Links', nationality: 'Frankreich', height: 176 },
+      { id: 'preview-player-3', name: 'David', surname: 'Moretti', birth: '2005-12-11', club: 'Sporting West', position: 'Abwehr', foot: 'Rechts', nationality: 'Italien', height: 184 }
+    ];
+    state.reports = [
+      { id: 'preview-report-1', player_id: 'preview-player-1', observation_date: date(1), overall_rating: 3.6, notes: 'Gutes Raumgefühl, saubere erste Ballberührung und konstante Passqualität unter Druck.' },
+      { id: 'preview-report-2', player_id: 'preview-player-2', observation_date: date(3), overall_rating: 3.3, notes: 'Dynamischer Tiefenläufer mit starkem Antritt und Entwicklungspotenzial im Abschluss.' }
+    ];
+    state.globalPlayers = state.players;
+    state.globalPlayersAvailable = true;
+    state.media = [];
+    renderOverview();
+    renderPlayers();
+    renderGlobalPlayers();
+    renderReports();
+    void renderMedia();
+    showMessage('Designvorschau mit Beispieldaten · keine Live-Daten · Änderungen und Uploads deaktiviert.');
+  }
+
   function activate() {
     const role = String(window.pfssCurrentRole || '').toLowerCase();
-    if (!role.includes('scout') || window.pfssIsRealAdmin) return;
+    const adminPreview = Boolean(window.pfssIsRealAdmin && window.pfssPreviewMode === 'scout');
+    if ((!role.includes('scout') || window.pfssIsRealAdmin) && !adminPreview) return;
     if (!el('view-scout-workspace')) addView();
     addNav();
+
+    state.previewMode = adminPreview;
+    const workspace = el('view-scout-workspace');
+    if (workspace) workspace.classList.toggle('is-preview', adminPreview);
+    if (adminPreview) {
+      state.generation += 1;
+      state.loading = false;
+      state.hasLoaded = true;
+      renderPreviewData();
+    }
 
     document.querySelectorAll('.sidebar [data-view]').forEach((item) => { item.hidden = true; });
     const nav = el('scoutWorkspaceNav');
@@ -846,11 +896,16 @@
 
     if (!state.initialized) bindEvents();
     switchTo(state.active);
-    if (!state.hasLoaded) {
+    if (!adminPreview && !state.hasLoaded) {
       state.hasLoaded = true;
       loadData();
     }
   }
+
+  window.pfmsActivateScoutWorkspacePreview = function activateScoutWorkspacePreview() {
+    if (!window.pfssIsRealAdmin || window.pfssPreviewMode !== 'scout') return;
+    activate();
+  };
 
   window.pfmsResetScoutWorkspace = function resetScoutWorkspaceForAccountChange() {
     state.generation += 1;
@@ -864,6 +919,9 @@
     state.media = [];
     state.editingPlayerId = null;
     state.editingReportId = null;
+    state.previewMode = false;
+    const workspace = el('view-scout-workspace');
+    if (workspace) workspace.classList.remove('is-preview');
     const mediaInput = el('scoutMediaInput');
     if (mediaInput) { mediaInput.disabled = false; mediaInput.value = ''; }
     const nav = el('scoutWorkspaceNav');
