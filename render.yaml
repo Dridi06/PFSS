@@ -5,7 +5,7 @@ services:
     branch: feature/pfss-complete-platform-build
     buildCommand: npm run check:syntax && npm run build && npm run test:dist
     staticPublishPath: ./dist
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: 'off'
     envVars:
       - key: PFMS_BUILD_TARGET
         value: staging
