@@ -75,6 +75,11 @@ assert.match(
   /'legacy_org_manager_active_organization_gate'/,
   "The read-only staging acceptance audit must verify the active organization manager gate."
 );
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_invitation_redemption_status_gate'/,
+  "The read-only staging acceptance audit must verify that old invitations cannot be redeemed after an organization is suspended."
+);
 
 const migrationsDirectory = resolve(process.cwd(), "supabase/migrations");
 const entries = await readdir(migrationsDirectory, { withFileTypes: true });
