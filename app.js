@@ -8760,15 +8760,33 @@ const registrationChoiceDetails = {
   owner_bootstrap: 'Die erstmalige Plattforminhaberschaft wird nur einmal vergeben. Nach der E-Mail-Bestätigung ist ein separater, geheimer Einmalcode erforderlich.'
 };
 
+function updateRegistrationProgress(step) {
+  const progress = document.getElementById('registrationProgress');
+  const status = document.getElementById('registrationProgressStatus');
+  if (!progress || !status) return;
+  progress.hidden = !signupMode;
+  progress.querySelectorAll('[data-registration-step]').forEach(item => {
+    const current = Number(item.dataset.registrationStep) === step;
+    item.classList.toggle('is-current', current);
+    item.classList.toggle('is-complete', Number(item.dataset.registrationStep) < step);
+    if (current) item.setAttribute('aria-current', 'step');
+    else item.removeAttribute('aria-current');
+  });
+  status.textContent = step === 1
+    ? 'Schritt 1 von 2 · Wähle deinen Zugang.'
+    : 'Schritt 2 von 2 · Ergänze deine Kontodaten.';
+}
+
 function chooseRegistrationType(type) {
   selectedRegistrationChoice = type;
+  updateRegistrationProgress(2);
   const priceGroup = document.querySelector('[data-pricing="' + type + '"]');
   selectedBillingCycle = priceGroup?.dataset.selectedPlan || 'monthly';
   registrationType.value = type;
   registrationChoice.hidden = true;
   registrationFields.hidden = false;
   document.getElementById('selectedRegistrationLabel').textContent =
-    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout',owner_bootstrap:'PFMS-Plattforminhaber'}[type] || type);
+    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout',owner_bootstrap:'Plattforminhaber'}[type] || type);
   const orderSummary = document.getElementById('orderSummary');
   const memberSummary = document.getElementById('memberFreeSummary');
   const planNames = {club:'Verein',agency:'Agentur',scout:'Einzelscout'};
@@ -8813,6 +8831,7 @@ function chooseRegistrationType(type) {
 
 function setAuthMode(mode) {
   signupMode = mode === 'register';
+  updateRegistrationProgress(selectedRegistrationChoice ? 2 : 1);
   const form = document.getElementById('authForm');
   const loginButton = document.getElementById('loginButton');
   const signupButton = document.getElementById('signupButton');
@@ -8859,6 +8878,8 @@ document.querySelectorAll('[data-registration-choice]').forEach(button => {
     signupEmailField.hidden = false;
     signupPasswordField.hidden = false;
     authActions.hidden = false;
+    document.getElementById('signupUsernameField')?.querySelector('input')?.focus({ preventScroll: true });
+    document.getElementById('registrationFields')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 document.querySelectorAll('[data-choice-info]').forEach(button => {
@@ -8869,6 +8890,7 @@ document.querySelectorAll('[data-choice-info]').forEach(button => {
   });
 });
 document.getElementById('changeRegistrationChoice').addEventListener('click', () => {
+  updateRegistrationProgress(1);
   registrationFields.hidden = true;
   signupUsernameField.hidden = true;
   signupEmailField.hidden = true;
@@ -8876,6 +8898,7 @@ document.getElementById('changeRegistrationChoice').addEventListener('click', ()
   authActions.hidden = true;
   registrationChoice.hidden = false;
   document.getElementById('authTitle').textContent = 'Konto registrieren.';
+  document.getElementById('registrationChoice')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.getElementById('authIntro').textContent = 'Wähle zunächst, wie du PFMS nutzen möchtest.';
   document.getElementById('authMessage').textContent = '';
   selectedRegistrationChoice = '';

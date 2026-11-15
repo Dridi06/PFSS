@@ -47,18 +47,26 @@
         <button class="auth-mode-option active" type="button" id="chooseLogin">Anmelden</button>
         <button class="auth-mode-option" type="button" id="chooseRegister">Registrieren</button>
       </div>
+      <div id="registrationProgress" class="registration-progress" hidden aria-label="Registrierungsfortschritt">
+        <div class="registration-progress-track">
+          <div class="registration-progress-step is-current" data-registration-step="1" aria-current="step"><span>01</span><div><strong>Zugang wählen</strong><small>Passende Nutzung auswählen</small></div></div>
+          <span class="registration-progress-line" aria-hidden="true"></span>
+          <div class="registration-progress-step" data-registration-step="2"><span>02</span><div><strong>Konto anlegen</strong><small>Angaben sicher ergänzen</small></div></div>
+        </div>
+        <p id="registrationProgressStatus" class="registration-progress-status" aria-live="polite">Schritt 1 von 2 · Wähle deinen Zugang.</p>
+      </div>
 
       <section id="registrationChoice" class="registration-choice" hidden>
         <div class="pricing-intro">
-          <span class="pricing-kicker">DEIN SPIEL. DEINE DATEN. DEIN PFMS.</span>
-          <h2>Finde den passenden PFMS-Zugang.</h2>
+          <span class="pricing-kicker">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</span>
+          <h2>Finde den passenden Zugang.</h2>
           <p>Starte mit dem Paket, das zu deiner Arbeit im Fußball passt.</p>
           <div class="trial-strip"><span class="trial-icon">✦</span><span><strong>Tarifvorschau</strong> – kostenpflichtige Zugänge sind noch nicht buchbar.</span></div>
         </div>
         <div class="registration-choice-grid pricing-grid">
           <article class="registration-choice-card pricing-card member-card">
             <div class="pricing-card-head"><span class="pricing-icon">♟</span><span class="pricing-label">MITGLIED</span></div>
-            <h3>Normales Mitglied</h3>
+            <h3>Mitglied</h3>
             <p class="pricing-subtitle">Für Spieler, Trainer, Betreuer und weitere Teammitglieder.</p>
             <ul class="pricing-features">
               <li>✓ Kostenloser persönlicher Zugang</li>
@@ -110,8 +118,8 @@
 
           <article class="registration-choice-card pricing-card owner-bootstrap-card">
             <div class="pricing-card-head"><span class="pricing-icon">♛</span><span class="pricing-label">ERSTEINRICHTUNG</span></div>
-            <h3>PFMS-Plattforminhaber</h3>
-            <p class="pricing-subtitle">Einmaliger, geschützter Besitzerzugang für die erstmalige Inbetriebnahme der gesamten Plattform.</p>
+            <h3>Plattforminhaber</h3>
+            <p class="pricing-subtitle">Einmaliger, geschützter Inhaberzugang für die erstmalige Inbetriebnahme des Professional Football Management System.</p>
             <ul class="pricing-features">
               <li>✓ Zentrale Plattformadministration</li>
               <li>✓ Verwaltung aller Vereine und Agenturen</li>
@@ -157,7 +165,8 @@
 
         <div id="registrationFields" hidden>
           <input type="hidden" name="registrationType" id="registrationType" value="">
-          <div id="selectedRegistrationLabel" class="selected-registration-label"></div>
+          <div id="selectedRegistrationLabel" class="selected-registration-label" aria-live="polite"></div>
+          <p class="registration-step-intro">Dein Zugang ist ausgewählt. Ergänze jetzt deine Kontodaten. Die Berechtigungen werden anschließend serverseitig geprüft.</p>
           <button type="button" id="changeRegistrationChoice" class="auth-link-button change-choice">Auswahl ändern</button>
           <label class="field" id="requestedRoleField" hidden>
             Gewünschte Funktion

@@ -76,3 +76,28 @@
 
 /* Keep the full product name legible in the post-auth welcome moment. */
 .welcome-brand{font-family:inherit;font-size:clamp(16px,3vw,30px);letter-spacing:.12em;line-height:1.35;max-width:90vw;overflow-wrap:anywhere}
+
+/* Guided two-step registration: visible progress, clear current state and mobile-safe labels. */
+#authScreen .registration-progress{margin:18px 0 22px;padding:14px 15px;border:1px solid rgba(214,181,109,.17);border-radius:12px;background:rgba(9,11,13,.58)}
+#authScreen .registration-progress-track{display:flex;align-items:center;gap:10px}
+#authScreen .registration-progress-step{display:flex;align-items:center;gap:9px;min-width:0;color:#8d8b84}
+#authScreen .registration-progress-step>span{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border:1px solid #55514a;border-radius:50%;font-size:10px;font-weight:750}
+#authScreen .registration-progress-step>div{display:grid;gap:3px;min-width:0}
+#authScreen .registration-progress-step strong{font-size:10px;font-weight:700;white-space:nowrap}
+#authScreen .registration-progress-step small{font-size:9px;color:#85827a;white-space:nowrap}
+#authScreen .registration-progress-step.is-current{color:#f0e6d1}
+#authScreen .registration-progress-step.is-current>span,#authScreen .registration-progress-step.is-complete>span{border-color:#d6b56d;background:#d6b56d;color:#17140e}
+#authScreen .registration-progress-step.is-complete{color:#d7c18e}
+#authScreen .registration-progress-line{height:1px;min-width:12px;flex:1;background:linear-gradient(90deg,#d6b56d55,#5b5549)}
+#authScreen .registration-progress-status{margin:11px 0 0;color:#b9ad92;font-size:10px;letter-spacing:.025em}
+#authScreen .registration-step-intro{margin:12px 0 18px;color:#aaa69d;font-size:12px;line-height:1.65}
+#authScreen .change-choice{display:inline-flex;align-items:center;min-height:38px;margin:0 0 12px;padding:0 12px;border:1px solid rgba(214,181,109,.22);border-radius:8px;background:rgba(214,181,109,.06);text-decoration:none}
+#authScreen .registration-choice-card .choice-select{margin-top:12px}
+@media(max-width:420px){
+ #authScreen .registration-progress{padding:12px 10px}
+ #authScreen .registration-progress-track{gap:6px}
+ #authScreen .registration-progress-step{gap:6px}
+ #authScreen .registration-progress-step>span{width:26px;height:26px;flex-basis:26px;font-size:9px}
+ #authScreen .registration-progress-step strong{font-size:9px}
+ #authScreen .registration-progress-step small{font-size:8px;white-space:normal}
+}
