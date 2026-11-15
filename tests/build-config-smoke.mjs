@@ -83,6 +83,29 @@ for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABA
 assert.match(renderBlueprint, /^    autoDeployTrigger: checksPass$/m, "Render auto-deploy must wait for successful checks");
 assert.match(renderBlueprint, /name: Content-Security-Policy/, "Staging must retain its Content Security Policy");
 assert.match(renderBlueprint, /name: Strict-Transport-Security/, "Staging must retain HSTS");
+assert.match(renderBlueprint, /name: X-Content-Type-Options[\\s\\S]*?value: nosniff/, "Staging must prevent MIME-type sniffing.");
+assert.match(renderBlueprint, /name: Referrer-Policy[\\s\\S]*?value: strict-origin-when-cross-origin/, "Staging must use a restrictive referrer policy.");
+assert.match(renderBlueprint, /name: X-Frame-Options[\\s\\S]*?value: DENY/, "Staging must prevent framing in legacy user agents.");
+assert.match(renderBlueprint, /name: Permissions-Policy[\\s\\S]*?value: camera=\\(\\), microphone=\\(\\), geolocation=\\(\\)/, "Staging must disable unused sensitive browser capabilities.");
+
+const cspLine = renderBlueprint.match(/^\\s+value: "(default-src[^"\\n]+)"$/m)?.[1] || "";
+assert.ok(cspLine, "A complete Content Security Policy must be configured.");
+const csp = new Map(cspLine.split(";").map((directive) => {
+  const [name, ...values] = directive.trim().split(/\\s+/);
+  return [name, values];
+}));
+assert.deepEqual(csp.get("default-src"), ["'self'"], "CSP default must be same-origin only.");
+assert.deepEqual(csp.get("object-src"), ["'none'"], "CSP must disable plugin/object content.");
+assert.deepEqual(csp.get("base-uri"), ["'self'"], "CSP must restrict base URL injection.");
+assert.deepEqual(csp.get("frame-ancestors"), ["'none'"], "CSP must forbid embedding.");
+assert.deepEqual(csp.get("form-action"), ["'self'"], "CSP forms must submit only to this origin.");
+assert.deepEqual(csp.get("script-src"), ["'self'", "https://cdn.jsdelivr.net"], "Executable scripts must be restricted to reviewed origins; inline scripts and eval are not allowed.");
+assert.ok(!cspLine.includes("'unsafe-eval'"), "CSP must never enable eval.");
+assert.ok(!cspLine.includes("'unsafe-inline'"), "CSP must never enable inline scripts.");
+
+const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+assert.doesNotMatch(html, /<script\\b(?![^>]*\\bsrc=)[^>]*>[\\s\\S]*?<\\/script>/i,
+  "The frontend must not rely on inline scripts that would weaken the script CSP.");
 assert.doesNotMatch(renderBlueprint, /^    branch: main$/m, "Staging blueprint must never deploy from production main");
 
 console.log("PFMS build configuration smoke tests passed: fail-closed Supabase config and staging-only Render blueprint safeguards.");
