@@ -82,8 +82,13 @@ def upload_encrypted_pair(*, endpoint: str, bucket: str, access_key: str,
     for object_key in (key, key + ".hmac"):
         head = _invoke(runner, ["aws", "s3api", "head-object", "--bucket", bucket,
                                 "--key", object_key, "--endpoint-url", endpoint, "--region", "auto"], env)
-        if _returncode(head) == 0:
+        head_code = _returncode(head)
+        if head_code == 0:
             raise R2TransportError("R2 object already exists; refusing to upload.")
+        # A generic nonzero exit can mean 403, network failure, or 404.
+        # Proceed only when the injected runner positively identifies NotFound.
+        if getattr(head, "not_found", False) is not True:
+            raise R2TransportError("R2 preflight could not prove the object is absent.")
     for source, object_key in ((encrypted_file, key), (manifest, key + ".hmac")):
         result = _invoke(runner, ["aws", "s3", "cp", str(source), f"s3://{bucket}/{object_key}",
                                   "--endpoint-url", endpoint, "--region", "auto",
