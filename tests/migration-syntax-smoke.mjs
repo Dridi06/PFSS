@@ -250,6 +250,16 @@ assert.doesNotMatch(
   /c\.relname\s+IN\s*\(/i,
   "Staging audit must not use a hardcoded table-name allowlist that can omit new tables."
 );
+const createdPublicTables = new Set();
+for (const source of migrationSources) {
+  const executableSource = source.replace(/--[^\n]*/g, "");
+  for (const match of executableSource.matchAll(
+    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?([a-z_][a-z0-9_]*)\b/gi
+  )) {
+    createdPublicTables.add(match[1].toLowerCase());
+  }
+}
+assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
 const adminDirectoryPagination = migrationSources[
   migrationFiles.indexOf("20261218_pfms_admin_directory_pagination.sql")
 ];
