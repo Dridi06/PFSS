@@ -125,6 +125,24 @@ grant_rows AS (
   WHERE table_schema IN ('public','storage')
     AND table_name IN (SELECT table_name FROM target_tables)
 ),
+column_grant_rows AS (
+  SELECT 'COLUMN_GRANTS'::text AS section,
+         n.nspname || '.' || c.relname || '.' || a.attname AS object_name,
+         jsonb_build_object(
+           'grantee', coalesce(gr.rolname, 'PUBLIC'),
+           'privilege', acl.privilege_type,
+           'is_grantable', acl.is_grantable
+         ) AS details
+  FROM pg_attribute a
+  JOIN pg_class c ON c.oid = a.attrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(a.attacl) AS acl
+  LEFT JOIN pg_roles gr ON gr.oid = acl.grantee
+  WHERE (n.nspname IN ('public', 'storage') OR (n.nspname = 'auth' AND c.relname = 'users'))
+    AND a.attnum > 0
+    AND NOT a.attisdropped
+    AND a.attacl IS NOT NULL
+),
 relation_inventory_rows AS (
   SELECT 'RELATIONS'::text AS section,
          n.nspname || '.' || c.relname AS object_name,
@@ -254,6 +272,7 @@ FROM (
   UNION ALL SELECT * FROM function_rows
   UNION ALL SELECT * FROM function_grant_rows
   UNION ALL SELECT * FROM grant_rows
+  UNION ALL SELECT * FROM column_grant_rows
   UNION ALL SELECT * FROM relation_inventory_rows
   UNION ALL SELECT * FROM sequence_grant_rows
   UNION ALL SELECT * FROM schema_grant_rows
