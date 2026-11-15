@@ -141,6 +141,16 @@
       "before": "20261222_pfms_legacy_org_manager_active_org_gate.sql",
       "after": "20261230_pfms_legacy_manager_admin_rpc_boundary.sql",
       "reason": "The manager-only replacement relies on the final active-organization can_manage_org authorization helper."
+    },
+    {
+      "before": "20261116_pfms_system_event_monitoring.sql",
+      "after": "20261231_pfms_system_event_severity_boundary.sql",
+      "reason": "The severity boundary replaces the authenticated frontend-error insert policy introduced with system event monitoring."
+    },
+    {
+      "before": "20261117_pfms_system_event_hardening.sql",
+      "after": "20261231_pfms_system_event_severity_boundary.sql",
+      "reason": "The insert severity guard composes with the existing immutable-evidence and secret-redaction trigger."
     }
   ]
 }
