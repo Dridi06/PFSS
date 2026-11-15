@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
+import { readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
+
+const migrationDirectory = resolve(process.cwd(), "supabase/migrations");
+const versions = (await readdir(migrationDirectory))
+  .map((name) => name.match(/^([0-9]{8})_[a-z0-9][a-z0-9_]*\.sql$/)?.[1])
+  .filter(Boolean)
+  .sort();
+assert.ok(versions.length >= 3, "Ledger regression tests require at least three local migrations.");
 
 const command = resolve(process.cwd(), "scripts/verify-migration-ledger.mjs");
 function run(input) {
@@ -10,38 +18,36 @@ function run(input) {
     encoding: "utf8"
   });
 }
+function table(remoteForVersion) {
+  return [
+    "LOCAL | REMOTE | TIME (UTC)",
+    "--------|--------|----------",
+    ...versions.map((version, index) =>
+      version + " | " + (remoteForVersion(version, index) || "") + " | "
+    )
+  ].join("\n") + "\n";
+}
 
-const valid = run(`LOCAL | REMOTE | TIME (UTC)
---------|--------|----------
-20261110 | 20261110 | 2026-11-10
-20261111 | 20261111 | 2026-11-11
-20261112 |          |
-20261113 |          |
-`);
+const valid = run(table((_version, index) => index < 2 ? versions[index] : ""));
 assert.equal(valid.status, 0, valid.stderr);
-assert.match(valid.stdout, /Local migrations: 58/);
+assert.match(valid.stdout, new RegExp("Local migrations: " + versions.length));
 assert.match(valid.stdout, /Applied remotely: 2/);
-assert.match(valid.stdout, /Pending locally: 56/);
+assert.match(valid.stdout, new RegExp("Pending locally: " + (versions.length - 2)));
 
-const remoteOnly = run(`LOCAL | REMOTE | TIME (UTC)
-20261110 | 20261110 |
-20261111 | 20269999 |
-`);
+const remoteOnly = run(table((_version, index) => index < 2 ? versions[index] : "") +
+  " | 20991231 |\n");
 assert.notEqual(remoteOnly.status, 0);
 assert.match(remoteOnly.stderr, /Remote migration ledger contains versions missing from this branch/);
 
-const outOfOrder = run(`LOCAL | REMOTE | TIME (UTC)
-20261110 | 20261110 |
-20261111 |          |
-20261112 | 20261112 |
-`);
+const outOfOrder = run(table((_version, index) =>
+  index === 0 || index === 2 ? versions[index] : ""
+));
 assert.notEqual(outOfOrder.status, 0);
 assert.match(outOfOrder.stderr, /not a chronological prefix/);
 
-const duplicateRemote = run(`LOCAL | REMOTE | TIME (UTC)
-20261110 | 20261110 |
-20261111 | 20261110 |
-`);
+const duplicateRemote = run(table((_version, index) =>
+  index === 0 || index === 1 ? versions[0] : ""
+));
 assert.notEqual(duplicateRemote.status, 0);
 assert.match(duplicateRemote.stderr, /Duplicate remote migration version/);
 
