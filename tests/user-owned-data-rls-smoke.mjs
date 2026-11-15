@@ -9,11 +9,14 @@ async function migration(name) {
     .toLowerCase();
 }
 
-const [tasks, tickets, media, catalogue] = await Promise.all([
+const [tasks, tickets, media, catalogue, eventBase, eventHardening, eventSeverity] = await Promise.all([
   migration("20261128_pfms_personal_tasks.sql"),
   migration("20261129_pfms_support_tickets.sql"),
   migration("20261117_pfms_main_media_library.sql"),
-  migration("20261115_pfms_global_player_catalogue.sql")
+  migration("20261115_pfms_global_player_catalogue.sql"),
+  migration("20261116_pfms_system_event_monitoring.sql"),
+  migration("20261117_pfms_system_event_hardening.sql"),
+  migration("20261231_pfms_system_event_severity_boundary.sql")
 ]);
 
 function requirePattern(source, pattern, message) {
@@ -80,5 +83,17 @@ requirePattern(catalogue, /create policy pfms_main_scouting_reports_select[\s\S]
 requirePattern(catalogue, /create policy pfms_main_scouting_reports_insert[\s\S]*?author_id = auth\.uid\(\)[\s\S]*?public\.pfms_current_user_is_approved\(\)/);
 requirePattern(catalogue, /create policy pfms_main_scouting_reports_update[\s\S]*?using \(author_id = auth\.uid\(\) or public\.pfms_is_admin\(\)\)[\s\S]*?with check \(author_id = auth\.uid\(\) or public\.pfms_is_admin\(\)\)/);
 requirePattern(catalogue, /create policy pfms_main_scouting_reports_delete[\s\S]*?using \(author_id = auth\.uid\(\) or public\.pfms_is_admin\(\)\)/);
+
+
+const appSourceForTelemetry = await readFile(resolve(process.cwd(), "app.js"), "utf8");
+
+// Frontend error telemetry cannot self-assign critical severity.
+requirePattern(eventBase, /create policy pfms_system_events_insert_own[\s\S]*?actor_id = auth\.uid\(\)/);
+requirePattern(eventHardening, /create trigger pfms_system_events_guard_changes[\s\S]*?before insert or update/);
+requirePattern(eventSeverity, /create policy pfms_system_events_insert_own[\s\S]*?severity = 'error'[\s\S]*?status = 'open'/);
+requirePattern(eventSeverity, /create or replace function public\.pfms_system_event_severity_guard\(\)[\s\S]*?new\.severity is distinct from 'error'/);
+requirePattern(eventSeverity, /revoke all on function public\.pfms_system_event_severity_guard\(\)[\s\S]*?from public, anon, authenticated/);
+requirePattern(eventSeverity, /create trigger pfms_system_event_severity_guard[\s\S]*?before insert on public\.pfms_system_events/);
+requirePattern(appSourceForTelemetry, /severity:\s*'error'/);
 
 console.log("PFMS user-owned data security contracts passed: personal tasks, support tickets, private media, global player catalogue and scouting reports.");
