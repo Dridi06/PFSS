@@ -1,3 +1,14 @@
+# Ergänzung 15.11.2026 – Authentifizierungs- und Sitzungslebenszyklus gehärtet
+
+- Profilstatus und Plattformrolle werden bei Token-Erneuerung und Benutzeraktualisierung erneut serverseitig aus `profiles` gelesen. Die Supabase-Auth-Callbacks werden nicht durch synchrone Folgeabfragen blockiert.
+- Bei Rückkehr in einen sichtbaren Browser-Tab erfolgt höchstens einmal pro Minute eine erneute Sitzungs-/Profilprüfung. Bei unverändertem Benutzer und unveränderter Rolle bleibt die aktuelle Ansicht erhalten; die Teamzuordnungen werden erneut über die geschützte RPC geladen.
+- Parallele Profilprüfungen besitzen eine Generationssperre: verspätete Antworten dürfen einen neueren Login-/Logout-Zustand nicht überschreiben. Abgemeldete, nicht freigegebene oder in ihrer Plattformrolle geänderte Konten verlieren den bisherigen lokalen Authentifizierungszustand.
+- Neue Regressionstests: `tests/auth-session-lifecycle-smoke.mjs`, eingebunden in `npm test` und GitHub Actions. Die Tests prüfen Request-Rennen, Freigabestatus, Rollenwechsel, Token-Erneuerung, Logout und Tab-Rückkehr.
+- Dies ist ein Frontend-/CI-Sicherheitsnachweis. Reale Rollenwechsel, Sperrungen und Teamzuordnungsänderungen müssen zusätzlich mit getrennten Konten in der Staging-Datenbank abgenommen werden. Serverseitige RLS-/RPC-Prüfungen bleiben die maßgebliche Zugriffskontrolle.
+- Ausschließlich Feature-Branch. Keine Render-Änderung, kein Deployment, keine Supabase-Verbindung oder Migration, keine Änderung an `main` oder Produktivdaten.
+
+---
+
 # Ergänzung 15.11.2026 – RLS-Abdeckung aller Migrationstabellen automatisiert geprüft
 
 - Die CI prüft jetzt jede durch eine Repository-Migration neu angelegte öffentliche Tabelle: Sie muss im Read-only-Staging-Audit enthalten sein und RLS aktiviert haben.
