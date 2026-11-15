@@ -58,6 +58,13 @@ def main() -> None:
         pass
     else:
         raise AssertionError("Incomplete inventory was accepted as a complete manifest.")
+    for unsafe_path in ("../escape", "/absolute.bin", "folder/../escape", "folder/"):
+        try:
+            build_inventory_manifest([{"path": unsafe_path, "size": 1, "mime_type": None}])
+        except InventoryError:
+            pass
+        else:
+            raise AssertionError("Unsafe manifest path was accepted.")
 
     # A full page must trigger the next offset; a short page ends pagination.
     pages = {
