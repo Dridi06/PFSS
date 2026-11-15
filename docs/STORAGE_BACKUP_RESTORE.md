@@ -185,3 +185,12 @@ python3 scripts/storage_archive.py verify backup/storage-restored.tar
 - Die tatsächliche Größe, Objektzahl, R2-Aufbewahrung und Wiederherstellungsdauer sind unbekannt.
 
 Bis diese Punkte im isolierten Staging erfolgreich nachgewiesen sind, darf PFMS nicht als vollständig Storage-gesichert oder vollständig wiederherstellbar bezeichnet werden.
+
+
+## 10. R2-Zielhost-Prüfung
+
+Der injizierte Transportadapter `scripts/storage_r2_adapter.py` akzeptiert ausschließlich einen kanonischen HTTPS-Origin unter `*.r2.cloudflarestorage.com`. Er weist fremde Hosts und Lookalike-Domains, URL-Zugangsdaten, Pfade, Query-/Fragmentteile, nicht standardmäßige Ports sowie fehlerhafte Portangaben zurück, bevor Zugangsdaten an den Runner übergeben werden. Der Hostname wird normalisiert.
+
+Die Offline-Regressionstests verwenden einen Fake-Runner und führen keine Netzwerkverbindung aus. Sie belegen weder die Identität des realen Cloudflare-Kontos noch einen erfolgreichen Upload. Ein produktiver Aufrufer muss weiterhin den tatsächlichen Staging-Account unabhängig verifizieren und den AWS-CLI-Runner so konfigurieren, dass nur ein bestätigtes Cloudflare-R2-Ziel verwendet wird.
+
+Die Vorabprüfung per HEAD und anschließender Upload ist nicht atomar. Eindeutige Backup-IDs, kontrollierte parallele Ausführung und serverseitige Versionierung/Retention bleiben notwendige externe Schutzmaßnahmen.
