@@ -852,6 +852,75 @@ with checks as (
     ), false),
     'Kalender-RPC darf Event-/Turnierzeilen weder lesen noch bearbeiten oder in Kalendereinträge umwandeln'
 
+  union all
+  select
+    'team_access_current_membership_and_role',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%s.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.role = s.role%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_can_access_legacy_team(uuid)')
+    ), false),
+    'Teamzugriff verlangt aktive Organisation, aktiven Teammitarbeiter und passende aktive Organisationsmitgliedschaft; SECURITY DEFINER mit leerem search_path'
+
+  union all
+  select
+    'team_management_trainer_role_scope',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.can_manage_org(o.id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%s.role = ''trainer''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.role = ''trainer''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%o.status in (''approved'', ''active'')%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_can_manage_legacy_team(uuid)')
+    ), false),
+    'Teamverwaltung durch Trainer verlangt aktive Mitgliedschaft mit passender Trainerrolle und aktive Organisation'
+
+  union all
+  select
+    'team_staff_assignment_tenant_scope',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.pfms_can_manage_legacy_team(p_team_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.organization_id = v_organization_id%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.user_id = p_user_id%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.status = ''active''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%m.role = p_role%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_assign_legacy_team_staff(uuid,uuid,text)')
+    ), false),
+    'Teammitarbeiter können nur aus der eigenen Organisation mit aktiver Mitgliedschaft und exakt passender Rolle zugeordnet werden'
+
+  union all
+  select
+    'organization_manager_leadership_protection',
+    coalesce((
+      select p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%public.is_admin() or public.can_manage_org(v_organization_id)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_current_role in (''owner'',''club_admin'',''agency_admin'')%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_role not in (''scout'',''trainer'',''co_trainer'',''betreuer'',''member'')%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_update_legacy_org_membership_for_manager(uuid,text,text)')
+    ), false),
+    'Organisationsmanager dürfen keine Führungsrollen vergeben oder bestehende Inhaber-/Adminrollen ändern'
+
 )
 select check_name, passed, details
 from checks
