@@ -8761,8 +8761,7 @@ const registrationChoiceDetails = {
   user: 'Mitglieder können sich ausschließlich über einen gültigen Einladungslink registrieren. Der Link ordnet das Konto direkt dem einladenden Verein oder der Agentur zu.',
   club: 'Der Vereinszugang ist derzeit nur ein unverbindlicher Tarifentwurf. Weder Testphase noch kostenpflichtige Kontoanlage sind aktiviert; es wird kein Vertrag abgeschlossen.',
   agency: 'Der Agenturzugang ist derzeit nur ein unverbindlicher Tarifentwurf. Weder Testphase noch kostenpflichtige Kontoanlage sind aktiviert; es wird kein Vertrag abgeschlossen.',
-  scout: 'Der Einzelscout-Tarif ist derzeit nur ein unverbindlicher Entwurf. Eine kostenpflichtige Kontoanlage oder Testphase ist noch nicht aktiviert.',
-  owner_bootstrap: 'Die erstmalige Plattforminhaberschaft wird nur einmal vergeben. Nach der E-Mail-Bestätigung ist ein separater, geheimer Einmalcode erforderlich.'
+  scout: 'Der Einzelscout-Tarif ist derzeit nur ein unverbindlicher Entwurf. Eine kostenpflichtige Kontoanlage oder Testphase ist noch nicht aktiviert.'
 };
 
 function scrollAuthIntoView(element) {
@@ -8789,6 +8788,8 @@ function updateRegistrationProgress(step) {
 }
 
 function chooseRegistrationType(type) {
+  // Public registration must never offer or accept the privileged platform-owner path.
+  if (!['user', 'club', 'agency', 'scout'].includes(type)) return;
   selectedRegistrationChoice = type;
   updateRegistrationProgress(2);
   const priceGroup = document.querySelector('[data-pricing="' + type + '"]');
@@ -8797,7 +8798,7 @@ function chooseRegistrationType(type) {
   registrationChoice.hidden = true;
   registrationFields.hidden = false;
   document.getElementById('selectedRegistrationLabel').textContent =
-    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout',owner_bootstrap:'Plattforminhaber'}[type] || type);
+    'Ausgewählter Zugang: ' + ({user:'Mitglied',club:'Verein',agency:'Agentur',scout:'Einzelscout'}[type] || type);
   const orderSummary = document.getElementById('orderSummary');
   const memberSummary = document.getElementById('memberFreeSummary');
   const planNames = {club:'Verein',agency:'Agentur',scout:'Einzelscout'};
@@ -8818,8 +8819,7 @@ function chooseRegistrationType(type) {
       document.getElementById('orderPlanDetail').textContent = planNames[type] + ' · ' + (cycle === 'yearly' ? 'jährlicher Tarifentwurf' : 'monatlicher Tarifentwurf');
       document.getElementById('signupButton').textContent = 'Tarifvorschau anzeigen';
     } else {
-      document.getElementById('signupButton').textContent =
-        type === 'owner_bootstrap' ? 'Erstzugang registrieren' : 'Kostenlos registrieren';
+      document.getElementById('signupButton').textContent = 'Kostenlos registrieren';
     }
   }
   requestedRoleField.hidden = type !== 'user';
@@ -9023,8 +9023,8 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     showSignupError('Das Passwort muss mindestens 8 Zeichen lang sein.', form.elements.password);
     return;
   }
-  if (!type) {
-    showSignupError('Bitte wähle zuerst deinen Zugangsweg aus.', null);
+  if (!['user'].includes(type)) {
+    showSignupError('Dieser Registrierungsweg ist nicht verfügbar. Mitglieder benötigen eine gültige Einladung.', null);
     return;
   }
   if (type === 'user' && !invitationCode) {
@@ -9063,9 +9063,7 @@ document.getElementById('signupButton').addEventListener('click', async () => {
     if (data.session && data.user) {
       await checkPfssAccess(data.user);
     } else {
-      message.textContent = type === 'owner_bootstrap'
-        ? 'Inhaberregistrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse und melde dich anschließend an. Die einmalige Inhaberschaft aktivierst du danach mit dem separaten Einmalcode.'
-        : 'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Die Organisationsanlage bzw. Einladung wird erst nach Aktivierung der serverseitigen Prüf- und Datenbankfunktionen abgeschlossen.';
+      message.textContent = 'Registrierung vorgemerkt. Bitte bestätige deine E-Mail-Adresse. Die Einladung und Organisationszuordnung werden serverseitig geprüft.';
     }
   } catch (error) {
     message.textContent = 'Registrierung fehlgeschlagen. Bitte prüfe deine Angaben oder versuche es später erneut.';
