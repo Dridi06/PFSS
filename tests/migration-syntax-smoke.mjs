@@ -93,6 +93,56 @@ for (const tableName of createdPublicTables) {
   );
 }
 
+
+const adminDirectoryPagination = migrationSources[
+  migrationFiles.indexOf("20261218_pfms_admin_directory_pagination.sql")
+];
+const adminProfilePagination = migrationSources[
+  migrationFiles.indexOf("20261219_pfss_admin_profile_pagination.sql")
+];
+assert.ok(adminDirectoryPagination, "Admin directory pagination migration is missing.");
+assert.ok(adminProfilePagination, "Admin profile pagination migration is missing.");
+for (const [name, source] of [
+  ["organization page", adminDirectoryPagination],
+  ["scout page", adminDirectoryPagination],
+  ["membership page", adminDirectoryPagination],
+  ["profile page", adminProfilePagination]
+]) {
+  const normalized = source.replace(/\\s+/g, " ").toLowerCase();
+  assert.match(normalized, /security definer set search_path = '' as \$\$/,
+    name + " must be a SECURITY DEFINER function with an empty search_path.");
+  assert.match(normalized, /public\\.pfms_is_admin\\(\\)/,
+    name + " must enforce the canonical platform administrator check.");
+  assert.match(normalized, /p_limit is null or p_limit not between 1 and 100/,
+    name + " must cap each page at 100 rows.");
+  assert.match(normalized, /p_offset is null or p_offset not between 0 and 1000000/,
+    name + " must reject unbounded offsets.");
+  assert.match(normalized, /count\\(\\*\\) over \\(\\)/,
+    name + " must return a total count for stable pagination.");
+}
+assert.match(adminProfilePagination.replace(/\\s+/g, " ").toLowerCase(),
+  /create or replace function public\\.pfss_admin_profile_counts\\(\\)[\\s\\S]*?public\\.pfms_is_admin\\(\\)/,
+  "The dashboard counters must have a separate administrator-only aggregate RPC.");
+for (const signature of [
+  "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
+  "pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)",
+  "pfms_admin_list_legacy_members_page(text, text, text, text, integer, integer)",
+  "pfss_admin_list_profiles_page(text, text, text, text, integer, integer)",
+  "pfss_admin_profile_counts()"
+]) {
+  const functionName = signature.slice(0, signature.indexOf("("));
+  assert.ok(
+    adminDirectoryPagination.includes("grant execute on function public." + signature) ||
+      adminProfilePagination.includes("grant execute on function public." + signature),
+    functionName + " must explicitly grant its RPC to authenticated."
+  );
+  assert.ok(
+    adminDirectoryPagination.includes("revoke all on function public." + signature) ||
+      adminProfilePagination.includes("revoke all on function public." + signature),
+    functionName + " must revoke default public/anon execution."
+  );
+}
+
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const expectedReadPolicies = new Map([
