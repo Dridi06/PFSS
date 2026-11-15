@@ -1058,3 +1058,17 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - GitHub Actions: [Run 43724290432](https://github.com/Dridi06/PFSS/actions/runs/43724290432) – **Syntax and project smoke tests: success**, **Type-check Supabase Edge Functions: success**.
 - Der vorherige Lauf schlug ausschließlich an fehlerhaft escapten Test-Regulärausdrücken fehl; die Ursache wurde behoben und der korrigierte Stand erneut vollständig geprüft.
 - Weiterhin kein echter Supabase-Staging-Lauf und keine externe Änderung.
+
+
+---
+
+## Ergänzung 15.11.2026 – Frontend-Tenant-Write-Boundary automatisiert
+
+- Neuer Regressionstest: `tests/frontend-tenant-write-boundary-smoke.mjs`.
+- Der Test scannt die beiden Browser-Einstiegspunkte `app.js` und `scout-workspace.js`. Neun tenantkritische Relationen sind für direkte Browser-Tabellenzugriffe gesperrt: die drei PFMS-Kernorganisationstabellen, Legacy-Organisationen/Mitgliedschaften/Einladungen sowie Legacy-Teams, Teamstaff und Teamrechte.
+- Auch direkte REST-Pfade auf diese Tabellen werden ausgeschlossen. Die vorgesehenen Verwaltungsabläufe müssen weiterhin über die vorhandenen RPC-Endpunkte laufen; die dynamische Auswahl zwischen Plattformadmin- und Organisationsmanager-RPC wird gesondert geprüft.
+- Der Regressionstest verifiziert außerdem die SQL-ACL-Verträge: Browserrollen erhalten für die PFMS-Organisationstabellen nur SELECT, Service Role behält die serverseitigen Rechte, Teamtabellen sind RPC-/RLS-geschützt und die Einladungstabelle bleibt für Browserrollen vollständig gesperrt.
+- Der Test ist in `npm run check:syntax` und `npm run test:dist` eingebunden.
+- Vollständiger CI-Lauf für Commit `61c25cdaf1a2256ac63e09da7abbade186db0008` erfolgreich: [GitHub Actions – Run 43724837509](https://github.com/Dridi06/PFSS/actions/runs/43724837509). Syntax-/Projekt-Smoke-Tests und Deno-Edge-Function-Typprüfung bestanden. Der neue Test meldet neun geschützte Relationen über zwei Browser-Einstiegspunkte; anschließend bestanden auch Funktions-ACL-, Backup- und Storage-Regressionen.
+- Die ersten Testläufe deckten zwei Testfehler auf (dynamisch benannte RPC-Aufrufe und Regex-Escaping); beide wurden korrigiert und der abschließende vollständige Lauf war grün.
+- Keine Datenbankverbindung, keine Migration ausgeführt, kein Merge, kein Render-Deployment und keine Live-/Produktionsänderung.
