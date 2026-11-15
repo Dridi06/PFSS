@@ -122,7 +122,22 @@ Die Prüfung des JWT-Rollenfelds ist nur eine zusätzliche Schutzschicht und ers
 
 **Wichtige Grenze:** Der Adapter ist vorbereitet und offline getestet, aber noch nicht gegen ein reales Supabase-Projekt ausgeführt. Es wurden weder Zugangsdaten verwendet noch Objekte aufgelistet.
 
-## 7. Noch nicht umgesetzt bzw. nicht nachgewiesen
+## 7. Offline-Archivkern mit Integritätsprüfung und Restore (neu)
+
+Das Modul `scripts/storage_archive.py` erstellt aus einem bereits lokal bereitgestellten Objektbestand und dem vollständigen Inventar ein deterministisches, unkomprimiertes TAR-Archiv. Es führt selbst keine Downloads aus und besitzt keinen Netzwerktransport.
+
+- Das Manifest enthält Formatversion, festen privaten Bucket, sortierte relative Objektpfade, Byte-Größen, MIME-Typen und SHA-256 je Datei.
+- Vor dem Archivieren werden Pfade, Duplikate, lokale Dateiexistenz, Symlinks, Größen und Gesamtvolumen geprüft. Das Archiv wird zunächst temporär geschrieben und anschließend atomar an seinen Zielpfad verschoben.
+- `verify_archive` liest alle Einträge und prüft Manifest, Dateitypen, exakte Objektmenge, Größen und SHA-256, ohne Dateien zu extrahieren.
+- `restore_archive` akzeptiert ausschließlich ein leeres Zielverzeichnis. Absolute Pfade, Traversal, Symlinks, Duplikate, unerwartete Einträge und Überschreiben vorhandener Dateien werden abgewiesen.
+- Standardgrenzen: maximal 100.000 Objekte und 10 GiB Gesamtinhalt. Diese Grenzen können beim Funktionsaufruf weiter eingeschränkt werden.
+- Die CLI stellt zunächst nur `verify` und `restore` bereit. Die Erstellung erfolgt über die injizierbare Python-Funktion, damit der spätere Download-Adapter separat und testbar bleibt.
+
+`tests/storage-archive-smoke.py` prüft Paketierung, Round-trip in ein leeres temporäres Verzeichnis, leeres Inventar, manipulierte Bytes, unsichere Pfade, Duplikate, Größen- und Objektlimits sowie das Verbot des Überschreibens. Der Test nutzt ausschließlich lokale Dateien und TAR-Testdaten.
+
+**Wichtige Grenze:** Dieses Archiv ist noch Klartext. Vor jeglicher dauerhaften Ablage oder Übertragung muss es mit dem bestehenden, separat geprüften Verschlüsselungs-/HMAC-Prozess geschützt werden. Es wurde weder ein Supabase-Download noch ein R2-Upload oder ein produktiver Restore ausgeführt.
+
+## 8. Noch nicht umgesetzt bzw. nicht nachgewiesen
 
 - Kein Storage-Backup-Workflow und kein Storage-Backup-Skript sind mit dieser Planung eingerichtet.
 - Kein tatsächliches Bucket-Inventar des Supabase-Projekts wurde abgerufen; der Adapter wurde ausschließlich mit einem Fake-Transport getestet.
