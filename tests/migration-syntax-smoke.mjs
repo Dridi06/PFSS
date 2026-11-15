@@ -187,6 +187,57 @@ for (const signature of [
   );
 }
 
+
+const ownerIntegrityMigration = migrationSources[
+  migrationFiles.indexOf("20261210_pfms_owner_integrity_hardening.sql")
+];
+assert.ok(ownerIntegrityMigration, "Organization owner integrity migration is missing.");
+const protectedProfileUpdate = extractSqlFunction(
+  ownerIntegrityMigration, "pfss_admin_update_profile"
+);
+assert.ok(protectedProfileUpdate, "Protected administrator profile RPC is missing.");
+assert.match(protectedProfileUpdate, /security definer set search_path = '' as \\$\\$/,
+  "Administrator profile changes must run with a locked-down SECURITY DEFINER context.");
+assert.match(protectedProfileUpdate, /p_user_id = auth\.uid\(\)/,
+  "Administrators must not be able to modify their own administrator profile.");
+assert.match(protectedProfileUpdate, /public\.pfms_platform_owner[\s\S]*?owner_user_id = p_user_id/,
+  "The separately designated platform owner must be protected from ordinary profile edits.");
+assert.match(protectedProfileUpdate, /p_role not in \('user', 'scout', 'admin'\)/,
+  "Administrator profile roles must be explicitly allow-listed.");
+assert.match(protectedProfileUpdate, /p_status not in \('pending', 'approved', 'suspended'\)/,
+  "Administrator profile statuses must be explicitly allow-listed.");
+
+const protectedMembershipUpdate = extractSqlFunction(
+  ownerIntegrityMigration, "pfms_admin_update_legacy_membership"
+);
+assert.ok(protectedMembershipUpdate, "Serialized administrator membership RPC is missing.");
+assert.match(protectedMembershipUpdate, /security definer set search_path = '' as \\$\\$/,
+  "Administrator membership changes must run with a locked-down SECURITY DEFINER context.");
+assert.match(protectedMembershipUpdate, /public\.is_admin\(\)/,
+  "Administrator membership changes must enforce the server-side administrator check.");
+const organizationLockPosition = protectedMembershipUpdate.indexOf("from public.organizations o");
+const membershipLockPosition = protectedMembershipUpdate.indexOf("from public.organization_memberships m", organizationLockPosition + 1);
+assert.ok(organizationLockPosition >= 0 && membershipLockPosition > organizationLockPosition,
+  "Membership updates must lock the parent organization before re-reading and locking the membership.");
+assert.match(protectedMembershipUpdate, /for update[\s\S]*?from public\.organization_memberships m[\s\S]*?for update/,
+  "Membership updates must lock both the parent organization and the target membership.");
+assert.match(protectedMembershipUpdate, /v_current_role = 'owner'[\s\S]*?v_current_status = 'active'[\s\S]*?other_owner\.role = 'owner'[\s\S]*?other_owner\.status = 'active'/,
+  "An active owner may only be demoted or suspended when another active owner remains.");
+assert.match(protectedMembershipUpdate, /p_role not in \([\s\S]*?'owner'[\s\S]*?'club_admin'[\s\S]*?'agency_admin'/,
+  "Administrator membership roles must use the explicit supported role allow-list.");
+assert.ok(
+  ownerIntegrityMigration.includes("revoke all on function public.pfms_admin_update_legacy_membership(uuid, text, text)"),
+  "The administrator membership RPC must revoke default public/anon execution."
+);
+assert.ok(
+  ownerIntegrityMigration.includes("grant execute on function public.pfms_admin_update_legacy_membership(uuid, text, text) to authenticated"),
+  "The administrator membership RPC must explicitly grant execution to authenticated."
+);
+assert.match(stagingAcceptanceSql, /'admin_owner_integrity_membership'/,
+  "The read-only staging audit must verify the active organization-owner invariant.");
+assert.match(stagingAcceptanceSql, /'admin_platform_owner_profile_protection'/,
+  "The read-only staging audit must verify platform-owner profile protection.");
+
 const combinedMigrationSql = migrationSources.join("\n");
 const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
 const expectedReadPolicies = new Map([
