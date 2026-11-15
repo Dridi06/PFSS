@@ -74,13 +74,17 @@ assert.match(adminEventActions, /requestGeneration = pfmsAuthGeneration[\s\S]*?i
 const adminProfileLoader = app.match(/async function loadAdminUsers\(\)[\s\S]*?(?=async function saveAdminUser)/)?.[0] || "";
 assert.match(adminProfileLoader, /pfss_admin_list_profiles_page[\s\S]*?p_limit: pageSize[\s\S]*?p_offset: page \* pageSize/,
   "The global profile directory must request a bounded database page.");
-assert.match(adminProfileLoader, /pfss_admin_profile_counts[\s\S]*?Promise\.all/,
+assert.match(adminProfileLoader, /Promise\.all\([\s\S]*?pfss_admin_profile_counts/,
   "Global profile counters must be loaded separately from the filtered result page.");
 assert.match(adminProfileLoader, /requestId !== pfmsAdminUsersRequestId/,
   "Out-of-order profile pages must not overwrite a newer filter or page selection.");
 assert.match(adminProfileLoader, /pfmsAdminPaginationMarkup/,
   "The global profile directory must expose accessible page navigation.");
-assert.match(adminDirectoryLoader, /pfms_admin_search_legacy_organizations_page[\s\S]*?pfms_admin_list_legacy_scouts_page[\s\S]*?p_limit:pageSize[\s\S]*?p_offset:offset/,
+assert.match(adminDirectoryLoader, /pfms_admin_search_legacy_organizations_page/,
+  "Organization directory must use its paginated database RPC.");
+assert.match(adminDirectoryLoader, /pfms_admin_list_legacy_scouts_page/,
+  "Scout directory must use its paginated database RPC.");
+assert.match(adminDirectoryLoader, /p_limit:pageSize[\s\S]*?p_offset:offset/,
   "Organization and scout directories must use bounded server-side pagination.");
 assert.match(adminDirectoryLoader, /p_email:emailQuery[\s\S]*?p_user_id:idQuery[\s\S]*?p_status:statusQuery/,
   "Scout search filters must be sent to the database instead of filtering a full client-side result set.");
