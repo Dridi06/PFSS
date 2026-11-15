@@ -351,3 +351,13 @@ Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/R
 - Negativtest: Nicht-Admin-Aufruf der RPC muss mit `42501` abgewiesen werden. Ungültige Status-/Rollenwerte, fehlende Organisations-ID, übergroße Seiten und Offsets müssen abgewiesen werden.
 - Regression: Während eine Seite lädt, Organisation wechseln oder abmelden; verspätete Antworten dürfen weder Details noch Mitgliederdaten der neuen Sitzung überschreiben.
 - Diese Migration ist noch nicht auf Supabase Staging angewendet. Erst nach read-only Schema-Audit anwenden und mit getrennten Admin-/Nicht-Admin-Testkonten abnehmen.
+
+
+### Zusätzliche Abnahme: Organisationsmitglieder-Zähler bei leeren Seiten
+
+- Die RPC `pfms_admin_list_legacy_org_members_page` muss die unfiltrierten Organisationssummen auch dann zurückgeben, wenn eine Such-/Filterkombination keine Treffer liefert oder ein Seitenoffset hinter dem letzten Datensatz liegt.
+- Positivtest: Organisation mit Mitgliedern öffnen, einen Filter ohne Treffer setzen und prüfen, dass Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler unverändert korrekt bleiben, während die gefilterte Trefferzahl null ist.
+- Positivtest: Bei einer Organisation ohne Mitglieder muss die RPC eine zusammenfassende Zeile mit vier Null-Zählern liefern, nicht eine leere Antwort.
+- Regression: Filter entfernen und prüfen, dass die Mitgliederdaten wieder korrekt erscheinen; ein verspäteter Seitenaufruf darf keine vorherigen Zähler überschreiben.
+- Das Read-only-Audit `admin_org_member_pagination_bounds` prüft nun zusätzlich die vier Status-/Gesamtzähler und die Verknüpfung der Zusammenfassung mit einer möglicherweise leeren Ergebnisseite.
+- Die CI prüft diese SQL-Vertragsbedingungen statisch. Der echte Laufzeittest bleibt Teil der isolierten Supabase-Staging-Abnahme.
