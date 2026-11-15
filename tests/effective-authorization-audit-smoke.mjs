@@ -33,7 +33,9 @@ for (const marker of [
   "has_function_privilege",
   "aclexplode",
   "has_table_privilege",
-  "RLS_EFFECTIVE_SUMMARY",\n  "CROSS JOIN commands",\n  "cmd.command_name",
+  "RLS_EFFECTIVE_SUMMARY",
+  "CROSS JOIN commands",
+  "cmd.command_name",
   "TRIGGER_EFFECTIVE",
   "RPC_EFFECTIVE"
 ]) {
