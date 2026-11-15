@@ -144,17 +144,17 @@ assert.match(
 );
 assert.match(
   stagingAcceptanceSql,
-  /has_column_privilege\('anon'[\\s\\S]*?has_column_privilege\('authenticated'/i,
+  /has_column_privilege\('anon'[\s\S]*?has_column_privilege\('authenticated'/i,
   "Invitation ACL acceptance must inspect column-level privileges separately from table ACLs."
 );
 assert.match(
   stagingAcceptanceSql,
-  /aclexplode\\([\\s\\S]*?acl\\.grantee = 0[\\s\\S]*?organization_invitations/i,
+  /aclexplode\([\s\S]*?acl\.grantee = 0[\s\S]*?organization_invitations/i,
   "Invitation ACL acceptance must reject direct PUBLIC table grants."
 );
 assert.match(
   stagingAcceptanceSql,
-  /pg_catalog\\.pg_policies[\\s\\S]*?organization_invitations/i,
+  /pg_catalog\.pg_policies[\s\S]*?organization_invitations/i,
   "Invitation ACL acceptance must fail closed if a direct table policy is added."
 );
 
