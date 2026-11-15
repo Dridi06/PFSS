@@ -119,6 +119,13 @@ Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattforma
 - Abmeldung/Kontowechsel leert den lokalen Benachrichtigungszustand und die Badge-Zahl. Die Seitenleiste zeigt nach Anmeldung die Zahl ungelesener Mitteilungen.
 - Push-, E-Mail- und externe Zustellkanäle sind in diesem Arbeitsschritt nicht enthalten.
 
+### Mandanten- und Rollenisolierung für Teamzugriffe
+- Positiv: Ein aktiver Trainer mit aktiver Organisationsmitgliedschaft derselben Rolle und aktiver Teamzuordnung darf sein Team verwalten. Ein aktiver Co-Trainer/Betreuer erhält ausschließlich die explizit gespeicherten Modulrechte.
+- Negativ: Gesperrte/entzogene Mitgliedschaft, gesperrte Organisation, inaktive Teamzuordnung oder Rollenabweichung zwischen Organisationsmitgliedschaft und Teamzuordnung müssen den Zugriff auf Teamdaten verhindern – auch wenn ein alter Teammitarbeiter-Datensatz bestehen bleibt.
+- Negativ: Eine Person aus einer zweiten Organisation darf weder als Kandidat für die Teamzuordnung erscheinen noch per RPC zugeordnet werden. Kandidatenliste und Zuordnungs-RPC müssen die Organisation aus der Team-ID ableiten, nicht aus einem vom Client gelieferten Organisationswert.
+- Negativ: Co-Trainer/Betreuer dürfen weder Teammitarbeiter zuordnen/entfernen noch Organisationsrollen verwalten. Organisationsmanager dürfen nur operative Rollen verwalten und keine Owner-/Adminrolle vergeben oder ändern. Plattformadministratoren behalten den expliziten globalen Verwaltungsweg.
+- Direkte INSERT/UPDATE/DELETE-Versuche auf `pfms_legacy_team_staff` müssen scheitern; Änderungen erfolgen ausschließlich über die geschützten RPCs. Den Zugriff nach Rollenwechsel, Sperrung und Wiederfreigabe jeweils mit frischer Sitzung erneut prüfen.
+
 ### Gemeinsame Teamaufgaben
 - Ein Konto mit `tasks.view` darf nur Aufgaben der eigenen Mannschaft lesen. Ohne Leserecht muss der List-RPC scheitern.
 - Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Beim Erstellen alle Anfangsstatus (`open`, `in_progress`, `done`, `cancelled`) testen; bei `done` muss `completed_at` gesetzt, bei allen anderen Status null sein. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
