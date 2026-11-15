@@ -1512,6 +1512,65 @@ with checks as (
     ), false),
     'PFMS admin membership changes must serialize on the parent organization and preserve at least one active owner'
 
+  union all
+  select
+    'pfms_membership_owner_lock_order',
+    coalesce((
+      select
+        p.prosecdef
+        and coalesce(p.proconfig::text, '') like '%search_path=""%'
+        and pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+        and pg_catalog.strpos(
+          pg_catalog.substring(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
+            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          ),
+          'for update'
+        ) > 0
+        and pg_catalog.strpos(
+          pg_catalog.substring(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
+            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          ),
+          'for update'
+        ) < pg_catalog.strpos(
+          pg_catalog.substring(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
+            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'perform 1 from public.pfms_organizations o')
+          ),
+          'select m.organization_id, m.member_role, m.status'
+        )
+        and pg_catalog.strpos(
+          pg_catalog.substring(
+            pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid))
+            from pg_catalog.strpos(pg_catalog.lower(pg_catalog.pg_get_functiondef(p.oid)), 'select m.organization_id, m.member_role, m.status')
+          ),
+          'for update'
+        ) > 0
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%v_locked_org_id is distinct from v_org_id%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_admin_update_membership(uuid,text,text,jsonb)')
+    ), false),
+    'Parent organization must be locked before the target membership; the locked tenant key must be revalidated and browser ACLs remain restricted'
+
+  union all
+  select
+    'pfms_membership_input_validation',
+    coalesce((
+      select
+        pg_catalog.pg_get_functiondef(p.oid) ilike '%p_member_role not in%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_status not in%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%p_permissions is null%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%jsonb_typeof(p_permissions) is distinct from ''object''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%pg_catalog.jsonb_each(p_permissions)%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%jsonb_typeof(e.value) is distinct from ''boolean''%'
+        and pg_catalog.pg_get_functiondef(p.oid) ilike '%using errcode = ''22023''%'
+      from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.pfms_admin_update_membership(uuid,text,text,jsonb)')
+    ), false),
+    'Role, status and permission payload must reject NULL, unknown values, non-object JSON and non-boolean permission entries'
+
 
 )
 select check_name, passed, details
