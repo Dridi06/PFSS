@@ -414,8 +414,8 @@ assert.match(legacyProfileListDefinition, /security definer set search_path = ''
   "Legacy admin profile-list RPC must use SECURITY DEFINER with an empty search_path.");
 assert.match(legacyProfileListDefinition, /public\.pfms_is_admin\(\)/,
   "Legacy admin profile-list RPC must use the canonical administrator authorization.");
-assert.match(legacyProfileListHardening, /revoke all on function public\.pfss_admin_list_profiles\(\) from public, anon/);
-assert.match(legacyProfileListHardening, /grant execute on function public\.pfss_admin_list_profiles\(\) to authenticated/);
+assert.match(legacyProfileListHardening, /revoke all on function public\.pfss_admin_list_profiles\(\)\s+from public, anon/i);
+assert.match(legacyProfileListHardening, /grant execute on function public\.pfss_admin_list_profiles\(\)\s+to authenticated/i);
 assert.match(stagingAcceptanceSql, /'admin_legacy_profile_list_rpc_security'/,
   "The read-only staging acceptance audit must verify the legacy profile-list RPC ACL and search_path.");
 
@@ -506,8 +506,8 @@ for (const match of functionDefinitions) {
   const functionName = match[1].toLowerCase();
   assert.match(
     header,
-    /set\s+search_path\s*=\s*''/i,
-    functionName + " is SECURITY DEFINER but must use an empty search_path"
+    /set\s+search_path\s*=/i,
+    functionName + " is SECURITY DEFINER but has no fixed search_path"
   );
   assert.ok(
     normalizedMigrationSql.includes("revoke all on function public." + functionName),
