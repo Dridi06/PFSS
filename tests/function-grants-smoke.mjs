@@ -154,12 +154,23 @@ for (const match of sql.matchAll(/grant\s+execute\s+on\s+function\s+public\.([a-
   );
 }
 
-const revokes = new Set();
+const revokes = new Map();
 for (const match of sql.matchAll(/revoke\s+(?:all|execute)\s+on\s+function\s+public\.([a-z0-9_]+)\s*\(/gi)) {
   const open = match.index + match[0].lastIndexOf("(");
   const close = closingParen(sql, open);
   const args = normalizeArguments(sql.slice(open + 1, close), false);
-  revokes.add(match[1].toLowerCase() + "(" + args + ")");
+  const signature = match[1].toLowerCase() + "(" + args + ")";
+  const statementEnd = sql.indexOf(";", close);
+  assert.notEqual(statementEnd, -1, "Function EXECUTE revoke must end with a semicolon: " + signature);
+  const statementTail = sql.slice(close + 1, statementEnd);
+  const fromClause = statementTail.match(/\bfrom\s+([\s\S]*)$/i)?.[1] || "";
+  const roles = fromClause
+    .split(",")
+    .map((role) => role.trim().replace(/\s+cascade\s*$/i, "").replace(/["']/g, "").toLowerCase())
+    .filter(Boolean);
+  const existing = revokes.get(signature) || new Set();
+  for (const role of roles) existing.add(role);
+  revokes.set(signature, existing);
 }
 
 for (const signature of securityDefinerSignatures) {
@@ -174,9 +185,15 @@ for (const signature of securityDefinerSignatures) {
     "SECURITY DEFINER function must use only the empty or pg_catalog search_path: " + signature +
       " (effective search_path: " + effectiveSearchPath + ")"
   );
+  const revokedRoles = revokes.get(signature);
   assert.ok(
-    revokes.has(signature),
+    revokedRoles,
     "SECURITY DEFINER function has no signature-matched EXECUTE revoke: " + signature
+  );
+  assert.ok(
+    revokedRoles.has("public") && revokedRoles.has("anon"),
+    "SECURITY DEFINER function must explicitly revoke EXECUTE from PUBLIC and anon: " + signature +
+      " (revoked roles: " + [...revokedRoles].join(", ") + ")"
   );
 }
 
