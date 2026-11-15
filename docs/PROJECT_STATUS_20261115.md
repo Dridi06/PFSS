@@ -22,7 +22,7 @@ The percentages for partially completed product workstreams are engineering esti
 
 - Repository: `Dridi06/PFSS`
 - Branch: `feature/pfss-complete-platform-build`
-- Current checkpoint commit: `c2d2ef08aa2b949f40273610749a8c999c3e6dd3`
+- Current code checkpoint commit: `0471bd0bb908df40fde85612bec497a75b01bbce`
 - PR #1 remains open and Draft; do not merge or deploy without explicit approval.
 - CI push run [43731156357](https://github.com/Dridi06/PFSS/actions/runs/43731156357): both jobs passed.
 - CI pull-request run [43731163779](https://github.com/Dridi06/PFSS/actions/runs/43731163779): both jobs passed.
@@ -85,3 +85,13 @@ No live Supabase migration was executed. No staging or production database was q
 - Push CI [43734246649](https://github.com/Dridi06/PFSS/actions/runs/43734246649) and PR CI [43734251084](https://github.com/Dridi06/PFSS/actions/runs/43734251084) both passed for the saved code checkpoint.
 - PR #1 remains open and Draft. No merge, Render deployment, live Supabase staging/production operation, or auth backend change was performed.
 - Current overall estimate remains **76% provisional**. No percentage increase is claimed because staging/runtime acceptance, browser/device visual QA and full product acceptance remain outstanding.
+
+
+## Migration ledger preflight hardening – 15 November 2026
+
+- Added `scripts/verify-migration-ledger.mjs`, a read-only comparison of the Supabase CLI LOCAL/REMOTE migration inventory against the exact branch migration files. It fails closed on malformed CLI output, missing/extra versions, duplicate version prefixes and non-prefix remote histories.
+- Added isolated regression fixtures for valid applied prefixes, remote-only versions, out-of-order histories, duplicate local/remote versions and malformed CLI output; integrated syntax and regression checks into `npm test`.
+- Added `docs/MIGRATION_LEDGER_PREFLIGHT.md` with staging-only instructions and stop conditions.
+- CI fully passed for code commit `0471bd0bb908df40fde85612bec497a75b01bbce`: push run [43735267214](https://github.com/Dridi06/PFSS/actions/runs/43735267214) and PR run [43735271634](https://github.com/Dridi06/PFSS/actions/runs/43735271634), both jobs successful.
+- Important finding: the current branch contains 62 timestamped SQL files but only 46 distinct eight-digit prefixes; 11 prefixes occur more than once. The checker intentionally blocks this inventory until the real staging migration ledger and schema are reconciled. Existing migrations were not renamed or reordered.
+- No Supabase database was queried or modified, no migration was applied, no Render deployment occurred, and PR #1 remains Draft. The overall estimate remains 76% provisional; no increase is claimed because live staging/runtime acceptance remains outstanding.
