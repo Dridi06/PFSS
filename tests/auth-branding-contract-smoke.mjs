@@ -5,7 +5,12 @@ const css=fs.readFileSync(new URL("../pfms-auth-executive.css",import.meta.url),
 const app=fs.readFileSync(new URL("../app.js",import.meta.url),"utf8");
 const ids=["authScreen","authForm","authTitle","authIntro","chooseLogin","chooseRegister","registrationChoice","registrationType","selectedRegistrationLabel","changeRegistrationChoice","signupUsernameField","signupEmailField","signupPasswordField","loginButton","signupButton","passkeyLoginButton","forgotPasswordButton","authMessage","ownerBootstrapForm","pendingScreen"];
 for(const id of ids)assert.match(html,new RegExp('id="'+id+'"'),"Missing auth contract id: "+id);
-for(const choice of ["user","club","agency","owner_bootstrap","scout"])assert.match(html,new RegExp('data-registration-choice="'+choice+'"'),"Missing registration choice: "+choice);
+for(const choice of ["user","club","agency","scout"])assert.match(html,new RegExp('data-registration-choice="'+choice+'"'),"Missing registration choice: "+choice);
+assert.doesNotMatch(html,/data-registration-choice="owner_bootstrap"/,"Privileged owner setup must not be offered in public registration.");
+assert.match(html,/id="ownerBootstrapForm"/,"The separate owner bootstrap challenge form must remain available only after the protected owner session gate.");
+assert.match(app,/if \(!\[\x27user\x27, \x27club\x27, \x27agency\x27, \x27scout\x27\]\.includes\(type\)\) return;/,"Public registration choice handler must reject privileged/unknown types.");
+assert.match(app,/if \(!\[\x27user\x27\]\.includes\(type\)\)/,"Actual signup submission must fail closed unless the type is an invited member.");
+assert.doesNotMatch(app,/owner_bootstrap:\s*\x27Plattforminhaber\x27/,"Owner setup must not be exposed as a public registration choice.");
 assert.match(html,/Professional Football Management System/);
 assert.match(html,/alt="Professional Football Management System"/);
 assert.doesNotMatch(html,/Geschützter Zugang · PFMS/);
