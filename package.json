@@ -2,7 +2,7 @@
   "name": "pfms",
   "version": "0.1.0",
   "private": true,
-  "description": "PFMS – Professionell Football Management System",
+  "description": "PFMS – Professional Football Management System",
   "type": "module",
   "scripts": {
     "check:syntax": "node --check tests/auth-branding-contract-smoke.mjs && node --check app.js && node --check scout-workspace.js && node --check scripts/build-static.mjs && node --check scripts/build-ci.mjs && node --check scripts/verify-migration-ledger.mjs && node --check scripts/audit-migration-version-collisions.mjs && node --check tests/migration-version-collision-baseline-smoke.mjs && node --check tests/staging-acceptance-sql-contract-smoke.mjs && node --check tests/migration-ledger-preflight-smoke.mjs && node --check tests/build-config-smoke.mjs && node --check tests/accessibility-smoke.mjs && node --check tests/migration-syntax-smoke.mjs && node --check tests/migration-dependency-graph-smoke.mjs && node --check tests/critical-function-effective-definition-smoke.mjs && node --check tests/team-module-permissions-smoke.mjs && node --check tests/tenant-role-isolation-smoke.mjs && node --check tests/auth-session-lifecycle-smoke.mjs && node --check tests/frontend-rpc-contract-smoke.mjs && node --check tests/frontend-tenant-write-boundary-smoke.mjs && node --check tests/function-grants-smoke.mjs && node --check tests/security-definer-acl-effective-smoke.mjs && node --check tests/storage-backup-doc-smoke.mjs && node --check tests/effective-authorization-audit-smoke.mjs && node --check tests/rpc-reference-inventory-smoke.mjs && node --check tests/rpc-deprecation-review-smoke.mjs",
