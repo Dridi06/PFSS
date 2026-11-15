@@ -444,6 +444,79 @@ for (const signature of [
   );
 }
 
+const ownerBootstrapMigration = migrationSources[
+  migrationFiles.indexOf("20261116_pfms_owner_bootstrap_registration_guard.sql")
+];
+assert.ok(ownerBootstrapMigration, "Owner bootstrap registration guard migration is missing.");
+const normalizedOwnerBootstrapMigration = ownerBootstrapMigration
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of [
+  "pfms_register_owner_bootstrap_request",
+  "pfms_owner_setup_available",
+  "pfms_claim_initial_owner"
+]) {
+  assert.ok(
+    normalizedOwnerBootstrapMigration.includes(
+      "create or replace function public." + functionName + "("
+    ),
+    "Owner bootstrap RPC/trigger function is missing: " + functionName
+  );
+}
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /create table if not exists public\.pfms_owner_bootstrap_requests[\s\S]*?alter table public\.pfms_owner_bootstrap_requests enable row level security/,
+  "Owner bootstrap evidence table must have RLS enabled."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "revoke all on table public.pfms_owner_bootstrap_requests from public, anon, authenticated"
+  ),
+  "Owner bootstrap evidence table must not be directly accessible by browser roles."
+);
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /create trigger pfms_register_owner_bootstrap_request after insert on auth\.users/,
+  "Owner bootstrap evidence must be created only by the initial auth.users insert trigger."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "revoke all on function public.pfms_register_owner_bootstrap_request() from public, anon, authenticated"
+  ),
+  "Owner bootstrap trigger function must not be directly executable by browser roles."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "grant execute on function public.pfms_owner_setup_available() to authenticated"
+  ),
+  "Owner setup availability must remain callable by authenticated users."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "grant execute on function public.pfms_claim_initial_owner(uuid) to service_role"
+  ),
+  "Only the trusted service role may execute the owner claim RPC."
+);
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /for update[\s\S]*?claimed_at is null/,
+  "Owner claim must lock and consume a single unused registration request."
+);
+const ownerTableMigration = migrationSources[
+  migrationFiles.indexOf("20261115_pfms_platform_owner_bootstrap.sql")
+];
+assert.ok(ownerTableMigration, "Platform owner singleton migration is missing.");
+assert.match(
+  ownerTableMigration.replace(/\s+/g, " ").toLowerCase(),
+  /alter table public\.pfms_platform_owner enable row level security/,
+  "Platform owner singleton must have RLS enabled."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'owner_bootstrap_security_boundary'/,
+  "Read-only staging acceptance must verify the complete owner bootstrap boundary."
+);
+
 const authTriggerHardening = migrationSources[
   migrationFiles.indexOf("20261130_pfms_auth_trigger_hardening.sql")
 ];
