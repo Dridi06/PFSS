@@ -1080,3 +1080,12 @@ Weiterarbeiten im Repository `Dridi06/PFSS`, Branch `feature/pfss-complete-platf
 - Die beiden Main-only-Commits betreffen ausschließlich `20261118_pfms_legacy_org_manager_guard.sql`: zunächst wurde die abgesicherte Helper-Funktion hinzugefügt, anschließend wurde dieselbe Datei wegen einer versehentlichen Default-Branch-Änderung wieder entfernt.
 - Der Feature-Branch enthält den identischen Funktionskörper bereits früher in `20261112_pfms_legacy_org_manager_guard.sql`, damit Einladungs-RPCs die Funktion in der chronologischen Migrationsreihenfolge vor ihrer ersten Verwendung erhalten. Die spätere `20261118`-Datei bleibt als idempotente Ledger-Kompatibilität erhalten.
 - Die beiden Main-only-Änderungen führen daher keinen fehlenden Funktionskörper ein, der im Feature-Branch nachgezogen werden müsste. Die Branch-Historie bleibt dennoch vor jeder Integration separat zu prüfen; kein automatischer Merge.
+
+
+## Ergänzung 15.11.2026 – Effektive EXECUTE-Sperre für SECURITY DEFINER geprüft
+
+- Der zentrale Regressionstest `tests/function-grants-smoke.mjs` prüft nicht mehr nur, ob eine SECURITY-DEFINER-Funktion irgendeinen signaturgleichen REVOKE-Eintrag besitzt.
+- Die Prüfung liest jetzt die tatsächlich im jeweiligen REVOKE-Statement genannten Rollen aus und verlangt ausdrücklich sowohl `PUBLIC` als auch `anon`.
+- Mehrere REVOKE-Statements für dieselbe Funktionssignatur werden zusammengeführt. Ein unvollständiger Eintrag (z. B. nur `anon`) kann die Prüfung nicht mehr bestehen.
+- Die bestehende Search-Path-Prüfung bleibt unverändert; legitime EXECUTE-Rechte für `authenticated` bleiben möglich und werden nicht pauschal entfernt.
+- Änderung ausschließlich im Feature-Branch. Die GitHub-Actions-Prüfung muss den neuen Vertrag noch bestätigen; keine Migration, Datenbankverbindung, Deployment, Merge oder Produktionsänderung.
