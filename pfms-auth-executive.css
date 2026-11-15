@@ -1,6 +1,6 @@
 /* Professional Football Management System — Executive Arena auth layer.
    Presentation-only: existing auth IDs, form fields and JavaScript contracts are preserved. */
-#authScreen.auth-screen{position:relative;isolation:isolate;min-height:100svh;padding:clamp(24px,4vw,58px) clamp(16px,4vw,64px) 20px;gap:24px;overflow:hidden;background:radial-gradient(ellipse at 16% 14%,rgba(214,181,109,.095),transparent 34%),radial-gradient(ellipse at 92% 84%,rgba(214,181,109,.055),transparent 30%),linear-gradient(135deg,#08090b,#111417 52%,#090a0c)}
+#authScreen.auth-screen{position:relative;isolation:isolate;min-height:100svh;padding:clamp(24px,4vw,58px) clamp(16px,4vw,64px) 20px;gap:24px;overflow-x:clip;overflow-y:visible;background:radial-gradient(ellipse at 16% 14%,rgba(214,181,109,.095),transparent 34%),radial-gradient(ellipse at 92% 84%,rgba(214,181,109,.055),transparent 30%),linear-gradient(135deg,#08090b,#111417 52%,#090a0c)}
 #authScreen.auth-screen:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.14;background-image:linear-gradient(rgba(214,181,109,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(214,181,109,.08) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(120deg,#000,transparent 68%)}
 #authScreen .auth-layout{width:min(100%,1360px);margin:auto;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);align-items:stretch;gap:clamp(20px,3vw,42px)}
 #authScreen .auth-visual{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:690px;overflow:hidden;padding:clamp(28px,4vw,54px);border:1px solid rgba(214,181,109,.22);border-radius:22px;background:radial-gradient(ellipse at 50% 72%,rgba(214,181,109,.15),transparent 42%),linear-gradient(155deg,rgba(28,32,35,.96),rgba(12,15,17,.97) 58%,rgba(9,10,12,.99));box-shadow:0 28px 80px #0006,inset 0 1px #ffffff0f}
@@ -35,10 +35,10 @@
 #authScreen .auth-card h1{font-size:clamp(25px,2.5vw,32px);letter-spacing:-.035em}
 #authScreen .auth-intro{font-size:13px;line-height:1.65;color:#aaa9a3}
 #authScreen .auth-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;margin:23px 0 22px;border:1px solid #ffffff12;border-radius:11px;background:#101214}
-#authScreen .auth-mode-option{min-height:42px;border:1px solid transparent;border-radius:8px;background:transparent;color:#aaa69d;font-weight:650;font-size:12px;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+#authScreen .auth-mode-option{min-height:42px;border:1px solid transparent;border-radius:8px;background:transparent;color:#aaa69d;font-family:inherit;font-weight:650;font-size:12px;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
 #authScreen .auth-mode-option.active{border-color:#d6b56d47;background:#d6b56d1f;color:#f0d9a4}
 #authScreen .auth-card .field{display:grid;gap:8px;margin:15px 0;color:#d2cec4;font-size:12px;font-weight:600}
-#authScreen .auth-card .field input,#authScreen .auth-card .field select{box-sizing:border-box;width:100%;min-height:48px;padding:12px 14px;border:1px solid #414044;border-radius:9px;background:#101214;color:#f0eee9;font-size:14px;transition:border-color .18s,box-shadow .18s}
+#authScreen .auth-card .field input,#authScreen .auth-card .field select{box-sizing:border-box;width:100%;min-height:48px;padding:12px 14px;border:1px solid #414044;border-radius:9px;background:#101214;color:#f0eee9;font-family:inherit;font-size:14px;font-weight:400;transition:border-color .18s,box-shadow .18s}
 #authScreen .auth-card .field input::placeholder{color:#77766f}
 #authScreen .auth-card .field input:focus-visible,#authScreen .auth-card .field select:focus-visible{outline:2px solid transparent;border-color:#d6b56d;box-shadow:0 0 0 3px #d6b56d29}
 #authScreen .auth-actions{gap:10px;margin-top:22px}#authScreen .auth-actions .btn{min-height:48px;border-radius:9px;font-size:12px}
@@ -73,3 +73,6 @@
 }
 @media(max-width:380px){#authScreen.auth-screen{padding-left:10px;padding-right:10px}#authScreen .auth-card{padding:20px 16px}#authScreen .auth-visual{padding:16px}#authScreen .auth-visual-bottom{letter-spacing:.1em}}
 @media(prefers-reduced-motion:reduce){#authScreen *,#authScreen *:before,#authScreen *:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Keep the full product name legible in the post-auth welcome moment. */
+.welcome-brand{font-family:inherit;font-size:clamp(16px,3vw,30px);letter-spacing:.12em;line-height:1.35;max-width:90vw;overflow-wrap:anywhere}
