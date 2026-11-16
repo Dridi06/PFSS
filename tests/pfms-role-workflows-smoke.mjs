@@ -17,6 +17,21 @@ const member=w.resolveContext({profileRole:"user",organizations:[{organization_t
 const multi=w.resolveContext({profileRole:"user",organizations:[{organization_type:"club",organization_status:"active",member_role:"owner"},{organization_type:"agency",organization_status:"approved",member_role:"manager"}]});assert.equal(multi.canManageClub,true);assert.equal(multi.canManageAgency,true);assert.equal(multi.clubOrganizationCount,1);assert.equal(multi.agencyOrganizationCount,1);
 const admin=w.resolveContext({profileRole:"administrator"});assert.equal(admin.isPlatformAdmin,true);assert.equal(w.getStartView(admin),"admin");for(const view of w.getAllViews())assert.equal(w.canAccessView(admin,view),true,"admin route: "+view);
 assert.equal(w.canAccessView(club,"not-a-real-view"),false);assert.equal(w.canAccessView(null,"dashboard"),false);
+for (const teamRole of ["trainer","co_trainer","betreuer"]) {
+  const unassigned = w.resolveContext({profileRole:teamRole});
+  assert.equal(unassigned.hasTeamRoleHint,true,teamRole+" should be classified as team staff");
+  assert.equal(w.canAccessView(unassigned,"team-workspace"),false,teamRole+" must not get a team workspace without an assignment");
+  const assigned = w.resolveContext({profileRole:teamRole,teams:[{team_id:"assigned-team"}]});
+  assert.equal(w.canAccessView(assigned,"team-workspace"),true,teamRole+" should receive the team workspace with an active assignment");
+}
+assert.match(app,/organizationNavigationVisible = context\.canManageClub \|\| context\.canManageAgency/,
+  "Agency managers must be able to open the shared organization/member navigation.");
+assert.match(app,/window\.pfmsPreferredScoutingOrganizationId = clubNavigation\.dataset\.organizationId/,
+  "The selected organization must be preserved when opening the scouting directory from an organization card.");
+assert.match(app,/const previous = window\.pfmsPreferredScoutingOrganizationId \|\| select\.value/,
+  "The scouting directory must use the requested organization without duplicate reloads.");
+assert.match(app,/agencyWorkspacePanel\) agencyWorkspacePanel\.hidden = true[\s\S]*?agencyOrganizationsGrid\) agencyOrganizationsGrid\.replaceChildren\(\)/,
+  "Agency organization data must be cleared and hidden on account change.");
 const app=await readFile(new URL("../app.js",import.meta.url),"utf8");
 assert.match(app,/function applyPfmsRoleNavigation\([\s\S]*?workflows\.canAccessView\(context, item\.dataset\.view\)/);
 assert.match(app,/window\.PFMSRoleWorkflows\.resolveContext\([\s\S]*?organizations:pfmsLegacyInvitationOrganizations[\s\S]*?teams:pfmsLegacyTeams/);
