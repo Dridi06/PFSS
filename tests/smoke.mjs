@@ -419,7 +419,7 @@ const authenticatedInit = app.slice(
 );
 assert.ok(
   authenticatedInit.includes("const requestedUserId = user.id;") &&
-  authenticatedInit.indexOf("resetPfmsAuthenticatedState();") < authenticatedInit.indexOf("await pfssSupabase.rpc('pfms_list_my_legacy_teams')") &&
+  authenticatedInit.indexOf("resetPfmsAuthenticatedState();") < authenticatedInit.indexOf("await loadPfmsLegacyTeams({redirectInvalid:false})") &&
   authenticatedInit.includes("authGeneration !== pfmsAuthGeneration"),
   "Authentication must invalidate an older account before awaiting role and workspace data"
 );
