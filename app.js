@@ -762,7 +762,7 @@ function applyPfmsRoleNavigation(context = window.pfmsRoleContext) {
   organizationNavigation?.querySelector('.nav-label')?.replaceChildren(
     document.createTextNode(context.canManageAgency && !context.canManageClub ? 'Organisationen' : 'Vereinsverwaltung')
   );
-  setGroupVisibility(document.querySelector('[data-nav-toggle="teamSubnav"]'),document.getElementById('teamSubnav'),context.hasTeamAccess||context.canManageClub);
+  setGroupVisibility(document.querySelector('[data-nav-toggle="teamSubnav"]'),document.getElementById('teamSubnav'),context.hasTeamAccess||context.hasTeamRoleHint||context.canManageClub);
   const adminNavItems=[...document.querySelectorAll('#adminNavSection [data-view]')];
   const adminNav=document.getElementById('adminNavSection');
   if(adminNav)adminNav.hidden=!adminNavItems.some(item=>!item.hidden);
