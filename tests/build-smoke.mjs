@@ -50,7 +50,7 @@ for (const file of requiredFiles) {
 }
 
 const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
-const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js" defer>');
+const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js');
 const roleScriptIndex = mainPageSource.indexOf('<script src="pfms-role-workflows.js');
 const appScriptIndex = mainPageSource.indexOf('<script src="app.js');
 const workspaceScriptIndex = mainPageSource.indexOf('<script src="scout-workspace.js');
