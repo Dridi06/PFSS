@@ -3221,7 +3221,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
   }
 }
 
-async function loadPfmsClubScouts(preferredOrganizationId = '') {
+async function loadPfmsClubScouts() {
   const select = document.getElementById('pfmsClubScoutingOrganization');
   const results = document.getElementById('pfmsClubScoutingResults');
   const message = document.getElementById('pfmsClubScoutingMessage');
@@ -3241,7 +3241,7 @@ async function loadPfmsClubScouts(preferredOrganizationId = '') {
     const organizations = (pfmsLegacyInvitationOrganizations || []).filter(org =>
       ['approved','active'].includes(String(org.organization_status || '').toLowerCase())
     );
-    const previous = preferredOrganizationId || window.pfmsPreferredScoutingOrganizationId || select.value;
+    const previous = window.pfmsPreferredScoutingOrganizationId || select.value;
     window.pfmsPreferredScoutingOrganizationId = '';
     if (!organizations.length) {
       select.innerHTML = '<option value="">Keine freigegebene Organisation</option>';
@@ -8355,6 +8355,15 @@ function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
   window.pfmsRoleContext = null;
   window.pfssIsRealAdmin = false;
+  window.pfmsPreferredScoutingOrganizationId = '';
+  const agencyWorkspacePanel = document.getElementById('pfmsAgencyWorkspacePanel');
+  if (agencyWorkspacePanel) agencyWorkspacePanel.hidden = true;
+  const agencyAdminPanel = document.getElementById('pfmsAdminAgencyConsole');
+  if (agencyAdminPanel) agencyAdminPanel.hidden = true;
+  const agencyOrganizationsGrid = document.getElementById('pfmsAgencyOrganizationsGrid');
+  if (agencyOrganizationsGrid) agencyOrganizationsGrid.replaceChildren();
+  const agencyWorkspaceStatus = document.getElementById('pfmsAgencyWorkspaceStatus');
+  if (agencyWorkspaceStatus) agencyWorkspaceStatus.textContent = 'Bitte anmelden.';
   pfmsAdminOverviewRequestId += 1;
   pfmsNotifications = [];
   renderPfmsNotifications();
