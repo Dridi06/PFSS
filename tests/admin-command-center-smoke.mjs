@@ -18,7 +18,7 @@ assert.ok(css.includes('.pfms-admin-command-grid{display:grid'), 'Admin command 
 assert.ok(css.includes('@media(max-width:560px){.pfms-admin-command-center'), 'Admin command grid must be mobile responsive');
 assert.ok(view.includes('id="pfmsAdminActivityList"'), 'Live activity list must be present');
 assert.ok(view.includes('id="pfmsAdminActivityRefresh"'), 'Live activity refresh control must be present');
-assert.ok(app.includes("pfmsSupabase.rpc('pfms_admin_list_system_events_page'"), 'Activity feed must use the protected admin RPC');
+assert.ok(app.includes("pfssSupabase.rpc('pfms_admin_list_system_events_page'"), 'Activity feed must use the protected admin RPC');
 assert.ok(app.includes("p_limit: 5, p_offset: 0"), 'Activity feed must request a bounded five-event page');
 assert.ok(app.includes("escapeHtml(item.message || 'Systemereignis')"), 'Activity feed must escape untrusted event messages');
 console.log('PFMS administrator command center smoke test passed.');
