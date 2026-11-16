@@ -8,9 +8,9 @@ const sql = await readFile(
 );
 const executable = sql.replace(/--[^\n]*/g, "").replace(/'(?:''|[^'])*'/g, "''").trim();
 
-assert.match(executable, /^WITH\s+role_counts\s+AS\s*\(/i,
+assert.match(sql, /^WITH\s+role_counts\s+AS\s*\(/i,
   "Persona audit must start with a read-only CTE.");
-assert.match(executable, /SELECT\s+check_name,\s*passed,\s*details\s+FROM\s+checks\s+ORDER\s+BY\s+check_name\s*;$/i,
+assert.match(sql, /SELECT\s+check_name,\s*passed,\s*details\s+FROM\s+checks\s+ORDER\s+BY\s+check_name\s*;$/i,
   "Persona audit must return the stable check_name/passed/details contract.");
 assert.equal((executable.match(/;/g) ?? []).length, 1,
   "Persona audit must contain exactly one SQL statement.");
@@ -32,7 +32,7 @@ for (const required of [
   assert.ok(sql.includes(required),
     "Missing required persona acceptance gate: " + required);
 }
-assert.match(executable, /\('scout',\s*5\)/);
-assert.match(executable, /\('admin',\s*1\)/);
-assert.match(executable, /\)\s*=\s*41/);
+assert.match(sql, /\('scout',\s*5\)/);
+assert.match(sql, /\('admin',\s*1\)/);
+assert.match(sql, /\)\s*=\s*41/);
 console.log("PFMS test-persona acceptance contract passed: 9 safety and role gates, read-only SQL.");
