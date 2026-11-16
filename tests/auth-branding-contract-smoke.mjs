@@ -30,14 +30,8 @@ assert.match(app,/updateRegistrationProgress\(1\)/);
 assert.match(html,/pfms-auth-executive\.css/);assert.match(css,/prefers-reduced-motion/);
 assert.match(css,/:focus-visible/);assert.match(css,/@media\(max-width:760px\)/);
 
-assert.match(css,/#authScreen\\.auth-screen\\{[\\s\\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
-assert.match(css,/#authScreen \\.auth-visual\\{[\\s\\S]*?pfms-welcome\\.webp[\\s\\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
 
-assert.match(css,/#authScreen\.auth-screen\{[\s\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
-assert.match(css,/#authScreen \.auth-visual\{[\s\S]*?pfms-welcome\.webp[\s\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
 
-assert.match(css,/#authScreen\.auth-screen\{[\s\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
-assert.match(css,/#authScreen \.auth-visual\{[\s\S]*?pfms-welcome\.webp[\s\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
 
 
 assert.ok(css.includes("#authScreen.auth-screen{\n  background:#07090c!important;"),"Pre-auth page background must remain dark rather than using the artwork full-screen.");
