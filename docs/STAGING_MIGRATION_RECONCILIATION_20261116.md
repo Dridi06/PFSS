@@ -143,3 +143,41 @@ Untersucht wurden die vollständigen SQL-Quellen der ersten sechs Präfixgruppen
 - Die exakten Definitionen der Auth-Trigger, Storage-Policies und vorhandenen Funktions-ACLs müssen vor jeder Freigabe gegen die jeweiligen SQL-Dateien verglichen werden.
 - Keine Migration wurde angewendet, umbenannt oder aus der Historie als ausgeführt markiert.
 - Die aktuelle Analyse bestätigt bereits mehrere harte Blocker: fehlende Legacy-Basistabellen, konkurrierende Organisationsmodelle, echte doppelte Helper-Definition und Reihenfolgeabhängigkeiten zwischen Basis-/Hardening-Migrationen.
+
+
+## Kollisionsgruppen-Analyse – Runde 2 (16.11.2026, read-only)
+
+### Präfix 20261121–20261122: Team-Grundlage und Erweiterungen
+
+- `20261121_pfms_legacy_team_management.sql` legt `pfms_legacy_teams` und `pfms_legacy_team_staff` an. Beide hängen am Legacy-Organisationsmodell `public.organizations`/`organization_memberships` und an den Helpers `is_admin()`/`can_manage_org(uuid)`. Diese Tabellen fehlen im aktuellen Staging-Inventar.
+- `20261122_pfms_legacy_team_permissions.sql` hängt an `pfms_legacy_team_staff` und an `pfms_can_manage_legacy_team(uuid)`; es stellt granulare Rechte für acht Module bereit. Ohne Team-Grundlage nicht ausführbar.
+- `20261122_pfms_legacy_team_roster.sql` hängt an `pfms_legacy_teams`, `pfms_global_players`, `pfms_has_legacy_team_permission(uuid,text,text)` und dem globalen Spielerkatalog. Da `pfms_global_players` im Staging fehlt, ist diese Roster-Erweiterung ebenfalls blockiert.
+- Die Team-Roster-Datei ist fachlich korrekt als separate Teamzuordnung modelliert: Entfernen aus dem Kader löscht nicht den globalen Spieler. Das schützt die zentrale Spieleridentität, setzt aber den globalen Katalog voraus.
+
+### Präfix 20261201
+
+| Datei | Abhängigkeit | Bewertung |
+|---|---|---|
+| `20261201_pfms_legacy_invitation_status_guard.sql` | Ersetzt `pfms_apply_legacy_invitation()`; benötigt `organization_invitations`, `organizations`, `organization_memberships`, `profiles`. | Sicherheitsverbesserung gegenüber der früheren Einlösung: sperrt die Organisation während der Statusprüfung und lehnt nicht aktive/nicht genehmigte Organisationen ab. Die Basistabellen fehlen im Staging. Muss nach der ursprünglichen Einladungsdefinition laufen. |
+| `20261201_pfms_legacy_training_cycles.sql` | Erstellt Trainingszyklen/-wochen; erweitert `pfms_legacy_training_sessions`; benötigt Team-Berechtigungs-RPCs. | Die Team-Grundlage und die referenzierte Training-Session-Tabelle sind im aktuellen Staging-Inventar nicht vorhanden. Nicht isoliert anwendbar. |
+
+### Präfix 20261205
+
+| Datei | Abhängigkeit | Bewertung |
+|---|---|---|
+| `20261205_pfms_legacy_team_event_logistics.sql` | Erstellt Logistik für `pfms_legacy_team_calendar_events` und `pfms_legacy_team_event_participants`; nutzt Events-Rechte und Team-Kader. | Beide Event-Basistabellen fehlen im aktuellen Staging-Inventar. Die Datei enthält zusätzlich eine Version von `pfms_add_legacy_team_event_participant(uuid,uuid)`, die Eventkapazität prüft. |
+| `20261205_pfms_legacy_team_event_travel_plans.sql` | Erstellt Transportplanung; hängt an Event-/Teilnehmer-/Logistiktabellen und Team-Kader. | Nicht ohne die vollständige Eventbasis anwendbar. Die Datei ersetzt erneut `pfms_add_legacy_team_event_participant(uuid,uuid)` und ergänzt die Prüfung der Fahrzeug-Sitzkapazität. |
+
+### Neu erkannte Überschreibungs-/Reihenfolgekonflikte
+
+1. `pfms_add_legacy_team_event_participant(uuid,uuid)` wird mindestens in der Logistik- und der Reiseplan-Migration neu definiert. Die spätere Reiseplan-Version erweitert die frühere Kapazitätsprüfung um die Sitzplatzkapazität des Fahrzeugs. Eine falsche Reihenfolge würde diese zusätzliche Sicherheits-/Kapazitätsprüfung wieder entfernen.
+2. `pfms_apply_legacy_invitation()` wird in der Basisdatei vom 11.11. und im Guard vom 01.12. definiert. Die Guard-Version prüft zusätzlich den Organisationsstatus unter Zeilensperre und verhindert Einlösung für suspendierte Organisationen. Sie muss nach der Basisdatei stehen.
+3. Team-Berechtigungen, Kader, Trainingszyklen, Events, Logistik und Reiseplanung bilden eine gerichtete Abhängigkeitskette. Sie sind keine unabhängig ausführbaren Feature-Dateien.
+4. Der globale Spielerkatalog ist ein harter Vorgänger für die Team-Roster-Migration. Der Staging-Bestand `pfss_players` ersetzt `pfms_global_players` nicht automatisch.
+
+### Gesamtstatus nach Runde 2
+
+- Die 11 Präfixgruppen sind inhaltlich noch nicht vollständig bis zur letzten Datei abgearbeitet; die hier dokumentierten Gruppen wurden anhand ihrer vollständigen bzw. verfügbaren SQL-Quellen geprüft.
+- Es gibt nun mehrere belegte „same signature, later definition“-Fälle, bei denen Reihenfolge die tatsächlich aktive Sicherheitslogik bestimmt.
+- Die vorhandenen Staging-Tabellen liefern keine Grundlage, um die spätere Legacy-Team-Funktionskette direkt anzuwenden.
+- Es wurden weiterhin keine SQL-Migrationen ausgeführt, keine Tabellen/Policies/Trigger verändert und keine Produktionsressourcen angesprochen.
