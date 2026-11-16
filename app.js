@@ -770,6 +770,327 @@ function applyPfmsRoleNavigation(context = window.pfmsRoleContext) {
   if(adminTitle)adminTitle.textContent=context.isPlatformAdmin?'ADMINISTRATOR':context.canManageClub?'VEREINSBEREICH':context.canManageAgency?'AGENTURBEREICH':'SCOUTING';
   document.getElementById('sidebar')?.classList.toggle('admin-mode',context.isPlatformAdmin===true);
 }
+function preparePfssOrgManagementSelector() {
+  const panel = document.getElementById('pfssOrgManagementPanel');
+  const select = document.getElementById('pfssOrgManagementOrganization');
+  if (!panel || !select) return [];
+
+  const organizations = (window.pfmsRoleContext?.manageableOrganizations || [])
+    .filter(org => org.source_model === 'pfss');
+  if (!organizations.length) {
+    panel.hidden = true;
+    return [];
+  }
+
+  const previous = window.pfmsSelectedPFSSOrganizationId || select.value;
+  select.innerHTML = organizations.map(org =>
+    '<option value="' + escapeHtml(org.organization_id) + '">' +
+      escapeHtml(org.organization_name || 'Organisation') + ' · ' +
+      escapeHtml(org.organization_type === 'agency' ? 'Agentur' : 'Verein') +
+    '</option>'
+  ).join('');
+  select.value = organizations.some(org => org.organization_id === previous)
+    ? previous
+    : organizations[0].organization_id;
+  window.pfmsSelectedPFSSOrganizationId = select.value;
+  panel.hidden = false;
+  return organizations;
+}
+
+function pfssMembershipRoleDetail(member) {
+  const detail = String(member?.role_detail || '').trim().toLowerCase();
+  if (detail) return detail;
+  return ({
+    owner: 'admin',
+    admin: 'admin',
+    scout: 'scout',
+    coach: 'trainer',
+    viewer: 'spieler',
+    analyst: 'analyst',
+    finance: 'finance'
+  })[String(member?.member_role || '').toLowerCase()] || 'spieler';
+}
+
+function pfssRoleToSecurityRole(roleDetail) {
+  return ({
+    admin: 'admin',
+    scout: 'scout',
+    trainer: 'coach',
+    co_trainer: 'coach',
+    betreuer: 'viewer',
+    spieler: 'viewer',
+    analyst: 'analyst',
+    finance: 'finance'
+  })[String(roleDetail || '').toLowerCase()] || '';
+}
+
+function pfssOrgRoleLabel(roleDetail, memberRole) {
+  const labels = {
+    owner: 'Inhaber',
+    admin: 'Organisationsadministrator',
+    scout: 'Scout',
+    trainer: 'Trainer',
+    co_trainer: 'Co-Trainer',
+    betreuer: 'Betreuer',
+    spieler: 'Spieler',
+    analyst: 'Analyst',
+    finance: 'Finanzen',
+    coach: 'Trainer',
+    viewer: 'Mitglied'
+  };
+  return labels[String(roleDetail || '').toLowerCase()] ||
+    labels[String(memberRole || '').toLowerCase()] || 'Mitglied';
+}
+
+function renderPfssOrganizationMembers(members) {
+  const host = document.getElementById('pfssOrgMembersList');
+  if (!host) return;
+  if (!members.length) {
+    host.innerHTML = '<div class="empty-state"><b>Noch keine Mitglieder vorhanden</b><p>Mitglieder werden nach Annahme einer Einladung angezeigt.</p></div>';
+    return;
+  }
+
+  const roleOptions = [
+    ['admin', 'Organisationsadministrator'],
+    ['scout', 'Scout'],
+    ['trainer', 'Trainer'],
+    ['co_trainer', 'Co-Trainer'],
+    ['betreuer', 'Betreuer'],
+    ['spieler', 'Spieler'],
+    ['analyst', 'Analyst'],
+    ['finance', 'Finanzen']
+  ];
+  host.innerHTML = members.map(member => {
+    const detail = pfssMembershipRoleDetail(member);
+    const isOwner = member.member_role === 'owner';
+    const isEditable = !isOwner && ['active', 'suspended'].includes(member.member_status);
+    const roleSelect = roleOptions.map(([value, label]) =>
+      '<option value="' + value + '"' + (detail === value ? ' selected' : '') + '>' +
+      label + '</option>'
+    ).join('');
+    return '<article class="admin-user-card" data-pfss-membership-card="' + escapeHtml(member.membership_id) + '">' +
+      '<div class="admin-user-main"><strong>' + escapeHtml(member.display_name || member.username || member.email || 'PFMS Mitglied') + '</strong>' +
+      '<span>' + escapeHtml(member.email || member.username || member.user_id) + '</span></div>' +
+      '<div class="admin-user-meta"><span class="module-status">' + escapeHtml(member.member_status) + '</span>' +
+      '<span>' + escapeHtml(pfssOrgRoleLabel(detail, member.member_role)) + '</span></div>' +
+      (isOwner ? '<p class="field-hint">Die Inhaberschaft ist geschützt und kann nicht über diese Ansicht verändert werden.</p>' :
+        '<div class="pfss-org-member-controls">' +
+          '<label class="field">Rolle<select data-pfss-member-role>' + roleSelect + '</select></label>' +
+          '<label class="field">Status<select data-pfss-member-status>' +
+            '<option value="active"' + (member.member_status === 'active' ? ' selected' : '') + '>Aktiv</option>' +
+            '<option value="suspended"' + (member.member_status === 'suspended' ? ' selected' : '') + '>Gesperrt</option>' +
+          '</select></label>' +
+          '<div class="pfms-club-organization-actions">' +
+            '<button type="button" class="btn btn-secondary" data-pfss-member-save' + (!isEditable ? ' disabled' : '') + '>Änderungen speichern</button>' +
+            '<button type="button" class="btn btn-secondary" data-pfss-member-remove' + (!isEditable ? ' disabled' : '') + '>Mitglied entziehen</button>' +
+          '</div>' +
+          '<p class="admin-message" data-pfss-member-feedback role="status" aria-live="polite"></p>' +
+        '</div>') +
+    '</article>';
+  }).join('');
+}
+
+function renderPfssOrganizationInvitations(invitations) {
+  const host = document.getElementById('pfssOrgInvitationsList');
+  if (!host) return;
+  if (!invitations.length) {
+    host.innerHTML = '<div class="empty-state"><b>Keine Einladungen vorhanden</b><p>Neue Einladungen erscheinen nach ihrer Erstellung hier.</p></div>';
+    return;
+  }
+  const now = Date.now();
+  host.innerHTML = invitations.map(invitation => {
+    const expired = new Date(invitation.expires_at).getTime() <= now;
+    const state = invitation.accepted ? 'Angenommen' :
+      invitation.revoked ? 'Widerrufen' : expired ? 'Abgelaufen' : 'Offen';
+    const canRevoke = !invitation.accepted && !invitation.revoked && !expired;
+    return '<article class="admin-user-card" data-pfss-invitation-card="' + escapeHtml(invitation.invitation_id) + '">' +
+      '<div class="admin-user-main"><strong>' + escapeHtml(invitation.email) + '</strong>' +
+      '<span>' + escapeHtml(pfssOrgRoleLabel(invitation.role_detail, invitation.invite_role)) + '</span></div>' +
+      '<div class="admin-user-meta"><span class="module-status">' + state + '</span>' +
+      '<span>Gültig bis ' + escapeHtml(new Date(invitation.expires_at).toLocaleString('de-DE')) + '</span></div>' +
+      (canRevoke ? '<button type="button" class="btn btn-secondary" data-pfss-invitation-revoke>Einladung widerrufen</button>' : '') +
+      '<p class="admin-message" data-pfss-invitation-feedback role="status" aria-live="polite"></p>' +
+    '</article>';
+  }).join('');
+}
+
+async function loadPfssOrganizationManagement(organizationId = '') {
+  const select = document.getElementById('pfssOrgManagementOrganization');
+  const panel = document.getElementById('pfssOrgManagementPanel');
+  const message = document.getElementById('pfssOrgManagementMessage');
+  const membersHost = document.getElementById('pfssOrgMembersList');
+  const invitationsHost = document.getElementById('pfssOrgInvitationsList');
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId || !panel || !select || !message) return false;
+
+  const organizations = preparePfssOrgManagementSelector();
+  if (!organizations.length) {
+    message.textContent = 'Für dieses Konto ist keine PFSS-Organisation mit Verwaltungsrechten hinterlegt.';
+    if (membersHost) membersHost.replaceChildren();
+    if (invitationsHost) invitationsHost.replaceChildren();
+    return false;
+  }
+
+  const selectedId = organizationId || window.pfmsSelectedPFSSOrganizationId || select.value;
+  const organization = organizations.find(org => org.organization_id === selectedId) || organizations[0];
+  select.value = organization.organization_id;
+  window.pfmsSelectedPFSSOrganizationId = organization.organization_id;
+  const title = document.getElementById('pfssOrgManagementTitle');
+  if (title) title.textContent = 'Mitglieder & Einladungen · ' + (organization.organization_name || 'Organisation');
+  message.textContent = 'Mitglieder und Einladungen werden geladen …';
+  if (membersHost) membersHost.replaceChildren();
+  if (invitationsHost) invitationsHost.replaceChildren();
+
+  try {
+    const [membersResult, invitationsResult] = await Promise.all([
+      pfssSupabase.rpc('pfss_org_list_members_v2', { p_organization_id: organization.organization_id }),
+      pfssSupabase.rpc('pfss_org_list_invitations_v2', { p_organization_id: organization.organization_id })
+    ]);
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId ||
+        window.pfmsSelectedPFSSOrganizationId !== organization.organization_id) return false;
+    if (membersResult.error) throw membersResult.error;
+    if (invitationsResult.error) throw invitationsResult.error;
+
+    renderPfssOrganizationMembers(membersResult.data || []);
+    renderPfssOrganizationInvitations(invitationsResult.data || []);
+    message.textContent = (membersResult.data || []).length + ' Mitglied(er) · ' +
+      (invitationsResult.data || []).length + ' Einladung(en) geladen.';
+    panel.hidden = false;
+    return true;
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
+    console.error('PFMS secure organization directory failed:', error);
+    message.textContent = 'Mitglieder oder Einladungen konnten nicht geladen werden. Prüfe Organisationsrechte und die PFSS-Rollenmigration.';
+    return false;
+  }
+}
+
+async function createPfssOrganizationInvitation(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById('pfssOrgManagementMessage');
+  const resultPanel = document.getElementById('pfssOrgInvitationResult');
+  const urlInput = document.getElementById('pfssOrgInvitationUrl');
+  const submit = document.getElementById('pfssOrgInvitationSubmit');
+  const data = Object.fromEntries(new FormData(form).entries());
+  const organizationId = window.pfmsSelectedPFSSOrganizationId || '';
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!requestUserId || !organizationId) {
+    message.textContent = 'Wähle zuerst eine Organisation mit Verwaltungsrechten.';
+    return;
+  }
+  if (!['scout','trainer','co_trainer','betreuer','spieler'].includes(data.role_detail)) {
+    message.textContent = 'Bitte wähle eine gültige Organisationsrolle.';
+    return;
+  }
+
+  submit.disabled = true;
+  resultPanel.hidden = true;
+  message.textContent = 'Einmaliger Einladungscode wird sicher erstellt …';
+  try {
+    const { data: token, error } = await pfssSupabase.rpc('pfss_org_create_invitation', {
+      p_organization_id: organizationId,
+      p_email: String(data.email || '').trim(),
+      p_role_detail: data.role_detail,
+      p_expires_in_days: Number(data.expires_in_days)
+    });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId ||
+        window.pfmsSelectedPFSSOrganizationId !== organizationId) return;
+    if (error) throw error;
+    if (typeof token !== 'string' || !/^[a-f0-9]{32}$/i.test(token)) {
+      throw new Error('Ungültige Einladungstoken-Antwort.');
+    }
+    const inviteUrl = new URL(window.location.origin + window.location.pathname);
+    inviteUrl.searchParams.set('invite', token);
+    urlInput.value = inviteUrl.href;
+    resultPanel.hidden = false;
+    message.textContent = 'Einladung erstellt. Der Code ist einmalig und an die angegebene E-Mail-Adresse gebunden.';
+    form.reset();
+    await loadPfssOrganizationManagement(organizationId);
+    resultPanel.hidden = false;
+    urlInput.value = inviteUrl.href;
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS organization invitation creation failed:', error);
+    message.textContent = 'Einladung konnte nicht erstellt werden. Prüfe E-Mail-Adresse, Rolle, Gültigkeit und Organisationsrechte.';
+    submit.disabled = false;
+  } finally {
+    if (requestGeneration === pfmsAuthGeneration) submit.disabled = false;
+  }
+}
+
+async function handlePfssOrganizationMemberAction(button) {
+  const card = button.closest('[data-pfss-membership-card]');
+  const message = card?.querySelector('[data-pfss-member-feedback]');
+  const membershipId = card?.dataset.pfssMembershipCard;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const organizationId = window.pfmsSelectedPFSSOrganizationId;
+  if (!card || !membershipId || !requestUserId || !organizationId) return;
+  button.disabled = true;
+  if (button.hasAttribute('data-pfss-member-remove') &&
+      !window.confirm('Mitgliedschaft wirklich entziehen? Der Zugriff auf diese Organisation wird widerrufen.')) {
+    button.disabled = false;
+    return;
+  }
+  if (message) message.textContent = 'Änderung wird gespeichert …';
+  try {
+    let result;
+    if (button.hasAttribute('data-pfss-member-remove')) {
+      result = await pfssSupabase.rpc('pfss_org_remove_member', { p_membership_id: membershipId });
+    } else {
+      const roleDetail = card.querySelector('[data-pfss-member-role]')?.value || '';
+      const securityRole = pfssRoleToSecurityRole(roleDetail);
+      const status = card.querySelector('[data-pfss-member-status]')?.value || '';
+      if (!securityRole) throw new Error('Ungültige Rollenwahl.');
+      result = await pfssSupabase.rpc('pfss_org_update_member_role_detail', {
+        p_membership_id: membershipId,
+        p_role: securityRole,
+        p_role_detail: roleDetail,
+        p_status: status
+      });
+    }
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId ||
+        organizationId !== window.pfmsSelectedPFSSOrganizationId) return;
+    if (result.error) throw result.error;
+    if (message) message.textContent = 'Änderung gespeichert.';
+    await loadPfssOrganizationManagement(organizationId);
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS organization member action failed:', error);
+    if (message) message.textContent = 'Änderung nicht möglich. Prüfe Inhaber-/Administratorhierarchie und Organisationsrechte.';
+    button.disabled = false;
+  }
+}
+
+async function handlePfssOrganizationInvitationRevoke(button) {
+  const card = button.closest('[data-pfss-invitation-card]');
+  const feedback = card?.querySelector('[data-pfss-invitation-feedback]');
+  const invitationId = card?.dataset.pfssInvitationCard;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  const organizationId = window.pfmsSelectedPFSSOrganizationId;
+  if (!card || !invitationId || !requestUserId || !organizationId) return;
+  if (!window.confirm('Diese offene Einladung wirklich widerrufen?')) return;
+  button.disabled = true;
+  if (feedback) feedback.textContent = 'Einladung wird widerrufen …';
+  try {
+    const { error } = await pfssSupabase.rpc('pfss_org_revoke_invitation', { p_invitation_id: invitationId });
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId ||
+        organizationId !== window.pfmsSelectedPFSSOrganizationId) return;
+    if (error) throw error;
+    if (feedback) feedback.textContent = 'Einladung widerrufen.';
+    await loadPfssOrganizationManagement(organizationId);
+  } catch (error) {
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
+    console.error('PFMS organization invitation revoke failed:', error);
+    if (feedback) feedback.textContent = 'Einladung konnte nicht widerrufen werden. Prüfe Organisationsrechte.';
+    button.disabled = false;
+  }
+}
+
 async function updatePfmsRoleContext(organizations, teams, options = {}) {
   const workflows = window.PFMSRoleWorkflows;
   const requestUserId = window.pfssCurrentUserId;
@@ -819,6 +1140,7 @@ async function updatePfmsRoleContext(organizations, teams, options = {}) {
     ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
   );
   window.pfmsRoleContext = context;
+  preparePfssOrgManagementSelector();
   applyPfmsRoleNavigation(context);
 
   if (options.redirectInvalid !== false) {
@@ -924,6 +1246,8 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'notifications' && window.pfssCurrentUserId) void loadPfmsNotifications();
   if ((view === 'clubs' || view === 'club-members' || view === 'agencies') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
+  if (view === 'club-members' && window.pfssCurrentUserId &&
+      window.pfmsSelectedPFSSOrganizationId) void loadPfssOrganizationManagement(window.pfmsSelectedPFSSOrganizationId);
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'staff' && window.pfssCurrentUserId) void loadPfmsStaffDirectory();
   if (view === 'tasks' && window.pfssCurrentUserId) void loadPfmsPersonalTasks();
@@ -1800,6 +2124,17 @@ async function deleteMainMedia(mediaId) {
 
 
 document.addEventListener('click', event => {
+  const pfssOrgManageButton = event.target.closest('[data-pfss-org-manage]');
+  if (pfssOrgManageButton) {
+    const organizationId = pfssOrgManageButton.dataset.pfssOrgManage;
+    window.pfmsSelectedPFSSOrganizationId = organizationId;
+    showView('club-members');
+    preparePfssOrgManagementSelector();
+    void loadPfssOrganizationManagement(organizationId);
+    document.getElementById('pfssOrgManagementPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
   const navToggle = event.target.closest('[data-nav-toggle]');
   if (navToggle) {
     const submenu = document.getElementById(navToggle.dataset.navToggle);
@@ -3550,6 +3885,59 @@ async function createPfmsLegacyInvitation(event) {
 }
 
 function setupPfmsLegacyInvitationWorkspace() {
+  const pfssOrgSelect = document.getElementById('pfssOrgManagementOrganization');
+  const pfssOrgForm = document.getElementById('pfssOrgInvitationForm');
+  const pfssOrgRefresh = document.getElementById('pfssOrgManagementRefresh');
+  const pfssOrgCopy = document.getElementById('pfssOrgInvitationCopy');
+  const pfssMembersList = document.getElementById('pfssOrgMembersList');
+  const pfssInvitationsList = document.getElementById('pfssOrgInvitationsList');
+  if (pfssOrgSelect && !pfssOrgSelect.dataset.pfmsBound) {
+    pfssOrgSelect.addEventListener('change', () => {
+      window.pfmsSelectedPFSSOrganizationId = pfssOrgSelect.value;
+      void loadPfssOrganizationManagement(pfssOrgSelect.value);
+    });
+    pfssOrgSelect.dataset.pfmsBound = 'true';
+  }
+  if (pfssOrgForm && !pfssOrgForm.dataset.pfmsBound) {
+    pfssOrgForm.addEventListener('submit', createPfssOrganizationInvitation);
+    pfssOrgForm.dataset.pfmsBound = 'true';
+  }
+  if (pfssOrgRefresh && !pfssOrgRefresh.dataset.pfmsBound) {
+    pfssOrgRefresh.addEventListener('click', () => void loadPfssOrganizationManagement());
+    pfssOrgRefresh.dataset.pfmsBound = 'true';
+  }
+  if (pfssOrgCopy && !pfssOrgCopy.dataset.pfmsBound) {
+    pfssOrgCopy.addEventListener('click', async () => {
+      const url = document.getElementById('pfssOrgInvitationUrl')?.value || '';
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        const message = document.getElementById('pfssOrgManagementMessage');
+        if (message) message.textContent = 'Einladungslink wurde kopiert.';
+      } catch (_error) {
+        window.prompt('Einladungslink kopieren:', url);
+      }
+    });
+    pfssOrgCopy.dataset.pfmsBound = 'true';
+  }
+  if (pfssMembersList && !pfssMembersList.dataset.pfmsBound) {
+    pfssMembersList.addEventListener('click', event => {
+      const saveButton = event.target.closest('[data-pfss-member-save]');
+      const removeButton = event.target.closest('[data-pfss-member-remove]');
+      if (saveButton) void handlePfssOrganizationMemberAction(saveButton);
+      else if (removeButton) void handlePfssOrganizationMemberAction(removeButton);
+    });
+    pfssMembersList.dataset.pfmsBound = 'true';
+  }
+  if (pfssInvitationsList && !pfssInvitationsList.dataset.pfmsBound) {
+    pfssInvitationsList.addEventListener('click', event => {
+      const revokeButton = event.target.closest('[data-pfss-invitation-revoke]');
+      if (revokeButton) void handlePfssOrganizationInvitationRevoke(revokeButton);
+    });
+    pfssInvitationsList.dataset.pfmsBound = 'true';
+  }
+  preparePfssOrgManagementSelector();
+
   const form = document.getElementById('pfmsLegacyInvitationForm');
   const copyButton = document.getElementById('pfmsLegacyInvitationCopy');
   if (form && !pfmsLegacyInvitationBound) {
@@ -8416,6 +8804,11 @@ async function checkPfssAccess(user, options = {}) {
 function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
   window.pfmsRoleContext = null;
+  window.pfmsSelectedPFSSOrganizationId = '';
+  document.getElementById('pfssOrgManagementPanel')?.setAttribute('hidden', '');
+  document.getElementById('pfssOrgMembersList')?.replaceChildren();
+  document.getElementById('pfssOrgInvitationsList')?.replaceChildren();
+  document.getElementById('pfssOrgInvitationResult')?.setAttribute('hidden', '');
   window.pfssIsRealAdmin = false;
   window.pfmsPreferredScoutingOrganizationId = '';
   const agencyWorkspacePanel = document.getElementById('pfmsAgencyWorkspacePanel');
