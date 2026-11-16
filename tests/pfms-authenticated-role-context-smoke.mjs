@@ -25,7 +25,7 @@ assert.doesNotMatch(migration, /\b(?:INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FR
 assert.match(app, /async function updatePfmsRoleContext\([\s\S]*?pfms_get_my_role_context[\s\S]*?workflows\.resolveContext/);
 assert.match(app, /requestGeneration !== pfmsAuthGeneration[\s\S]*?window\.pfssCurrentUserId/);
 assert.match(workflows, /member_role/);
-assert.match(workflows, /memberRole\(organization\)/);
+assert.match(workflows, /membershipRole\(organization\)/);
 assert.match(workflows, /hasAgencyScoutMembership/);
 assert.match(workflows, /activeTeamAssignments/);
 
