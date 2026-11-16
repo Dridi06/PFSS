@@ -751,7 +751,17 @@ function applyPfmsRoleNavigation(context = window.pfmsRoleContext) {
     if (submenu) submenu.hidden = true;
     if (toggle?.previousElementSibling?.classList.contains('nav-section-label')) toggle.previousElementSibling.hidden = !visible;
   };
-  setGroupVisibility(document.querySelector('[data-nav-toggle="clubSubnav"]'),document.getElementById('clubSubnav'),context.canManageClub);
+  const organizationNavigationVisible = context.canManageClub || context.canManageAgency;
+  const organizationNavigation = document.querySelector('[data-nav-toggle="clubSubnav"]');
+  setGroupVisibility(organizationNavigation,document.getElementById('clubSubnav'),organizationNavigationVisible);
+  const organizationLabel = organizationNavigation?.previousElementSibling;
+  if (organizationLabel) organizationLabel.textContent =
+    context.canManageAgency && !context.canManageClub
+      ? 'AGENTURBEREICH · ORGANISATIONEN'
+      : 'VEREINSBEREICH · VORSTAND / LEITUNG';
+  organizationNavigation?.querySelector('.nav-label')?.replaceChildren(
+    document.createTextNode(context.canManageAgency && !context.canManageClub ? 'Organisationen' : 'Vereinsverwaltung')
+  );
   setGroupVisibility(document.querySelector('[data-nav-toggle="teamSubnav"]'),document.getElementById('teamSubnav'),context.hasTeamAccess||context.canManageClub);
   const adminNavItems=[...document.querySelectorAll('#adminNavSection [data-view]')];
   const adminNav=document.getElementById('adminNavSection');
@@ -1808,11 +1818,8 @@ document.addEventListener('click', event => {
     } else if (targetView === 'teams') {
       showView('teams');
     } else if (targetView === 'club-scouting') {
+      window.pfmsPreferredScoutingOrganizationId = clubNavigation.dataset.organizationId || '';
       showView('club-scouting');
-      void loadPfmsClubScouts().then(() => {
-        const select=document.getElementById('pfmsClubScoutingOrganization');
-        if(select&&organizationId&&[...select.options].some(option=>option.value===organizationId)){select.value=organizationId;void loadPfmsClubScouts();}
-      });
     }
     return;
   }
@@ -3214,7 +3221,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
   }
 }
 
-async function loadPfmsClubScouts() {
+async function loadPfmsClubScouts(preferredOrganizationId = '') {
   const select = document.getElementById('pfmsClubScoutingOrganization');
   const results = document.getElementById('pfmsClubScoutingResults');
   const message = document.getElementById('pfmsClubScoutingMessage');
@@ -3234,7 +3241,8 @@ async function loadPfmsClubScouts() {
     const organizations = (pfmsLegacyInvitationOrganizations || []).filter(org =>
       ['approved','active'].includes(String(org.organization_status || '').toLowerCase())
     );
-    const previous = select.value;
+    const previous = preferredOrganizationId || window.pfmsPreferredScoutingOrganizationId || select.value;
+    window.pfmsPreferredScoutingOrganizationId = '';
     if (!organizations.length) {
       select.innerHTML = '<option value="">Keine freigegebene Organisation</option>';
       results.innerHTML = '<div class="empty-state"><b>Keine Organisation verfügbar</b><p>Du benötigst eine freigegebene Organisation und entsprechende Leitungsrechte.</p></div>';
