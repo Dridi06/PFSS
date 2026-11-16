@@ -53,12 +53,12 @@ for (const file of requiredFiles) {
 }
 
 const loginArtwork = await readFile(resolve(outputDirectory, "pfms-login-hero.webp"));
-assert.equal(loginArtwork.length, 33086, "Dedicated PFMS login artwork must be complete, not truncated");
-assert.equal(createHash("sha256").update(loginArtwork).digest("hex"), "79a42ce715051c2f6cf924b51e5e68dd465642dfc837fdcc94f87ed9882ff4df", "Dedicated login artwork must exactly match the uploaded source");
+assert.equal(loginArtwork.length, 42328, "Dedicated PFMS login artwork must be complete, not truncated");
+assert.equal(createHash("sha256").update(loginArtwork).digest("hex"), "dbb4ede3e4d9566ef56cb6c04828aa79030129327a3d0518117cd7c1134c9778", "Dedicated login artwork must exactly match the uploaded source");
 assert.equal(loginArtwork.toString("ascii", 0, 4), "RIFF");
 assert.equal(loginArtwork.toString("ascii", 8, 12), "WEBP");
 assert.equal(loginArtwork.readUInt32LE(4), loginArtwork.length - 8);
-assert.ok(executiveAuthStyles.includes("url('pfms-login-hero.webp?v=20261116-login-artwork-2')"), "Pre-login visual panel must use the dedicated artwork");
+assert.ok(executiveAuthStyles.includes("url('pfms-login-hero.webp?v=20261116-original-user-image-3')"), "Pre-login visual panel must use the dedicated artwork");
 assert.ok(!/\.welcome-sequence[^}]*pfms-login-hero\.webp|#welcomeSequence[^}]*pfms-login-hero\.webp/.test(executiveAuthStyles), "Post-login welcome sequence must not use login artwork");
 const welcomeArtwork = await readFile(resolve(outputDirectory, "pfms-welcome.webp"));
 assert.ok(welcomeArtwork.length > 10000, "PFMS welcome artwork must be a complete, non-trivial image");
@@ -67,7 +67,7 @@ assert.equal(welcomeArtwork.toString("ascii", 8, 12), "WEBP", "PFMS welcome artw
 assert.equal(welcomeArtwork.readUInt32LE(4), welcomeArtwork.length - 8, "PFMS welcome artwork RIFF length must be exact");
 
 const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
-assert.ok(mainPageSource.includes("pfms-auth-executive.css?v=20261116-login-artwork-2"), "Login artwork stylesheet cache key must be refreshed");
+assert.ok(mainPageSource.includes("pfms-auth-executive.css?v=20261116-original-user-image-3"), "Login artwork stylesheet cache key must be refreshed");
 const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js');
 const roleScriptIndex = mainPageSource.indexOf('<script src="pfms-role-workflows.js');
 const appScriptIndex = mainPageSource.indexOf('<script src="app.js');
