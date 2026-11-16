@@ -1,3 +1,15 @@
+# Ergänzung 16.11.2026 – PFMS Stadion-Willkommenssequenz
+
+- Das neue PFMS-Stadionmotiv wurde in die bestehende `welcomeSequence` nach erfolgreicher Anmeldung integriert; die bisherige taktische Kontrollraum-Grafik wurde als Sequenz-Hintergrund ersetzt.
+- Bildmotiv: PFMS-Schwarz/Gold, Stadion, Pokal, fünf Spieler und Tribüne. Die integrierte Bildfläche enthält keine fest eingebrannte Begrüßungszeile; Stern und Schriftzug werden responsiv per CSS animiert.
+- Sequenzablauf: Stadion-/Tribünenblitze und zentraler Lichtblitz, anschließende Sternbildung, danach „HERZLICH WILLKOMMEN“ und der angemeldete Benutzername. Gesamtdauer exakt 3,5 Sekunden bis zum Dashboard-Wechsel.
+- Mobile Darstellung für iPhone ergänzt; `prefers-reduced-motion` wird berücksichtigt. Asset-Cache-Versionen aktualisiert.
+- Neue Regression `tests/pfms-welcome-sequence-smoke.mjs`: Artwork-Integrität, 3,5-Sekunden-Timer, Stern, Kamerablitze, Mobile-Layout und Reduced-Motion-Verhalten.
+- Render-Staging `pfss-staging` Deployment `dep-dbtgjhgn74is73bs3o9g` ist **LIVE**. Staging-Build, Static-Build und kompletter `test:dist`-Lauf erfolgreich; insbesondere der neue PFMS-Stadion-Willkommenssequenz-Smoke-Test bestanden.
+- Ausschließlich Branch `feature/pfss-complete-platform-build` und Render-Staging geändert. Produktion `main`, Live-Service und Supabase-Datenbanken blieben unangetastet. Auto-Deploy bleibt deaktiviert.
+
+---
+
 # Ergänzung 16.11.2026 – iPhone-Login bleibt nach erfolgreicher Anmeldung sichtbar
 
 - Fehlerbild anhand des iPhone-Screenshots aufgenommen: Login-/Footer-Bereich blieb oberhalb des bereits sichtbaren PFMS-Dashboards stehen.
