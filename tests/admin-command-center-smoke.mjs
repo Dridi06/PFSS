@@ -22,3 +22,10 @@ assert.ok(app.includes("pfms_admin_list_system_events_page"), 'Activity feed mus
 assert.ok(app.includes("p_limit: 5, p_offset: 0"), 'Activity feed must request a bounded five-event page');
 assert.ok(app.includes("escapeHtml(item.message || 'Systemereignis')"), 'Activity feed must escape untrusted event messages');
 console.log('PFMS administrator command center smoke test passed.');
+
+assert.ok(app.includes('data-original-role='), 'User cards must retain the original role for change review');
+assert.ok(app.includes('data-original-status='), 'User cards must retain the original status for change review');
+assert.ok(app.includes('window.confirm('), 'Sensitive profile changes must require explicit confirmation');
+assert.ok(app.includes('Das Konto erhält Administratorrechte.'), 'Admin privilege elevation must have a clear warning');
+assert.ok(app.includes('Das eigene Administratorkonto ist geschützt.'), 'Self-protection must be enforced in the save handler');
+assert.ok(app.includes('Keine Änderungen vorgenommen.'), 'Unchanged user profiles must not trigger an RPC');
