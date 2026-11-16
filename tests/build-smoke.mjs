@@ -50,6 +50,12 @@ for (const file of requiredFiles) {
   await access(resolve(outputDirectory, file));
 }
 
+const welcomeArtwork = await readFile(resolve(outputDirectory, "pfms-welcome.webp"));
+assert.ok(welcomeArtwork.length > 10000, "PFMS welcome artwork must be a complete, non-trivial image");
+assert.equal(welcomeArtwork.toString("ascii", 0, 4), "RIFF", "PFMS welcome artwork must have a RIFF container");
+assert.equal(welcomeArtwork.toString("ascii", 8, 12), "WEBP", "PFMS welcome artwork must be WebP");
+assert.equal(welcomeArtwork.readUInt32LE(4), welcomeArtwork.length - 8, "PFMS welcome artwork RIFF length must be exact");
+
 const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
 const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js');
 const roleScriptIndex = mainPageSource.indexOf('<script src="pfms-role-workflows.js');
