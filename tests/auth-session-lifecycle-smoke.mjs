@@ -133,7 +133,7 @@ assert.match(app, /function getPfmsAuthFailureMessage\(error\)[\s\S]*?email_not_
   "Login failures must distinguish bad credentials, unconfirmed email and endpoint/network failures.");
 assert.match(app, /diagnosticId[\s\S]*?projectRef:[\s\S]*?supabaseHost:/,
   "A failed login must emit a sanitized diagnostic reference and non-secret environment metadata.");
-assert.match(await readFile(new URL("../index.html", import.meta.url), "utf8"), /app\.js\?v=20261116-auth-screen-state-2/,
+assert.match(await readFile(new URL("../index.html", import.meta.url), "utf8"), /app\.js\?v=20261116-stadium-welcome-sequence-1/,
   "The login script URL must be cache-busted when authentication diagnostics change.");
 
 assert.match(app, /PFMS login diagnostic:[\s\S]*?PFMS access validation failed after successful authentication:[\s\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
