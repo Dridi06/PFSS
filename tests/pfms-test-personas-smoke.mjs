@@ -29,7 +29,7 @@ for (const required of [
   "real_auth_users_unchanged_baseline",
   "real_profiles_unchanged_baseline"
 ]) {
-  assert.ok(executable.includes(required),
+  assert.ok(sql.includes(required),
     "Missing required persona acceptance gate: " + required);
 }
 assert.match(executable, /\('scout',\s*5\)/);
