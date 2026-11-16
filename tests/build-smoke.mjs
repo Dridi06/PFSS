@@ -42,6 +42,7 @@ const requiredFiles = [
   "scout-workspace.js",
   "pfms-logo.svg",
   "pfms-welcome.webp",
+  "connection-test.html",
   "pfms-config.js"
 ];
 
