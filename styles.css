@@ -437,21 +437,39 @@ button,input,select,textarea{max-width:100%}
 }
 
 
-/* PFMS cinematic welcome sequence */
-.welcome-sequence{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#050505 url('pfms-welcome.webp?v=20261116-exact-user-artwork') center/cover no-repeat;color:#f8e7b4}
+/* PFMS cinematic stadium welcome sequence — 3.5s, responsive and reduced-motion aware */
+.welcome-sequence{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#050608 url('pfms-welcome.webp?v=20261116-stadium-sequence-1') center 24%/100% auto no-repeat;color:#f8e7b4;isolation:isolate}
 .welcome-sequence.hidden{display:none}
-.welcome-sequence::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.24),rgba(0,0,0,.72))}
-.welcome-sequence::after{content:"";position:absolute;left:-35%;top:0;width:22%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,221,125,.9),rgba(255,255,255,.95),rgba(255,205,75,.75),transparent);filter:blur(7px);transform:skewX(-18deg);animation:pfms-lightning .85s ease-out .12s both}
-.welcome-sequence-content{position:relative;z-index:1;text-align:center;padding:24px;width:min(92vw,900px);text-shadow:0 2px 22px #000}
-.welcome-brand{font-family:Georgia,serif;font-size:clamp(48px,12vw,104px);font-weight:900;letter-spacing:.16em;color:#f7d77f;text-shadow:0 0 12px #ffdf8b,0 0 34px #c58a25;opacity:0;animation:pfms-word .55s ease-out .35s forwards}
-.welcome-line{height:2px;width:min(460px,70vw);margin:10px auto 20px;background:linear-gradient(90deg,transparent,#fff0b5,#c38b2b,transparent);box-shadow:0 0 18px #e9bb55;transform:scaleX(0);animation:pfms-line .45s ease-out .55s forwards}
-.welcome-title{font-size:clamp(19px,4vw,32px);font-weight:800;letter-spacing:.12em;color:#fff4d6;opacity:0;animation:pfms-word .45s ease-out .7s forwards}
-.welcome-user{margin-top:14px;font-size:clamp(20px,5vw,38px);font-weight:700;color:#f4ce75;opacity:0;animation:pfms-word .5s ease-out .95s forwards}
-.welcome-subtitle{margin-top:12px;font-size:clamp(10px,2vw,15px);letter-spacing:.16em;text-transform:uppercase;color:#e9d7ae;opacity:0;animation:pfms-word .5s ease-out 1.15s forwards}
-@keyframes pfms-lightning{0%{left:-35%;opacity:0}15%{opacity:1}100%{left:125%;opacity:0}}
-@keyframes pfms-word{from{opacity:0;transform:translateY(12px) scale(.97);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-@keyframes pfms-line{to{transform:scaleX(1)}}
-@media(prefers-reduced-motion:reduce){.welcome-sequence::after,.welcome-brand,.welcome-title,.welcome-user,.welcome-subtitle,.welcome-line{animation:none;opacity:1;transform:none}}
+.welcome-sequence::before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(3,5,8,.08) 0%,rgba(3,5,8,.04) 34%,rgba(3,5,8,.72) 68%,#050608 100%),radial-gradient(ellipse at 50% 48%,rgba(255,203,92,.18),transparent 48%)}
+.welcome-sequence::after{content:"";position:absolute;z-index:1;left:50%;top:54%;width:min(42vw,520px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.12);border-radius:50%;background:radial-gradient(circle,rgba(255,255,245,.98) 0 1.5%,rgba(255,226,150,.88) 3%,rgba(255,191,63,.36) 12%,rgba(255,183,45,.08) 34%,transparent 68%);filter:blur(3px);opacity:0;animation:pfms-center-burst 1.35s cubic-bezier(.16,.72,.22,1) .08s both;pointer-events:none}
+.welcome-flashes{position:absolute;z-index:2;inset:0;overflow:hidden;pointer-events:none}
+.welcome-flash{position:absolute;width:clamp(12px,2vw,28px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 7%,#fff7cf 15%,rgba(255,230,166,.85) 27%,rgba(255,255,255,.16) 48%,transparent 72%);filter:blur(.7px);opacity:0;animation:pfms-camera-flash 1.9s ease-out 2 both}
+.flash-one{left:10%;top:27%;animation-delay:.08s}.flash-two{left:24%;top:39%;animation-delay:.42s}
+.flash-three{left:38%;top:24%;animation-delay:.19s}.flash-four{left:63%;top:32%;animation-delay:.58s}
+.flash-five{left:78%;top:23%;animation-delay:.31s}.flash-six{left:90%;top:42%;animation-delay:.76s}
+.flash-seven{left:53%;top:18%;animation-delay:.94s}.flash-eight{left:17%;top:48%;animation-delay:1.12s}
+.welcome-sequence-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;width:min(94vw,1100px);margin-top:clamp(100px,26vh,260px);text-shadow:0 3px 24px #000,0 0 34px #000}
+.welcome-star{font-family:Arial,sans-serif;font-size:clamp(54px,10vw,112px);line-height:.9;color:#ffe39a;text-shadow:0 0 7px #fff,0 0 20px #ffd36d,0 0 48px #d18b20;opacity:0;transform:translateY(18px) scale(.08) rotate(-145deg);animation:pfms-star-arrive .82s cubic-bezier(.16,.9,.24,1) .36s forwards}
+.welcome-title{margin-top:clamp(16px,2.5vh,28px);font-size:clamp(25px,5.2vw,58px);font-weight:900;letter-spacing:.055em;line-height:1.08;color:#fff1ce;text-transform:uppercase;text-shadow:0 0 12px rgba(255,224,156,.55),0 4px 24px #000;opacity:0;transform:translateY(18px) scale(.96);filter:blur(7px);animation:pfms-welcome-reveal .62s cubic-bezier(.2,.8,.2,1) 1.22s forwards}
+.welcome-user{margin-top:12px;font-size:clamp(17px,3vw,29px);font-weight:750;letter-spacing:.04em;color:#f1ce82;opacity:0;transform:translateY(10px);animation:pfms-user-reveal .48s ease-out 1.78s forwards}
+.welcome-subtitle{margin-top:12px;font-size:clamp(9px,1.7vw,14px);font-weight:700;letter-spacing:.2em;color:#e9d7ae;opacity:0;animation:pfms-user-reveal .48s ease-out 2.08s forwards}
+@keyframes pfms-center-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.12)}22%{opacity:1;transform:translate(-50%,-50%) scale(.78)}52%{opacity:.75;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}}
+@keyframes pfms-camera-flash{0%,100%{opacity:0;transform:scale(.45)}12%{opacity:.98;transform:scale(1.18)}23%{opacity:.12;transform:scale(.8)}}
+@keyframes pfms-star-arrive{0%{opacity:0;transform:translateY(18px) scale(.08) rotate(-145deg);filter:blur(12px)}62%{opacity:1;transform:translateY(-2px) scale(1.13) rotate(12deg);filter:blur(0)}82%{transform:translateY(0) scale(.96) rotate(-3deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:blur(0)}}
+@keyframes pfms-welcome-reveal{0%{opacity:0;transform:translateY(18px) scale(.96);filter:blur(7px)}72%{opacity:1;transform:translateY(-2px) scale(1.015);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes pfms-user-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){
+ .welcome-sequence{background-size:100% auto;background-position:center 18%}
+ .welcome-sequence::before{background:linear-gradient(180deg,rgba(3,5,8,.03) 0%,rgba(3,5,8,.05) 24%,rgba(3,5,8,.55) 46%,#050608 100%),radial-gradient(ellipse at 50% 38%,rgba(255,203,92,.15),transparent 46%)}
+ .welcome-sequence-content{width:96vw;margin-top:clamp(205px,34vh,330px);padding:18px 12px}
+ .welcome-star{font-size:58px}
+ .welcome-title{font-size:clamp(24px,7vw,36px);max-width:94vw;letter-spacing:.025em}
+ .welcome-user{font-size:clamp(16px,4.8vw,22px)}
+ .welcome-subtitle{font-size:9px;letter-spacing:.12em}
+}
+@media(prefers-reduced-motion:reduce){
+ .welcome-sequence::after,.welcome-flash,.welcome-star,.welcome-title,.welcome-user,.welcome-subtitle{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
+}
 
 
 /* iPhone Safari: prevent automatic input zoom and restore normal mobile layout */
