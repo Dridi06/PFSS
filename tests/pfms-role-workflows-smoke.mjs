@@ -208,8 +208,10 @@ const declaredTrainer = workflows.resolveContext({
   roles: ["trainer"]
 });
 assert.equal(declaredTrainer.roleLabel, "Trainer");
-assert.equal(workflows.canAccessView(declaredTrainer, "team-workspace"), false,
-  "A declared trainer role without a current team assignment must not grant the team workspace.");
+assert.equal(declaredTrainer.hasTeamAccess, false);
+assert.equal(workflows.canAccessView(declaredTrainer, "team-workspace"), true,
+  "A declared trainer role may enter the assignment-onboarding view without seeing team data.");
+assert.equal(workflows.getStartView(declaredTrainer), "team-workspace");
 
 const multi = workflows.resolveContext({
   profileRole: "user",
