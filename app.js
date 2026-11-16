@@ -740,18 +740,45 @@ function setupPfmsAdminSupport() {
   pfmsAdminSupportBound = true;
 }
 
+function applyPfmsRoleNavigation(context = window.pfmsRoleContext) {
+  const workflows = window.PFMSRoleWorkflows;
+  if (!workflows || !context) return;
+  document.querySelectorAll('.sidebar [data-view]').forEach(item => {
+    item.hidden = !workflows.canAccessView(context, item.dataset.view);
+  });
+  const setGroupVisibility = (toggle, submenu, visible) => {
+    if (toggle) { toggle.hidden = !visible; toggle.setAttribute('aria-expanded','false'); toggle.classList.remove('active','expanded'); }
+    if (submenu) submenu.hidden = true;
+    if (toggle?.previousElementSibling?.classList.contains('nav-section-label')) toggle.previousElementSibling.hidden = !visible;
+  };
+  setGroupVisibility(document.querySelector('[data-nav-toggle="clubSubnav"]'),document.getElementById('clubSubnav'),context.canManageClub);
+  setGroupVisibility(document.querySelector('[data-nav-toggle="teamSubnav"]'),document.getElementById('teamSubnav'),context.hasTeamAccess||context.canManageClub);
+  const adminNavItems=[...document.querySelectorAll('#adminNavSection [data-view]')];
+  const adminNav=document.getElementById('adminNavSection');
+  if(adminNav)adminNav.hidden=!adminNavItems.some(item=>!item.hidden);
+  const adminTitle=document.querySelector('#adminNavSection .admin-section-title');
+  if(adminTitle)adminTitle.textContent=context.isPlatformAdmin?'ADMINISTRATOR':context.canManageClub?'VEREINSBEREICH':context.canManageAgency?'AGENTURBEREICH':'SCOUTING';
+  document.getElementById('sidebar')?.classList.toggle('admin-mode',context.isPlatformAdmin===true);
+}
+function updatePfmsRoleContext(organizations,teams,options={}) {
+  const workflows=window.PFMSRoleWorkflows;
+  if(!workflows||!window.pfssCurrentUserId)return null;
+  const context=workflows.resolveContext({profileRole:window.pfssCurrentRole,organizations:Array.isArray(organizations)?organizations:[],teams:Array.isArray(teams)?teams:[]});
+  window.pfmsRoleContext=context;applyPfmsRoleNavigation(context);
+  if(options.redirectInvalid!==false){
+    const activeView=document.querySelector('.view.active')?.id?.replace(/^view-/,'');
+    if(activeView&&!workflows.canAccessView(context,activeView))showView(workflows.getStartView(context),null,true);
+  }
+  return context;
+}
 function showView(view, navElement = null, fromPopState = false) {
-  const adminOnlyViews = new Set([
-    'clubs', 'agencies', 'admin-members', 'admin-errors',
-    'admin-inbox', 'admin-payments', 'admin', 'backup'
-  ]);
-  // Navigation visibility is only a usability layer. This route guard also
-  // blocks stale history/direct UI navigation; database/RPC policies remain
-  // the actual authorization boundary.
-  if (adminOnlyViews.has(view) && !window.pfssIsRealAdmin) {
-    view = 'dashboard';
-    navElement = null;
-    if (window.pfssCurrentUserId) toast('Für diesen Administrationsbereich fehlen die erforderlichen Rechte.');
+  const adminOnlyViews = new Set(['admin-members','admin-errors','admin-inbox','admin-payments','admin','backup']);
+  // This frontend gate mirrors the role matrix; RLS and RPC checks remain authoritative.
+  if(adminOnlyViews.has(view)&&!window.pfssIsRealAdmin){view='dashboard';navElement=null;if(window.pfssCurrentUserId)toast('Für diesen Administrationsbereich fehlen die erforderlichen Rechte.');}
+  const workflows=window.PFMSRoleWorkflows,roleContext=window.pfmsRoleContext;
+  if(window.pfssCurrentUserId&&workflows&&!workflows.canAccessView(roleContext,view)){
+    view=workflows.getStartView(roleContext);navElement=null;
+    toast('Dieser Arbeitsbereich gehört nicht zu deinen freigegebenen Rollen oder Organisationsmitgliedschaften.');
   }
   const selectedLabel = navElement?.textContent?.trim() || (
     view === 'team-workspace' ? 'Mannschaftsübersicht' : ''
@@ -837,7 +864,7 @@ function showView(view, navElement = null, fromPopState = false) {
   if (view === 'dashboard') renderDashboard();
   if (view === 'media' && window.pfssCurrentUserId) void loadPfmsMainMedia();
   if (view === 'notifications' && window.pfssCurrentUserId) void loadPfmsNotifications();
-  if ((view === 'clubs' || view === 'club-members') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
+  if ((view === 'clubs' || view === 'club-members' || view === 'agencies') && window.pfssCurrentUserId) void loadPfmsLegacyInvitationOrganizations();
   if (view === 'club-scouting' && window.pfssCurrentUserId) void loadPfmsClubScouts();
   if ((view === 'teams' || view === 'team-workspace') && window.pfssCurrentUserId) void loadPfmsLegacyTeams();
   if (view === 'staff' && window.pfssCurrentUserId) void loadPfmsStaffDirectory();
@@ -1780,6 +1807,12 @@ document.addEventListener('click', event => {
       loadPfmsLegacyOrganizationMembers();
     } else if (targetView === 'teams') {
       showView('teams');
+    } else if (targetView === 'club-scouting') {
+      showView('club-scouting');
+      void loadPfmsClubScouts().then(() => {
+        const select=document.getElementById('pfmsClubScoutingOrganization');
+        if(select&&organizationId&&[...select.options].some(option=>option.value===organizationId)){select.value=organizationId;void loadPfmsClubScouts();}
+      });
     }
     return;
   }
@@ -2259,26 +2292,17 @@ async function showAuthenticatedApp(user, profile) {
   window.pfssCurrentUserId = requestedUserId;
   window.pfssCurrentRole = profile.role;
   window.scrollTo(0, 0);
-  const role = String(profile.role || '').toLowerCase().replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue');
+  const role = window.PFMSRoleWorkflows.normalizeRole(profile.role);
   const username = profile.username || user.email || 'PFMS Nutzer';
-  const isAdmin = role === 'admin' || role === 'administrator';
-  window.pfssIsRealAdmin = isAdmin;
-  const adminClubConsole = document.getElementById('adminClubConsole');
-  const adminScoutConsole = document.getElementById('adminScoutConsole');
-  if (adminClubConsole) adminClubConsole.hidden = !isAdmin;
-  if (adminScoutConsole) adminScoutConsole.hidden = !isAdmin;
-  const isScout = role.includes('scout');
-  let hasAssignedTeam = false;
-  try {
-    const teamAccess = await pfssSupabase.rpc('pfms_list_my_legacy_teams');
-    if (!teamAccess.error) hasAssignedTeam = (teamAccess.data || []).length > 0;
-  } catch (teamAccessError) {
-    console.warn('PFMS team membership lookup unavailable:', teamAccessError?.message || teamAccessError);
-  }
+  await loadPfmsLegacyTeams({redirectInvalid:false});
   if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
-  const isTeam = hasAssignedTeam || ['trainer','co-trainer','cotrainer','betreuer','coach'].some(x => role.includes(x));
-  const isClub = ['praesident','präsident','vorstand','jugendleiter','vereinsleiter'].some(x => role.includes(x));
-  const normalStartView = isAdmin ? 'admin' : isScout ? 'scouts' : isTeam ? 'team-workspace' : isClub ? 'clubs' : 'dashboard';
+  const roleContext = window.PFMSRoleWorkflows.resolveContext({profileRole:profile.role,organizations:pfmsLegacyInvitationOrganizations,teams:pfmsLegacyTeams});
+  window.pfmsRoleContext = roleContext;
+  const isAdmin=roleContext.isPlatformAdmin,isScout=roleContext.isScout,isTeam=roleContext.hasTeamAccess,isClub=roleContext.canManageClub,isAgency=roleContext.canManageAgency;
+  window.pfssIsRealAdmin=isAdmin;
+  const adminClubConsole=document.getElementById('adminClubConsole'),adminScoutConsole=document.getElementById('adminScoutConsole');
+  if(adminClubConsole)adminClubConsole.hidden=!isAdmin;if(adminScoutConsole)adminScoutConsole.hidden=!isAdmin;
+  const normalStartView=window.PFMSRoleWorkflows.getStartView(roleContext);
   const firstLoginKey = 'pfms_first_dashboard_seen_' + user.id;
   const sessionWelcomeKey = 'pfms_welcome_session_' + user.id;
   let firstLogin = false;
@@ -2304,20 +2328,12 @@ async function showAuthenticatedApp(user, profile) {
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
   document.getElementById('accountEmail').textContent = username;
-  document.querySelector('.profile-mini small').textContent =
-    isAdmin ? 'Administrator' : isScout ? 'Scout' : isTeam ? 'Trainerteam' : isClub ? 'Vereinsverwaltung' : 'Mitglied';
-  const adminNavSection = document.getElementById('adminNavSection');
-  if (adminNavSection) adminNavSection.hidden = !isAdmin;
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) sidebar.classList.toggle('admin-mode', isAdmin);
-  document.querySelectorAll('.sidebar [data-view]').forEach(item => {
-    if (!item.classList.contains('admin-nav-item')) item.hidden = isAdmin;
-  });
+  document.querySelector('.profile-mini small').textContent = roleContext.roleLabel;
+  applyPfmsRoleNavigation(roleContext);
   window.pfssPreviewMode = 'admin';
   setupPfmsLegacyTeamWorkspace();
   await loadPfmsMainData();
   if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
-  void loadPfmsLegacyTeams();
   await loadPfmsMainMedia();
   if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
   const previewSwitch = document.getElementById('adminPreviewSwitch');
@@ -3077,53 +3093,31 @@ function resetPfmsLegacyTeamTasksState() {
 }
 
 function renderPfmsClubWorkspace() {
-  const host = document.getElementById('pfmsClubOrganizationsGrid');
-  const status = document.getElementById('pfmsClubWorkspaceStatus');
-  if (!host) return;
-  if (!window.pfssCurrentUserId) {
-    host.innerHTML = '<div class="empty-state"><b>Bitte anmelden</b><p>Deine Organisationen werden nach der Anmeldung angezeigt.</p></div>';
-    if (status) { status.hidden = false; status.textContent = 'Nicht angemeldet'; }
-    return;
-  }
-
-  const organizations = Array.isArray(pfmsLegacyInvitationOrganizations)
-    ? pfmsLegacyInvitationOrganizations
-    : [];
-  if (!organizations.length) {
-    host.innerHTML = '<div class="empty-state"><b>Noch keine verwaltbare Organisation</b><p>Wenn du einen Verein oder eine Agentur registriert hast, wird sie nach der Freigabe hier angezeigt. Mitglieder können über einen gültigen Einladungslink beitreten.</p></div>';
-    if (status) { status.hidden = false; status.textContent = 'Keine verwaltbaren Organisationen gefunden'; }
-    return;
-  }
-
-  const typeLabels = { club: 'Verein', agency: 'Agentur', scout_workspace: 'Scout-Arbeitsbereich' };
-  const statusLabels = { approved: 'Freigegeben', active: 'Aktiv', pending: 'Prüfung ausstehend', suspended: 'Gesperrt' };
-  const roleLabels = {
-    owner: 'Inhaber',
-    club_admin: 'Vereinsleitung',
-    agency_admin: 'Agenturleitung',
-    platform_admin: 'Plattformadministration'
-  };
-  host.innerHTML = organizations.map(org => {
-    const type = typeLabels[org.organization_type] || 'Organisation';
-    const state = statusLabels[String(org.organization_status || '').toLowerCase()] || org.organization_status || 'Unbekannt';
-    const role = roleLabels[org.member_role] || org.member_role || 'Verwaltung';
-    const canInvite = ['approved','active'].includes(String(org.organization_status || '').toLowerCase());
-    return '<article class="module-card pfms-club-organization-card">' +
-      '<div class="eyebrow">' + escapeHtml(type) + '</div>' +
-      '<h3>' + escapeHtml(org.organization_name || 'Organisation') + '</h3>' +
-      '<div class="pfms-club-organization-meta"><span class="module-status">' + escapeHtml(state) + '</span><span>' + escapeHtml(role) + '</span></div>' +
-      '<div class="pfms-club-organization-actions">' +
-        '<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-members" data-organization-id="' + escapeHtml(org.organization_id) + '">Mitglieder verwalten</button>' +
-        '<button type="button" class="btn btn-secondary" data-pfms-club-nav="teams">Mannschaften öffnen</button>' +
-        (canInvite ? '<button type="button" class="btn btn-primary" data-pfms-open-invitation="' + escapeHtml(org.organization_id) + '">Mitglied einladen</button>' : '') +
-      '</div></article>';
+ const clubHost=document.getElementById('pfmsClubOrganizationsGrid'),agencyHost=document.getElementById('pfmsAgencyOrganizationsGrid');
+ const clubStatus=document.getElementById('pfmsClubWorkspaceStatus'),agencyStatus=document.getElementById('pfmsAgencyWorkspaceStatus'),context=window.pfmsRoleContext;
+ const agencyPanel=document.getElementById('pfmsAgencyWorkspacePanel'),agencyAdmin=document.getElementById('pfmsAdminAgencyConsole');
+ if(agencyPanel)agencyPanel.hidden=!context?.canManageAgency;if(agencyAdmin)agencyAdmin.hidden=!window.pfssIsRealAdmin;
+ const organizations=Array.isArray(pfmsLegacyInvitationOrganizations)?pfmsLegacyInvitationOrganizations:[];
+ const typeLabels={club:'Verein',agency:'Agentur'},statusLabels={approved:'Freigegeben',active:'Aktiv',pending:'Prüfung ausstehend',suspended:'Gesperrt'};
+ const roleLabels={owner:'Inhaber',admin:'Administrator',manager:'Manager',club_admin:'Vereinsleitung',agency_admin:'Agenturleitung'};
+ const renderCards=(host,type,statusHost)=>{
+  if(!host)return;
+  if(!window.pfssCurrentUserId){host.innerHTML='<div class="empty-state"><b>Bitte anmelden</b><p>Deine Organisationen werden nach der Anmeldung angezeigt.</p></div>';if(statusHost)statusHost.textContent='Nicht angemeldet';return;}
+  const rows=organizations.filter(org=>String(org.organization_type||'').toLowerCase()===type);
+  if(!rows.length){host.innerHTML='<div class="empty-state"><b>Noch keine verwaltbare '+(type==='club'?'Vereine':'Agentur')+' vorhanden</b><p>Nach Freigabe und aktiver Leitungsmitgliedschaft werden deine Organisationen hier angezeigt.</p></div>';if(statusHost)statusHost.textContent='Keine verwaltbare Organisation gefunden';return;}
+  host.innerHTML=rows.map(org=>{
+   const state=statusLabels[String(org.organization_status||'').toLowerCase()]||org.organization_status||'Unbekannt',role=roleLabels[String(org.member_role||'').toLowerCase()]||org.member_role||'Verwaltung';
+   const canInvite=['approved','active'].includes(String(org.organization_status||'').toLowerCase());
+   const actions=['<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-members" data-organization-id="'+escapeHtml(org.organization_id)+'">Mitglieder verwalten</button>'];
+   if(type==='club')actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="teams">Mannschaften öffnen</button>');
+   actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-scouting" data-organization-id="'+escapeHtml(org.organization_id)+'">Scouts verwalten</button>');
+   if(canInvite)actions.push('<button type="button" class="btn btn-primary" data-pfms-open-invitation="'+escapeHtml(org.organization_id)+'">Mitglied einladen</button>');
+   return '<article class="module-card pfms-club-organization-card"><div class="eyebrow">'+escapeHtml(typeLabels[type])+'</div><h3>'+escapeHtml(org.organization_name||typeLabels[type])+'</h3><div class="pfms-club-organization-meta"><span class="module-status">'+escapeHtml(state)+'</span><span>'+escapeHtml(role)+'</span></div><div class="pfms-club-organization-actions">'+actions.join('')+'</div></article>';
   }).join('');
-  if (status) {
-    status.hidden = false;
-    status.textContent = organizations.length + ' verwaltbare Organisation(en) geladen.';
-  }
+  if(statusHost)statusHost.textContent=rows.length+(type==='club'?' verwaltbare(r) Verein(e).':' verwaltbare Agentur(en).');
+ };
+ renderCards(clubHost,'club',clubStatus);renderCards(agencyHost,'agency',agencyStatus);
 }
-
 async function loadPfmsLegacyInvitationOrganizations() {
   const panel = document.getElementById('pfmsLegacyInvitationPanel');
   const form = document.getElementById('pfmsLegacyInvitationForm');
@@ -3161,6 +3155,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (error) throw error;
 
     pfmsLegacyInvitationOrganizations = data || [];
+    updatePfmsRoleContext(pfmsLegacyInvitationOrganizations, pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     const organizations = pfmsLegacyInvitationOrganizations;
     const inviteEligible = organizations.filter(org =>
@@ -3211,6 +3206,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS legacy invitation organizations:', error);
     pfmsLegacyInvitationOrganizations = [];
+    updatePfmsRoleContext([], pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
     message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
@@ -3594,44 +3590,26 @@ function renderPfmsLegacyTeamCards() {
   if (addButton) addButton.hidden = !pfmsManageableLegacyOrganizations.length;
 }
 
-async function loadPfmsLegacyTeams() {
-  const requestUserId = window.pfssCurrentUserId;
-  const requestGeneration = pfmsAuthGeneration;
-  if (!requestUserId) return false;
-  const messages = ['pfmsTeamsMessage', 'pfmsMyTeamsMessage']
-    .map(id => document.getElementById(id)).filter(Boolean);
-  messages.forEach(message => message.textContent = 'Mannschaften werden geladen …');
-
-  try {
-    const [teamsResult, orgsResult] = await Promise.all([
-      pfssSupabase.rpc('pfms_list_my_legacy_teams'),
-      pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations')
-    ]);
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
-    if (teamsResult.error) throw teamsResult.error;
-
-    pfmsLegacyTeams = teamsResult.data || [];
-    pfmsManageableLegacyOrganizations = orgsResult.error ? [] : (orgsResult.data || [])
-      .filter(org => org.organization_type === 'club' &&
-        ['approved','active'].includes(String(org.organization_status || '').toLowerCase()));
-
-    messages.forEach(message => {
-      message.textContent = pfmsLegacyTeams.length
-        ? pfmsLegacyTeams.length + ' Mannschaft(en) geladen.'
-        : 'Für dieses Konto sind noch keine Mannschaften zugeordnet.';
-    });
-    renderPfmsLegacyTeamCards();
-    return true;
-  } catch (error) {
-    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return false;
-    console.error('PFMS team workspace load failed:', error);
-    pfmsLegacyTeams = [];
-    pfmsManageableLegacyOrganizations = [];
-    renderPfmsLegacyTeamCards();
-    messages.forEach(message => message.textContent =
-      'Mannschaftsverwaltung noch nicht verfügbar. Bitte die Team-Migration in der Testdatenbank anwenden und deine Vereinszuordnung prüfen.');
-    return false;
-  }
+async function loadPfmsLegacyTeams(options = {}) {
+ const requestUserId=window.pfssCurrentUserId,requestGeneration=pfmsAuthGeneration;if(!requestUserId)return false;
+ const messages=['pfmsTeamsMessage','pfmsMyTeamsMessage'].map(id=>document.getElementById(id)).filter(Boolean);
+ messages.forEach(message=>message.textContent='Mannschaften werden geladen …');
+ try{
+  const [teamsResult,orgsResult]=await Promise.all([pfssSupabase.rpc('pfms_list_my_legacy_teams'),pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations')]);
+  if(requestGeneration!==pfmsAuthGeneration||requestUserId!==window.pfssCurrentUserId)return false;
+  const organizations=orgsResult.error?[]:(orgsResult.data||[]);
+  if(teamsResult.error){pfmsLegacyTeams=[];pfmsLegacyInvitationOrganizations=organizations;pfmsManageableLegacyOrganizations=organizations.filter(org=>org.organization_type==='club'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase()));updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();throw teamsResult.error;}
+  pfmsLegacyTeams=teamsResult.data||[];pfmsLegacyInvitationOrganizations=organizations;
+  pfmsManageableLegacyOrganizations=organizations.filter(org=>org.organization_type==='club'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase()));
+  updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();
+  messages.forEach(message=>message.textContent=pfmsLegacyTeams.length?pfmsLegacyTeams.length+' Mannschaft(en) geladen.':'Für dieses Konto sind noch keine Mannschaften zugeordnet.');
+  renderPfmsLegacyTeamCards();return true;
+ }catch(error){
+  if(requestGeneration!==pfmsAuthGeneration||requestUserId!==window.pfssCurrentUserId)return false;
+  console.error('PFMS team workspace load failed:',error);pfmsLegacyTeams=[];pfmsManageableLegacyOrganizations=[];
+  updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsLegacyTeamCards();
+  messages.forEach(message=>message.textContent='Mannschaftsverwaltung noch nicht verfügbar. Bitte die Team-Migration in der Testdatenbank anwenden und deine Vereinszuordnung prüfen.');return false;
+ }
 }
 function openPfmsLegacyTeamDialog(team = null) {
   if (!team && !pfmsManageableLegacyOrganizations.length) {
@@ -8367,6 +8345,8 @@ async function checkPfssAccess(user, options = {}) {
 
 function resetPfmsAuthenticatedState() {
   pfmsAuthGeneration += 1;
+  window.pfmsRoleContext = null;
+  window.pfssIsRealAdmin = false;
   pfmsAdminOverviewRequestId += 1;
   pfmsNotifications = [];
   renderPfmsNotifications();

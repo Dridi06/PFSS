@@ -38,6 +38,7 @@ const requiredFiles = [
   "PFSS_Black_Gold_Design_Update.css",
   "pfms-design-system.css",
   "app.js",
+  "pfms-role-workflows.js",
   "scout-workspace.js",
   "pfms-logo.svg",
   "pfms-welcome.webp",
@@ -50,9 +51,11 @@ for (const file of requiredFiles) {
 
 const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
 const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js" defer>');
+const roleScriptIndex = mainPageSource.indexOf('<script src="pfms-role-workflows.js');
 const appScriptIndex = mainPageSource.indexOf('<script src="app.js');
 const workspaceScriptIndex = mainPageSource.indexOf('<script src="scout-workspace.js');
-assert.ok(configScriptIndex >= 0 && appScriptIndex > configScriptIndex, "Runtime config must load before the main application");
+assert.ok(configScriptIndex >= 0 && roleScriptIndex > configScriptIndex, "Runtime config must load before the role workflow contract");
+assert.ok(appScriptIndex > roleScriptIndex, "Role workflow contract must load before the application");
 assert.ok(workspaceScriptIndex > appScriptIndex, "Workspace script must load after the main application");
 
 const runtimeConfigSource = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");

@@ -13,7 +13,8 @@
   <link rel="stylesheet" href="pfms-design-system.css?v=20261115-1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script src="pfms-config.js" defer></script>
-  <script src="app.js?v=pfms-auth-guided-registration-20261115-1" defer></script>
+  <script src="pfms-role-workflows.js?v=20261116-role-workflows-1" defer></script>
+  <script src="app.js?v=pfms-role-workflows-20261116-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -781,11 +782,11 @@
       </section>
 
       <section class="view" id="view-club-scouting">
-        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Aktive Scouts deiner verwalteten Organisationen und deren Mitgliedschaftsstatus.</p></div><button class="btn btn-primary" type="button" id="pfmsClubInviteScoutButton">＋ Scout einladen</button></div>
+        <div class="page-heading"><div><div class="eyebrow">VEREINSBEREICH</div><h1>Scouting-Abteilung</h1><p>Aktive Scouts deiner verwalteten Vereine und Agenturen sowie deren Mitgliedschaftsstatus.</p></div><button class="btn btn-primary" type="button" id="pfmsClubInviteScoutButton">＋ Scout einladen</button></div>
         <section class="panel" id="pfmsClubScoutingPanel">
           <div class="panel-heading"><div><div class="eyebrow">SCOUTING-TEAM</div><h3>Scouts der Organisation</h3></div><span class="module-status">Live-Mitgliedschaften</span></div>
           <div class="pfss-search-fields">
-            <label class="field">Verein / Organisation<select id="pfmsClubScoutingOrganization"><option value="">Organisationen werden geladen …</option></select></label>
+            <label class="field">Verein / Agentur<select id="pfmsClubScoutingOrganization"><option value="">Organisationen werden geladen …</option></select></label>
             <label class="field">Suche<input id="pfmsClubScoutingQuery" type="search" placeholder="Name, Benutzername oder E-Mail"></label>
           </div>
           <p class="admin-message" id="pfmsClubScoutingMessage" role="status" aria-live="polite">Scouts werden geladen …</p>
@@ -1321,12 +1322,17 @@
       </section>
 
       <section class="view" id="view-agencies">
-        <div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Agenturen</h1><p>Agenturmitgliedschaften, Leitungsrollen und Freigabestatus zentral verwalten.</p></div></div>
-        <div class="panel">
-          <div class="panel-heading"><div><div class="eyebrow">ORGANISATIONSÜBERGREIFENDE VERWALTUNG</div><h3>Agenturen und Mitglieder</h3></div><span class="module-status">Live-Daten</span></div>
+        <div class="page-heading"><div><div class="eyebrow">AGENTURWORKSPACE</div><h1>Agenturen</h1><p>Deine freigegebenen Agenturen, Mitgliedschaften und Scout-Teams zentral verwalten.</p></div></div>
+        <section class="panel" id="pfmsAgencyWorkspacePanel" hidden>
+          <div class="panel-heading"><div><div class="eyebrow">DEINE ORGANISATIONEN</div><h3>Agenturübersicht</h3><p>Nur freigegebene Agenturen mit aktiver Leitungsmitgliedschaft werden hier angezeigt.</p></div><span class="module-status">Organisationszugriff</span></div>
+          <p id="pfmsAgencyWorkspaceStatus" class="admin-message" role="status" aria-live="polite">Agenturen werden geladen …</p>
+          <div id="pfmsAgencyOrganizationsGrid" class="club-role-grid"></div>
+        </section>
+        <section class="panel" id="pfmsAdminAgencyConsole" hidden>
+          <div class="panel-heading"><div><div class="eyebrow">PLATTFORMADMINISTRATION</div><h3>Agenturen und Mitglieder</h3></div><span class="module-status">Live-Daten</span></div>
           <p>Die zentrale Mitgliederverwaltung kann nach Agenturtyp filtern und zeigt Agenturleitung, Scouts, Rollen und Mitgliedsstatus. Änderungen werden serverseitig geprüft.</p>
           <button class="btn btn-primary" type="button" data-view="admin-members">Agenturen und Mitgliedschaften verwalten</button>
-        </div>
+        </section>
       </section>
 
       <section class="view" id="view-admin-members">
