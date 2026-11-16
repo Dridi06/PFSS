@@ -111,7 +111,7 @@ for (const relativePath of publicFiles) {
   // This avoids truncation of large binary payloads in repository content uploads.
   if (relativePath === "pfms-welcome.webp") {
     const encodedParts = [];
-    for (let part = 1; part <= 13; part += 1) {
+    for (let part = 1; part <= 5; part += 1) {
       const partPath = resolve(
         repositoryRoot,
         "pfms-welcome-data",
@@ -125,7 +125,7 @@ for (const relativePath of publicFiles) {
     }
 
     const encodedArtwork = encodedParts.join("");
-    if (encodedArtwork.length !== 57912 || encodedArtwork.length % 4 !== 0) {
+    if (encodedArtwork.length !== 20400 || encodedArtwork.length % 4 !== 0) {
       throw new Error("PFMS welcome artwork is incomplete: encoded length does not match the verified source.");
     }
 
