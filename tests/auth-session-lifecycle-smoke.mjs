@@ -123,7 +123,7 @@ assert.match(adminSupportSetup, /data-admin-page-action[\s\S]*?loadPfmsAdminSupp
 assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTickets = \[\]/,
   "Signing out or changing accounts must invalidate pending support inbox requests.");
 
-assert.match(app, /PFMS authentication failed:[\\s\\S]*?PFMS access validation failed after successful authentication:[\\s\\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
+assert.match(app, /PFMS authentication failed:[\s\S]*?PFMS access validation failed after successful authentication:[\s\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
   "Authentication errors must be distinguished from profile/access validation failures after a successful sign-in.");
 
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
