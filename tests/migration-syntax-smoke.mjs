@@ -1,0 +1,854 @@
+import assert from "node:assert/strict";
+import { readdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
+// The staging audit must remain a single read-only query and inventory every bucket.
+const stagingAuditSql = await readFile(
+  resolve(process.cwd(), "supabase/STAGING_READ_ONLY_AUDIT.sql"),
+  "utf8"
+);
+const stagingAcceptanceSql = await readFile(
+  resolve(process.cwd(), "supabase/STAGING_ACCEPTANCE_READ_ONLY.sql"),
+  "utf8"
+);
+const executableAuditSql = stagingAuditSql
+  .replace(/--[^\n]*/g, "")
+  .replace(/'(?:''|[^'])*'/g, "''")
+  .trim();
+assert.match(executableAuditSql, /^WITH\b/i, "Staging audit must begin with a read-only CTE query.");
+assert.match(executableAuditSql, /\bSELECT\s+section,\s*object_name,\s*details\b[\s\S]*;$/i);
+assert.equal(
+  (executableAuditSql.match(/;/g) ?? []).length,
+  1,
+  "Staging audit must contain exactly one terminal statement."
+);
+assert.doesNotMatch(
+  executableAuditSql,
+  /\b(?:INSERT\s+INTO|UPDATE\s+[a-z_]|DELETE\s+FROM|MERGE\s+INTO|CREATE\s+[A-Z]|ALTER\s+[A-Z]|DROP\s+[A-Z]|TRUNCATE|GRANT|REVOKE)\b/i,
+  "Staging audit must not contain data or schema mutations."
+);
+assert.match(stagingAuditSql, /FROM\s+storage\.buckets\s*\)/i);
+assert.doesNotMatch(
+  stagingAuditSql,
+  /FROM\s+storage\.buckets\s+WHERE\s+id\s+IN/i,
+  "Staging audit must inventory all buckets, not only a hard-coded bucket."
+);
+for (const section of ["RELATIONS", "COLUMN_GRANTS", "SEQUENCE_GRANTS", "SCHEMA_GRANTS", "DEFAULT_PRIVILEGES"]) {
+  assert.ok(
+    stagingAuditSql.includes("'" + section + "'"),
+    "Read-only staging audit must include " + section + " inventory."
+  );
+}
+const targetTablesInventory = stagingAuditSql.match(
+  /target_tables AS \(([\s\S]*?)\),\s*column_rows AS/i
+)?.[1] || "";
+assert.match(
+  targetTablesInventory,
+  /n\.nspname IN \('public', 'storage'\)/i,
+  "Read-only audit must inventory public and storage tables."
+);
+assert.doesNotMatch(
+  targetTablesInventory,
+  /c\.relname\s+IN\s*\(/i,
+  "Read-only audit must not silently omit new public/storage tables from policy and constraint inventory."
+);
+assert.match(
+  stagingAuditSql,
+  /FROM\s+pg_policies[\s\S]*?IN\s*\(SELECT table_name FROM target_tables\)/i,
+  "Read-only audit must inventory policies for every discovered public/storage table."
+);
+
+assert.match(stagingAuditSql, /pg_get_viewdef/i,
+  "Read-only audit must expose view definitions for security review.");
+assert.match(stagingAuditSql, /security_invoker_view/,
+  "Read-only audit must identify security-invoker view options.");
+assert.match(stagingAuditSql, /n\.nspname = 'auth' and c\.relname = 'users'/i,
+  "Read-only audit must inventory the auth.users relation and trigger context.");
+assert.match(stagingAuditSql, /acldefault\('S'/i,
+  "Read-only audit must inspect sequence ACL defaults.");
+assert.match(stagingAuditSql, /aclexplode\(a\.attacl\)/i,
+  "Read-only audit must inspect column-level ACLs.");
+assert.match(stagingAuditSql, /acldefault\('n'/i,
+  "Read-only audit must inspect schema ACL defaults.");
+assert.match(stagingAuditSql, /FROM\s+pg_default_acl/i,
+  "Read-only audit must inspect configured default privileges.");
+
+const functionInventory = stagingAuditSql.match(
+  /function_rows AS \(([\s\S]*?)\),\s*function_grant_rows AS/i
+)?.[1] || "";
+const functionGrantInventory = stagingAuditSql.match(
+  /function_grant_rows AS \(([\s\S]*?)\),\s*grant_rows AS/i
+)?.[1] || "";
+assert.ok(functionInventory.includes("pg_get_functiondef"),
+  "Read-only audit must include effective definitions of public functions.");
+assert.match(functionInventory, /case when p\.prokind = 'a' then null else pg_get_functiondef/i,
+  "Read-only audit must safely represent public aggregate functions.");
+assert.ok(functionGrantInventory.includes("aclexplode"),
+  "Read-only audit must include ACLs for public functions.");
+assert.doesNotMatch(functionInventory, /p\.proname\s+ILIKE/i,
+  "Read-only audit must not silently filter public function definitions by name prefix.");
+assert.doesNotMatch(functionGrantInventory, /p\.proname\s+ILIKE/i,
+  "Read-only audit must not silently filter public function grants by name prefix.");
+
+assert.match(
+  stagingAuditSql,
+  /to_regclass\('supabase_migrations\.schema_migrations'\)\s+IS\s+NOT\s+NULL/i,
+  "Staging audit must report whether the Supabase migration ledger exists."
+);
+
+assert.match(
+  stagingAcceptanceSql,
+  /'team_permission_matrix_read_write_security'/,
+  "Staging acceptance must verify the full team permission matrix read/write RPC security."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pfms_save_legacy_team_permissions\(uuid,jsonb\)[\s\S]*?v_can_edit and not v_can_view/,
+  "Staging acceptance must verify manager-only permission writes and edit-implies-view."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pfms_get_my_legacy_team_permissions\(uuid\)[\s\S]*?pfms_can_access_legacy_team\(p_team_id\)/,
+  "Staging acceptance must verify the current membership gate for the effective permission matrix."
+);
+
+const organizationManagerGateMigration = await readFile(
+  resolve(process.cwd(), "supabase/migrations/20261222_pfms_legacy_org_manager_active_org_gate.sql"),
+  "utf8"
+);
+const normalizedOrganizationManagerGate = organizationManagerGateMigration.replace(/\s+/g, " ").toLowerCase();
+assert.match(normalizedOrganizationManagerGate, /security definer set search_path = '' as \$\$/,
+  "Legacy organization manager helper must remain SECURITY DEFINER with an empty search_path.");
+assert.match(normalizedOrganizationManagerGate, /from public\.organizations o/,
+  "Legacy organization manager helper must load the authoritative organization row.");
+assert.match(normalizedOrganizationManagerGate, /o\.status in \('approved', 'active'\)/,
+  "Suspended or unapproved organizations must not retain manager authority.");
+assert.match(normalizedOrganizationManagerGate, /m\.status = 'active'/,
+  "Legacy organization manager helper must require an active membership.");
+assert.match(normalizedOrganizationManagerGate, /m\.role in \('owner', 'club_admin', 'agency_admin'\)/,
+  "Only organization leadership roles may manage the legacy organization.");
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_org_manager_active_organization_gate'/,
+  "The read-only staging acceptance audit must verify the active organization manager gate."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_invitation_redemption_status_gate'/,
+  "The read-only staging acceptance audit must verify that old invitations cannot be redeemed after an organization is suspended."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_invitation_table_acl'/,
+  "The read-only staging acceptance audit must verify that invitation tokens are not directly accessible to browser roles."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /has_column_privilege\('anon'[\s\S]*?has_column_privilege\('authenticated'/i,
+  "Invitation ACL acceptance must inspect column-level privileges separately from table ACLs."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /aclexplode\([\s\S]*?acl\.grantee = 0[\s\S]*?organization_invitations/i,
+  "Invitation ACL acceptance must reject direct PUBLIC table grants."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pg_catalog\.pg_policies[\s\S]*?organization_invitations/i,
+  "Invitation ACL acceptance must fail closed if a direct table policy is added."
+);
+
+
+const migrationsDirectory = resolve(process.cwd(), "supabase/migrations");
+const entries = await readdir(migrationsDirectory, { withFileTypes: true });
+const migrationFiles = entries
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+  .map((entry) => entry.name)
+  .sort();
+
+assert.ok(migrationFiles.length > 0, "No Supabase migrations were found.");
+
+// Supabase applies timestamped migrations in filename order. Reject malformed
+// versions, impossible calendar dates, and duplicate version identifiers
+// before a migration can reach a staging or production deployment.
+const migrationVersionIds = new Set();
+for (const filename of migrationFiles) {
+  const match = filename.match(/^(\d{8})_([a-z0-9][a-z0-9_]*)\.sql$/);
+  assert.ok(
+    match,
+    filename + " must use the YYYYMMDD_description.sql migration naming convention."
+  );
+
+  const [, dateStamp, description] = match;
+  const year = Number(dateStamp.slice(0, 4));
+  const month = Number(dateStamp.slice(4, 6));
+  const day = Number(dateStamp.slice(6, 8));
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  assert.equal(parsedDate.getUTCFullYear(), year, filename + " has an invalid migration year.");
+  assert.equal(parsedDate.getUTCMonth() + 1, month, filename + " has an invalid migration month.");
+  assert.equal(parsedDate.getUTCDate(), day, filename + " has an invalid migration day.");
+  assert.ok(description.length >= 3, filename + " must have a descriptive migration name.");
+
+  const versionId = dateStamp + "_" + description;
+  assert.ok(!migrationVersionIds.has(versionId), "Duplicate migration version identifier: " + versionId);
+  migrationVersionIds.add(versionId);
+}
+assert.deepEqual(
+  migrationFiles,
+  [...migrationFiles].sort(),
+  "Migration filenames must remain in deterministic Supabase execution order."
+);
+
+for (const filename of migrationFiles) {
+  const source = await readFile(resolve(migrationsDirectory, filename), "utf8");
+  const delimiters = source.match(/\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$/g) ?? [];
+  const counts = new Map();
+
+  for (const delimiter of delimiters) {
+    counts.set(delimiter, (counts.get(delimiter) ?? 0) + 1);
+  }
+
+  for (const [delimiter, count] of counts) {
+    assert.equal(count % 2, 0, filename + " has an unbalanced " + delimiter + " quote delimiter");
+  }
+
+  assert.doesNotMatch(
+    source,
+    /\bas\s\$(?:\s|$)/i,
+    filename + " contains a bare dollar after AS; use $$ or a named dollar-quote delimiter"
+  );
+}
+
+const migrationSources = await Promise.all(
+  migrationFiles.map((filename) => readFile(resolve(migrationsDirectory, filename), "utf8"))
+);
+
+// Legacy invitation RPCs depend on can_manage_org(uuid). The organization
+// and membership tables must exist before the helper is installed, and the
+// helper must be present before later invitation/member-management RPCs use it.
+const legacyOrganizationSchemaIndex = migrationFiles.indexOf(
+  "20261111_organizations_memberships_permissions.sql"
+);
+const organizationManagerGuardIndex = migrationFiles.indexOf(
+  "20261112_pfms_legacy_org_manager_guard.sql"
+);
+const legacyInvitationWorkspaceIndex = migrationFiles.indexOf(
+  "20261119_pfms_legacy_invitation_workspace.sql"
+);
+const legacyOrganizationMembershipIndex = migrationFiles.indexOf(
+  "20261121_pfms_legacy_org_membership_management.sql"
+);
+assert.ok(legacyOrganizationSchemaIndex >= 0, "Legacy organization and membership schema migration is missing.");
+assert.ok(organizationManagerGuardIndex > legacyOrganizationSchemaIndex,
+  "Organization manager guard must follow creation of organizations and organization_memberships.");
+assert.ok(legacyInvitationWorkspaceIndex > organizationManagerGuardIndex,
+  "Invitation workspace RPCs must not precede the can_manage_org(uuid) helper.");
+assert.ok(legacyOrganizationMembershipIndex > organizationManagerGuardIndex,
+  "Organization membership management RPCs must not precede the can_manage_org(uuid) helper.");
+const organizationManagerGuardSource = migrationSources[organizationManagerGuardIndex];
+assert.ok(organizationManagerGuardSource.toLowerCase().includes("create or replace function public.can_manage_org(p_organization_id uuid)"),
+  "The prerequisite migration must define can_manage_org(uuid) before its downstream consumers.");
+assert.ok(organizationManagerGuardSource.toLowerCase().includes("security definer") && organizationManagerGuardSource.toLowerCase().includes("set search_path = ''"),
+  "The early organization manager helper must retain its hardened security context.");
+// Every public table introduced by a repository migration must appear in
+// the read-only staging inventory. This prevents silent audit blind spots.
+const auditTargetTableBlock = stagingAuditSql.match(
+  /target_tables AS \(([\s\S]*?)\),\s*column_rows AS/i
+)?.[1] || "";
+assert.ok(auditTargetTableBlock, "Staging audit must declare its dynamic public/storage table inventory.");
+assert.match(
+  auditTargetTableBlock,
+  /n\.nspname IN \('public', 'storage'\)/i,
+  "Staging audit must include all public and storage tables."
+);
+assert.match(
+  auditTargetTableBlock,
+  /c\.relkind IN \('r', 'p'\)/i,
+  "Staging audit must include ordinary and partitioned tables."
+);
+assert.doesNotMatch(
+  auditTargetTableBlock,
+  /c\.relname\s+IN\s*\(/i,
+  "Staging audit must not use a hardcoded table-name allowlist that can omit new tables."
+);
+const createdPublicTables = new Set();
+for (const source of migrationSources) {
+  const executableSource = source.replace(/--[^\n]*/g, "");
+  for (const match of executableSource.matchAll(
+    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?([a-z_][a-z0-9_]*)\b/gi
+  )) {
+    createdPublicTables.add(match[1].toLowerCase());
+  }
+}
+assert.ok(createdPublicTables.size > 0, "No migration-created public tables were discovered.");
+const adminDirectoryPagination = migrationSources[
+  migrationFiles.indexOf("20261218_pfms_admin_directory_pagination.sql")
+];
+const adminProfilePagination = migrationSources[
+  migrationFiles.indexOf("20261219_pfss_admin_profile_pagination.sql")
+];
+assert.ok(adminDirectoryPagination, "Admin directory pagination migration is missing.");
+assert.ok(adminProfilePagination, "Admin profile pagination migration is missing.");
+function extractSqlFunction(source, name) {
+  const start = source.toLowerCase().indexOf("create or replace function public." + name + "(");
+  if (start < 0) return "";
+  const bodyMarker = source.toLowerCase().indexOf("as $$", start);
+  if (bodyMarker < 0) return "";
+  const end = source.indexOf("$$;", bodyMarker + 5);
+  return end < 0 ? "" : source.slice(start, end + 3).replace(/\s+/g, " ").toLowerCase();
+}
+for (const [name, source, functionName] of [
+  ["organization page", adminDirectoryPagination, "pfms_admin_search_legacy_organizations_page"],
+  ["scout page", adminDirectoryPagination, "pfms_admin_list_legacy_scouts_page"],
+  ["membership page", adminDirectoryPagination, "pfms_admin_list_legacy_members_page"],
+  ["profile page", adminProfilePagination, "pfss_admin_list_profiles_page"]
+]) {
+  const definition = extractSqlFunction(source, functionName);
+  assert.ok(definition, name + " function definition is missing.");
+  assert.match(definition, /security definer set search_path = '' as \$\$/,
+    name + " must be a SECURITY DEFINER function with an empty search_path.");
+  assert.match(definition, /public\.pfms_is_admin\(\)/,
+    name + " must enforce the canonical platform administrator check.");
+  assert.match(definition, /p_limit is null or p_limit not between 1 and 100/,
+    name + " must cap each page at 100 rows.");
+  assert.match(definition, /p_offset is null or p_offset not between 0 and 1000000/,
+    name + " must reject unbounded offsets.");
+  assert.match(definition, /count\(\*\) over \(\)/,
+    name + " must return a total count for stable pagination.");
+}
+const profileCountsDefinition = extractSqlFunction(adminProfilePagination, "pfss_admin_profile_counts");
+assert.match(profileCountsDefinition, /public\.pfms_is_admin\(\)/,
+  "The dashboard counters must have a separate administrator-only aggregate RPC.");
+assert.match(stagingAcceptanceSql, /'admin_directory_pagination_rpc_security'/,
+  "The read-only staging acceptance audit must verify pagination RPC security.");
+assert.match(stagingAcceptanceSql, /'admin_directory_pagination_bounds'/,
+  "The read-only staging acceptance audit must verify pagination limits.");
+const adminSystemEventsPagination = migrationSources[
+  migrationFiles.indexOf("20261220_pfms_admin_system_event_pagination.sql")
+];
+assert.ok(adminSystemEventsPagination, "Admin system event pagination migration is missing.");
+const systemEventsPageDefinition = extractSqlFunction(
+  adminSystemEventsPagination, "pfms_admin_list_system_events_page"
+);
+assert.ok(systemEventsPageDefinition, "Admin system event pagination RPC is missing.");
+assert.match(systemEventsPageDefinition, /security definer set search_path = '' as \$\$/,
+  "System event pagination must be SECURITY DEFINER with an empty search_path.");
+assert.match(systemEventsPageDefinition, /public\.pfms_is_admin\(\)/,
+  "System event pagination must enforce the canonical admin check.");
+assert.match(systemEventsPageDefinition, /p_limit is null or p_limit not between 1 and 100/,
+  "System event pagination must cap page size at 100.");
+assert.match(systemEventsPageDefinition, /p_offset is null or p_offset not between 0 and 1000000/,
+  "System event pagination must reject unbounded offsets.");
+assert.match(systemEventsPageDefinition, /count\(\*\) over \(\)/,
+  "System event pagination must return the total matching event count.");
+assert.ok(
+  adminSystemEventsPagination.includes("grant execute on function public.pfms_admin_list_system_events_page(text, text, text, integer, integer)"),
+  "System event pagination must explicitly grant its RPC to authenticated."
+);
+assert.ok(
+  adminSystemEventsPagination.includes("revoke all on function public.pfms_admin_list_system_events_page(text, text, text, integer, integer)"),
+  "System event pagination must revoke default public/anon execution."
+);
+
+const organizationMembersPagination = migrationSources[
+  migrationFiles.indexOf("20261221_pfms_admin_org_member_pagination.sql")
+];
+assert.ok(organizationMembersPagination, "Organization member pagination migration is missing.");
+const organizationMembersPageDefinition = extractSqlFunction(
+  organizationMembersPagination, "pfms_admin_list_legacy_org_members_page"
+);
+assert.ok(organizationMembersPageDefinition, "Organization member pagination RPC is missing.");
+for (const field of ["total_count", "active_count", "pending_count", "suspended_count", "filtered_count"]) {
+  assert.ok(
+    organizationMembersPageDefinition.includes(field),
+    "Organization member pagination must return the " + field + " summary."
+  );
+}
+assert.match(
+  organizationMembersPageDefinition,
+  /left join page on true/,
+  "Organization summary counters must remain available even when a requested page has no rows."
+);
+assert.ok(
+  organizationMembersPageDefinition.includes("from stats left join page on true"),
+  "The page result must be anchored on the unfiltered organization summary."
+);
+assert.match(organizationMembersPageDefinition, /count\(\*\) as total_count/,
+  "Organization member totals must be calculated before page filtering.");
+
+
+for (const signature of [
+  "pfms_admin_search_legacy_organizations_page(text, text, text, text, integer, integer)",
+  "pfms_admin_list_legacy_scouts_page(text, text, text, text, integer, integer)",
+  "pfms_admin_list_legacy_members_page(text, text, text, text, integer, integer)",
+  "pfss_admin_list_profiles_page(text, text, text, text, integer, integer)",
+  "pfss_admin_profile_counts()"
+]) {
+  const functionName = signature.slice(0, signature.indexOf("("));
+  assert.ok(
+    adminDirectoryPagination.includes("grant execute on function public." + signature) ||
+      adminProfilePagination.includes("grant execute on function public." + signature),
+    functionName + " must explicitly grant its RPC to authenticated."
+  );
+  assert.ok(
+    adminDirectoryPagination.includes("revoke all on function public." + signature) ||
+      adminProfilePagination.includes("revoke all on function public." + signature),
+    functionName + " must revoke default public/anon execution."
+  );
+}
+
+
+const ownerIntegrityMigration = migrationSources[
+  migrationFiles.indexOf("20261210_pfms_owner_integrity_hardening.sql")
+];
+assert.ok(ownerIntegrityMigration, "Organization owner integrity migration is missing.");
+const protectedProfileUpdate = extractSqlFunction(
+  ownerIntegrityMigration, "pfss_admin_update_profile"
+);
+assert.ok(protectedProfileUpdate, "Protected administrator profile RPC is missing.");
+assert.match(protectedProfileUpdate, /security definer set search_path = '' as \$\$/,
+  "Administrator profile changes must run with a locked-down SECURITY DEFINER context.");
+assert.match(protectedProfileUpdate, /p_user_id = auth\.uid\(\)/,
+  "Administrators must not be able to modify their own administrator profile.");
+assert.match(protectedProfileUpdate, /public\.pfms_platform_owner[\s\S]*?owner_user_id = p_user_id/,
+  "The separately designated platform owner must be protected from ordinary profile edits.");
+assert.match(protectedProfileUpdate, /p_role not in \('user', 'scout', 'admin'\)/,
+  "Administrator profile roles must be explicitly allow-listed.");
+assert.match(protectedProfileUpdate, /p_status not in \('pending', 'approved', 'suspended'\)/,
+  "Administrator profile statuses must be explicitly allow-listed.");
+
+const protectedMembershipUpdate = extractSqlFunction(
+  ownerIntegrityMigration, "pfms_admin_update_legacy_membership"
+);
+assert.ok(protectedMembershipUpdate, "Serialized administrator membership RPC is missing.");
+assert.match(protectedMembershipUpdate, /security definer set search_path = '' as \$\$/,
+  "Administrator membership changes must run with a locked-down SECURITY DEFINER context.");
+assert.match(protectedMembershipUpdate, /public\.is_admin\(\)/,
+  "Administrator membership changes must enforce the server-side administrator check.");
+const organizationLockPosition = protectedMembershipUpdate.indexOf("from public.organizations o");
+const membershipLockPosition = protectedMembershipUpdate.indexOf("from public.organization_memberships m", organizationLockPosition + 1);
+assert.ok(organizationLockPosition >= 0 && membershipLockPosition > organizationLockPosition,
+  "Membership updates must lock the parent organization before re-reading and locking the membership.");
+assert.match(protectedMembershipUpdate, /for update[\s\S]*?from public\.organization_memberships m[\s\S]*?for update/,
+  "Membership updates must lock both the parent organization and the target membership.");
+assert.match(protectedMembershipUpdate, /v_current_role = 'owner'[\s\S]*?v_current_status = 'active'[\s\S]*?other_owner\.role = 'owner'[\s\S]*?other_owner\.status = 'active'/,
+  "An active owner may only be demoted or suspended when another active owner remains.");
+assert.match(protectedMembershipUpdate, /p_role not in \([\s\S]*?'owner'[\s\S]*?'club_admin'[\s\S]*?'agency_admin'/,
+  "Administrator membership roles must use the explicit supported role allow-list.");
+assert.ok(
+  ownerIntegrityMigration.includes("revoke all on function public.pfms_admin_update_legacy_membership(uuid, text, text)"),
+  "The administrator membership RPC must revoke default public/anon execution."
+);
+assert.ok(
+  ownerIntegrityMigration.replace(/\s+/g, " ").toLowerCase().includes(
+    "grant execute on function public.pfms_admin_update_legacy_membership(uuid, text, text) to authenticated"
+  ),
+  "The administrator membership RPC must explicitly grant execution to authenticated."
+);
+assert.match(stagingAcceptanceSql, /'admin_owner_integrity_membership'/,
+  "The read-only staging audit must verify the active organization-owner invariant.");
+assert.match(stagingAcceptanceSql, /'admin_platform_owner_profile_protection'/,
+  "The read-only staging audit must verify platform-owner profile protection.");
+
+const legacyCoreHardening = migrationSources[
+  migrationFiles.indexOf("20261224_pfms_legacy_core_search_path_hardening.sql")
+];
+assert.ok(legacyCoreHardening, "Legacy core SECURITY DEFINER hardening migration is missing.");
+const legacyCoreSearchPathPatterns = [
+  /alter\s+function\s+public\.pfms_is_admin\(\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_is_org_member\(uuid\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_search_organizations\(text,\s*text\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_list_org_members\(uuid\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_update_membership\(uuid,\s*text,\s*text,\s*jsonb\)\s+set\s+search_path\s*=\s*''/i,
+  /alter\s+function\s+public\.pfms_admin_list_scouts\(text\)\s+set\s+search_path\s*=\s*''/i
+];
+for (const pattern of legacyCoreSearchPathPatterns) {
+  assert.match(
+    legacyCoreHardening,
+    pattern,
+    "Legacy SECURITY DEFINER function must receive an empty effective search_path: " + pattern
+  );
+}
+
+const ownerBootstrapMigration = migrationSources[
+  migrationFiles.indexOf("20261116_pfms_owner_bootstrap_registration_guard.sql")
+];
+assert.ok(ownerBootstrapMigration, "Owner bootstrap registration guard migration is missing.");
+const normalizedOwnerBootstrapMigration = ownerBootstrapMigration
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of [
+  "pfms_register_owner_bootstrap_request",
+  "pfms_owner_setup_available",
+  "pfms_claim_initial_owner"
+]) {
+  assert.ok(
+    normalizedOwnerBootstrapMigration.includes(
+      "create or replace function public." + functionName + "("
+    ),
+    "Owner bootstrap RPC/trigger function is missing: " + functionName
+  );
+}
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /create table if not exists public\.pfms_owner_bootstrap_requests[\s\S]*?alter table public\.pfms_owner_bootstrap_requests enable row level security/,
+  "Owner bootstrap evidence table must have RLS enabled."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "revoke all on table public.pfms_owner_bootstrap_requests from public, anon, authenticated"
+  ),
+  "Owner bootstrap evidence table must not be directly accessible by browser roles."
+);
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /create trigger pfms_register_owner_bootstrap_request after insert on auth\.users/,
+  "Owner bootstrap evidence must be created only by the initial auth.users insert trigger."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "revoke all on function public.pfms_register_owner_bootstrap_request() from public, anon, authenticated"
+  ),
+  "Owner bootstrap trigger function must not be directly executable by browser roles."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "grant execute on function public.pfms_owner_setup_available() to authenticated"
+  ),
+  "Owner setup availability must remain callable by authenticated users."
+);
+assert.ok(
+  normalizedOwnerBootstrapMigration.includes(
+    "grant execute on function public.pfms_claim_initial_owner(uuid) to service_role"
+  ),
+  "Only the trusted service role may execute the owner claim RPC."
+);
+assert.match(
+  normalizedOwnerBootstrapMigration,
+  /claimed_at is null[\s\S]*?for update/,
+  "Owner claim must lock and consume a single unused registration request."
+);
+const ownerTableMigration = migrationSources[
+  migrationFiles.indexOf("20261115_pfms_platform_owner_bootstrap.sql")
+];
+assert.ok(ownerTableMigration, "Platform owner singleton migration is missing.");
+assert.match(
+  ownerTableMigration.replace(/\s+/g, " ").toLowerCase(),
+  /alter table public\.pfms_platform_owner enable row level security/,
+  "Platform owner singleton must have RLS enabled."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'owner_bootstrap_security_boundary'/,
+  "Read-only staging acceptance must verify the complete owner bootstrap boundary."
+);
+
+const authTriggerHardening = migrationSources[
+  migrationFiles.indexOf("20261130_pfms_auth_trigger_hardening.sql")
+];
+assert.ok(authTriggerHardening, "Auth trigger hardening migration is missing.");
+const normalizedAuthTriggerHardening = authTriggerHardening
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of ["pfss_sync_signup_username", "pfms_provision_new_account"]) {
+  assert.ok(
+    normalizedAuthTriggerHardening.includes(
+      "create or replace function public." + functionName + "() returns trigger language plpgsql security definer set search_path = '' as $"
+    ),
+    "Auth trigger function must be SECURITY DEFINER with an empty search_path: " + functionName
+  );
+  assert.ok(
+    normalizedAuthTriggerHardening.includes(
+      "revoke all on function public." + functionName + "() from public, anon, authenticated"
+    ),
+    "Auth trigger function must not be directly executable by browser roles: " + functionName
+  );
+}
+const legacyAuthTriggerChecks = [
+  {
+    functionName: "pfms_register_owner_bootstrap_request",
+    migration: "20261116_pfms_owner_bootstrap_registration_guard.sql"
+  },
+  {
+    functionName: "pfms_apply_legacy_invitation",
+    migration: "20261201_pfms_legacy_invitation_status_guard.sql"
+  }
+];
+for (const item of legacyAuthTriggerChecks) {
+  const source = migrationSources[migrationFiles.indexOf(item.migration)];
+  assert.ok(source, "Auth trigger migration is missing: " + item.migration);
+  const normalized = source.replace(/\s+/g, " ").toLowerCase();
+  assert.ok(
+    normalized.includes(
+      "create or replace function public." + item.functionName + "() returns trigger language plpgsql security definer set search_path = '' as $"
+    ),
+    "Auth trigger function must be SECURITY DEFINER with an empty search_path: " + item.functionName
+  );
+  assert.ok(
+    normalized.includes(
+      "revoke all on function public." + item.functionName + "() from public, anon, authenticated"
+    ),
+    "Auth trigger function must not be directly executable by browser roles: " + item.functionName
+  );
+  assert.ok(
+    stagingAcceptanceSql.includes("public." + item.functionName + "()"),
+    "Staging acceptance must verify auth trigger function ACLs: " + item.functionName
+  );
+}
+
+assert.match(
+  stagingAcceptanceSql,
+  /'auth_trigger_function_acl'/,
+  "Read-only staging acceptance must verify auth trigger function ACLs."
+);
+
+const legacyProfileListSearchPath = migrationSources[
+  migrationFiles.indexOf("20261226_pfss_legacy_admin_profile_list_search_path.sql")
+];
+assert.ok(legacyProfileListSearchPath, "Legacy profile-list search_path hardening migration is missing.");
+const normalizedLegacyProfileListSearchPath = legacyProfileListSearchPath
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "alter function public.pfss_admin_list_profiles() set search_path = ''"
+  ),
+  "Legacy admin profile-list RPC must receive an empty effective search_path."
+);
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "revoke all on function public.pfss_admin_list_profiles() from public, anon"
+  ),
+  "Legacy admin profile-list RPC must revoke PUBLIC and anon EXECUTE."
+);
+assert.ok(
+  normalizedLegacyProfileListSearchPath.includes(
+    "grant execute on function public.pfss_admin_list_profiles() to authenticated"
+  ),
+  "Legacy admin profile-list RPC must remain callable by authenticated admins."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'admin_legacy_profile_list_rpc_security'/,
+  "Read-only staging acceptance must verify the legacy profile-list RPC."
+);
+
+const legacyTeamNullGuard = migrationSources[
+  migrationFiles.indexOf("20261227_pfms_legacy_team_access_null_guard.sql")
+];
+assert.ok(legacyTeamNullGuard, "Legacy team null-ID authorization guard migration is missing.");
+const normalizedLegacyTeamNullGuard = legacyTeamNullGuard
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const functionName of ["pfms_can_access_legacy_team", "pfms_can_manage_legacy_team"]) {
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "create or replace function public." + functionName + "(p_team_id uuid) returns boolean language sql stable security definer set search_path = '' as $$ select auth.uid() is not null and p_team_id is not null"
+    ),
+    "Central tenant authorization must reject NULL team IDs before evaluating roles: " + functionName
+  );
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "revoke all on function public." + functionName + "(uuid) from public, anon"
+    ),
+    "Central tenant authorization must revoke PUBLIC and anon EXECUTE: " + functionName
+  );
+  assert.ok(
+    normalizedLegacyTeamNullGuard.includes(
+      "grant execute on function public." + functionName + "(uuid) to authenticated"
+    ),
+    "Central tenant authorization must remain callable by authenticated users: " + functionName
+  );
+}
+assert.match(
+  stagingAcceptanceSql,
+  /'legacy_team_access_requires_active_org_membership'[\s\S]*?p_team_id is not null/i,
+  "Read-only staging acceptance must verify NULL team IDs are denied by both central team authorization helpers."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pg_get_functiondef\(p_access\.oid\) ilike '%p_team_id is not null%exists \(%from public\.pfms_legacy_teams t%where t\.id = p_team_id%'/i,
+  "Read-only staging acceptance must verify admin access requires an existing team."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /pg_get_functiondef\(p_manage\.oid\) ilike '%p_team_id is not null%exists \(%from public\.pfms_legacy_teams t%where t\.id = p_team_id%'/i,
+  "Read-only staging acceptance must verify admin management requires an existing team."
+);
+
+const organizationCoreAclMigration = migrationSources[
+  migrationFiles.indexOf("20261225_pfms_organization_table_write_acl_hardening.sql")
+];
+assert.ok(organizationCoreAclMigration, "Organization core table write-ACL hardening migration is missing.");
+const normalizedOrganizationCoreAcl = organizationCoreAclMigration
+  .replace(/\s+/g, " ")
+  .toLowerCase();
+for (const tableName of [
+  "pfms_organizations",
+  "pfms_memberships",
+  "pfms_scout_profiles"
+]) {
+  assert.ok(
+    normalizedOrganizationCoreAcl.includes("public." + tableName),
+    "Organization core table ACL migration must cover " + tableName
+  );
+}
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "revoke all privileges on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles from public, anon, authenticated"
+  ),
+  "Organization core tables must revoke all direct browser-role table privileges."
+);
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "grant select on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles to authenticated"
+  ),
+  "Authenticated users must retain RLS-governed read access to organization core tables."
+);
+assert.ok(
+  normalizedOrganizationCoreAcl.includes(
+    "grant all privileges on table public.pfms_organizations, public.pfms_memberships, public.pfms_scout_profiles to service_role"
+  ),
+  "Trusted server-side service_role must retain organization core table write access."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /'organization_core_table_write_acl'/,
+  "Read-only staging acceptance must verify organization core table ACL isolation."
+);
+assert.match(
+  stagingAcceptanceSql,
+  /has_column_privilege\('authenticated'[\s\S]*?has_column_privilege\('anon'/i,
+  "Read-only staging acceptance must reject column-level browser write or anon read grants."
+);
+
+const combinedMigrationSql = migrationSources.join("\n");
+const normalizedMigrationSql = combinedMigrationSql.replace(/\s+/g, " ").toLowerCase();
+const expectedReadPolicies = new Map([
+  ["pfms_organizations", "pfms_org_read"],
+  ["pfms_memberships", "pfms_membership_read"],
+  ["pfms_scout_profiles", "pfms_scout_profile_read"]
+]);
+for (const tableName of ["pfms_organizations", "pfms_memberships", "pfms_scout_profiles"]) {
+  assert.ok(
+    normalizedMigrationSql.includes("alter table public." + tableName + " enable row level security"),
+    "Organization core table must keep RLS enabled: " + tableName
+  );
+}
+for (const [tableName, policyName] of expectedReadPolicies) {
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("create\\s+policy\\s+" + policyName + "\\s+on\\s+public\\." + tableName + "\\s+for\\s+select\\s+to\\s+authenticated"),
+    "RLS exception must retain its authenticated read policy: " + policyName
+  );
+  assert.doesNotMatch(
+    normalizedMigrationSql,
+    new RegExp("create\\s+policy\\s+[a-z0-9_]+\\s+on\\s+public\\." + tableName + "\\s+for\\s+(?:insert|update|delete|all)\\b"),
+    "Legacy foundation tables must not gain direct browser write policies: public." + tableName
+  );
+}
+
+const forceRlsExceptions = new Map([
+  [
+    "organization_invitations",
+    "RLS is enabled; browser table privileges are fully revoked; access is through the controlled invitation RPC and auth trigger."
+  ],
+  [
+    "pfms_platform_owner",
+    "RLS is enabled; browser table privileges are fully revoked; ownership is accessed only by protected server-side functions."
+  ],
+  [
+    "pfms_owner_bootstrap_requests",
+    "RLS is enabled; browser table privileges are fully revoked; eligibility evidence is written only by the auth trigger and consumed by the server-side owner bootstrap."
+  ],
+  [
+    "pfms_organizations",
+    "Legacy organization foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
+  ],
+  [
+    "pfms_memberships",
+    "Legacy membership foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
+  ],
+  [
+    "pfms_scout_profiles",
+    "Legacy scout-profile foundation uses an explicit authenticated read policy; writes are performed by protected server-side functions."
+  ]
+]);
+for (const tableName of createdPublicTables) {
+  const tableReference = "public\\." + tableName;
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+enable\\s+row\\s+level\\s+security"),
+    "Migration-created table must enable RLS: public." + tableName
+  );
+  if (forceRlsExceptions.has(tableName)) {
+    if (expectedReadPolicies.has(tableName)) {
+      // The original foundation tables intentionally expose SELECT only through
+      // authenticated RLS policies; no INSERT/UPDATE/DELETE/ALL policy is allowed.
+      continue;
+    }
+    assert.match(
+      normalizedMigrationSql,
+      new RegExp("revoke\\s+all\\s+on\\s+table\\s+" + tableReference + "\\s+from\\s+public,\\s*anon,\\s*authenticated"),
+      "RLS exception must revoke all direct browser table privileges: public." + tableName
+    );
+    continue;
+  }
+  assert.match(
+    normalizedMigrationSql,
+    new RegExp("alter\\s+table\\s+(?:if\\s+exists\\s+)?" + tableReference + "\\s+force\\s+row\\s+level\\s+security"),
+    "Migration-created table must force RLS unless explicitly and safely exempted: public." + tableName
+  );
+}
+
+
+const functionDefinitions = combinedMigrationSql.matchAll(
+  /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)\s*\([\s\S]*?\bas\s+\$\$[\s\S]*?\$\$;/gi
+);
+
+let securityDefinerCount = 0;
+for (const match of functionDefinitions) {
+  const definition = match[0];
+  const header = definition.slice(0, definition.search(/\bas\s+\$\$/i));
+  if (!/security\s+definer/i.test(header)) continue;
+
+  const functionName = match[1].toLowerCase();
+  assert.match(
+    header,
+    /set\s+search_path\s*=/i,
+    functionName + " is SECURITY DEFINER but has no fixed search_path"
+  );
+  assert.ok(
+    normalizedMigrationSql.includes("revoke all on function public." + functionName),
+    functionName + " is SECURITY DEFINER but its default function privileges are not explicitly revoked"
+  );
+  securityDefinerCount += 1;
+}
+
+assert.ok(securityDefinerCount > 0, "No SECURITY DEFINER migration functions were checked.");
+
+// Documentation must never instruct operators to apply a migration that is
+// absent from the repository. Check explicit migration paths in project docs.
+const docsDirectory = resolve(process.cwd(), "docs");
+const docsEntries = await readdir(docsDirectory, { withFileTypes: true });
+const markdownFiles = docsEntries
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+  .map((entry) => entry.name);
+for (const filename of markdownFiles) {
+  const document = await readFile(resolve(docsDirectory, filename), "utf8");
+  for (const match of document.matchAll(/supabase\/migrations\/([A-Za-z0-9_-]+\.sql)/g)) {
+    assert.ok(
+      migrationFiles.includes(match[1]),
+      filename + " references a migration that does not exist: " + match[1]
+    );
+  }
+}
+
+
+console.log(
+  "PFMS migration smoke tests passed: " +
+  migrationFiles.length +
+  " SQL migrations and " +
+  securityDefinerCount +
+  " SECURITY DEFINER definitions checked."
+);

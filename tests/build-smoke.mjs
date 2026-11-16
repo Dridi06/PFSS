@@ -1,0 +1,140 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { access, readFile } from "node:fs/promises";
+import { dirname, resolve, sep } from "node:path";
+
+const outputDirectory = resolve(process.cwd(), "dist");
+const renderConfig = await readFile(resolve(process.cwd(), "render.yaml"), "utf8");
+const authStyles = await readFile(resolve(outputDirectory, "styles.css"), "utf8");
+const executiveAuthStyles = await readFile(resolve(outputDirectory, "pfms-auth-executive.css"), "utf8");
+
+// Guard the Render blueprint as configuration, without contacting or changing Render.
+assert.ok(renderConfig.includes("name: pfss-staging"), "Render blueprint must target the existing staging service");
+assert.ok(renderConfig.includes("runtime: static"));
+assert.ok(renderConfig.includes("branch: feature/pfss-complete-platform-build"));
+assert.match(renderConfig, /buildCommand: npm run check:syntax && npm run build && npm run test:dist/);
+assert.match(renderConfig, /staticPublishPath: \.\/dist/);
+assert.match(renderConfig, /autoDeployTrigger: ['\"]?off['\"]?/);
+assert.match(renderConfig, /key: PFMS_BUILD_TARGET\s+value: staging/);
+for (const key of ["PFMS_STAGING_PROJECT_REF", "PFSS_SUPABASE_URL", "PFSS_SUPABASE_KEY"]) {
+  assert.match(renderConfig, new RegExp("key: " + key + "\\s+sync: false"), key + " must be supplied outside the repository");
+}
+assert.ok(!/branch: main/.test(renderConfig), "Staging blueprint must never deploy from production main");
+assert.ok(!/name: pfms-production/.test(renderConfig), "Staging blueprint must not define a production service");
+assert.match(authStyles, /#authScreen \.pricing-grid\{grid-template-columns:minmax\(0,1fr\)/, "Subscription packages must remain vertically stacked");
+assert.ok(!authStyles.includes("#authScreen .pricing-grid{grid-template-columns:repeat(2"), "Desktop styles must not override the vertical package layout");
+assert.match(executiveAuthStyles, /\.registration-choice-grid\{grid-template-columns:minmax\(0,1fr\);/, "Executive auth must keep package cards easy to scan in a vertical layout");
+
+assert.ok(renderConfig.includes("Content-Security-Policy"), "Render staging must publish a Content-Security-Policy header");
+assert.ok(renderConfig.includes("Strict-Transport-Security") && renderConfig.includes("max-age=31536000; includeSubDomains"), "Render staging must enforce HTTPS with HSTS");
+assert.ok(renderConfig.includes("frame-ancestors 'none'") && renderConfig.includes("object-src 'none'"), "Render CSP must block framing and plugin content");
+assert.ok(renderConfig.includes("https://cdn.jsdelivr.net") && renderConfig.includes("https://*.supabase.co"), "Render CSP must allow the required external script and Supabase origins");
+assert.ok(renderConfig.includes("https://fonts.googleapis.com") && renderConfig.includes("font-src"), "Render CSP must allow the stylesheet and font resources used by the UI");
+const requiredFiles = [
+  "index.html",
+  "rechtliches.html",
+  "styles.css",
+  "pfms-auth-executive.css",
+  "scout-workspace.css",
+  "PFSS_Black_Gold_Design_Update.css",
+  "pfms-design-system.css",
+  "app.js",
+  "pfms-role-workflows.js",
+  "scout-workspace.js",
+  "pfms-logo.svg",
+  "pfms-welcome.webp",
+  "pfms-login-hero.webp",
+  "connection-test.html",
+  "pfms-config.js"
+];
+
+for (const file of requiredFiles) {
+  await access(resolve(outputDirectory, file));
+}
+
+const loginArtwork = await readFile(resolve(outputDirectory, "pfms-login-hero.webp"));
+assert.equal(loginArtwork.length, 42328, "Dedicated PFMS login artwork must be complete, not truncated");
+assert.equal(createHash("sha256").update(loginArtwork).digest("hex"), "dbb4ede3e4d9566ef56cb6c04828aa79030129327a3d0518117cd7c1134c9778", "Dedicated login artwork must exactly match the uploaded source");
+assert.equal(loginArtwork.toString("ascii", 0, 4), "RIFF");
+assert.equal(loginArtwork.toString("ascii", 8, 12), "WEBP");
+assert.equal(loginArtwork.readUInt32LE(4), loginArtwork.length - 8);
+assert.ok(executiveAuthStyles.includes("url('pfms-login-hero.webp?v=20261117-original-user-image-4')"), "Pre-login visual panel must use the dedicated artwork");
+assert.ok(!/\.welcome-sequence[^}]*pfms-login-hero\.webp|#welcomeSequence[^}]*pfms-login-hero\.webp/.test(executiveAuthStyles), "Post-login welcome sequence must not use login artwork");
+const welcomeArtwork = await readFile(resolve(outputDirectory, "pfms-welcome.webp"));
+assert.ok(welcomeArtwork.length > 10000, "PFMS welcome artwork must be a complete, non-trivial image");
+assert.equal(welcomeArtwork.toString("ascii", 0, 4), "RIFF", "PFMS welcome artwork must have a RIFF container");
+assert.equal(welcomeArtwork.toString("ascii", 8, 12), "WEBP", "PFMS welcome artwork must be WebP");
+assert.equal(welcomeArtwork.readUInt32LE(4), welcomeArtwork.length - 8, "PFMS welcome artwork RIFF length must be exact");
+
+const mainPageSource = await readFile(resolve(outputDirectory, "index.html"), "utf8");
+assert.ok(mainPageSource.includes("pfms-auth-executive.css?v=20261117-original-user-image-4"), "Login artwork stylesheet cache key must be refreshed");
+const configScriptIndex = mainPageSource.indexOf('<script src="pfms-config.js');
+const roleScriptIndex = mainPageSource.indexOf('<script src="pfms-role-workflows.js');
+const appScriptIndex = mainPageSource.indexOf('<script src="app.js');
+const workspaceScriptIndex = mainPageSource.indexOf('<script src="scout-workspace.js');
+assert.ok(configScriptIndex >= 0 && roleScriptIndex > configScriptIndex, "Runtime config must load before the role workflow contract");
+assert.ok(appScriptIndex > roleScriptIndex, "Role workflow contract must load before the application");
+assert.ok(workspaceScriptIndex > appScriptIndex, "Workspace script must load after the main application");
+
+const runtimeConfigSource = await readFile(resolve(outputDirectory, "pfms-config.js"), "utf8");
+const runtimeConfigMatch = runtimeConfigSource.match(/Object\.freeze\((\{.*\})\);/s);
+assert.ok(runtimeConfigMatch, "Generated frontend config must be valid JSON data");
+const runtimeConfig = JSON.parse(runtimeConfigMatch[1]);
+assert.ok(["ci", "staging"].includes(runtimeConfig.buildTarget), "Build must explicitly identify CI or Staging target");
+if (runtimeConfig.buildTarget === "ci") {
+  assert.equal(runtimeConfig.projectRef, "ci-placeholder");
+  assert.equal(runtimeConfig.supabaseUrl, "https://ci-placeholder.supabase.co");
+} else {
+  assert.match(runtimeConfig.projectRef, /^[a-z0-9]{20}$/);
+  assert.equal(new URL(runtimeConfig.supabaseUrl).hostname, runtimeConfig.projectRef + ".supabase.co");
+}
+assert.ok(!runtimeConfigSource.includes("sb_secret_") && !runtimeConfigSource.includes("service_role"), "Browser config must not contain server-side secrets");
+
+
+for (const page of ["index.html", "rechtliches.html"]) {
+  const pagePath = resolve(outputDirectory, page);
+  const source = await readFile(pagePath, "utf8");
+
+  for (const match of source.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
+    const value = match[1];
+    if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
+
+    const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]);
+    if (!localPath) continue;
+
+    const targetPath = resolve(dirname(pagePath), localPath);
+    assert.ok(
+      targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
+      page + " references a path outside dist/: " + value
+    );
+    await access(targetPath);
+  }
+}
+
+
+for (const stylesheet of ["styles.css", "pfms-auth-executive.css", "scout-workspace.css", "PFSS_Black_Gold_Design_Update.css", "pfms-design-system.css"]) {
+  const stylesheetPath = resolve(outputDirectory, stylesheet);
+  const source = await readFile(stylesheetPath, "utf8");
+
+  for (const match of source.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
+    const value = match[1].trim();
+    if (!value || /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("#")) continue;
+
+    const localPath = decodeURIComponent(value.split("?")[0].split("#")[0]);
+    const targetPath = resolve(dirname(stylesheetPath), localPath);
+    assert.ok(
+      targetPath === outputDirectory || targetPath.startsWith(outputDirectory + sep),
+      stylesheet + " references a path outside dist/: " + value
+    );
+    await access(targetPath);
+  }
+}
+
+for (const forbidden of ["supabase", "tests", "docs", "package.json", "render.yaml"]) {
+  await assert.rejects(
+    access(resolve(outputDirectory, forbidden)),
+    "Internal project path must not be published: " + forbidden
+  );
+}
+
+console.log("PFMS build smoke tests passed: public assets resolve and internal project files are excluded.");

@@ -41,20 +41,33 @@ jobs:
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         env:
           DATABASE_URL: ${{ secrets.PFSS_DATABASE_URL }}
-          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.PFSS_BACKUP_ENCRYPTION_PASSPHRASE }}
+          PFSS_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.PFSS_BACKUP_ENCRYPTION_PASSPHRASE }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$DATABASE_URL" || { echo "Missing PFSS_DATABASE_URL"; exit 1; }
-          test -n "$BACKUP_ENCRYPTION_PASSPHRASE" || { echo "Missing PFSS_BACKUP_ENCRYPTION_PASSPHRASE"; exit 1; }
+          test -n "$PFSS_BACKUP_ENCRYPTION_PASSPHRASE" || { echo "Missing PFSS_BACKUP_ENCRYPTION_PASSPHRASE"; exit 1; }
           mkdir -p backup
           FILE="pfss-db-$(date -u +%Y%m%dT%H%M%SZ).dump"
           pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "backup/$FILE"
+          pg_restore --list "backup/$FILE" >/dev/null
+
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
             -in "backup/$FILE" -out "backup/$FILE.enc" \
-            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
-          rm "backup/$FILE"
+            -pass env:PFSS_BACKUP_ENCRYPTION_PASSPHRASE
+
+          # Create and verify a detached HMAC before decrypting the archive.
+          python3 scripts/backup-hmac.py create "backup/$FILE.enc"
+          python3 scripts/backup-hmac.py verify "backup/$FILE.enc" "backup/$FILE.enc.hmac"
+
+          VERIFY_FILE="backup/restore-check-$FILE"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in "backup/$FILE.enc" -out "$VERIFY_FILE" \
+            -pass env:PFSS_BACKUP_ENCRYPTION_PASSPHRASE
+          pg_restore --list "$VERIFY_FILE" >/dev/null
+          rm "$VERIFY_FILE" "backup/$FILE"
           echo "BACKUP_FILE=$FILE.enc" >> "$GITHUB_ENV"
+          echo "Backup archive, HMAC and encrypted restore verification passed."
 
       - name: Upload encrypted backup to Cloudflare R2
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
@@ -73,6 +86,9 @@ jobs:
           aws s3 cp "backup/$BACKUP_FILE" \
             "s3://$R2_BUCKET_NAME/database/daily/$BACKUP_FILE" \
             --endpoint-url "$R2_ENDPOINT" --region auto --only-show-errors
+          aws s3 cp "backup/$BACKUP_FILE.hmac" \
+            "s3://$R2_BUCKET_NAME/database/daily/$BACKUP_FILE.hmac" \
+            --endpoint-url "$R2_ENDPOINT" --region auto --only-show-errors
 
       - name: Verify uploaded backup exists
         if: steps.timecheck.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
@@ -88,4 +104,8 @@ jobs:
             --bucket "$R2_BUCKET_NAME" \
             --key "database/daily/$BACKUP_FILE" \
             --endpoint-url "$R2_ENDPOINT" --region auto >/dev/null
-          echo "Encrypted database backup uploaded and verified."
+          aws s3api head-object \
+            --bucket "$R2_BUCKET_NAME" \
+            --key "database/daily/$BACKUP_FILE.hmac" \
+            --endpoint-url "$R2_ENDPOINT" --region auto >/dev/null
+          echo "Encrypted database backup and HMAC manifest uploaded and verified."

@@ -1,0 +1,45 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const html=fs.readFileSync(new URL("../index.html",import.meta.url),"utf8");
+const css=fs.readFileSync(new URL("../pfms-auth-executive.css",import.meta.url),"utf8");
+const app=fs.readFileSync(new URL("../app.js",import.meta.url),"utf8");
+const ids=["authScreen","authForm","authTitle","authIntro","chooseLogin","chooseRegister","registrationChoice","registrationType","selectedRegistrationLabel","changeRegistrationChoice","signupUsernameField","signupEmailField","signupPasswordField","loginButton","signupButton","passkeyLoginButton","forgotPasswordButton","authMessage","ownerBootstrapForm","pendingScreen"];
+for(const id of ids)assert.match(html,new RegExp('id="'+id+'"'),"Missing auth contract id: "+id);
+for(const choice of ["user","club","agency","scout"])assert.match(html,new RegExp('data-registration-choice="'+choice+'"'),"Missing registration choice: "+choice);
+assert.doesNotMatch(html,/data-registration-choice="owner_bootstrap"/,"Privileged owner setup must not be offered in public registration.");
+assert.match(html,/id="ownerBootstrapForm"/,"The separate owner bootstrap challenge form must remain available only after the protected owner session gate.");
+assert.match(app,/if \(!\[\x27user\x27, \x27club\x27, \x27agency\x27, \x27scout\x27\]\.includes\(type\)\) return;/,"Public registration choice handler must reject privileged/unknown types.");
+assert.match(app,/if \(!\[\x27user\x27\]\.includes\(type\)\)/,"Actual signup submission must fail closed unless the type is an invited member.");
+assert.doesNotMatch(app,/owner_bootstrap:\s*\x27Plattforminhaber\x27/,"Owner setup must not be exposed as a public registration choice.");
+assert.match(html,/Professional Football Management System/);
+assert.match(html,/alt="Professional Football Management System"/);
+assert.doesNotMatch(html,/Geschützter Zugang · PFMS/);
+assert.doesNotMatch(html,/PFMS PREMIUM/);
+assert.match(html,/class="auth-layout"/);assert.match(html,/class="auth-visual"/);
+assert.match(html,/id="registrationProgress"/);
+assert.match(html,/aria-labelledby="registrationChoiceTitle"/);
+assert.match(html,/id="authMessage" role="status" aria-live="polite"/);
+assert.match(html,/data-registration-step="1"/);
+assert.match(html,/data-registration-step="2"/);
+assert.match(html,/class="registration-step-intro"/);
+assert.match(app,/function updateRegistrationProgress/);
+assert.match(app,/function scrollAuthIntoView/);
+assert.match(app,/prefers-reduced-motion: reduce/);
+assert.match(app,/updateRegistrationProgress\(2\)/);
+assert.match(app,/updateRegistrationProgress\(1\)/);
+assert.match(html,/pfms-auth-executive\.css/);assert.match(css,/prefers-reduced-motion/);
+assert.match(css,/:focus-visible/);assert.match(css,/@media\(max-width:760px\)/);
+
+
+
+
+
+assert.ok(css.includes("#authScreen.auth-screen{\n  background:#07090c!important;"),"Pre-auth page background must remain dark rather than using the artwork full-screen.");
+assert.ok(css.includes("background:#090b10 url('pfms-login-hero.webp?v=20261117-original-user-image-4') center center/100% 100% no-repeat!important;"),"Supplied artwork must be confined to the login/registration visual panel.");
+assert.ok(css.includes("#authScreen .auth-visual>*{display:none!important}"),"The visual panel must show the supplied artwork without generated duplicate branding.");
+assert.doesNotMatch(css,/\.welcome-sequence[^}]*pfms-login-hero\.webp|#welcomeSequence[^}]*pfms-login-hero\.webp/,"Post-login welcome sequence must not use the login artwork.");
+assert.match(css,/pfms-login-hero\.webp/,"Dedicated login artwork must be referenced by the pre-auth visual panel.");
+assert.doesNotMatch(css,/pfms-welcome\.webp/,"Pre-login stylesheet must not reference the post-login welcome artwork.");
+assert.match(html,/pfms-auth-executive\.css\?v=20261117-original-user-image-4/,"Login artwork stylesheet cache version must be refreshed.");
+
+console.log("PFMS executive auth branding and compatibility contract: OK");

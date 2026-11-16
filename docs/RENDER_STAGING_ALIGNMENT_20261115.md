@@ -1,0 +1,121 @@
+# PFMS – Render-Staging-Abgleich (15.11.2026)
+
+## Gesicherter Stand
+
+- Repository: `Dridi06/PFSS`
+- Entwicklungsbranch: `feature/pfss-complete-platform-build`
+- Feature-HEAD beim letzten Checkpoint: `1aa564de5db5eed589e54b90b51726026e68b9c6`
+- Bestehender Render-Dienst laut aktuellem Dashboard-Screenshot: **`pfss-staging`**
+- Render-Typ: **Static Site**
+- Verbundenes Repository: `Dridi06/PFSS`
+- Tatsächlich konfigurierter Render-Branch: `foundation/permissions-v1`
+- Live-Commit im Screenshot: `820367e` (vollständiger bekannter SHA: `820367ea871addfa27bac6d198367f210c8bcdd3`)
+- Live-URL: `https://pfss-staging.onrender.com`
+- Deployment-Steuerung im Screenshot: **Manual Deploy**
+- Pull Request #1: Draft, Zielbranch `main`; nicht gemergt.
+- CI für Feature-Checkpoint `1aa564de5db5eed589e54b90b51726026e68b9c6`: GitHub Actions Run `43763249121`, erfolgreich.
+- Es wurde kein Render-Deployment und keine Supabase-Migration ausgelöst.
+
+## Branch-Abgleich
+
+Der Screenshot belegt, dass die bestehende Live-Staging-Site weiterhin den Branch `foundation/permissions-v1` ausliefert. Der aktuelle Entwicklungsbranch ist `feature/pfss-complete-platform-build`.
+
+GitHub-Vergleich `foundation/permissions-v1...feature/pfss-complete-platform-build`:
+- Status: diverged
+- Feature-Branch voraus: 1.426 Commits
+- Feature-Branch zurück: 145 Commits
+- Gemeinsame Basis: `34b7a0f74dbddea225a9c1750f998e3c1c7ac5e8`
+
+Die Branches dürfen nicht blind zusammengeführt, rebased oder in Render umgeschaltet werden. PR #1 zeigt auf `main`, ist Draft und wurde nicht freigegeben.
+
+## Build- und Blueprint-Konfiguration des Entwicklungsbranches
+
+Die Datei `render.yaml` auf dem Feature-Branch definiert derzeit:
+- Blueprint-Service-Name: `pfss-staging` (an den bereits existierenden Render-Dienst angeglichen)
+- Runtime: `static`
+- Deployment-Branch: `feature/pfss-complete-platform-build`
+- Build: `npm run check:syntax && npm run build && npm run test:dist`
+- Veröffentlichungsverzeichnis: `./dist`
+- Auto-Deploy erst nach erfolgreichen Checks.
+
+Der statische Build erwartet für Staging diese Variablennamen:
+- `PFMS_BUILD_TARGET=staging`
+- `PFMS_STAGING_PROJECT_REF` – exakte 20-stellige Projekt-Referenz
+- `PFSS_SUPABASE_URL` – HTTPS-Projekt-URL, muss zur Projekt-Referenz passen
+- `PFSS_SUPABASE_KEY` – ausschließlich Publishable-/Anon-Key; Secret- und Service-Role-Keys werden im Browser-Build ausdrücklich abgewiesen.
+
+Keine Werte oder Secrets in GitHub/Chat eintragen. Insbesondere darf niemals ein Supabase Secret-/Service-Role-Key in eine statische Browser-App gelangen.
+
+**Wichtige Abweichung zum Live-Dienst:** Der Blueprint-Service-Name wurde inzwischen auf `pfss-staging` angeglichen; der Dienstname allein bestätigt jedoch noch keine Blueprint-Verknüpfung. Das Dashboard zeigt außerdem `pfss-staging`, und er verfolgt derzeit `foundation/permissions-v1`, nicht den Feature-Branch. Ein `render.yaml` wurde auf `foundation/permissions-v1` nicht gefunden. Ob der Live-Dienst blueprint-verwaltet ist, ist nicht belegt.
+
+Daher darf `render.yaml` nicht blind synchronisiert und der Render-Branch nicht ohne weiteren Abgleich umgestellt werden. Eine falsche Blueprint-Synchronisierung könnte einen zusätzlichen Dienst anlegen oder den bestehenden Dienst unbeabsichtigt verändern.
+
+
+## Ergänzung nach Render-Build-/Deploy-Einstellungen (Screenshots)
+
+Die zusätzlich gelieferten Render-Screenshots zeigen für den bestehenden Dienst `pfss-staging`:
+- Repository: `Dridi06/PFSS`
+- Branch: `foundation/permissions-v1`
+- Root Directory: leer (Repository-Root)
+- Build Command: leer
+- Publish Directory: `.` (Repository-Root)
+- Auto-Deploy: `On Commit`
+- Pull Request Previews: `Off`
+- Render Subdomain: aktiviert, `https://pfss-staging.onrender.com`
+- Git Credentials sind dem Benutzerkonto zugeordnet.
+- Ein Deploy Hook ist vorhanden und als Geheimnis maskiert; niemals veröffentlichen oder in GitHub/Chat kopieren.
+
+**Abweichung zum bisherigen Überblick:** Die Übersichtsseite zeigte einen Button `Manual Deploy`; die Settings-Seite zeigt ausdrücklich `Auto-Deploy: On Commit`. Für die tatsächliche automatische Auslieferung ist daher zunächst von `On Commit` auszugehen. Vor jeder Branch-Änderung muss diese Einstellung berücksichtigt werden, weil ein Commit auf dem verbundenen Branch einen Build/Deploy auslösen kann.
+
+Der aktuell konfigurierte Build (leerer Build Command, Publish Directory `.`) unterscheidet sich wesentlich vom neuen Feature-Branch-Build (`npm run check:syntax && npm run build && npm run test:dist`, Publish Directory `./dist`). Eine Umstellung des Branches allein wäre deshalb nicht ausreichend und könnte die bestehende Website durch ein falsches/inkomplettes Artefakt ersetzen.
+
+Es wurde keine Render-Einstellung geändert und kein Deploy ausgelöst.
+
+## Ergänzung nach Render-Environment-Screenshot
+
+Der Screenshot des bestehenden Dienstes `pfss-staging` zeigt:
+- Environment Variables: keine Einträge sichtbar/vorhanden im gezeigten Abschnitt.
+- Secret Files: keine Einträge sichtbar/vorhanden im gezeigten Abschnitt.
+- Es wurden keine Werte oder Zugangsdaten offengelegt.
+
+Damit sind die vier oben dokumentierten Build-Variablen für den neuen Staging-Build noch nicht konfiguriert. Sie dürfen erst dann gesetzt werden, wenn der Dienst kontrolliert auf den passenden Build-Stand umgestellt werden soll. Die Werte müssen aus genau dem dedizierten Staging-Supabase-Projekt stammen. Niemals Secret-/Service-Role-Keys verwenden.
+
+## Nächste sichere Schritte
+
+1. Im Render-Dashboard beim vorhandenen Dienst `pfss-staging` die Einstellungen für Repository, Branch, Build Command, Publish Directory und Blueprint-Verknüpfung abgleichen.
+2. Die Environment-Variablennamen des bestehenden Dienstes prüfen; Werte/Secrets bleiben verborgen. Es muss eindeutig das dedizierte Staging-Supabase-Projekt sein.
+3. Den Unterschied zwischen dem bestehenden Live-Branch und dem aktuellen Entwicklungsbranch bewusst auflösen; kein blindes Merge/Rebase.
+4. Erst nach Prüfung die Blueprint-Datei passend zum bestehenden Dienst ausrichten. Keine Zugangsdaten oder Secrets in GitHub/Chat übertragen.
+5. Build und CI vollständig abwarten.
+6. Deployment ausschließlich auf dem bestehenden Dienst `pfss-staging` ausführen; Production und `main` unangetastet lassen.
+
+## Sicherheitsgrenze
+
+CI-Erfolg bestätigt nur die im Repository automatisierten Prüfungen. Er bestätigt weder die tatsächliche Render-Live-Konfiguration noch die Live-Supabase-Migrationshistorie, RLS-Laufzeit oder Mandantentrennung. Die dokumentierten read-only Staging-Audits und getrennten Rollen-/Tenant-Tests bleiben Release-Gates.
+
+
+## Verifizierte Supabase-Projektidentität (Screenshot vom 15.11.2026)
+
+- Dashboard-Projektname: `PFSS-Test`
+- Project ID / Reference: `oolvpbzbqioijoazsoun` (20 Zeichen; direkt aus dem vom Benutzer gesendeten Screenshot abgelesen)
+- Kanonische Projekt-URL: `https://oolvpbzbqioijoazsoun.supabase.co`
+- Angezeigte Supabase-Branch: `main` (Supabase-Projektbranch; nicht mit dem GitHub-Deploymentbranch verwechseln)
+- Region: `eu-west-1` (West EU / Ireland)
+- Im Screenshot ist der Benutzer als Project Owner aufgeführt.
+- Diese Identität ist damit für die Staging-Konfiguration bestätigt. Es wurden keine API-Schlüssel ausgelesen oder gespeichert.
+- Render-Umgebungsschlüssel müssen weiterhin privat im bestehenden Staging-Service gesetzt werden: `PFMS_STAGING_PROJECT_REF=oolvpbzbqioijoazsoun`, `PFSS_SUPABASE_URL=https://oolvpbzbqioijoazsoun.supabase.co` und ausschließlich der Supabase Publishable Key in `PFSS_SUPABASE_KEY`. Niemals Secret-/service_role-Key in den Browser-Build eintragen.
+- Render-Service-Typ und tatsächliche Blueprint-Zuordnung bleiben separat zu bestätigen; aus dem Supabase-Screenshot lassen sie sich nicht ableiten.
+
+
+## Bestätigung des Render-Diensttyps (Benutzerbestätigung)
+
+Der Benutzer hat bestätigt, dass der bestehende Dienst weiterhin eine **Static Site** ist. Damit ist `runtime: static` im Blueprint grundsätzlich passend. Der Dienstname `pfss-staging` und die Projektverbindung `Dridi06/PFSS` stimmen mit dem Dashboard-Screenshot überein.
+
+**Noch nicht verifiziert bzw. nicht geändert:**
+- Ob der vorhandene Dienst tatsächlich mit einem Render Blueprint verknüpft ist.
+- Der aktuelle Dashboard-Branch bleibt `foundation/permissions-v1`, während der vorbereitete Blueprint `feature/pfss-complete-platform-build` vorsieht.
+- Build Command und Publish Directory müssen vor dem Branch-Wechsel auf den geprüften Build angepasst werden: `npm run check:syntax && npm run build && npm run test:dist` und `dist`.
+- Die vier Environment Variables müssen vor dem ersten Feature-Branch-Deploy gesetzt sein. Werte: `PFMS_BUILD_TARGET=staging`, `PFMS_STAGING_PROJECT_REF=oolvpbzbqioijoazsoun`, `PFSS_SUPABASE_URL=https://oolvpbzbqioijoazsoun.supabase.co`, `PFSS_SUPABASE_KEY` = Publishable-/anon-Key dieses Projekts (niemals secret/service_role).
+- Auto-Deploy steht laut Screenshot auf `On Commit`; ein Branch-Wechsel kann deshalb eine automatische Bereitstellung auslösen. Reihenfolge der Dashboard-Änderungen und Zeitpunkt des Branch-Wechsels sorgfältig steuern.
+
+Keine Render-Dashboard-Einstellung wurde durch den Assistenten verändert; kein Deploy wurde ausgelöst.

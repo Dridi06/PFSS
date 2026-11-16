@@ -1,0 +1,523 @@
+-- PFMS team event travel and transport planning.
+-- One travel plan per tournament/event; writes are only allowed through events.edit RPCs.
+
+create table if not exists public.pfms_legacy_team_event_travel_plans (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null,
+  team_id uuid not null,
+  origin text not null,
+  destination text not null,
+  meetup_at timestamptz,
+  departure_at timestamptz not null,
+  arrival_at timestamptz,
+  return_departure_at timestamptz,
+  transport_provider text,
+  vehicle_label text,
+  seat_capacity smallint,
+  estimated_cost numeric(10,2) not null default 0,
+  notes text,
+  created_by uuid not null default auth.uid()
+    references auth.users(id) on delete restrict,
+  updated_by uuid not null default auth.uid()
+    references auth.users(id) on delete restrict,
+  created_at timestamptz not null default pg_catalog.now(),
+  updated_at timestamptz not null default pg_catalog.now(),
+  constraint pfms_legacy_team_event_travel_event_fk
+    foreign key (event_id, team_id)
+    references public.pfms_legacy_team_calendar_events(id, team_id)
+    on delete cascade,
+  constraint pfms_legacy_team_event_travel_origin_check
+    check (length(pg_catalog.btrim(origin)) between 2 and 180),
+  constraint pfms_legacy_team_event_travel_destination_check
+    check (length(pg_catalog.btrim(destination)) between 2 and 180),
+  constraint pfms_legacy_team_event_travel_provider_check
+    check (transport_provider is null or length(transport_provider) <= 160),
+  constraint pfms_legacy_team_event_travel_vehicle_check
+    check (vehicle_label is null or length(vehicle_label) <= 100),
+  constraint pfms_legacy_team_event_travel_seat_check
+    check (seat_capacity is null or seat_capacity between 1 and 80),
+  constraint pfms_legacy_team_event_travel_cost_check
+    check (estimated_cost between 0 and 100000),
+  constraint pfms_legacy_team_event_travel_notes_check
+    check (notes is null or length(notes) <= 4000),
+  constraint pfms_legacy_team_event_travel_time_check
+    check (
+      (meetup_at is null or meetup_at <= departure_at)
+      and (arrival_at is null or arrival_at >= departure_at)
+      and (return_departure_at is null or arrival_at is null or return_departure_at >= arrival_at)
+    ),
+  unique (event_id)
+);
+
+create index if not exists pfms_legacy_team_event_travel_team_idx
+  on public.pfms_legacy_team_event_travel_plans(team_id, departure_at);
+
+alter table public.pfms_legacy_team_event_travel_plans enable row level security;
+alter table public.pfms_legacy_team_event_travel_plans force row level security;
+
+drop policy if exists pfms_legacy_team_event_travel_select
+  on public.pfms_legacy_team_event_travel_plans;
+create policy pfms_legacy_team_event_travel_select
+on public.pfms_legacy_team_event_travel_plans
+for select to authenticated
+using (
+  public.pfms_has_legacy_team_permission(team_id, 'events', 'view')
+);
+
+revoke all on table public.pfms_legacy_team_event_travel_plans
+  from public, anon, authenticated;
+grant select on table public.pfms_legacy_team_event_travel_plans to authenticated;
+
+create or replace function public.pfms_touch_legacy_team_event_travel_plan()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $$
+begin
+  new.updated_at := pg_catalog.now();
+  return new;
+end;
+$$;
+
+revoke all on function public.pfms_touch_legacy_team_event_travel_plan()
+  from public, anon, authenticated;
+
+drop trigger if exists pfms_legacy_team_event_travel_plans_touch_updated_at
+  on public.pfms_legacy_team_event_travel_plans;
+create trigger pfms_legacy_team_event_travel_plans_touch_updated_at
+before update on public.pfms_legacy_team_event_travel_plans
+for each row execute function public.pfms_touch_legacy_team_event_travel_plan();
+
+create or replace function public.pfms_list_legacy_team_event_travel_plans(
+  p_team_id uuid
+)
+returns table (
+  event_id uuid,
+  travel_plan_id uuid,
+  origin text,
+  destination text,
+  meetup_at timestamptz,
+  departure_at timestamptz,
+  arrival_at timestamptz,
+  return_departure_at timestamptz,
+  transport_provider text,
+  vehicle_label text,
+  seat_capacity smallint,
+  estimated_cost numeric,
+  notes text,
+  updated_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_team_id is null
+     or not public.pfms_has_legacy_team_permission(p_team_id, 'events', 'view') then
+    raise exception 'Not authorized to view team travel plans'
+      using errcode = '42501';
+  end if;
+
+  return query
+  select
+    tp.event_id, tp.id, tp.origin, tp.destination,
+    tp.meetup_at, tp.departure_at,
+    tp.arrival_at, tp.return_departure_at, tp.transport_provider,
+    tp.vehicle_label, tp.seat_capacity, tp.estimated_cost, tp.notes, tp.updated_at
+  from public.pfms_legacy_team_event_travel_plans tp
+  join public.pfms_legacy_team_calendar_events e
+    on e.id = tp.event_id and e.team_id = tp.team_id
+  where tp.team_id = p_team_id
+    and e.event_type in ('tournament','event')
+  order by tp.departure_at;
+end;
+$$;
+
+create or replace function public.pfms_save_legacy_team_event_travel_plan(
+  p_event_id uuid,
+  p_origin text,
+  p_destination text,
+  p_meetup_at timestamptz default null,
+  p_departure_at timestamptz default null,
+  p_arrival_at timestamptz default null,
+  p_return_departure_at timestamptz default null,
+  p_transport_provider text default null,
+  p_vehicle_label text default null,
+  p_seat_capacity smallint default null,
+  p_estimated_cost numeric default 0,
+  p_notes text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_team_id uuid;
+  v_event_type text;
+  v_plan_id uuid;
+  v_participant_count bigint;
+begin
+  select e.team_id, e.event_type
+    into v_team_id, v_event_type
+  from public.pfms_legacy_team_calendar_events e
+  where e.id = p_event_id
+  for update;
+
+  if not found then
+    raise exception 'Team event not found' using errcode = 'P0002';
+  end if;
+  if v_event_type not in ('tournament','event') then
+    raise exception 'Travel plans are available only for events and tournaments'
+      using errcode = '42501';
+  end if;
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to manage event travel plans'
+      using errcode = '42501';
+  end if;
+
+  if p_origin is null
+     or pg_catalog.length(pg_catalog.btrim(p_origin)) not between 2 and 180
+     or p_destination is null
+     or pg_catalog.length(pg_catalog.btrim(p_destination)) not between 2 and 180
+     or p_departure_at is null
+     or (p_meetup_at is not null and p_meetup_at > p_departure_at)
+     or (p_arrival_at is not null and p_arrival_at < p_departure_at)
+     or (p_return_departure_at is not null and p_arrival_at is not null and p_return_departure_at < p_arrival_at)
+     or (p_transport_provider is not null and pg_catalog.length(p_transport_provider) > 160)
+     or (p_vehicle_label is not null and pg_catalog.length(p_vehicle_label) > 100)
+     or (p_seat_capacity is not null and p_seat_capacity not between 1 and 80)
+     or p_estimated_cost is null or p_estimated_cost not between 0 and 100000
+     or (p_notes is not null and pg_catalog.length(p_notes) > 4000) then
+    raise exception 'Invalid travel plan data' using errcode = '22023';
+  end if;
+
+  select pg_catalog.count(*) into v_participant_count
+  from public.pfms_legacy_team_event_participants p
+  where p.event_id = p_event_id
+    and p.team_id = v_team_id
+    and p.status in ('invited','confirmed','attended');
+
+  if p_seat_capacity is not null and v_participant_count > p_seat_capacity then
+    raise exception 'Seat capacity cannot be lower than the current active participant count'
+      using errcode = '23514';
+  end if;
+
+  insert into public.pfms_legacy_team_event_travel_plans (
+    event_id, team_id, origin, destination,
+    meetup_at, departure_at, arrival_at, return_departure_at,
+    transport_provider, vehicle_label, seat_capacity, estimated_cost,
+    notes, created_by, updated_by
+  ) values (
+    p_event_id, v_team_id, pg_catalog.btrim(p_origin),
+    pg_catalog.btrim(p_destination),
+    p_meetup_at, p_departure_at, p_arrival_at, p_return_departure_at,
+    nullif(pg_catalog.btrim(coalesce(p_transport_provider, '')), ''),
+    nullif(pg_catalog.btrim(coalesce(p_vehicle_label, '')), ''),
+    p_seat_capacity, p_estimated_cost,
+    nullif(pg_catalog.btrim(coalesce(p_notes, '')), ''),
+    auth.uid(), auth.uid()
+  )
+  on conflict (event_id)
+  do update set
+    origin = excluded.origin,
+    destination = excluded.destination,
+    meetup_at = excluded.meetup_at,
+    departure_at = excluded.departure_at,
+    arrival_at = excluded.arrival_at,
+    return_departure_at = excluded.return_departure_at,
+    transport_provider = excluded.transport_provider,
+    vehicle_label = excluded.vehicle_label,
+    seat_capacity = excluded.seat_capacity,
+    estimated_cost = excluded.estimated_cost,
+    notes = excluded.notes,
+    updated_by = auth.uid(),
+    updated_at = pg_catalog.now()
+  returning id into v_plan_id;
+
+  return v_plan_id;
+end;
+$$;
+
+create or replace function public.pfms_delete_legacy_team_event_travel_plan(
+  p_event_id uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_team_id uuid;
+  v_event_type text;
+begin
+  select e.team_id, e.event_type
+    into v_team_id, v_event_type
+  from public.pfms_legacy_team_calendar_events e
+  where e.id = p_event_id
+  for update;
+
+  if not found then
+    raise exception 'Team event not found' using errcode = 'P0002';
+  end if;
+  if v_event_type not in ('tournament','event')
+     or not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to delete event travel plan'
+      using errcode = '42501';
+  end if;
+
+  delete from public.pfms_legacy_team_event_travel_plans
+  where event_id = p_event_id and team_id = v_team_id;
+end;
+$$;
+
+-- Enforce both event capacity and vehicle seat capacity for participant additions.
+-- Lock order is event row first, then participant row, matching event edits and travel-plan saves.
+create or replace function public.pfms_add_legacy_team_event_participant(
+  p_event_id uuid,
+  p_team_player_assignment_id uuid
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_team_id uuid;
+  v_event_type text;
+  v_event_capacity integer;
+  v_seat_capacity smallint;
+  v_participant_count bigint;
+  v_participant_id uuid;
+begin
+  select e.team_id, e.event_type, l.capacity, tp.seat_capacity
+    into v_team_id, v_event_type, v_event_capacity, v_seat_capacity
+  from public.pfms_legacy_team_calendar_events e
+  left join public.pfms_legacy_team_event_logistics l
+    on l.event_id = e.id and l.team_id = e.team_id
+  left join public.pfms_legacy_team_event_travel_plans tp
+    on tp.event_id = e.id and tp.team_id = e.team_id
+  where e.id = p_event_id
+  for update of e;
+
+  if not found then
+    raise exception 'Team event not found' using errcode = 'P0002';
+  end if;
+  if v_event_type not in ('tournament','event') then
+    raise exception 'Only tournament and event entries support participant registration'
+      using errcode = '42501';
+  end if;
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to manage event participants' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1
+    from public.pfms_legacy_team_players tp
+    where tp.id = p_team_player_assignment_id
+      and tp.team_id = v_team_id
+      and tp.squad_status <> 'inactive'
+  ) then
+    raise exception 'Selected player is not an active member of this team'
+      using errcode = '23514';
+  end if;
+
+  select pg_catalog.count(*) into v_participant_count
+  from public.pfms_legacy_team_event_participants p
+  where p.event_id = p_event_id
+    and p.team_id = v_team_id
+    and p.status in ('invited','confirmed','attended');
+
+  if v_event_capacity is not null and v_participant_count >= v_event_capacity then
+    raise exception 'Team event is at capacity' using errcode = '23514';
+  end if;
+  if v_seat_capacity is not null and v_participant_count >= v_seat_capacity then
+    raise exception 'Transport vehicle is at seat capacity' using errcode = '23514';
+  end if;
+
+  insert into public.pfms_legacy_team_event_participants (
+    event_id, team_id, team_player_assignment_id, status, created_by
+  ) values (
+    p_event_id, v_team_id, p_team_player_assignment_id, 'invited', auth.uid()
+  )
+  returning id into v_participant_id;
+
+  return v_participant_id;
+end;
+$$;
+
+create or replace function public.pfms_update_legacy_team_event_participant(
+  p_participant_id uuid,
+  p_status text,
+  p_note text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_team_id uuid;
+  v_event_id uuid;
+  v_event_type text;
+  v_event_capacity integer;
+  v_seat_capacity smallint;
+  v_participant_count bigint;
+begin
+  select ep.team_id, ep.event_id
+    into v_team_id, v_event_id
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id;
+
+  if not found then
+    raise exception 'Event participant not found' using errcode = 'P0002';
+  end if;
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to update event participant' using errcode = '42501';
+  end if;
+  if p_status is null
+     or p_status not in ('invited','confirmed','declined','attended','absent')
+     or (p_note is not null and pg_catalog.length(p_note) > 1000) then
+    raise exception 'Invalid event participant data' using errcode = '22023';
+  end if;
+
+  select e.event_type, l.capacity, tp.seat_capacity
+    into v_event_type, v_event_capacity, v_seat_capacity
+  from public.pfms_legacy_team_calendar_events e
+  left join public.pfms_legacy_team_event_logistics l
+    on l.event_id = e.id and l.team_id = e.team_id
+  left join public.pfms_legacy_team_event_travel_plans tp
+    on tp.event_id = e.id and tp.team_id = e.team_id
+  where e.id = v_event_id and e.team_id = v_team_id
+  for update of e;
+
+  if not found or v_event_type not in ('tournament','event') then
+    raise exception 'Event participant does not belong to an event entry'
+      using errcode = '42501';
+  end if;
+
+  perform 1
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id
+    and ep.event_id = v_event_id
+    and ep.team_id = v_team_id
+  for update;
+
+  if not found then
+    raise exception 'Event participant was removed during the update'
+      using errcode = 'P0002';
+  end if;
+
+  if p_status in ('invited','confirmed','attended') then
+    select pg_catalog.count(*) into v_participant_count
+    from public.pfms_legacy_team_event_participants ep
+    where ep.event_id = v_event_id
+      and ep.team_id = v_team_id
+      and ep.id <> p_participant_id
+      and ep.status in ('invited','confirmed','attended');
+
+    if v_event_capacity is not null and v_participant_count >= v_event_capacity then
+      raise exception 'Team event is at capacity' using errcode = '23514';
+    end if;
+    if v_seat_capacity is not null and v_participant_count >= v_seat_capacity then
+      raise exception 'Transport vehicle is at seat capacity' using errcode = '23514';
+    end if;
+  end if;
+
+  update public.pfms_legacy_team_event_participants
+  set status = p_status,
+      note = nullif(pg_catalog.btrim(coalesce(p_note, '')), ''),
+      updated_at = pg_catalog.now()
+  where id = p_participant_id;
+end;
+$$;
+
+-- Keep event/participant lock order consistent across add, update and remove.
+create or replace function public.pfms_remove_legacy_team_event_participant(
+  p_participant_id uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_team_id uuid;
+  v_event_id uuid;
+  v_event_type text;
+begin
+  select ep.team_id, ep.event_id
+    into v_team_id, v_event_id
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id;
+
+  if not found then
+    raise exception 'Event participant not found' using errcode = 'P0002';
+  end if;
+
+  select e.event_type
+    into v_event_type
+  from public.pfms_legacy_team_calendar_events e
+  where e.id = v_event_id
+    and e.team_id = v_team_id
+  for update;
+
+  if not found or v_event_type not in ('tournament','event') then
+    raise exception 'Event participant does not belong to an event entry'
+      using errcode = '42501';
+  end if;
+
+  if not public.pfms_has_legacy_team_permission(v_team_id, 'events', 'edit') then
+    raise exception 'Not authorized to remove event participant'
+      using errcode = '42501';
+  end if;
+
+  perform 1
+  from public.pfms_legacy_team_event_participants ep
+  where ep.id = p_participant_id
+    and ep.event_id = v_event_id
+    and ep.team_id = v_team_id
+  for update;
+
+  if not found then
+    raise exception 'Event participant was removed during the update'
+      using errcode = 'P0002';
+  end if;
+
+  delete from public.pfms_legacy_team_event_participants
+  where id = p_participant_id;
+end;
+$$;
+
+revoke all on function public.pfms_remove_legacy_team_event_participant(uuid)
+  from public, anon;
+grant execute on function public.pfms_remove_legacy_team_event_participant(uuid)
+  to authenticated;
+
+revoke all on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
+  from public, anon;
+grant execute on function public.pfms_add_legacy_team_event_participant(uuid, uuid)
+  to authenticated;
+
+revoke all on function public.pfms_update_legacy_team_event_participant(uuid, text, text)
+  from public, anon;
+grant execute on function public.pfms_update_legacy_team_event_participant(uuid, text, text)
+  to authenticated;
+
+revoke all on function public.pfms_list_legacy_team_event_travel_plans(uuid)
+  from public, anon;
+grant execute on function public.pfms_list_legacy_team_event_travel_plans(uuid)
+  to authenticated;
+
+revoke all on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
+  from public, anon;
+grant execute on function public.pfms_save_legacy_team_event_travel_plan(uuid, text, text, timestamptz, timestamptz, timestamptz, timestamptz, text, text, smallint, numeric, text)
+  to authenticated;
+
+revoke all on function public.pfms_delete_legacy_team_event_travel_plan(uuid)
+  from public, anon;
+grant execute on function public.pfms_delete_legacy_team_event_travel_plan(uuid)
+  to authenticated;
+
+comment on table public.pfms_legacy_team_event_travel_plans is
+  'Team-specific transport planning for tournaments/events. Read/write is guarded by events.view/edit; direct browser writes are prohibited.';

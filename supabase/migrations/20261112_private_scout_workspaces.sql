@@ -58,7 +58,7 @@ alter table public.pfss_scout_media enable row level security;
 
 drop policy if exists pfss_scout_players_select on public.pfss_scout_players;
 create policy pfss_scout_players_select on public.pfss_scout_players
-for select to authenticated using (owner_id = auth.uid() or public.is_admin());
+for select to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_players_insert on public.pfss_scout_players;
 create policy pfss_scout_players_insert on public.pfss_scout_players
@@ -66,16 +66,16 @@ for insert to authenticated with check (owner_id = auth.uid());
 
 drop policy if exists pfss_scout_players_update on public.pfss_scout_players;
 create policy pfss_scout_players_update on public.pfss_scout_players
-for update to authenticated using (owner_id = auth.uid() or public.is_admin())
-with check (owner_id = auth.uid() or public.is_admin());
+for update to authenticated using (owner_id = auth.uid() or public.pfms_is_admin())
+with check (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_players_delete on public.pfss_scout_players;
 create policy pfss_scout_players_delete on public.pfss_scout_players
-for delete to authenticated using (owner_id = auth.uid() or public.is_admin());
+for delete to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_reports_select on public.pfss_scout_reports;
 create policy pfss_scout_reports_select on public.pfss_scout_reports
-for select to authenticated using (owner_id = auth.uid() or public.is_admin());
+for select to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_reports_insert on public.pfss_scout_reports;
 create policy pfss_scout_reports_insert on public.pfss_scout_reports
@@ -88,20 +88,20 @@ with check (
 drop policy if exists pfss_scout_reports_update on public.pfss_scout_reports;
 create policy pfss_scout_reports_update on public.pfss_scout_reports
 for update to authenticated
-using (owner_id = auth.uid() or public.is_admin())
+using (owner_id = auth.uid() or public.pfms_is_admin())
 with check (
   owner_id = auth.uid()
   and exists (select 1 from public.pfss_scout_players p where p.id = player_id and p.owner_id = auth.uid())
-  or public.is_admin()
+  or public.pfms_is_admin()
 );
 
 drop policy if exists pfss_scout_reports_delete on public.pfss_scout_reports;
 create policy pfss_scout_reports_delete on public.pfss_scout_reports
-for delete to authenticated using (owner_id = auth.uid() or public.is_admin());
+for delete to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_media_select on public.pfss_scout_media;
 create policy pfss_scout_media_select on public.pfss_scout_media
-for select to authenticated using (owner_id = auth.uid() or public.is_admin());
+for select to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 drop policy if exists pfss_scout_media_insert on public.pfss_scout_media;
 create policy pfss_scout_media_insert on public.pfss_scout_media
@@ -109,7 +109,7 @@ for insert to authenticated with check (owner_id = auth.uid());
 
 drop policy if exists pfss_scout_media_delete on public.pfss_scout_media;
 create policy pfss_scout_media_delete on public.pfss_scout_media
-for delete to authenticated using (owner_id = auth.uid() or public.is_admin());
+for delete to authenticated using (owner_id = auth.uid() or public.pfms_is_admin());
 
 grant select, insert, update, delete on public.pfss_scout_players to authenticated;
 grant select, insert, update, delete on public.pfss_scout_reports to authenticated;
@@ -140,5 +140,5 @@ drop policy if exists pfss_scout_storage_delete on storage.objects;
 create policy pfss_scout_storage_delete on storage.objects
 for delete to authenticated using (
   bucket_id='pfss-scout-private'
-  and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin())
+  and ((storage.foldername(name))[1] = auth.uid()::text or public.pfms_is_admin())
 );

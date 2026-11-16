@@ -1,0 +1,471 @@
+## Ergänzung – Abnahme des seitenweisen Admin-Support-Postfachs
+
+- Mit mindestens 26 Staging-Tickets die Seiten 1 und 2 prüfen. Die Trefferzahl muss dem exakten Datenbank-Count entsprechen; Sortierung: neueste zuerst, bei Zeitgleichheit Ticket-ID.
+- Statusfilter Offen, In Bearbeitung und Erledigt einzeln testen. Der Filter muss die Datenbankabfrage begrenzen; nach Filterwechsel muss Seite 1 angezeigt werden.
+- Ticketantwort und Statuswechsel speichern. Prüfen, dass bestehende Benachrichtigungen an den Ticketinhaber ausgelöst werden und die Antwort nach Neuladen erhalten bleibt.
+- Admin-Ansicht mit Nicht-Admin-Konto direkt aufrufen: Route muss blockiert bleiben und RLS darf keine fremden Tickets offenlegen.
+- Logout/Kontowechsel während eines Ladevorgangs testen; alte Antworten dürfen keine Daten in der neuen Sitzung anzeigen.
+
+## Ergänzung – Admin-Fehlerprotokoll und Support-Postfach
+
+- Fehlerprotokoll: nach Anwendung der Migration `20261220_pfms_admin_system_event_pagination.sql` als Admin Meldung/Pfad, Schweregrad, Status und Seitenwechsel prüfen. Die Audit-Prüfungen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds` müssen bestanden sein.
+- Support-Postfach: als Admin je Status (alle/offen/in Bearbeitung/erledigt) die Trefferzahl und Sortierung prüfen. Bei mehr als 25 Tickets Seite 2 öffnen, ein Ticket beantworten/abschließen und prüfen, dass die Aktualisierung erhalten bleibt und die Ansicht korrekt neu geladen wird.
+- Mit einem Nicht-Admin-Konto den Admin-Postfach-Routenaufruf sowie den direkten Tabellenzugriff testen. Erwartet: Route wird blockiert und RLS liefert keine fremden Tickets. Die bereits vorhandene Datenbankpolicy ist die Sicherheitsgrenze; die UI allein genügt nicht.
+
+## Ergänzung – Staging-Abnahme des Admin-Fehlerprotokolls
+
+Die additive Migration `20261220_pfms_admin_system_event_pagination.sql` ergänzt die Admin-RPC `pfms_admin_list_system_events_page`. Nach Anwendung auf dem dedizierten Staging-Projekt:
+
+1. Als Plattformadministrator die Fehleransicht öffnen. Prüfen, dass Meldung/Pfad, Schweregrad und Bearbeitungsstatus die Treffer serverseitig eingrenzen.
+2. Bei mehr als 25 Treffern auf Seite 2 wechseln; Gesamtzahl und Sortierung nach neuestem Ereignis prüfen.
+3. Einen Ereignisstatus ändern und prüfen, dass die Aktualisierung erhalten bleibt und die Liste korrekt neu geladen wird.
+4. Mit einem Nicht-Admin-Konto die RPC direkt aufrufen. Erwartet wird SQLSTATE `42501`.
+5. Seitengröße 1 und 100 prüfen; 0, 101, negative und übergroße Offsets müssen SQLSTATE `22023` auslösen.
+6. Im Read-only-Acceptance-Audit müssen `admin_system_event_pagination_security` und `admin_system_event_pagination_bounds` beide `passed = true` liefern.
+
+## Ergänzung – Abnahme der Admin-Verzeichnis-Pagination
+
+Die Migrationen `20261218_pfms_admin_directory_pagination.sql` und `20261219_pfss_admin_profile_pagination.sql` ergänzen ausschließlich neue, admin-geschützte RPCs. Sie verändern keine vorhandenen Tabellen oder Datensätze. Vor der Anwendung müssen sie im Dry-Run in der korrekten Reihenfolge erscheinen.
+
+Nach dem Staging-Deploy mit einem echten Plattform-Admin-Konto prüfen:
+
+1. Benutzerverwaltung: Gesamt-/Statuszähler mit dem vollständigen Profilbestand vergleichen. Nach Name, User-ID, Rolle und Status suchen; Treffer müssen serverseitig korrekt gefiltert werden.
+2. Organisationsverwaltung: Vereins-/Agenturname, Organisations-ID und Status einzeln und kombiniert prüfen.
+3. Scout-Verzeichnis: Name, E-Mail, User-ID und Profilstatus prüfen.
+4. Globale Mitgliedschaften: Suchbegriff, Organisationstyp, Rolle und Status prüfen.
+5. Bei mehr als 25 Treffern auf Seite 2 wechseln und prüfen, dass kein Datensatz doppelt oder ausgelassen wird. Filter ändern und sicherstellen, dass die Ansicht wieder auf Seite 1 beginnt.
+6. Mit einem Nicht-Admin-Konto jede neue RPC direkt aufrufen. Die Datenbank muss den Zugriff mit `42501` ablehnen; ein ausgeblendeter Menüpunkt reicht nicht.
+7. Grenzwerte prüfen: Seitengröße 1 und 100 müssen funktionieren; 0, 101, negative und übergroße Offsets müssen mit `22023` abgewiesen werden.
+
+Der Read-only-Acceptance-Audit enthält jetzt die Prüfpunkte `admin_directory_pagination_rpc_security` und `admin_directory_pagination_bounds`. Beide müssen in der echten Staging-Datenbank `passed = true` liefern. Die CI kann die tatsächliche Datenbankausführung nicht ersetzen.
+
+---
+
+## Ergänzung – Navigation und Rollenwechsel
+
+Zusätzlich zur erneuten Profilprüfung wird die clientseitige Navigation gegen direkte bzw. veraltete History-Aufrufe abgesichert: Administrationsrouten werden für Konten ohne bestätigte Plattform-Adminrolle auf das Dashboard zurückgeführt. Die Navigationssperre ist ausdrücklich keine Datenbanksicherheit; RLS und serverseitige RPC-Berechtigungen bleiben maßgeblich.
+
+## Ergänzung – Abnahme des Authentifizierungs- und Sitzungslebenszyklus
+
+Die folgenden Prüfungen sind nach Anwendung des vollständigen Staging-Migrationsstands mit getrennten Testkonten durchzuführen:
+
+1. Anmeldung mit einem freigegebenen Konto; Startansicht und aktuell berechtigte Teams prüfen.
+2. Im Staging-Konto die Plattformrolle ändern und die Sitzung erneuern bzw. den Browser-Tab in den Vordergrund zurückholen. Die Oberfläche muss die neue Rolle übernehmen; alte Admin-/Mitgliederansichten dürfen nicht weiter als aktive Berechtigung gelten.
+3. Ein Konto serverseitig auf `suspended` setzen. Nach Token-Erneuerung oder Tab-Rückkehr muss die PFMS-Arbeitsoberfläche geschlossen und der gesperrte Status angezeigt werden.
+4. Eine Teamzuordnung deaktivieren oder entfernen. Nach Tab-Rückkehr muss die Teamliste erneut aus der geschützten RPC geladen werden. Direkte RPC-/Datenbankzugriffe müssen unabhängig von der Darstellung weiterhin serverseitig abgewiesen werden.
+5. Während einer laufenden Profilprüfung abmelden und unmittelbar mit einem anderen Testkonto anmelden. Eine verspätete Antwort des ersten Kontos darf weder Rolle noch Ansicht noch Daten des zweiten Kontos überschreiben.
+6. Abmelden, erneut anmelden und die Browserseite neu laden. Es dürfen keine Team-, Scout-, Medien- oder Organisationsdaten des vorherigen Kontos sichtbar bleiben.
+
+**Abnahmegrenze:** CI-Smoke-Tests prüfen den Quellcodevertrag und die Schutzlogik. Sie simulieren weder Supabase Auth noch echte JWT-/RLS-/RPC-Laufzeit. Die obigen Tests sind deshalb echte Staging-Abnahmeschritte und dürfen nicht durch grüne CI ersetzt werden.
+
+---
+
+# PFMS – Staging-Deployment und Abnahme
+
+Diese Anleitung gilt ausschließlich für die getrennte PFMS-Testumgebung. Sie ist keine Freigabe für `main`, Produktions-Supabase oder die Live-Render-Domain.
+
+Die Wiederherstellung eines verschlüsselten PostgreSQL-Backups ist separat in [`docs/BACKUP_RESTORE.md`](BACKUP_RESTORE.md) dokumentiert. Sie darf ausschließlich in eine neu angelegte, isolierte Testdatenbank erfolgen; Storage-Binärdateien sind gesondert zu berücksichtigen.
+
+## 1. Vorbedingungen
+
+- Der Code liegt auf `feature/pfss-complete-platform-build`.
+- Staging-Supabase-Projekt und Staging-Render-Service sind eindeutig identifiziert.
+- Vor Änderungen existiert ein aktuelles, extern gespeichertes Staging-Backup.
+- Der Staging-Projekt-Ref wurde aus dem Supabase-Dashboard übernommen. Keine Produktions-URL verwenden.
+- Supabase CLI ist installiert und mit dem richtigen Konto authentifiziert.
+
+## 2. Migrationsstand prüfen
+
+Im Repository-Verzeichnis:
+
+```bash
+supabase login
+supabase link --project-ref <STAGING_PROJECT_REF>
+supabase migration list
+supabase db push --dry-run
+```
+
+**Sofort stoppen**, wenn das verknüpfte Projekt nicht eindeutig Staging ist, Migrationen fehlen, die Remote-Historie abweicht oder ein unerwarteter SQL-Plan angezeigt wird. Keine Migration-Historie manuell als erledigt markieren und kein `--include-all` ohne Schema-Audit verwenden.
+
+Vor jeder Migration zusätzlich das Skript `supabase/STAGING_READ_ONLY_AUDIT.sql` im SQL Editor des eindeutig bestätigten Staging-Projekts ausführen und das Ergebnis sichern. Es inventarisiert Tabellen/Spalten, RLS, Policies, Constraints, Trigger, Funktionsdefinitionen und -rechte, Tabellenrechte, Organisationsmodelle, Row-Schätzungen sowie **alle** Storage-Buckets. Es meldet auch, ob die Supabase-Migrationstabelle vorhanden ist. Das Skript ist eine einzelne read-only Abfrage und ersetzt weder `supabase migration list` noch den Dry-Run. Bei unbekannten Buckets, unerwarteten Rollen/Rechten oder Abweichungen zuerst klären; nicht automatisch bereinigen oder migrieren.
+
+Wenn der Dry-Run vollständig geprüft wurde:
+
+```bash
+supabase db push
+```
+
+Die CLI wendet alle noch ausstehenden, versionierten Migrationen in ihrer Reihenfolge an. Keine einzelne Migration überspringen.
+
+Die Migration `20261112_pfms_legacy_org_manager_guard.sql` stellt den serverseitigen Organisationsverwalter-Check bereit. Sie folgt auf die Basistabellen für `organizations` und `organization_memberships` vom 11. November und liegt bewusst vor den nachfolgenden Einladungs- und Mitgliederverwaltungs-RPCs. Die frühere Migration `20261118_pfms_legacy_org_manager_guard.sql` bleibt als idempotente Wiederholung erhalten, damit ein möglicherweise bereits vorhandener Remote-Migrationsledger-Eintrag nicht verwaist. Beide Dateien müssen in der regulären chronologischen Reihenfolge erhalten bleiben; die frühere Definition wird zuerst installiert.
+
+## 3.1 Username-Login-Rate-Limit vorbereiten
+
+Vor dem Deploy der Username-Login-Function müssen eine eigene Upstash-Redis-Datenbank für Staging sowie diese drei Supabase-Function-Secrets im Staging-Projekt eingerichtet sein:
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `PFMS_RATE_LIMIT_HMAC_KEY` (zufällig, mindestens 32 Zeichen)
+
+Das Limit zählt nur fehlgeschlagene Anmeldungen; erfolgreiche Logins verbrauchen kein Kontingent. Die Erstellung und Secret-Befüllung ist in [EDGE_FUNCTION_CONFIGURATION.md](EDGE_FUNCTION_CONFIGURATION.md#2-username-login-gemeinsames-rate-limit) beschrieben. Ohne diese Werte antwortet die Function absichtlich mit HTTP 503; es gibt keinen ungeschützten Fallback.
+
+## 3. Edge Functions bereitstellen
+
+Nach erfolgreichem Datenbank-Push:
+
+```bash
+supabase functions deploy username-login
+supabase functions deploy r2-connection-check
+supabase functions deploy pfms-owner-bootstrap
+```
+
+Die Staging-Function-Secrets im Supabase-Dashboard prüfen. Benötigte projektspezifische Variablen:
+
+- `PFMS_ALLOWED_ORIGINS`: ausschließlich die Staging-Frontend-Origin(s) und ausdrücklich benötigte lokale Entwicklungs-Origin(s).
+- `PFMS_OWNER_BOOTSTRAP_TOKEN`: separates, starkes Einmal-/Bootstrap-Geheimnis; nicht im Repository, Chat oder Frontend ablegen.
+- `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`: nur wenn der R2-Backup-/Verbindungstest in Staging ausgeführt wird.
+
+Supabase stellt die projektbezogenen `SUPABASE_URL`- und Schlüsselvariablen für Edge Functions bereit. Niemals Service-Role-Schlüssel im Browser verwenden.
+
+**Zusätzliche Absicherung des R2-Verbindungstests:** Die Edge Function `r2-connection-check` verlangt ein gültiges Benutzer-JWT und prüft zusätzlich `public.pfms_is_admin()`. In `supabase/config.toml` ist `verify_jwt = true` explizit gesetzt. Im Staging muss mit einem Admin-Konto ein erfolgreicher Aufruf und mit einem Scout-/Mitgliedskonto ein erwarteter HTTP-403-Test erfolgen. Die Funktion führt nur einen begrenzten List-Bucket-Aufruf aus und gibt keine Provider-Antwortkörper oder Zugangsdaten zurück.
+
+## 3.2 Passkey/WebAuthn im Staging vorbereiten
+
+Passkeys dürfen erst nach Festlegung der endgültigen Staging-Domain aktiviert werden. Supabase verlangt eine konfigurierte Relying Party (RP): Display Name, RP-ID und erlaubte Origins. Registrierung ist nur für angemeldete, bestätigte, nicht-anonyme Konten möglich.
+
+1. Zuerst den tatsächlichen Hostnamen des Render-Stagingdienstes im Render-Dashboard feststellen. Nicht aus dem Dienstnamen ableiten.
+2. Im Supabase-Dashboard ausschließlich das Projekt `PFSS-Test` öffnen: **Authentication → Passkeys**.
+3. Für Staging einen eigenen RP-Displaynamen festlegen, z. B. `PFMS Test`.
+4. Als RP-ID den vollständigen Staging-Hostnamen ohne Schema, Port oder Pfad verwenden, sofern kein dediziertes PFMS-Staging-Custom-Domain eingerichtet wurde.
+5. Als erlaubte Origin exakt die Staging-Origin mit HTTPS eintragen, z. B. `https://<tatsaechlicher-staging-host>`. Keine Produktions-Origin und keine pauschalen Wildcards hinzufügen.
+6. Passkey-Authentifizierung erst nach Prüfung der RP-Konfiguration aktivieren.
+
+**Wichtige Render-Domain-Regel:** `onrender.com` ist als Public Suffix registriert. Deshalb darf `onrender.com` nicht als gemeinsame RP-ID verwendet werden. Der vollständige konkrete Staging-Hostname kann als eigene RP-ID verwendet werden; ein eigenes PFMS-Custom-Domain ist für eine langfristig stabile RP-ID vorzuziehen. Die WebAuthn-Spezifikation verlangt, dass die RP-ID zur Origin passt. Eine Änderung der RP-ID macht bereits registrierte Passkeys unbrauchbar. Staging- und Produktionsdomain erhalten getrennte Passkey-Zugänge; keine Staging-Credentials als Produktions-Recovery einplanen.
+
+Vor dem ersten Passkey-Test dokumentieren: tatsächlicher Render-Hostname, RP-ID, erlaubte Origin(s), Supabase-Projektname `PFSS-Test` und Datum der Konfiguration. Keine Passkeys für reale Benutzer registrieren, bevor die Staging-Tests abgeschlossen sind.
+
+## 4. Read-only Schema-Audit
+
+Die Datei `supabase/STAGING_READ_ONLY_AUDIT.sql` im SQL-Editor des **Staging-Projekts** ausführen. Die Abfrage liest Tabellen-/Spalteninformationen, Policies, Grants und Tabellenstatistiken; sie ist kein Ersatz für einen Funktionstest.
+
+Ergebnisse sichern und insbesondere prüfen:
+
+- Legacy- und neues Organisationsmodell sind nicht unbeabsichtigt vermischt.
+- RLS ist für alle neuen PFMS-Tabellen aktiviert und die Policies entsprechen den erwarteten Rollen.
+- Storage-Bucket `pfss-scout-private` bleibt privat; Objektpfade sind benutzergebunden.
+- Neue Tabellen: globaler Spielerkatalog, Haupt-Scoutingberichte, Hauptmedien, persönliche Aufgaben und Supporttickets.
+- Security-Definer-Funktionen besitzen einen festen `search_path` und passende Grants.
+- Der Audit listet zusätzlich die effektiven `EXECUTE`-Berechtigungen aller PFMS-/PFSS-RPCs und Security-Definer-Funktionen auf. Keine unbeabsichtigten `PUBLIC`-/`anon`-Freigaben akzeptieren; jede Freigabe an `authenticated` muss mit einer internen Rollen-/Eigentümerprüfung oder einer eng begrenzten Helferfunktion begründet sein. Der Owner-Claim-RPC darf ausschließlich durch `service_role` ausführbar sein.
+
+**Zusätzlicher read-only Abnahmebericht:** Nach dem Anwenden der Feature-Migrationen und nach dem normalen Schema-Audit zusätzlich `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` im SQL-Editor des dedizierten Staging-Projekts ausführen. Die Abfrage liefert je Prüfung `check_name`, `passed` und `details`. Jede Zeile muss `passed = true` liefern, bevor die jeweilige Funktion in den positiven Rollen-/Negativtests freigegeben wird. Das Skript liest ausschließlich Kataloge, Privilegien und Metadaten; es verändert weder Schema noch Nutzerdaten. Ein fehlgeschlagener Check ist ein Stop-Kriterium, keine Aufforderung, Rechte im Dashboard spontan zu öffnen.
+
+## 5. Funktionale Abnahme
+
+Die Tests ausschließlich mit getrennten Staging-Konten durchführen: Plattformadministrator, Vereins-/Agenturleitung, Scout, Trainer, Co-Trainer, Betreuer und normales Mitglied. Keine Produktivkonten oder echten personenbezogenen Daten verwenden.
+
+### Abrechnung und Registrierungssperre
+- Vereins-, Agentur- und Einzelscout-Tarife sind bis zur Anbieter- und Vertragsfreigabe reine Vorschau. Preise sind Entwürfe und dürfen nicht als verbindliches Angebot oder aktivierte Testphase verstanden werden.
+- Beim Klick auf die Tarifvorschau darf weder ein Supabase-Auth-Konto angelegt noch ein Vertrag, eine Testphase oder eine Abbuchung ausgelöst werden.
+- Es dürfen keine `trial_days`- oder `billing_cycle`-Metadaten als tatsächliche Vertragsdaten gespeichert werden.
+- Die Adminseite muss deutlich „Keine Abbuchungen aktiv“ und „Kein Zahlungsanbieter verbunden“ anzeigen. Kein externer Checkout-Button darf aktiv sein.
+- Vor Aktivierung sind Anbieter, Preis-/USt.-Logik, signierte Webhooks, Kündigungs- und Erstattungsprozesse, Rechnungsdaten, Datenschutz und rechtliche Vertragsbedingungen abzunehmen. Test- und Live-Schlüssel sind getrennt und ausschließlich serverseitig zu halten.
+- Ohne vollständige Anbieterintegration, erfolgreiche Testzahlungen und ausdrückliche Produktionsfreigabe bleibt die Zahlungsfunktion deaktiviert.
+
+### In-App-Mitteilungen
+- Eine neue Zuweisung einer Teamaufgabe erzeugt eine Mitteilung nur beim Empfänger; Selbstzuweisungen erzeugen keine eigene Mitteilung.
+- Beim Abschließen einer Aufgabe erhalten Ersteller und zugewiesene Person (außer dem ausführenden Konto) jeweils eine eigene Mitteilung.
+- Wenn ein Administrator eine Antwort zu einem Support-Ticket speichert, erhält nur der Ticketinhaber eine Mitteilung mit direktem Weg zum eigenen Ticket. Wird ein Ticket ohne neue Antwort auf erledigt gesetzt, erhält ebenfalls nur der Ticketinhaber eine Mitteilung.
+- Ein anderes Benutzerkonto darf weder die Support-Mitteilung noch das zugehörige Ticket lesen. Der Support-Trigger darf von Browserrollen nicht direkt ausgeführt werden.
+- Mitteilungen werden nur im persönlichen In-App-Posteingang dieses Kontos angezeigt. Ein anderes Konto darf die Datensätze weder lesen noch verändern.
+- Browserkonten dürfen Mitteilungen nicht einfügen oder löschen. Sie dürfen ausschließlich das eigene `is_read`-Feld ändern; `read_at` wird serverseitig gesetzt.
+- Abmeldung/Kontowechsel leert den lokalen Benachrichtigungszustand und die Badge-Zahl. Die Seitenleiste zeigt nach Anmeldung die Zahl ungelesener Mitteilungen.
+- Push-, E-Mail- und externe Zustellkanäle sind in diesem Arbeitsschritt nicht enthalten.
+
+### Mandanten- und Rollenisolierung für Teamzugriffe
+- Positiv: Ein aktiver Trainer mit aktiver Organisationsmitgliedschaft derselben Rolle und aktiver Teamzuordnung darf sein Team verwalten. Ein aktiver Co-Trainer/Betreuer erhält ausschließlich die explizit gespeicherten Modulrechte.
+- Negativ: Gesperrte/entzogene Mitgliedschaft, gesperrte Organisation, inaktive Teamzuordnung oder Rollenabweichung zwischen Organisationsmitgliedschaft und Teamzuordnung müssen den Zugriff auf Teamdaten verhindern – auch wenn ein alter Teammitarbeiter-Datensatz bestehen bleibt.
+- Negativ: Eine Person aus einer zweiten Organisation darf weder als Kandidat für die Teamzuordnung erscheinen noch per RPC zugeordnet werden. Kandidatenliste und Zuordnungs-RPC müssen die Organisation aus der Team-ID ableiten, nicht aus einem vom Client gelieferten Organisationswert.
+- Negativ: Co-Trainer/Betreuer dürfen weder Teammitarbeiter zuordnen/entfernen noch Organisationsrollen verwalten. Organisationsmanager dürfen nur operative Rollen verwalten und keine Owner-/Adminrolle vergeben oder ändern. Plattformadministratoren behalten den expliziten globalen Verwaltungsweg.
+- Direkte INSERT/UPDATE/DELETE-Versuche auf `pfms_legacy_team_staff` müssen scheitern; Änderungen erfolgen ausschließlich über die geschützten RPCs. Den Zugriff nach Rollenwechsel, Sperrung und Wiederfreigabe jeweils mit frischer Sitzung erneut prüfen.
+
+### Gemeinsame Teamaufgaben
+- Ein Konto mit `tasks.view` darf nur Aufgaben der eigenen Mannschaft lesen. Ohne Leserecht muss der List-RPC scheitern.
+- Mit `tasks.edit` Aufgaben anlegen, bearbeiten, Status ändern und löschen. Beim Erstellen alle Anfangsstatus (`open`, `in_progress`, `done`, `cancelled`) testen; bei `done` muss `completed_at` gesetzt, bei allen anderen Status null sein. Ohne dieses Recht müssen alle Schreib-RPCs serverseitig scheitern.
+- Die `EXECUTE`-Freigabe für `pfms_create_legacy_team_task` muss exakt zur siebenstelligen Signatur passen. Ein Aufruf mit dem gewählten `p_status` muss den gewählten Anfangsstatus unverändert speichern.
+- Aufgaben dürfen nur aktiven Trainern, Co-Trainern oder Betreuern derselben Mannschaft zugewiesen werden. Versuche mit einem Mitarbeiter aus einer anderen Mannschaft oder einem inaktiven/entfernten Mitarbeiter müssen scheitern.
+- Beim Löschen einer Staff-Zuordnung bleibt die Teamaufgabe erhalten und wird automatisch unzugewiesen; Aufgaben dürfen nicht kaskadierend mit Staff-Mitgliedern gelöscht werden.
+- Teamaufgaben sind strikt von privaten persönlichen Aufgaben getrennt. Ein normales Mitglied ohne Teamaufgabenrecht darf die Teamliste nicht lesen und persönliche Aufgaben anderer Konten nie sehen.
+
+### Training und Trainingszyklen
+- Mit `training.view` Trainingszyklen, Wochen, Übungen und Einheitenpläne der eigenen Mannschaft lesen; ohne dieses Recht muss der Lese-RPC scheitern.
+- Mit `training.edit` einen Zyklus über maximal 364 Tage anlegen. Die Wochen müssen ohne Lücken erzeugt und im Zykluszeitraum gehalten werden. Wochenziele, Schwerpunkt, Trainerhinweise und Belastungsstufe 1–5 speichern und wieder laden.
+- Eine Einheit nur einer Woche derselben Mannschaft und nur dann zuordnen, wenn ihr Datum innerhalb der Woche liegt. Fremde Team-IDs, falsche Wochenzeiträume und fehlende Bearbeitungsrechte müssen serverseitig abgewiesen werden.
+- Mit `attendance.view/edit` Anwesenheit getrennt von `training.view/edit` prüfen. Teamfremde Kaderzuordnungen müssen scheitern.
+
+### Taktik- und Videoanalyse
+- Mit `analysis.view` nur Analysen der eigenen Mannschaft lesen; ohne Leserecht muss der RPC scheitern.
+- Mit `analysis.edit` taktische Auswertungen und Videoanalysen anlegen, bearbeiten und löschen. Spielbezug darf nur auf ein Spiel derselben Mannschaft zeigen.
+- Videoanalyse erfordert eine HTTPS-Quelle mit gültigem Host. HTTP, leere Hosts und URLs mit eingebetteten Zugangsdaten müssen abgewiesen werden. Zeitmarken müssen zwischen 0 und 86.400 Sekunden liegen.
+- Ohne `analysis.edit` müssen Speichern, Bearbeiten und Löschen serverseitig scheitern. Wechsel zu einer anderen Mannschaft oder einem anderen Konto darf keine zuvor angezeigten Analyseinhalte im UI zurücklassen.
+
+### Spiele, Kalender und Veranstaltungen
+- `matches.view/edit` und `calendar.view/edit` getrennt testen. Spiele, Ergebnisse, Aufstellungen und Mannschaftskalender dürfen nur im jeweiligen Berechtigungsbereich gelesen oder geändert werden.
+- SECURITY-DEFINER-Negativtest: Ein Benutzer mit ausschließlich `calendar.view` darf über `pfms_list_legacy_team_calendar` keine Event-/Turnierzeilen erhalten. `pfms_create_legacy_team_calendar_event` darf keine Event-/Turnierarten anlegen; `pfms_update_legacy_team_calendar_event` darf bestehende Event-/Turnierzeilen weder lesen noch ändern oder umklassifizieren. Die entsprechenden Aktionen müssen mit ausschließlich `events.view/edit` ebenfalls über die Kalender-RPCs scheitern.
+- Mit `events.view` nur Turniere und allgemeine Veranstaltungen der eigenen Mannschaft sehen; Spiele und Besprechungen müssen verborgen bleiben. `calendar.view` umfasst ausschließlich Spiel-, Besprechungs- und sonstige Kalendereinträge; Event-/Turnierzeilen bleiben dem `events`-Modul vorbehalten.
+- Mit `events.edit` Veranstaltungen anlegen, bearbeiten und löschen. Ohne dieses Recht müssen alle Änderungen serverseitig scheitern.
+- Teilnehmerlisten dürfen nur Kaderspieler derselben Mannschaft enthalten. RSVP-Status `invited/confirmed/declined/attended/absent` testen. Teamfremde Spieler, teamfremde Veranstaltungen und direkte Tabellen-Schreibversuche müssen abgewiesen werden.
+- Anmeldeschluss, Treffpunkt, Transportart, Kosten und Kapazität prüfen. Das Kapazitätslimit darf weder beim Hinzufügen noch beim RSVP-Statuswechsel überschritten werden.
+
+### Veranstaltungsfahrtplan
+- Mit `events.view` nur Fahrtpläne der eigenen Mannschaft lesen; ohne Leserecht muss der RPC scheitern.
+- Mit `events.edit` Abfahrtsort, Ziel, Treffzeit, Abfahrt, Ankunft, Rückfahrt, Anbieter, Fahrzeug, Sitzplätze, Gesamtkosten und Hinweise speichern und löschen.
+- Treffzeit darf nicht nach Abfahrt, Ankunft nicht vor Abfahrt und Rückfahrt nicht vor Ankunft liegen. Sitzplatzlimit 1–80 und Gesamtkosten 0–100.000 € prüfen.
+- Die Fahrzeugkapazität darf nicht unter die bereits aktiven Einladungen/Zusagen/Teilnahmen fallen. Diese Grenze muss auch bei RSVP-Statuswechseln unter Event-Zeilensperre gelten.
+- Ein Verweis auf ein anderes Team oder einen Kalendereintrag vom Typ Spiel/Besprechung muss scheitern. Treffpunkt und Transportart bleiben in der gemeinsamen Event-Logistik und dürfen nicht dupliziert werden.
+
+### Gesamt-Abnahme
+| Bereich | Positivtest | Negativtest |
+|---|---|---|
+| Authentifizierung | Reload erhält Sitzung; Passwort-Wiederherstellung funktioniert | Nicht freigegebenes Konto erreicht keinen Workspace |
+| Owner-Bootstrap | Genau ein vorgesehener Owner kann den Claim abschließen | Zweiter Claim und falsches Geheimnis werden abgewiesen |
+| Organisationen | Leitung sieht und verwaltet nur eigene Organisationen | Fremde Organisation kann nicht gelesen oder geändert werden |
+| Mitglieder/Einladungen | Gültiger Einmal-Link wird einmal eingelöst | Gesperrte Organisation, abgelaufener oder wiederverwendeter Link wird abgewiesen |
+| Globaler Spielerkatalog | Freigegebene Konten lesen; Admin verwaltet | Scout kann globale Stammdaten nicht ändern |
+| Scout-Arbeitsbereich | Scout verwaltet eigene Spieler, Berichte und Medien | Scout A kann keine privaten Daten von Scout B lesen |
+| Hauptmedien | Upload, signierter Abruf und Löschen | Fremde Storage-Pfade und nicht erlaubte MIME-Typen scheitern |
+| Mannschaftskasse | Buchung, Kassenstand und begründete Stornierung | Ohne `finance.edit` keine Änderungen; Originalbuchungen bleiben erhalten |
+| Persönliche Aufgaben | Anlegen, Statuswechsel und Löschen | Fremdes Konto sieht keine Aufgaben |
+| Support | Nutzer erstellt Ticket und sieht eigene Antwort | Nutzer sieht keine fremden Tickets; nur Admin antwortet |
+| Backup | R2-Backup und isolierter Restore | Restore überschreibt niemals Produktionsdaten |
+
+Jeden Test mit Testkonto/Rolle, Zeit, Ergebnis und gegebenenfalls Request-/SQL-Fehler dokumentieren. Vor der Abnahme keine Migration als angewendet markieren, solange die tatsächliche Staging-Historie und der Dry-Run nicht geprüft wurden.
+
+## 6. Frontend und Render-Staging
+
+### Verbindliche Supabase-Build-Konfiguration
+
+Das Frontend enthält keine fest eingetragene Projekt-URL und keinen fest eingetragenen Publishable Key mehr. Der Static-Site-Build erzeugt `dist/pfms-config.js` aus den Render-Umgebungswerten:
+
+- `PFMS_BUILD_TARGET=staging` (wird durch die Blueprint-Konfiguration festgelegt)
+- `PFMS_STAGING_PROJECT_REF`: die dedizierte, 20-stellige Projekt-Referenz aus dem **Staging**-Supabase-Dashboard
+- `PFSS_SUPABASE_URL`: exakt `https://<PFMS_STAGING_PROJECT_REF>.supabase.co`
+- `PFSS_SUPABASE_KEY`: ausschließlich der öffentliche Publishable-/anon-Key dieses Staging-Projekts
+
+Der Build bricht ab, wenn Werte fehlen, URL und Projekt-Referenz nicht exakt übereinstimmen oder ein Secret-/Service-Role-Key verwendet wird. Der Schlüssel ist im Browser sichtbar und muss deshalb ein öffentlicher Publishable-/anon-Key sein. Niemals einen Service-Role-/Secret-Key verwenden. Render fragt Werte mit `sync: false` nur beim erstmaligen Erstellen des Blueprints ab. Bei einem bereits bestehenden Render-Dienst müssen die drei Werte manuell im Dashboard ergänzt werden. Sie werden nicht in Git gespeichert.
+
+GitHub CI verwendet ausschließlich `PFMS_BUILD_TARGET=ci` mit einer ungültigen Platzhalter-URL und einem Platzhalter-Key. Dadurch wird der vollständige Paket-Build getestet, ohne echte Supabase-Projektinformationen einzubetten. Ein lokaler Staging-Build benötigt dieselben vier Staging-Werte wie Render.
+
+
+### Reproduzierbarer Static-Site-Build
+
+- `render.yaml` definiert den getrennten Dienst `pfms-staging-static` auf `feature/pfss-complete-platform-build`.
+- Der Render-Build-Befehl führt Syntaxprüfung, einen echten Staging-Build und anschließend die Smoke-, Accessibility- und SQL-Tests aus. Der normale `npm test`-Lauf nutzt dagegen ausschließlich eine CI-Platzhalterkonfiguration.
+- `scripts/build-static.mjs` kopiert ausschließlich `index.html`, `rechtliches.html`, beide CSS-Dateien, beide JavaScript-Dateien, das PFMS-Logo und das Willkommens-Hintergrundbild nach `dist/` und erzeugt zusätzlich die projektgebundene `pfms-config.js`. SQL-Migrationen, Tests, interne Dokumentation und Repository-Konfigurationen werden nicht veröffentlicht.
+- Render veröffentlicht ausschließlich `./dist`. Automatische Deployments sind auf erfolgreiche Checks begrenzt (`autoDeployTrigger: checksPass`).
+- Die Staging-Response-Header enthalten eine Content-Security-Policy: Scripts sind auf lokale Dateien und `cdn.jsdelivr.net` begrenzt; Stylesheets dürfen zusätzlich die in `styles.css` verwendete Quelle `fonts.googleapis.com` laden; Font-Dateien sind über `font-src https:` erlaubt; Verbindungen sind auf lokale Origins und Supabase-Subdomains begrenzt; Frames und Plugin-Inhalte sind gesperrt. Die Richtlinie muss nach dem Deployment im Browser auf Auth, Storage und Medien geprüft werden. Bei einem legitimen blockierten Dienst wird nur die erforderliche konkrete Quelle ergänzt, nicht pauschal `*` freigegeben.
+- Die Blueprint-Datei provisioniert oder ändert keinen Dienst allein durch einen Git-Commit. Vor dem Anwenden in Render müssen Repository, Branch, Dienstname und Zielumgebung kontrolliert werden.
+- **Wichtige Typgrenze:** Der PFMS-Client ist eine statische Website. Render unterscheidet statische Websites (Blueprint: `type: web`, `runtime: static`) von normalen Web Services. Der Servicetyp kann nach der Erstellung nicht geändert werden. Ist der vorhandene Testdienst als normaler Web Service angelegt, muss ein separater Static-Site-Dienst erstellt werden; der bestehende Live-Dienst bleibt unverändert.
+
+- GitHub Actions muss beide Jobs grün melden: Node-Syntax-/Smoke-Tests und Deno-Typprüfung aller Edge Functions.
+- Render-Service-Typ im Dashboard verifizieren. Nicht allein aus der URL ableiten, ob es ein Static Site- oder Web-Service ist.
+- Staging-Service explizit auf den Entwicklungsbranch setzen.
+- Build/Publish-Konfiguration und Umgebungsvariablen prüfen; anschließend Login, Reload, mobile Navigation, Medien und Support im Browser testen.
+- Health-/Deploy-Logs sichern. Produktionsservice und Produktions-Branch bleiben unverändert.
+
+
+### Mandantentrennung für Teams und Organisationsmitglieder
+
+- Migration `20261211_pfms_legacy_team_membership_scope.sql` nach Backup und Prüfung der tatsächlichen Migrationshistorie anwenden.
+- `legacy_team_access_requires_active_org_membership` muss im Read-only-Abnahmeskript `passed = true` melden.
+- Positivtest: aktive Vereinsleitung und aktiver Trainer sehen ausschließlich Teams der eigenen freigegebenen/aktiven Organisation; der Trainer benötigt eine aktive Organisationsmitgliedschaft mit der Rolle `trainer`, passend zur Teamzuordnung.
+- Negativtest: Teamzugriff muss scheitern, sobald die Organisationsmitgliedschaft gesperrt/entzogen oder die Organisation nicht mehr `approved`/`active` ist. Ein weiterhin vorhandener aktiver Team-Personaldatensatz darf den Zugriff nicht aufrechterhalten.
+- Negativtest: Rollenwechsel der Organisationsmitgliedschaft ohne passende Änderung der Teamzuordnung darf keinen Trainerzugriff gewähren.
+- Negativtest: Nutzer einer zweiten Organisation dürfen weder Teams noch Kader, Trainings-, Finanz-, Veranstaltungs-, Aufgaben- oder Analyseinformationen der ersten Organisation lesen oder ändern.
+- Plattformadministratoren behalten nur den ausdrücklich implementierten globalen Verwaltungszugriff. Ergebnisse mit Testkonto, Rolle, Organisations-ID, Team-ID, Zeit und Request-/SQL-Fehler dokumentieren.
+
+### Zusätzliche Inhaber- und Profilrechte-Abnahme
+
+Vor einer Staging-Freigabe auch die neuen Inhaber-Schutzprüfungen ausführen:
+
+- Migration `20261210_pfms_owner_integrity_hardening.sql` erst nach Backup und Prüfung der tatsächlichen Migrationshistorie anwenden.
+- Mit einem zweiten Plattformadministrator versuchen, die Rolle und den Status des designierten Plattforminhabers über die normale Profilverwaltungs-RPC zu ändern. Der Aufruf muss serverseitig abgewiesen werden.
+- Als normal angemeldetes Konto prüfen, dass direkte UPDATE-Rechte auf `profiles.role` und `profiles.status` nicht bestehen. Die Abnahmeprüfung `profile_authority_columns_protected` muss `passed = true` melden. Falls nicht, zuerst die vorhandenen Profil-Policies, Spaltenrechte und legitimen Profiländerungsabläufe prüfen; keine pauschale Rechteänderung ohne diesen Audit.
+- Zwei parallele Administratorvorgänge simulieren, die unterschiedliche aktive Inhabermitgliedschaften derselben Organisation herabstufen. Die Organisationszeilensperre muss die Vorgänge serialisieren; am Ende muss mindestens ein aktiver Inhaber verbleiben.
+- Die Read-only-Abnahme muss `platform_owner_admin_protection` und `legacy_owner_updates_serialized` als bestanden ausweisen.
+
+## 7. Freigabegrenze
+
+Erst nach erfolgreicher Datenbank-, RLS-, Storage-, Rollen-, Browser-, Backup-/Restore- und Datenschutzabnahme darf ein separater Produktionsfreigabeplan erstellt werden. Zahlungsabwicklung bleibt deaktiviert, bis Anbieter, Gebühren, Webhooks, Rechnungs-/Steueranforderungen und rechtliche Texte geprüft und ausdrücklich freigegeben wurden.
+
+
+### Private Scout-Arbeitsbereiche, Medien und Einladungen
+
+- Read-only-Abnahme: `private_scout_tables_force_rls`, `private_scout_owner_policies`, `private_scout_storage_isolated` und `invitation_redemption_status_guard` müssen jeweils `passed = true` melden.
+- Mit zwei getrennten Scout-Testkonten prüfen: Scout A kann eigene Spieler, Berichte und Medien lesen; Scout B kann diese Datensätze weder lesen noch ändern. Ein Bericht oder Medium darf nicht an einen Spieler des jeweils anderen Scouts angehängt werden.
+- Storage-Negativtest: Upload und Lesen unter dem UID-Ordner eines anderen Kontos müssen scheitern. Der Bucket `pfss-scout-private` muss privat bleiben; keine öffentlichen URLs oder öffentlichen Buckets für diese Dateien verwenden.
+- Einladungstests: gültiger Code genau einmal; derselbe Code ein zweites Mal; widerrufener Code; abgelaufener Code; Organisation im gesperrten Status; parallele Einlösung desselben Codes. Nur der erste gültige Vorgang bei aktiver/freigegebener Organisation darf eine Mitgliedschaft erzeugen.
+- Der globale Spielerkatalog ist absichtlich für freigegebene Konten lesbar; Schreiboperationen bleiben Plattformadministratoren vorbehalten. Die Team-Kaderzuordnung und private Scout-Kopien sind davon getrennte Datensätze. Bei der Abnahme daher globale Katalogsichtbarkeit nicht mit Zugriff auf fremde Teamdaten oder private Scout-Arbeitsbereiche verwechseln.
+- Tests mit Testkonto, Benutzer-ID, Tabellen-/Objekt-ID, erwarteter Berechtigung und tatsächlichem Ergebnis protokollieren. Diese Tests sind erst nach separatem Staging-Setup auszuführen; keine Produktionsdaten verwenden.
+
+
+### Teamaufgaben: Empfängerstatus und Organisationsmitgliedschaft
+
+- `team_task_assignee_current_membership` muss im Read-only-Abnahmeskript `passed = true` melden.
+- Positivtest: Ein aktiver Teammitarbeiter mit aktiver Organisationsmitgliedschaft und übereinstimmender Rolle kann als Aufgabenempfänger ausgewählt werden.
+- Negativtests: Eine weiterhin aktive Team-Personalzuordnung darf nicht ausreichen, wenn die Organisationsmitgliedschaft entzogen/gesperrt, die Rolle geändert oder die Organisation gesperrt wurde. Erstellung und Änderung einer Aufgabe müssen die Zuweisung in allen diesen Fällen serverseitig ablehnen.
+- Auch bei einem Wechsel der Mitgliedschaft zwischen Formularanzeige und Speichern muss die Datenbankprüfung maßgeblich sein. Ergebnisse mit zwei Testkonten dokumentieren.
+
+
+### Trainingszyklen: Datumsintegrität von Trainingseinheiten
+
+- Read-only-Abnahme: `training_cycle_session_date_integrity` muss `passed = true` melden.
+- Positivtest: Eine Trainingseinheit innerhalb des Start-/Enddatums ihrer zugeordneten Mikrozykluswoche muss gespeichert werden können.
+- Negativtests: Nach Zuordnung darf das Datum nicht vor den Wochenbeginn oder nach das Wochenende verschoben werden. Eine Zuordnung zu einer Woche eines anderen Teams muss ebenfalls scheitern.
+- Die Tests über die regulären Trainings-RPCs mit zwei Team-Testkonten ausführen und Ergebnisse protokollieren. Noch nicht in Produktion oder auf einer realen Staging-Datenbank angewendet.
+
+
+### Spieltagsaufstellungen: Teamgrenzen
+
+- Read-only-Abnahme: `match_lineup_same_team_integrity` muss `passed = true` melden.
+- Positivtest: Ein Spieler aus dem Kader desselben Teams kann in die Aufstellung aufgenommen werden.
+- Negativtests: Eine Aufstellungszeile mit einem Spieler eines anderen Teams muss auf Datenbankebene abgewiesen werden, auch wenn ein direkter Schreibversuch außerhalb der regulären Oberfläche simuliert wird.
+- Vor Anwendung die vorhandenen Aufstellungsdaten auf Teamkonflikte prüfen. Die Migration bricht absichtlich ab, wenn bestehende Zeilen Spiel und Kaderzuordnung aus unterschiedlichen Teams verbinden.
+
+
+### Zentrale Mitgliedschaftsprüfung für Team-Modulrechte
+
+- Read-only-Abnahme: `team_module_permissions_require_central_membership` muss `passed = true` melden.
+- Negativtest: Teamzuweisung bleibt aktiv, aber Organisationsmitgliedschaft wird auf `suspended` gesetzt oder entfernt. Alle neun Modulzugriffe müssen danach verweigert werden.
+- Negativtest: Organisationsstatus wird auf `suspended` gesetzt. Normale Teammitarbeiter dürfen keine Modulrechte oder Berechtigungslisten mehr abrufen.
+- Positivtest: Aktive Organisationsmitgliedschaft, aktiver Teamstaff-Eintrag und passende Modulrechte müssen weiterhin den vorgesehenen Zugriff erlauben.
+- Tests mit getrennten Nutzerkonten für Organisationsmanager, Trainer, Mitarbeiter und Plattformadministrator durchführen. Noch nicht in einer echten Staging-Datenbank ausgeführt.
+
+
+### Organisationsbezogene Mitgliederverwaltung: Pagination und Statusübersicht
+
+- Neue additive Migration: `supabase/migrations/20261221_pfms_admin_org_member_pagination.sql`.
+- Die Plattformadministration lädt Organisationsmitglieder über `pfms_admin_list_legacy_org_members_page` in begrenzten Seiten (Standard 25, Maximum 100) und filtert Suche, Rolle und Status serverseitig.
+- Die RPC liefert zusätzlich Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler für die gewählte Organisation. Eine leere Ergebnis-Seite darf die Statussummen nicht verfälschen.
+- Read-only-Abnahme: `admin_org_member_pagination_security` und `admin_org_member_pagination_bounds` müssen `passed = true` melden; die bestehende `admin_directory_pagination_bounds` muss nun fünf geschützte Seiten-RPCs prüfen.
+- Positivtest: Plattformadministrator öffnet eine Organisation, wechselt Seiten und filtert nach Name/E-Mail/Benutzer-ID, Rolle und Status. Die Summen bleiben unabhängig vom aktiven Filter korrekt.
+- Negativtest: Nicht-Admin-Aufruf der RPC muss mit `42501` abgewiesen werden. Ungültige Status-/Rollenwerte, fehlende Organisations-ID, übergroße Seiten und Offsets müssen abgewiesen werden.
+- Regression: Während eine Seite lädt, Organisation wechseln oder abmelden; verspätete Antworten dürfen weder Details noch Mitgliederdaten der neuen Sitzung überschreiben.
+- Diese Migration ist noch nicht auf Supabase Staging angewendet. Erst nach read-only Schema-Audit anwenden und mit getrennten Admin-/Nicht-Admin-Testkonten abnehmen.
+
+
+### Zusätzliche Abnahme: Organisationsmitglieder-Zähler bei leeren Seiten
+
+- Die RPC `pfms_admin_list_legacy_org_members_page` muss die unfiltrierten Organisationssummen auch dann zurückgeben, wenn eine Such-/Filterkombination keine Treffer liefert oder ein Seitenoffset hinter dem letzten Datensatz liegt.
+- Positivtest: Organisation mit Mitgliedern öffnen, einen Filter ohne Treffer setzen und prüfen, dass Gesamt-, Aktiv-, Ausstehend- und Gesperrt-Zähler unverändert korrekt bleiben, während die gefilterte Trefferzahl null ist.
+- Positivtest: Bei einer Organisation ohne Mitglieder muss die RPC eine zusammenfassende Zeile mit vier Null-Zählern liefern, nicht eine leere Antwort.
+- Regression: Filter entfernen und prüfen, dass die Mitgliederdaten wieder korrekt erscheinen; ein verspäteter Seitenaufruf darf keine vorherigen Zähler überschreiben.
+- Das Read-only-Audit `admin_org_member_pagination_bounds` prüft nun zusätzlich die vier Status-/Gesamtzähler und die Verknüpfung der Zusammenfassung mit einer möglicherweise leeren Ergebnisseite.
+- Die CI prüft diese SQL-Vertragsbedingungen statisch. Der echte Laufzeittest bleibt Teil der isolierten Supabase-Staging-Abnahme.
+
+
+## Ergänzung – Organisationsstatus bei Verwaltungsrechten
+
+Die additive Migration `20261222_pfms_legacy_org_manager_active_org_gate.sql` härtet die gemeinsame Hilfsfunktion `public.can_manage_org(uuid)`. Ein aktiver Owner/eine aktive Organisationsleitung erhält Verwaltungsrechte nur, wenn auch die Organisation selbst den Status `approved` oder `active` besitzt.
+
+Nach dem Migration-Dry-Run und der Anwendung ausschließlich auf dem dedizierten Staging-Projekt prüfen:
+
+1. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `active`: Verwaltungszugriff wird gewährt.
+2. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `approved`: Verwaltungszugriff wird gewährt.
+3. Aktive Organisationsleitung + aktive Mitgliedschaft + Organisation `suspended` oder sonstiger nicht freigegebener Status: Verwaltungszugriff wird verweigert.
+4. Ausstehende oder gesperrte Mitgliedschaft: Verwaltungszugriff wird verweigert.
+5. Normales Mitglied ohne Führungsrolle: Verwaltungszugriff wird verweigert.
+6. Plattformadministratoren prüfen ihre separaten Admin-RPCs weiterhin über `pfms_is_admin()` bzw. `is_admin()`; die Manager-Hilfsfunktion ist kein Ersatz für diese Prüfung.
+
+Der Read-only-Acceptance-Audit muss `legacy_org_manager_active_organization_gate` mit `passed = true` ausgeben. Dieser Quellcode-/Katalogcheck ersetzt nicht die Positiv- und Negativtests mit getrennten Staging-Konten.
+
+
+## Ergänzung – Sicherheits-Audit und neue Staging-Abnahmepunkte (15.11.2026)
+
+Der Feature-Branch enthält nun 64 SQL-Migrationen. Die automatisierten GitHub-Actions sind für den aktuellen Auditstand erfolgreich. Das ist ein statischer Repository-Nachweis, keine Bestätigung, dass die Migrationen bereits auf Supabase Staging angewendet wurden.
+
+### Vor jeder Migration
+
+1. Ausschließlich das ausdrücklich dedizierte Supabase-Staging-Projekt verwenden.
+2. `supabase/STAGING_READ_ONLY_AUDIT.sql` vollständig ausführen und das Ergebnis sichern. Die Abfrage erfasst dynamisch alle Tabellen und partitionierten Tabellen in `public` und `storage`, Views, Policies, Trigger, Constraints, Tabellen-/Sequenz-/Schema-ACLs, Funktionsdefinitionen und Default-Privileges.
+3. `supabase/STAGING_ACCEPTANCE_READ_ONLY.sql` ausführen. Keine Migration aus diesem Schritt heraus anwenden.
+4. Die tatsächlichen Staging-Migrationsversionen gegen alle 64 Dateien im Feature-Branch abgleichen. Fehlende, zusätzliche oder abweichende Versionen vor einer Anwendung fachlich klären.
+5. Erst nach dokumentierter Freigabe die additive Migrationen einzeln in der vorgesehenen Reihenfolge anwenden. Live und Produktion bleiben unangetastet.
+
+### Neue Read-only-Acceptance-Prüfpunkte
+
+- `legacy_membership_requires_active_organization`: Die zentrale Legacy-PFSS-Rollenprüfung muss aktive Mitgliedschaft und aktive Organisation gemeinsam verlangen; `anon` darf die Funktion nicht ausführen.
+- `pfms_last_active_owner_is_protected`: Änderungen an PFMS-Mitgliedschaften müssen pro Organisation serialisiert werden und den letzten aktiven Owner schützen.
+
+- `ddl_rls_event_trigger_fail_closed`: Der aktive `ensure_rls`-Event-Trigger muss auf `ddl_command_end` mit genau den erwarteten DDL-Tags registriert sein. Seine SECURITY-DEFINER-Funktion muss einen leeren `search_path` verwenden, darf nicht für `PUBLIC`, `anon` oder `authenticated` ausführbar sein und muss bei Fehlern während der RLS-Aktivierung die Tabellenerstellung abbrechen.
+
+Folgende Prüfungen müssen jeweils `passed = true` liefern:
+
+- `organization_core_table_write_acl`: `pfms_organizations`, `pfms_memberships` und `pfms_scout_profiles` haben RLS aktiviert. `authenticated` darf lesen, aber nicht direkt schreiben; `anon` erhält keine Tabellenrechte. Serverzugriffe bleiben auf `service_role` beschränkt.
+- `owner_bootstrap_security_boundary`: Plattform-Owner- und Bootstrap-Anforderungstabellen sind RLS-geschützt und für Browserrollen nicht direkt zugänglich. Der initiale Signup-Trigger erzeugt die Bootstrap-Evidenz; die Claim-RPC ist ausschließlich für `service_role` ausführbar und muss die einzelne offene Anforderung unter Row Lock konsumieren.
+- `auth_trigger_function_acl`: Die vier Auth-Triggerfunktionen besitzen einen leeren `search_path` und sind nicht direkt durch `PUBLIC`, `anon` oder `authenticated` ausführbar.
+- `legacy_invitation_table_acl`: Die Tabelle `organization_invitations` hat RLS aktiviert und ist für `anon`/`authenticated` weder direkt les- noch schreibbar; Einladungen werden ausschließlich über kontrollierte RPCs und den Auth-Trigger verarbeitet.
+- `admin_legacy_profile_list_rpc_security`: Die alte Profil-Listen-RPC bleibt für autorisierte Administratoren kompatibel, besitzt aber einen leeren `search_path` und keine PUBLIC-/anon-Ausführungsrechte.
+- `legacy_team_access_requires_active_org_membership`: Die zentralen Teamzugriffs- und Verwaltungshelfer weisen NULL und nicht existente Team-IDs zurück. Nicht-Administratoren benötigen weiterhin eine aktive, passende Organisationsmitgliedschaft und Teamzuweisung.
+
+### Neue Positiv- und Negativtests mit getrennten Konten
+
+1. **Organisationstabellen:** Mit einem normalen angemeldeten Benutzer SELECT gemäß RLS prüfen. Direkte INSERT-, UPDATE-, DELETE- und TRUNCATE-Versuche auf allen drei Organisationstabellen müssen auf Datenbankebene scheitern. Mit `anon` dürfen auch SELECTs keine Tabellenrechte erhalten. Server-Schreibzugriffe ausschließlich über vertrauenswürdige Serverkontexte prüfen.
+2. **Owner-Bootstrap:** Setup-Verfügbarkeit als angemeldeter Benutzer prüfen. Direkte Ausführung der Trigger-/Claim-Funktionen als Browserrolle muss scheitern. Zwei parallele Claim-Versuche gegen dieselbe offene Anforderung simulieren; genau ein Claim darf erfolgreich sein. Wiederverwendung einer bereits konsumierten Anforderung muss scheitern.
+3. **Auth-Trigger:** Registrierungstests für Scout, Organisation und Legacy-Einladung durchführen. Trigger müssen weiter funktionieren, während direkte RPC-Aufrufe der Triggerfunktionen durch Browserrollen verweigert werden.
+4. **Legacy-Profil-Liste:** Administrator-Aufruf muss funktionieren. Nicht-Admin-Aufruf muss mit `42501` abgewiesen werden. Die paginierte Profil-RPC bleibt der bevorzugte Weg für neue Clients.
+5. **Teamgrenzen:** NULL und eine syntaktisch gültige, aber nicht existente Team-UUID müssen auch für Plattformadministratoren abgewiesen werden. Eine existierende Team-ID darf für Plattformadministratoren global zugänglich sein. Organisationsmanager und Trainer benötigen aktive, passende Organisationsmitgliedschaften und die jeweilige Teamrolle. Bei gesperrter Organisation verlieren normale Organisations-/Teammitglieder den Zugriff.
+6. **Regression:** Nach Änderung oder Suspendierung einer Organisationsmitgliedschaft alle relevanten Team-RPCs erneut prüfen. Eine noch aktive Teamzuweisung darf eine fehlende oder gesperrte Organisationsmitgliedschaft nicht ersetzen.
+
+### Neue additive Migrationen
+
+- `20261229_pfms_membership_authorization_integrity.sql`: Legacy-Rollenprüfung an den Organisationsstatus koppeln und den letzten aktiven Owner bei PFMS-Mitgliedschaftsänderungen schützen.
+
+- `20261228_pfms_ddl_rls_fail_closed.sql`: DDL-Event-Trigger für neue öffentliche Tabellen erhält einen leeren `search_path`, entzieht direkte Browser-EXECUTE-Rechte und bricht die DDL-Transaktion ab, wenn RLS nicht aktiviert werden kann.
+
+- `20261225_pfms_organization_table_write_acl_hardening.sql`: Browser-Schreibrechte auf den drei Organisationstabellen entziehen; RLS-gesteuerte SELECT-Rechte für `authenticated` erhalten.
+- `20261226_pfss_legacy_admin_profile_list_search_path.sql`: Legacy-Admin-Profil-Listen-RPC auf leeren `search_path` setzen.
+- `20261227_pfms_legacy_team_access_null_guard.sql`: NULL und nicht existente Team-IDs in den zentralen Teamzugriffs- und Verwaltungsfunktionen fail-closed behandeln.
+
+Keine dieser Migrationen ist durch die statische CI angewendet worden. Anwendung, Staging-Datenprüfung und Laufzeitabnahme bleiben separate, ausdrücklich freizugebende Schritte.
+
+
+## Ergänzung – parallele Organisationsinhaber-Änderungen
+
+Diese Prüfung ist ausschließlich mit einer isolierten Staging-Testorganisation und zwei eigens angelegten aktiven Inhaber-Testkonten durchzuführen. Keine echten Organisationskonten verwenden.
+
+1. Vorher sicherstellen, dass beide Testkonten aktive \`owner\`-Mitgliedschaften derselben Testorganisation besitzen und ein separates Plattform-Admin-Testkonto verfügbar ist.
+2. Zwei unabhängige authentifizierte Staging-Sitzungen vorbereiten. In beiden Sitzungen dieselbe Admin-RPC \`pfms_admin_update_membership\` aufrufen: Sitzung A stuft Inhaber A auf \`admin\` herab; Sitzung B stuft Inhaber B auf \`admin\` herab. Die Aufrufe zeitgleich starten.
+3. Erwartung: Die Datenbank serialisiert beide Änderungen über die Sperre des übergeordneten Organisationsdatensatzes. Höchstens eine Herabstufung darf erfolgreich sein; der zweite Aufruf muss wegen der letzten aktiven Inhaberschaft mit SQLSTATE \`23514\` abgewiesen werden.
+4. Anschließend direkt in der Datenbank verifizieren, dass mindestens eine aktive \`owner\`-Mitgliedschaft erhalten ist. Beide RPC-Ergebnisse und die verbleibende Mitgliedschaft dokumentieren.
+5. Zusätzlich ungültige Rollen, Statuswerte, NULL-Werte, nicht-objektförmige JSON-Payloads, unbekannte Berechtigungsschlüssel und Nicht-Boolean-Werte testen. Erwartet wird SQLSTATE \`22023\`.
+6. Mit einem Nicht-Admin-Konto die RPC direkt aufrufen. Erwartet wird SQLSTATE \`42501\`; die UI-Sperre allein ist keine Abnahme.
+7. Das read-only Acceptance-Audit muss \`pfms_membership_owner_lock_order\`, \`pfms_membership_input_validation\` und \`pfms_last_active_owner_is_protected\` jeweils mit \`passed = true\` melden.
+
+Die Prüfung verändert Testdaten und ist deshalb **kein** Teil des read-only SQL-Audits. Testorganisation und Konten nach dokumentierter Prüfung kontrolliert bereinigen. Diese Abnahme ist noch nicht durchgeführt und darf nicht aus statischen CI-Ergebnissen abgeleitet werden.
+
+
+## Ergänzung – Trennung der Legacy-Manager- und Plattform-Admin-RPCs
+
+Nach Anwendung der Migration 20261230_pfms_legacy_manager_admin_rpc_boundary.sql ausschließlich im isolierten Staging prüfen:
+
+1. Mit einem aktiven Organisationsmanager eine operative Mitgliedschaft (Scout/Trainer/Betreuer/Mitglied) ändern. Erwartet: erfolgreicher Aufruf über pfms_update_legacy_org_membership_for_manager.
+2. Mit demselben Organisationsmanager versuchen, eine Owner-, Club-Admin- oder Agentur-Admin-Mitgliedschaft zu ändern. Erwartet: SQLSTATE 42501.
+3. Mit einem Plattformadministrator die ältere Manager-RPC direkt aufrufen. Erwartet: SQLSTATE 42501 und keine Änderung an der Mitgliedschaft.
+4. Dieselbe administrative Änderung über pfms_admin_update_legacy_membership durchführen. Erwartet: Erfolg, sofern der letzte aktive Owner erhalten bleibt; andernfalls SQLSTATE 23514.
+5. Die Frontend-Verwaltung mit Manager- und Admin-Konten testen. Manager müssen weiterhin den bisherigen operativen Workflow nutzen; Plattformadministratoren müssen die dedizierte Admin-RPC verwenden.
+6. Das read-only Acceptance-Audit muss legacy_manager_rpc_admin_boundary = true melden.
+
+Diese Prüfung ist noch nicht durchgeführt. Der neue Migrationsschritt ist ausschließlich für den kontrollierten Staging-Plan vorgesehen und darf nicht ungeprüft angewendet werden.
+
+
+## Ergänzung – Schutz der Systemfehler-Schweregrade
+
+Nach Anwendung der Migration 20261231_pfms_system_event_severity_boundary.sql ausschließlich im isolierten Staging prüfen:
+
+1. Mit einem freigegebenen normalen Benutzer einen regulären Frontend-Fehler mit \`severity = 'error'\` einreichen. Erwartet: erfolgreicher Insert und Sichtbarkeit nur im Admin-Systemereignisbereich.
+2. Mit demselben Benutzer direkt über die API einen Eintrag mit \`severity = 'critical'\` versuchen. Erwartet: Ablehnung durch INSERT-RLS und/oder den BEFORE-INSERT-Trigger; es darf kein kritisches Ereignis entstehen.
+3. Den Insert mit \`severity = 'warning'\` versuchen. Erwartet: Ablehnung; Browser-Telemetrie darf ausschließlich normale Fehler melden.
+4. Als Plattformadministrator prüfen, dass bestehende kritische Ereignisse weiterhin sichtbar und bearbeitbar sind, ohne dass der Ereignisbeleg (severity, message, actor_id, details) verändert werden kann.
+5. Das read-only Acceptance-Audit muss \`system_event_client_severity_boundary = true\` melden.
+
+Die Prüfung verändert Testdaten und ist noch nicht durchgeführt. Keine Migration außerhalb des dedizierten Staging-Projekts anwenden.
