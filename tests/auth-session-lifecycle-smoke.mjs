@@ -189,3 +189,15 @@ assert.match(app, /if\(adminOnlyViews\.has\(view\)&&!window\.pfssIsRealAdmin\)\{
   "Legacy platform administrator routes must remain blocked.");
 assert.match(app, /if\(window\.pfssCurrentUserId&&workflows&&!workflows\.canAccessView\(roleContext,view\)\)/,
   "Direct or stale navigation must be restricted by the centralized role workflow context.");
+
+
+// Regression: auth and app containers must switch both class and native hidden state.
+const authScreenController = app.match(/function setPfmsScreenVisibility\(element, visible\)[\s\S]*?function showAuthScreen\(\)/)?.[0] || "";
+assert.match(authScreenController, /classList\.toggle\('hidden', !visible\)/,
+  "Screen transitions must keep the legacy hidden class in sync.");
+assert.match(authScreenController, /element\.hidden = !visible/,
+  "Screen transitions must also use the native hidden state.");
+assert.match(authScreenController, /setProperty\('display', 'none', 'important'\)/,
+  "Hidden screens must remain hidden despite responsive display rules.");
+assert.match(app, /setPfmsScreenVisibility\(document\.getElementById\('authScreen'\), false\)[\s\S]*?setPfmsScreenVisibility\(document\.getElementById\('appShell'\), true\)/,
+  "Successful authentication must hide login and reveal the application shell.");
