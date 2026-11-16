@@ -155,6 +155,59 @@ const broadLegacyManager = workflows.resolveContext({
 assert.equal(broadLegacyManager.canManageClub, false,
   "Frontend role matrix must not grant leadership beyond the server can_manage_org contract.");
 
+const canonicalClubAdminWithPermission = workflows.resolveContext({
+  profileRole: "user",
+  organizations: [{
+    organization_type: "club",
+    organization_status: "active",
+    membership_status: "active",
+    member_role: "club_admin",
+    source_member_role: "manager",
+    can_manage_organization: true
+  }]
+});
+assert.equal(canonicalClubAdminWithPermission.canManageClub, true);
+assert.equal(workflows.canAccessView(canonicalClubAdminWithPermission, "club-members"), true);
+
+const canonicalAgencyAdminWithPermission = workflows.resolveContext({
+  profileRole: "user",
+  organizations: [{
+    organization_type: "agency",
+    organization_status: "active",
+    membership_status: "active",
+    member_role: "agency_admin",
+    source_member_role: "admin",
+    can_manage_organization: true
+  }]
+});
+assert.equal(canonicalAgencyAdminWithPermission.canManageAgency, true);
+assert.equal(workflows.getStartView(canonicalAgencyAdminWithPermission), "agencies");
+
+const declaredAgencyScout = workflows.resolveContext({
+  profileRole: "user",
+  roles: ["agenturscout"]
+});
+assert.equal(declaredAgencyScout.isScout, true);
+assert.equal(declaredAgencyScout.isAgencyScout, true);
+assert.equal(declaredAgencyScout.roleLabel, "Agenturscout");
+assert.equal(workflows.canAccessView(declaredAgencyScout, "scout-workspace"), true);
+
+const declaredPlayer = workflows.resolveContext({
+  profileRole: "user",
+  roles: ["spieler"]
+});
+assert.equal(declaredPlayer.isPlayer, true);
+assert.equal(declaredPlayer.roleLabel, "Spieler");
+assert.equal(workflows.canAccessView(declaredPlayer, "admin"), false);
+
+const declaredTrainer = workflows.resolveContext({
+  profileRole: "user",
+  roles: ["trainer"]
+});
+assert.equal(declaredTrainer.roleLabel, "Trainer");
+assert.equal(workflows.canAccessView(declaredTrainer, "team-workspace"), false,
+  "A declared trainer role without a current team assignment must not grant the team workspace.");
+
 const multi = workflows.resolveContext({
   profileRole: "user",
   organizations: [
