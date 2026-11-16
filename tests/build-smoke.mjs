@@ -41,7 +41,7 @@ const requiredFiles = [
   "pfms-role-workflows.js",
   "scout-workspace.js",
   "pfms-logo.svg",
-  "pfms-welcome.webp",
+  "pfms-welcome.svg",
   "connection-test.html",
   "pfms-config.js"
 ];
