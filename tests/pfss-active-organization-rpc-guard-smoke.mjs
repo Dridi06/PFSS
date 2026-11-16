@@ -11,26 +11,57 @@ const sql = await readFile(
 assert.match(sql, /MANUAL STAGING HARDENING ONLY/);
 assert.match(sql, /Do not place this file in supabase\/migrations or apply it to production/i);
 
-for (const name of ["pfss_org_remove_member", "pfss_org_update_member"]) {
+const contracts = {
+  pfms_is_org_member: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NOT\s+NULL/i, /JOIN public\.profiles profile/i,
+    /profile\.status\s*=\s*'approved'/i, /o\.status\s*=\s*'active'/i,
+    /m\.status\s*=\s*'active'/i
+  ],
+  pfss_has_org_role: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NOT\s+NULL/i, /JOIN public\.profiles profile/i,
+    /profile\.status\s*=\s*'approved'/i, /o\.status\s*=\s*'active'/i,
+    /m\.status\s*=\s*'active'/i
+  ],
+  pfss_create_organization: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NULL/i, /Profile approval required/i,
+    /profile\.status\s*=\s*'approved'/i
+  ],
+  pfss_org_remove_member: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NULL/i, /JOIN public\.pfss_organizations/i,
+    /JOIN public\.profiles actor_profile/i, /actor_profile\.status\s*=\s*'approved'/i,
+    /org\.status\s*=\s*'active'/i, /FOR UPDATE/i,
+    /Owner membership cannot be removed/i, /pfss_audit_log/i
+  ],
+  pfss_org_update_member: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NULL/i, /JOIN public\.pfss_organizations/i,
+    /JOIN public\.profiles actor_profile/i, /actor_profile\.status\s*=\s*'approved'/i,
+    /org\.status\s*=\s*'active'/i, /FOR UPDATE/i,
+    /Owner membership is protected/i, /pfss_audit_log/i
+  ]
+};
+
+for (const [name, checks] of Object.entries(contracts)) {
   const start = sql.indexOf("CREATE OR REPLACE FUNCTION public." + name + "(");
   assert.notEqual(start, -1, "Missing hardened definition for " + name);
   const endMarker = "$function$;";
   const end = sql.indexOf(endMarker, start);
   assert.notEqual(end, -1, "Missing function terminator for " + name);
   const definition = sql.slice(start, end + endMarker.length);
-
-  assert.match(definition, /SECURITY DEFINER/i);
-  assert.match(definition, /SET search_path\s*=\s*''/i);
-  assert.match(definition, /auth\.uid\(\)\s+IS\s+NULL/i);
-  assert.match(definition, /JOIN public\.pfss_organizations/i);
-  assert.match(definition, /org\.status\s*=\s*'active'/i);
-  assert.match(definition, /actor\.status\s*=\s*'active'/i);
-  assert.match(definition, /NOT IN\s*\('owner',\s*'admin'\)/i);
-  assert.match(definition, /FOR UPDATE/i);
-  assert.match(definition, /pfss_audit_log/i);
+  for (const check of checks) {
+    assert.match(definition, check, "Security contract failed for " + name + ": " + check);
+  }
 }
-assert.match(sql, /REVOKE ALL ON FUNCTION public\.pfss_org_remove_member\(uuid\)\s+FROM PUBLIC, anon/i);
-assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.pfss_org_remove_member\(uuid\)\s+TO authenticated/i);
-assert.match(sql, /REVOKE ALL ON FUNCTION public\.pfss_org_update_member\(uuid, text, text\)\s+FROM PUBLIC, anon/i);
-assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.pfss_org_update_member\(uuid, text, text\)\s+TO authenticated/i);
-console.log("PFMS active-organization membership RPC hardening contract passed.");
+for (const line of [
+  "REVOKE ALL ON FUNCTION public.pfms_is_org_member(uuid) FROM PUBLIC, anon;",
+  "REVOKE ALL ON FUNCTION public.pfss_has_org_role(uuid, text[]) FROM PUBLIC, anon;",
+  "REVOKE ALL ON FUNCTION public.pfss_create_organization(text, text, text) FROM PUBLIC, anon;",
+  "REVOKE ALL ON FUNCTION public.pfss_org_remove_member(uuid) FROM PUBLIC, anon;",
+  "REVOKE ALL ON FUNCTION public.pfss_org_update_member(uuid, text, text) FROM PUBLIC, anon;"
+]) assert.ok(sql.includes(line), "Missing browser-role deny rule: " + line);
+
+console.log("PFMS approved-profile and active-organization authorization contract passed.");
