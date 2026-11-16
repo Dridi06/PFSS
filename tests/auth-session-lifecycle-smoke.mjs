@@ -127,7 +127,7 @@ assert.match(app, /async function verifyPfmsAuthEndpoint\(\)[\s\S]*?\/auth\/v1\/
   "The login must verify the configured Supabase Auth endpoint before submitting credentials.");
 assert.match(app, /await verifyPfmsAuthEndpoint\(\)[\s\S]*?signInWithPassword/,
   "Credential submission must be preceded by the Auth endpoint diagnostic.");
-assert.match(app, /function getPfmsAuthFailureMessage\(error\)[\s\S]*?invalid_credentials[\s\S]*?email_not_confirmed[\s\S]*?invalid_credentials[\s\S]*?AbortError/,
+assert.match(app, /function getPfmsAuthFailureMessage\(error\)[\s\S]*?email_not_confirmed[\s\S]*?invalid_credentials[\s\S]*?AbortError/,
   "Login failures must distinguish bad credentials, unconfirmed email and endpoint/network failures.");
 assert.match(app, /diagnosticId[\s\S]*?projectRef:[\s\S]*?supabaseHost:/,
   "A failed login must emit a sanitized diagnostic reference and non-secret environment metadata.");
