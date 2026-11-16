@@ -123,6 +123,17 @@ assert.match(adminSupportSetup, /data-admin-page-action[\s\S]*?loadPfmsAdminSupp
 assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTickets = \[\]/,
   "Signing out or changing accounts must invalidate pending support inbox requests.");
 
+assert.match(app, /async function verifyPfmsAuthEndpoint\(\)[\s\S]*?\/auth\/v1\/settings/,
+  "The login must verify the configured Supabase Auth endpoint before submitting credentials.");
+assert.match(app, /await verifyPfmsAuthEndpoint\(\)[\s\S]*?signInWithPassword/,
+  "Credential submission must be preceded by the Auth endpoint diagnostic.");
+assert.match(app, /function getPfmsAuthFailureMessage\(error\)[\s\S]*?invalid_credentials[\s\S]*?email_not_confirmed[\s\S]*?AbortError/,
+  "Login failures must distinguish bad credentials, unconfirmed email and endpoint/network failures.");
+assert.match(app, /diagnosticId[\s\S]*?projectRef:[\s\S]*?supabaseHost:/,
+  "A failed login must emit a sanitized diagnostic reference and non-secret environment metadata.");
+assert.match(app, /app\.js\?v=20261116-auth-diagnostics-1/,
+  "The login script URL must be cache-busted when authentication diagnostics change.");
+
 assert.match(app, /PFMS authentication failed:[\s\S]*?PFMS access validation failed after successful authentication:[\s\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
   "Authentication errors must be distinguished from profile/access validation failures after a successful sign-in.");
 
