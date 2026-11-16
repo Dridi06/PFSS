@@ -9264,7 +9264,7 @@ document.getElementById('passwordRecoveryForm')
     const email = String(form.elements.email.value || '').trim().toLowerCase();
     const message = document.getElementById('passwordRecoveryMessage');
     const button = document.getElementById('sendPasswordRecoveryButton');
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       message.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
       form.elements.email.focus();
       return;
