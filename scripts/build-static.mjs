@@ -170,7 +170,7 @@ for (const relativePath of publicFiles) {
       encodedParts.push(encoded);
     }
     const encodedArtwork = encodedParts.join("");
-    if (encodedArtwork.length !== 44116 || encodedArtwork.length % 4 !== 0) {
+    if (encodedArtwork.length !== 56440 || encodedArtwork.length % 4 !== 0) {
       throw new Error("PFMS login artwork is incomplete: encoded length does not match the verified original.");
     }
     const imageBytes = Buffer.from(encodedArtwork, "base64");
