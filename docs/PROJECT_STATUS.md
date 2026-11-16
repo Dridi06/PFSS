@@ -1,3 +1,15 @@
+# Ergänzung 16.11.2026 – iPhone-Login bleibt nach erfolgreicher Anmeldung sichtbar
+
+- Fehlerbild anhand des iPhone-Screenshots aufgenommen: Login-/Footer-Bereich blieb oberhalb des bereits sichtbaren PFMS-Dashboards stehen.
+- Ursache auf der Frontend-Screen-Umschaltung eingegrenzt: Die Auth-, Pending-, Recovery- und App-Shell-Sichtbarkeit wurde bislang nur über CSS-Klassen gesteuert. Das ist für den mobilen Browserzustand nicht ausreichend robust.
+- Neue zentrale Funktion `setPfmsScreenVisibility()` synchronisiert CSS-Klasse, natives `hidden`-Attribut, `aria-hidden` und expliziten `display:none!important`-Zustand. Auth-, Pending-, Recovery- und App-Shell-Wechsel verwenden die zentrale Funktion; beim erfolgreichen Abschluss wird Login explizit ausgeblendet und die App-Shell eingeblendet.
+- Zusätzliche CSS-Absicherung für versteckte Screen-Container und Regressionstests im bestehenden `auth-session-lifecycle-smoke` ergänzt. Asset-Cache-Buster aktualisiert.
+- Staging-Branch `feature/pfss-complete-platform-build`; letzter Commit `ace079aad1b72840901cd9b83001a47403c39e77`. Render-Staging-Deployment `dep-dbtg5hoae00c73dbb070` ist **LIVE**. Vollständiger Render-Build mit `check:syntax`, statischem Staging-Build und `test:dist` erfolgreich; Auth-/Session-Lifecycle-Regressionstest bestanden.
+- Ausschließlich Render-Staging `pfss-staging` aktualisiert. Produktion `main`, Live-Render-Service und Supabase-Projekte/Daten wurden nicht verändert.
+- Noch ausstehend ist der echte iPhone-End-to-End-Test mit dem angemeldeten Staging-Konto. Nach dem erneuten Laden muss die Login-Oberfläche vollständig verschwunden sein und das Dashboard direkt angezeigt werden.
+
+---
+
 ## Ergänzung 15.11.2026 – Effektive letzte Definitionen kritischer Mandantenfunktionen
 
 - Neuer Regressionstest `tests/critical-function-effective-definition-smoke.mjs` verfolgt die letzte `CREATE OR REPLACE FUNCTION`-Definition zentraler Autorisierungsfunktionen über alle Migrationen in lexikografischer Reihenfolge.
