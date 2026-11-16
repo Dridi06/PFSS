@@ -18,7 +18,7 @@ const publicFiles = [
   "pfms-role-workflows.js",
   "scout-workspace.js",
   "pfms-logo.svg",
-  "pfms-welcome.svg"
+  "pfms-welcome.webp"
 ];
 
 function readSupabaseBuildConfig() {
@@ -105,27 +105,63 @@ await writeFile(
 );
 
 for (const relativePath of publicFiles) {
-  const sourcePath = resolve(repositoryRoot, relativePath);
   const targetPath = resolve(outputDirectory, relativePath);
 
+  // Reassemble the exact user-supplied login artwork from small UTF-8 Git blobs.
+  // This avoids truncation of large binary payloads in repository content uploads.
+  if (relativePath === "pfms-welcome.webp") {
+    const encodedParts = [];
+    for (let part = 1; part <= 13; part += 1) {
+      const partPath = resolve(
+        repositoryRoot,
+        "pfms-welcome-data",
+        `part-${String(part).padStart(2, "0")}.txt`
+      );
+      const encoded = (await readFile(partPath, "utf8")).trim();
+      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+        throw new Error(`PFMS welcome artwork part ${part} contains invalid base64 data.`);
+      }
+      encodedParts.push(encoded);
+    }
+
+    const encodedArtwork = encodedParts.join("");
+    if (encodedArtwork.length !== 57912 || encodedArtwork.length % 4 !== 0) {
+      throw new Error("PFMS welcome artwork is incomplete: encoded length does not match the verified source.");
+    }
+
+    const imageBytes = Buffer.from(encodedArtwork, "base64");
+    const isWebP =
+      imageBytes.length >= 20 &&
+      imageBytes.toString("ascii", 0, 4) === "RIFF" &&
+      imageBytes.readUInt32LE(4) === imageBytes.length - 8 &&
+      imageBytes.toString("ascii", 8, 12) === "WEBP";
+
+    let offset = 12;
+    let hasImageChunk = false;
+    while (isWebP && offset < imageBytes.length) {
+      if (offset + 8 > imageBytes.length) break;
+      const chunkType = imageBytes.toString("ascii", offset, offset + 4);
+      const chunkLength = imageBytes.readUInt32LE(offset + 4);
+      const chunkEnd = offset + 8 + chunkLength;
+      if (chunkEnd > imageBytes.length) break;
+      if (["VP8 ", "VP8L", "VP8X"].includes(chunkType)) hasImageChunk = true;
+      offset = chunkEnd + (chunkLength % 2);
+    }
+
+    if (!isWebP || !hasImageChunk || offset !== imageBytes.length) {
+      throw new Error("PFMS welcome artwork failed WebP signature and chunk-integrity checks.");
+    }
+
+    await writeFile(targetPath, imageBytes);
+    continue;
+  }
+
+  const sourcePath = resolve(repositoryRoot, relativePath);
   try {
     await access(sourcePath);
   } catch {
     throw new Error(`Required public asset is missing: ${relativePath}`);
   }
-
-  if (relativePath === "pfms-welcome.svg") {
-    const artwork = await readFile(sourcePath, "utf8");
-    if (
-      artwork.length < 4000 ||
-      !artwork.trimStart().startsWith("<svg ") ||
-      !artwork.trimEnd().endsWith("</svg>") ||
-      !artwork.includes('viewBox="0 0 1600 1100"')
-    ) {
-      throw new Error("PFMS welcome artwork is invalid, incomplete, or missing its expected SVG viewBox.");
-    }
-  }
-
   await copyFile(sourcePath, targetPath);
 }
 
