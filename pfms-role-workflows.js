@@ -32,11 +32,16 @@
     return normalizeRole(organization?.member_role ?? organization?.role);
   }
 
+  function canManageOrganization(organization) {
+    return organization?.can_manage_organization === true ||
+      MANAGER_ROLES.has(membershipRole(organization));
+  }
+
   function roleForMembership(organization) {
     const type = normalizeRole(organization?.organization_type ?? organization?.type);
     const role = membershipRole(organization);
-    if (type === "club" && ["owner", "club_admin"].includes(role)) return "verein";
-    if (type === "agency" && ["owner", "agency_admin"].includes(role)) return "agentur";
+    if (canManageOrganization(organization) && type === "club") return "verein";
+    if (canManageOrganization(organization) && type === "agency") return "agentur";
     if (role === "scout" && type === "club") return "scout";
     if (role === "scout" && type === "agency") return "agenturscout";
     if (["trainer", "coach"].includes(role)) return "trainer";
@@ -56,7 +61,7 @@
     const activeOrganizations = organizations.filter(isActiveMembership);
     const manageableOrganizations = activeOrganizations.filter(organization => {
       const type = normalizeRole(organization?.organization_type ?? organization?.type);
-      return ["club", "agency"].includes(type) && MANAGER_ROLES.has(membershipRole(organization));
+      return ["club", "agency"].includes(type) && canManageOrganization(organization);
     });
     const clubOrganizations = manageableOrganizations.filter(
       organization => normalizeRole(organization?.organization_type ?? organization?.type) === "club"
@@ -68,6 +73,10 @@
     const canManageAgency = agencyOrganizations.length > 0;
 
     const activeMemberRoles = activeOrganizations.map(membershipRole);
+    const mappedMembershipRoles = activeOrganizations.map(roleForMembership).filter(Boolean);
+    const declaredRoles = new Set(
+      (Array.isArray(input.roles) ? input.roles : []).map(normalizeRole)
+    );
     const hasAgencyScoutMembership = activeOrganizations.some(organization =>
       normalizeRole(organization?.organization_type ?? organization?.type) === "agency" &&
       membershipRole(organization) === "scout"
@@ -76,12 +85,14 @@
       normalizeRole(organization?.organization_type ?? organization?.type) === "club" &&
       membershipRole(organization) === "scout"
     );
-    const isAgencyScout = profileRole === "agenturscout" || hasAgencyScoutMembership;
+    const isAgencyScout = profileRole === "agenturscout" ||
+      declaredRoles.has("agenturscout") || hasAgencyScoutMembership;
     const isScout = profileRole.includes("scout") ||
+      declaredRoles.has("scout") || declaredRoles.has("agenturscout") ||
       activeMemberRoles.includes("scout") ||
       hasAgencyScoutMembership || hasClubScoutMembership;
     const isPlayer = ["player", "spieler"].includes(profileRole) ||
-      activeMemberRoles.includes("member");
+      declaredRoles.has("spieler") || activeMemberRoles.includes("member");
 
     const activeTeamAssignments = teamAssignments.filter(assignment => {
       const assignmentStatus = normalizeRole(assignment?.assignment_status ?? assignment?.status);
@@ -89,11 +100,12 @@
       return (!assignmentStatus || assignmentStatus === "active") &&
         (!teamStatus || teamStatus === "active");
     });
-    const teamMembershipRoles = activeMemberRoles.filter(role => TEAM_ROLE_HINTS.has(role));
+    const teamMembershipRoles = mappedMembershipRoles.filter(role => TEAM_ROLE_HINTS.has(role));
     const assignedTeamRoles = activeTeamAssignments
       .map(assignment => normalizeRole(assignment?.team_role ?? assignment?.role))
       .filter(role => TEAM_ROLE_HINTS.has(role));
-    const effectiveTeamRoles = [...new Set([...teamMembershipRoles, ...assignedTeamRoles])];
+    const declaredTeamRoles = [...declaredRoles].filter(role => TEAM_ROLE_HINTS.has(role));
+    const effectiveTeamRoles = [...new Set([...teamMembershipRoles, ...assignedTeamRoles, ...declaredTeamRoles])];
     const hasTeamRoleHint = TEAM_ROLE_HINTS.has(profileRole) || effectiveTeamRoles.length > 0;
     const hasTeamAccess = teams.length > 0 || activeTeamAssignments.length > 0;
 
@@ -171,6 +183,7 @@
 
   root.PFMSRoleWorkflows = Object.freeze({
     normalizeRole,
+    canManageOrganization,
     roleForMembership,
     resolveContext,
     canAccessView,
