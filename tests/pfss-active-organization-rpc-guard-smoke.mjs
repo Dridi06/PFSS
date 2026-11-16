@@ -26,7 +26,7 @@ const contracts = {
   ],
   pfss_create_organization: [
     /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
-    /auth\.uid\(\)\s+IS\s+NULL/i, /Profile approval required/i,
+    /v_user_id\s+IS\s+NULL/i, /Profile approval required/i,
     /profile\.status\s*=\s*'approved'/i
   ],
   pfss_org_remove_member: [
