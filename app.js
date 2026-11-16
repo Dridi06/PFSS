@@ -9241,6 +9241,84 @@ document.getElementById('passkeyLoginButton')
     }
   });
 
+
+async function verifyPfmsAuthEndpoint() {
+  const expectedRef = String(PFMS_RUNTIME_CONFIG.projectRef || '').trim();
+  const configuredTarget = String(PFMS_RUNTIME_CONFIG.buildTarget || 'unknown').trim();
+  const configuredHost = new URL(PFSS_SUPABASE_URL).hostname;
+
+  if (configuredTarget === 'staging' && expectedRef && configuredHost !== expectedRef + '.supabase.co') {
+    const error = new Error('Staging project reference does not match the configured Supabase endpoint.');
+    error.code = 'staging_project_mismatch';
+    throw error;
+  }
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(PFSS_SUPABASE_URL + '/auth/v1/settings', {
+      method: 'GET',
+      headers: { 'apikey': PFSS_SUPABASE_KEY, 'Accept': 'application/json' },
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error('Supabase Auth settings endpoint returned HTTP ' + response.status + '.');
+      error.status = response.status;
+      error.code = payload.error_code || payload.code || 'auth_settings_http_error';
+      throw error;
+    }
+    if (payload?.external?.email === false) {
+      const error = new Error('Email/password authentication is disabled for this Supabase project.');
+      error.status = 403;
+      error.code = 'email_provider_disabled';
+      throw error;
+    }
+    return payload;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+function getPfmsAuthFailureMessage(error) {
+  const status = Number(error?.status || error?.statusCode || 0);
+  const code = String(error?.code || error?.error_code || '').toLowerCase();
+  const name = String(error?.name || '');
+  const detail = String(error?.message || '').toLowerCase();
+
+  if (code === 'staging_project_mismatch') {
+    return 'Die Staging-Konfiguration verweist auf ein anderes Supabase-Projekt. Bitte die Render-Build-Konfiguration korrigieren.';
+  }
+  if (code === 'email_provider_disabled' || detail.includes('email provider is disabled')) {
+    return 'Die E-Mail-/Passwort-Anmeldung ist im Supabase-Testprojekt deaktiviert. Die Zugangsdaten sind damit noch nicht geprüft.';
+  }
+  if (code === 'email_not_confirmed' || detail.includes('email not confirmed')) {
+    return 'Die E-Mail-Adresse dieses Kontos ist noch nicht bestätigt. Bitte zuerst die Kontobestätigung abschließen.';
+  }
+  if (status === 400 && (code === 'invalid_credentials' || detail.includes('invalid login credentials') || detail.includes('invalid_credentials'))) {
+    return 'E-Mail-Adresse oder Passwort stimmen nicht überein. Bitte prüfe die Eingabe.';
+  }
+  if (status === 401 || status === 403) {
+    return 'Supabase hat den Zugriff auf den Authentifizierungsdienst abgelehnt (HTTP ' + status + '). Bitte den öffentlichen Staging-Schlüssel und die Projektkonfiguration prüfen.';
+  }
+  if (status === 429) {
+    return 'Zu viele Anmeldeversuche. Bitte einige Minuten warten und danach erneut versuchen.';
+  }
+  if (status >= 500) {
+    return 'Der Supabase-Anmeldedienst meldet einen Serverfehler (HTTP ' + status + '). Das ist kein Nachweis für ein falsches Passwort.';
+  }
+  if (name === 'AbortError') {
+    return 'Die Verbindung zum Supabase-Anmeldedienst hat länger als 10 Sekunden benötigt und wurde abgebrochen. Bitte Netzwerk und Staging-Erreichbarkeit prüfen.';
+  }
+  if (name === 'AuthRetryableFetchError' || error instanceof TypeError || /failed to fetch|networkerror|network request failed|load failed|fetch failed|timeout/i.test(detail)) {
+    return 'Der Browser erreicht den Supabase-Anmeldedienst nicht. Bitte Netzwerk, Browser-Schutzfunktionen und die Staging-Supabase-URL prüfen. Das Passwort wurde dabei nicht verlässlich geprüft.';
+  }
+
+  const diagnostic = [name || 'Error', status ? 'HTTP ' + status : '', code ? 'Code ' + code : ''].filter(Boolean).join(' · ') || 'unbekannt';
+  return 'Technischer Anmeldefehler (' + diagnostic + '). Die Zugangsdaten wurden nicht eindeutig als Ursache bestätigt.';
+}
+
 document.getElementById('authForm')
   .addEventListener('submit', async event => {
     event.preventDefault();
@@ -9251,12 +9329,14 @@ document.getElementById('authForm')
     const message = document.getElementById('authMessage');
     const button = document.getElementById('loginButton');
 
-    message.textContent = 'Anmeldung wird geprüft …';
+    message.textContent = 'Verbindung zum Anmeldedienst wird geprüft …';
     button.disabled = true;
 
     try {
       let data;
       try {
+        await verifyPfmsAuthEndpoint();
+        message.textContent = 'Anmeldung wird geprüft …';
         if (identifier.includes('@')) {
           const result = await pfssSupabase.auth.signInWithPassword({
             email: identifier,
@@ -9288,9 +9368,18 @@ document.getElementById('authForm')
           data = sessionResult.data;
         }
       } catch (authError) {
-        console.warn('PFMS authentication failed:', authError?.message || authError);
-        message.textContent =
-          'Anmeldung fehlgeschlagen: Benutzername/E-Mail oder Passwort prüfen.';
+        const diagnosticId = 'PFMS-' + Date.now().toString(36).toUpperCase();
+        console.error('PFMS login diagnostic:', {
+          diagnosticId,
+          name: authError?.name || 'Error',
+          status: authError?.status || authError?.statusCode || null,
+          code: authError?.code || authError?.error_code || null,
+          message: pfmsSanitizeLogValue(authError?.message || authError, 300),
+          buildTarget: PFMS_RUNTIME_CONFIG.buildTarget || 'unknown',
+          projectRef: PFMS_RUNTIME_CONFIG.projectRef || 'unknown',
+          supabaseHost: new URL(PFSS_SUPABASE_URL).hostname
+        });
+        message.textContent = getPfmsAuthFailureMessage(authError) + ' Diagnosekennung: ' + diagnosticId + '.';
         return;
       }
 
