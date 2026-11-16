@@ -9256,40 +9256,56 @@ document.getElementById('authForm')
 
     try {
       let data;
-      if (identifier.includes('@')) {
-        const result = await pfssSupabase.auth.signInWithPassword({
-          email: identifier,
-          password
-        });
-        if (result.error) throw result.error;
-        data = result.data;
-      } else {
-        const response = await fetch(
-          PFSS_SUPABASE_URL + '/functions/v1/username-login',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': PFSS_SUPABASE_KEY
-            },
-            body: JSON.stringify({ username: identifier, password })
+      try {
+        if (identifier.includes('@')) {
+          const result = await pfssSupabase.auth.signInWithPassword({
+            email: identifier,
+            password
+          });
+          if (result.error) throw result.error;
+          data = result.data;
+        } else {
+          const response = await fetch(
+            PFSS_SUPABASE_URL + '/functions/v1/username-login',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': PFSS_SUPABASE_KEY
+              },
+              body: JSON.stringify({ username: identifier, password })
+            }
+          );
+          const result = await response.json();
+          if (!response.ok || !result.access_token || !result.refresh_token) {
+            throw new Error('Anmeldung fehlgeschlagen');
           }
-        );
-        const result = await response.json();
-        if (!response.ok || !result.access_token || !result.refresh_token) {
-          throw new Error('Anmeldung fehlgeschlagen');
+          const sessionResult = await pfssSupabase.auth.setSession({
+            access_token: result.access_token,
+            refresh_token: result.refresh_token
+          });
+          if (sessionResult.error) throw sessionResult.error;
+          data = sessionResult.data;
         }
-        const sessionResult = await pfssSupabase.auth.setSession({
-          access_token: result.access_token,
-          refresh_token: result.refresh_token
-        });
-        if (sessionResult.error) throw sessionResult.error;
-        data = sessionResult.data;
+      } catch (authError) {
+        console.warn('PFMS authentication failed:', authError?.message || authError);
+        message.textContent =
+          'Anmeldung fehlgeschlagen: Benutzername/E-Mail oder Passwort prüfen.';
+        return;
       }
-      await checkPfssAccess(data.user);
-    } catch (error) {
-      message.textContent =
-        'Anmeldung fehlgeschlagen: Benutzername/E-Mail oder Passwort prüfen.';
+
+      if (!data?.user) {
+        message.textContent = 'Anmeldung fehlgeschlagen: Es wurde kein Benutzerkonto zurückgegeben.';
+        return;
+      }
+
+      try {
+        await checkPfssAccess(data.user);
+      } catch (accessError) {
+        console.error('PFMS access validation failed after successful authentication:', accessError);
+        message.textContent =
+          'Anmeldung erfolgreich, aber die Profil- und Berechtigungsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.';
+      }
     } finally {
       button.disabled = false;
     }
