@@ -388,10 +388,10 @@
 #authScreen .auth-visual{
   display:block!important;position:relative!important;isolation:isolate!important;
   box-sizing:border-box!important;width:100%!important;min-width:0!important;
-  min-height:clamp(500px,72vh,690px)!important;height:auto!important;
+  min-height:0!important;height:auto!important;aspect-ratio:512 / 468!important;
   padding:0!important;overflow:hidden!important;
   border:1px solid rgba(214,181,109,.28)!important;border-radius:18px!important;
-  background:#090b10 url('pfms-login-hero.webp?v=20261116-login-artwork-2') center center/cover no-repeat!important;
+  background:#090b10 url('pfms-login-hero.webp?v=20261116-original-user-image-3') center center/100% 100% no-repeat!important;
   box-shadow:0 22px 65px rgba(0,0,0,.58)!important;
 }
 #authScreen .auth-visual:before{
@@ -409,7 +409,7 @@
     grid-template-columns:minmax(0,1.2fr) minmax(340px,.95fr)!important;
     gap:16px!important;
   }
-  #authScreen .auth-visual{min-height:clamp(430px,66vh,610px)!important}
+  #authScreen .auth-visual{min-height:0!important;aspect-ratio:512 / 468!important}
 }
 @media(max-width:760px){
   #authScreen.auth-screen{padding:12px!important}
@@ -417,7 +417,7 @@
     width:100%!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;
   }
   #authScreen .auth-visual{
-    min-height:0!important;height:auto!important;aspect-ratio:1.08/1!important;
+    min-height:0!important;height:auto!important;aspect-ratio:512 / 468!important;
     border-radius:14px!important;background-position:center center!important;
   }
   #authScreen .auth-card{
@@ -426,6 +426,6 @@
   }
 }
 @media(max-width:390px){
-  #authScreen .auth-visual{aspect-ratio:1.02/1!important}
+  #authScreen .auth-visual{aspect-ratio:512 / 468!important}
   #authScreen .auth-card{padding:19px 15px!important}
 }
