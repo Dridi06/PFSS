@@ -5,7 +5,7 @@
     "dashboard", "players", "clubs", "club-members", "club-admin", "club-scouting",
     "teams", "staff", "scouts", "team-workspace", "reports", "media", "tasks",
     "admin", "agencies", "admin-members", "admin-errors", "notifications",
-    "support", "admin-inbox", "admin-payments", "backup", "scout-workspace"
+    "support", "admin-inbox", "admin-payments", "backup", "scout-workspace", "player-workspace"
   ]);
   const SHARED_VIEWS = Object.freeze(["dashboard", "media", "tasks", "notifications", "support"]);
   const MANAGER_ROLES = new Set(["owner", "club_admin", "agency_admin"]);
@@ -124,7 +124,8 @@
         ["agencies", "club-members", "club-scouting", "scouts"].forEach(view => allowedViews.add(view));
       }
       if (isScout) ["scouts", "scout-workspace"].forEach(view => allowedViews.add(view));
-      if (hasTeamAccess) allowedViews.add("team-workspace");
+      if (hasTeamAccess || hasTeamRoleHint) allowedViews.add("team-workspace");
+      if (isPlayer) allowedViews.add("player-workspace");
     }
 
     let startView = "dashboard";
@@ -132,7 +133,8 @@
     else if (canManageClub) startView = "clubs";
     else if (canManageAgency) startView = "agencies";
     else if (isScout) startView = "scouts";
-    else if (hasTeamAccess) startView = "team-workspace";
+    else if (hasTeamAccess || hasTeamRoleHint) startView = "team-workspace";
+    else if (isPlayer) startView = "player-workspace";
 
     const primaryTeamRole = effectiveTeamRoles[0] || null;
     let roleLabel = "Mitglied";
