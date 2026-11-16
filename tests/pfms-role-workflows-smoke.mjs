@@ -21,5 +21,5 @@ const app=await readFile(new URL("../app.js",import.meta.url),"utf8");
 assert.match(app,/function applyPfmsRoleNavigation\([\s\S]*?workflows\.canAccessView\(context, item\.dataset\.view\)/);
 assert.match(app,/window\.PFMSRoleWorkflows\.resolveContext\([\s\S]*?organizations:pfmsLegacyInvitationOrganizations[\s\S]*?teams:pfmsLegacyTeams/);
 assert.match(app,/workflows\.canAccessView\(roleContext,view\)/);
-assert.match(app,/pfmsAgencyWorkspacePanel[\s\S]*?pfmsAgencyOrganizationsGrid/);
+assert.match(app,/pfmsAgencyOrganizationsGrid[\s\S]*?pfmsAgencyWorkspacePanel/);
 console.log("PFMS role workflow tests passed: role resolver matrix, agency and club managers, scouts, team access, players, suspended/ordinary memberships, multiple organizations, admin and app integration.");
