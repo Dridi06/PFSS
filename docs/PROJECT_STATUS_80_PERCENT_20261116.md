@@ -24,7 +24,7 @@ Die Erhöhung von 76 % auf 80 % beruht auf überprüfbaren Ergebnissen:
 3. **Live-Datenbankabnahme:** Acceptance SQL liefert 1/70 Checks bestanden und 69 nicht bestanden. Diese Befunde zeigen, dass die vorhandene Staging-Datenbank den aktuellen Branch-Schema-Stand nicht abbildet. Die fehlenden Objekte und Policies müssen nach einer sicheren Baseline-Reconciliation in einer isolierten Testumgebung aufgebaut und erneut geprüft werden.
 4. **Autorisierung:** SECURITY DEFINER-Funktionen müssen gegen den tatsächlichen Staging-Stand und anschließend gegen die aktualisierte Testdatenbank auf tenant-aware positive/negative Zugriffe geprüft werden.
 5. **E2E und UI:** Auth-Roundtrip, Mehrmandanten-Workflows, Scouting-Berichte, globale Spieler, Teamverwaltung, Kalender, Aufgaben, Benachrichtigungen, Medien, Support und Admin-Bereich benötigen Runtime-Abnahme.
-6. **Design:** Die bestehende Premium-Schwarz/Anthrazit/Champagner-Gold-Oberfläche bleibt die Basis. Die ausgewählte große Header-Grafik ist noch nicht als Repository-Asset integriert; Auth-Formulare, IDs, Menü- und Seitenreihenfolge bleiben zu bewahren.
+6. **Design:** Die bestehende Premium-Schwarz/Anthrazit/Champagner-Gold-Oberfläche bleibt die Basis. Das vorhandene Stadionmotiv `pfms-welcome.webp` ist im Feature-Branch ausschließlich im visuellen Panel des Vor-Login-Bereichs integriert; Login und Registrierung teilen sich dieses Panel. Die 3,5-Sekunden-Willkommenssequenz nach erfolgreichem Login bleibt separat und unverändert. Responsive CSS-Regeln und Regressionstests für die Bildbegrenzung sind ergänzt; CI war erfolgreich und das Staging wurde mit Deploy `dep-dbtjmrpsrm7s73ee11bg` live geschaltet. Die abschließende visuelle Abnahme auf echten Mobil-/Desktop-Ansichten steht noch aus.
 7. **Betrieb:** Backup-/Restore-Drill, Monitoring, Performance- und Datenschutz-/Rechtsprüfung sowie Staging-Release-Abnahme.
 
 ## Sicherheitsgrenzen
@@ -35,4 +35,4 @@ Die Erhöhung von 76 % auf 80 % beruht auf überprüfbaren Ergebnissen:
 - Render Staging wird wegen Auto-Deploy OFF nur nach erfolgreicher CI und gezielter Freigabe manuell deployed.
 
 ## Nächster Arbeitsabschnitt
-Von 80 % zu 100 %: sichere Testdatenbank-Baseline, kollisionsfreie und geordnete Migrationen, vollständige tenant-isolation/E2E-Tests, Integration der ausgewählten Headergrafik, UI-/Responsive-Abnahme, Backup-Restore-Probe und abschließender Release-Report.
+Von 80 % zu 100 %: sichere Testdatenbank-Baseline, kollisionsfreie und geordnete Migrationen, vollständige tenant-isolation/E2E-Tests, visuelle Login-/Registrierungsabnahme auf Mobilgerät und Desktop, vollständige Modul-E2E-Prüfung, Backup-Restore-Probe und abschließender Release-Report.
