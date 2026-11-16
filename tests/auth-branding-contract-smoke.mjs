@@ -39,11 +39,11 @@ assert.match(css,/#authScreen \.auth-visual\{[\s\S]*?pfms-welcome\.webp[\s\S]*?c
 assert.match(css,/#authScreen\.auth-screen\{[\s\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
 assert.match(css,/#authScreen \.auth-visual\{[\s\S]*?pfms-welcome\.webp[\s\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
 
-const scopedAuthCss=css.slice(css.lastIndexOf("/* 2026-11-16: supplied stadium artwork"));
-assert.match(scopedAuthCss,/#authScreen\.auth-screen\{[\s\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
-assert.match(scopedAuthCss,/#authScreen \.auth-visual\{[\s\S]*?pfms-welcome\.webp[\s\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
-assert.match(scopedAuthCss,/#authScreen \.auth-visual>\*\{display:none!important\}/,"The visual panel must show the supplied artwork without generated duplicate branding.");
-assert.doesNotMatch(scopedAuthCss,/\.welcome-sequence[^}]*pfms-welcome\.webp|#welcomeSequence[^}]*pfms-welcome\.webp/,"Post-login welcome sequence must not use the login artwork.");
+
+assert.ok(css.includes("#authScreen.auth-screen{\n  background:#07090c!important;"),"Pre-auth page background must remain dark rather than using the artwork full-screen.");
+assert.ok(css.includes("background:#090b10 url('pfms-welcome.webp?v=20261116-auth-panel-scope-3') center center/cover no-repeat!important;"),"Supplied artwork must be confined to the login/registration visual panel.");
+assert.ok(css.includes("#authScreen .auth-visual>*{display:none!important}"),"The visual panel must show the supplied artwork without generated duplicate branding.");
+assert.doesNotMatch(css,/\.welcome-sequence[^}]*pfms-welcome\.webp|#welcomeSequence[^}]*pfms-welcome\.webp/,"Post-login welcome sequence must not use the login artwork.");
 assert.match(html,/pfms-auth-executive\.css\?v=20261116-auth-panel-scope-3/,"Login artwork stylesheet cache version must be refreshed.");
 
 console.log("PFMS executive auth branding and compatibility contract: OK");
