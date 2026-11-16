@@ -29,4 +29,10 @@ assert.match(app,/updateRegistrationProgress\(2\)/);
 assert.match(app,/updateRegistrationProgress\(1\)/);
 assert.match(html,/pfms-auth-executive\.css/);assert.match(css,/prefers-reduced-motion/);
 assert.match(css,/:focus-visible/);assert.match(css,/@media\(max-width:760px\)/);
-console.log("PFMS executive auth branding and compatibility contract: OK");
+
+assert.match(css,/#authScreen\\.auth-screen\\{[\\s\\S]*?background:#07090c!important;/,"Pre-auth page background must remain dark rather than using the artwork full-screen.");
+assert.match(css,/#authScreen \\.auth-visual\\{[\\s\\S]*?pfms-welcome\\.webp[\\s\\S]*?cover no-repeat!important;/,"Supplied artwork must be confined to the login/registration visual panel.");
+assert.match(css,/#authScreen \\.auth-visual>\\*\\{display:none!important\\}/,"The visual panel must show the supplied artwork without generated duplicate branding.");
+assert.doesNotMatch(css,/\\.welcome-sequence[^}]*pfms-welcome\\.webp|#welcomeSequence[^}]*pfms-welcome\\.webp/,"Post-login welcome sequence must not use the login artwork.");
+assert.match(html,/pfms-auth-executive\\.css\\?v=20261116-auth-panel-scope-3/,"Login artwork stylesheet cache version must be refreshed.");
+\nconsole.log("PFMS executive auth branding and compatibility contract: OK");
