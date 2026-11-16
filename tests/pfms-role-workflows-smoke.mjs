@@ -86,8 +86,11 @@ for (const [role, label] of [
     }]
   });
   assert.equal(membershipOnly.roleLabel, label);
-  assert.equal(workflows.canAccessView(membershipOnly, "team-workspace"), false,
-    "A staff membership alone is not a team assignment.");
+  assert.equal(membershipOnly.hasTeamAccess, false,
+    "A staff membership alone must not be represented as an active team assignment.");
+  assert.equal(workflows.canAccessView(membershipOnly, "team-workspace"), true,
+    "An approved trainer, co-trainer or staff role should reach the assignment-onboarding workspace.");
+  assert.equal(workflows.getStartView(membershipOnly), "team-workspace");
 
   const assigned = workflows.resolveContext({
     profileRole: "user",
