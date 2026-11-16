@@ -1,5 +1,35 @@
 -- MANUAL STAGING HARDENING ONLY.
 -- Do not place this file in supabase/migrations or apply it to production.
+CREATE OR REPLACE FUNCTION public.pfss_is_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT auth.uid() IS NOT NULL
+    AND (
+      EXISTS (
+        SELECT 1
+        FROM public.profiles p
+        WHERE p.id = auth.uid()
+          AND p.role IN ('admin', 'administrator')
+          AND p.status = 'approved'
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.pfss_platform_roles r
+        JOIN public.profiles p ON p.id = r.user_id
+        WHERE r.user_id = auth.uid()
+          AND r.role = 'platform_admin'
+          AND p.status = 'approved'
+      )
+    );
+$function$;
+
+REVOKE ALL ON FUNCTION public.pfss_is_platform_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.pfss_is_platform_admin() TO authenticated;
+
 -- The sign-up trigger creates initial PFMS memberships before manual profile
 -- approval. Browser-facing authorization helpers therefore require both an
 -- approved profile and active membership/organization. Membership-management
