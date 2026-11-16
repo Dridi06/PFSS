@@ -3536,6 +3536,10 @@ async function loadPfmsLegacyInvitationOrganizations() {
     panel.hidden = true;
     membersPanel.hidden = true;
     pfmsLegacyInvitationOrganizations = [];
+    window.pfmsSelectedPFSSOrganizationId = '';
+    document.getElementById('pfssOrgManagementPanel')?.setAttribute('hidden', '');
+    document.getElementById('pfssOrgMembersList')?.replaceChildren();
+    document.getElementById('pfssOrgInvitationsList')?.replaceChildren();
   pfmsPersonalTasks = [];
   const personalTaskList = document.getElementById('pfmsPersonalTaskList');
   if (personalTaskList) personalTaskList.replaceChildren();
@@ -3553,7 +3557,9 @@ async function loadPfmsLegacyInvitationOrganizations() {
     pfmsLegacyInvitationOrganizations = data || [];
     await updatePfmsRoleContext(pfmsLegacyInvitationOrganizations, pfmsLegacyTeams);
     renderPfmsClubWorkspace();
-    const organizations = pfmsLegacyInvitationOrganizations;
+    const allOrganizations = pfmsLegacyInvitationOrganizations;
+    const organizations = allOrganizations.filter(org => !['pfms','pfss'].includes(org.source_model));
+    preparePfssOrgManagementSelector();
     const inviteEligible = organizations.filter(org =>
       ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
     );
@@ -3582,7 +3588,11 @@ async function loadPfmsLegacyInvitationOrganizations() {
         : 'Für dieses Konto sind keine verwaltbaren Organisationen hinterlegt.';
     }
     if (!organizations.length) {
-      memberSelect.innerHTML = '<option value="">Keine Organisation verfügbar</option>';
+      memberSelect.innerHTML = '<option value="">Keine Legacy-Organisation verfügbar</option>';
+      if (document.getElementById('view-club-members')?.classList.contains('active') &&
+          window.pfmsSelectedPFSSOrganizationId) {
+        await loadPfssOrganizationManagement(window.pfmsSelectedPFSSOrganizationId);
+      }
       return;
     }
 
@@ -3598,6 +3608,11 @@ async function loadPfmsLegacyInvitationOrganizations() {
       memberSelect.value = previousSelection;
     }
     await loadPfmsLegacyOrganizationMembers();
+    preparePfssOrgManagementSelector();
+    if (document.getElementById('view-club-members')?.classList.contains('active') &&
+        window.pfmsSelectedPFSSOrganizationId) {
+      await loadPfssOrganizationManagement(window.pfmsSelectedPFSSOrganizationId);
+    }
   } catch (error) {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS legacy invitation organizations:', error);
@@ -3605,6 +3620,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     await updatePfmsRoleContext([], pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
+    preparePfssOrgManagementSelector();
     const canonicalOrganizations = pfmsLegacyInvitationOrganizations.filter(org => ['pfms','pfss'].includes(org.source_model));
     if (canonicalOrganizations.length) {
       message.textContent = canonicalOrganizations.some(org => org.source_model === 'pfss')
@@ -3615,6 +3631,10 @@ async function loadPfmsLegacyInvitationOrganizations() {
     }
     panel.hidden = true;
     membersPanel.hidden = true;
+    if (document.getElementById('view-club-members')?.classList.contains('active') &&
+        window.pfmsSelectedPFSSOrganizationId) {
+      await loadPfssOrganizationManagement(window.pfmsSelectedPFSSOrganizationId);
+    }
   }
 }
 
