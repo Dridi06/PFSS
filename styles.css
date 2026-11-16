@@ -1585,3 +1585,20 @@ button,input,select,textarea{max-width:100%}
 #passwordResetScreen .auth-brand{margin-bottom:24px}
 #passwordRecoveryScreen .auth-logo,
 #passwordResetScreen .auth-logo{max-width:48px;height:auto}
+
+
+/* PFMS administrator command center */
+.pfms-admin-command-center{margin:18px 0 22px;padding:20px;border:1px solid rgba(198,161,91,.28);border-radius:16px;background:linear-gradient(145deg,rgba(198,161,91,.075),rgba(17,19,20,.94) 55%);box-shadow:0 14px 38px rgba(0,0,0,.18)}
+.pfms-admin-command-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.pfms-admin-command-heading h2{margin:5px 0;color:#f1e8d6;font-size:clamp(19px,2.5vw,25px)}
+.pfms-admin-command-heading p{max-width:720px;margin:6px 0 0;color:#aaa397;font-size:13px;line-height:1.55}
+.pfms-admin-command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pfms-admin-command-card{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:11px;min-width:0;padding:14px;text-align:left;border:1px solid rgba(198,161,91,.18);border-radius:12px;background:rgba(255,255,255,.025);color:#eee8dc;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
+.pfms-admin-command-card:hover,.pfms-admin-command-card:focus-visible{border-color:rgba(216,183,112,.62);background:rgba(198,161,91,.085);transform:translateY(-1px);outline:none}
+.pfms-admin-command-icon{display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(198,161,91,.28);border-radius:10px;background:rgba(198,161,91,.09);color:#dfc17f;font-size:17px}
+.pfms-admin-command-card>span:nth-child(2){display:grid;gap:5px;min-width:0}
+.pfms-admin-command-card b{font-size:12px;color:#f0e7d5}
+.pfms-admin-command-card small{font-size:10px;line-height:1.45;color:#aaa397}
+.pfms-admin-command-card i{font-style:normal;color:#d5b66f;font-size:17px}
+@media(max-width:900px){.pfms-admin-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pfms-admin-command-center{padding:13px}.pfms-admin-command-grid{grid-template-columns:1fr}.pfms-admin-command-card{padding:12px}.pfms-admin-command-heading{display:grid}}
