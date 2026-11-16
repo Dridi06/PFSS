@@ -35,11 +35,11 @@ assert.match(css,/:focus-visible/);assert.match(css,/@media\(max-width:760px\)/)
 
 
 assert.ok(css.includes("#authScreen.auth-screen{\n  background:#07090c!important;"),"Pre-auth page background must remain dark rather than using the artwork full-screen.");
-assert.ok(css.includes("background:#090b10 url('pfms-login-hero.webp?v=20261116-login-artwork-1') center center/cover no-repeat!important;"),"Supplied artwork must be confined to the login/registration visual panel.");
+assert.ok(css.includes("background:#090b10 url('pfms-login-hero.webp?v=20261116-login-artwork-2') center center/cover no-repeat!important;"),"Supplied artwork must be confined to the login/registration visual panel.");
 assert.ok(css.includes("#authScreen .auth-visual>*{display:none!important}"),"The visual panel must show the supplied artwork without generated duplicate branding.");
 assert.doesNotMatch(css,/\.welcome-sequence[^}]*pfms-login-hero\.webp|#welcomeSequence[^}]*pfms-login-hero\.webp/,"Post-login welcome sequence must not use the login artwork.");
 assert.match(css,/pfms-login-hero\.webp/,"Dedicated login artwork must be referenced by the pre-auth visual panel.");
 assert.doesNotMatch(css,/pfms-welcome\.webp/,"Pre-login stylesheet must not reference the post-login welcome artwork.");
-assert.match(html,/pfms-auth-executive\.css\?v=20261116-login-artwork-1/,"Login artwork stylesheet cache version must be refreshed.");
+assert.match(html,/pfms-auth-executive\.css\?v=20261116-login-artwork-2/,"Login artwork stylesheet cache version must be refreshed.");
 
 console.log("PFMS executive auth branding and compatibility contract: OK");
