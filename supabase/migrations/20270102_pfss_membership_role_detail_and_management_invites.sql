@@ -508,7 +508,8 @@ BEGIN
 
   IF to_regclass('public.pfms_legacy_teams') IS NOT NULL
      AND to_regclass('public.pfms_legacy_team_staff') IS NOT NULL
-     AND to_regclass('public.organizations') IS NOT NULL THEN
+     AND to_regclass('public.organizations') IS NOT NULL
+     AND to_regclass('public.organization_memberships') IS NOT NULL THEN
     EXECUTE $sql$
       SELECT coalesce(
         pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
