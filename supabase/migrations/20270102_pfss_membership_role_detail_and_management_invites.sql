@@ -307,8 +307,8 @@ BEGIN
     RAISE EXCEPTION 'Authentication required' USING errcode = '42501';
   END IF;
 
-  IF p_role NOT IN ('scout','coach','viewer','analyst','finance','admin')
-     OR p_status NOT IN ('active','suspended')
+  IF p_role IS NULL OR p_role NOT IN ('scout','coach','viewer','analyst','finance','admin')
+     OR p_status IS NULL OR p_status NOT IN ('active','suspended')
      OR v_detail NOT IN ('scout','trainer','co_trainer','betreuer','spieler','analyst','finance','admin') THEN
     RAISE EXCEPTION 'Invalid role, detail or status' USING errcode = '22023';
   END IF;
@@ -369,6 +369,7 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.pfss_apply_signup_invitation() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.pfss_org_create_invitation(uuid,text,text,integer) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.pfss_org_list_members_v2(uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.pfss_org_list_invitations_v2(uuid) FROM PUBLIC, anon;
@@ -465,7 +466,12 @@ BEGIN
       NULL::text AS role_detail,
       m.status AS membership_status,
       (m.member_role = 'owner' OR
-        (m.member_role IN ('admin','manager') AND coalesce((m.permissions->>'manage_members')::boolean,false))
+        (m.member_role IN ('admin','manager')
+          AND CASE
+            WHEN pg_catalog.jsonb_typeof(m.permissions->'manage_members')='boolean'
+              THEN (m.permissions->>'manage_members')::boolean
+            ELSE false
+          END)
       ) AS can_manage_organization,
       'pfms'::text AS source_model
     FROM public.pfms_memberships AS m
@@ -498,15 +504,6 @@ BEGIN
     JOIN public.profiles AS p ON p.id=m.user_id
     WHERE m.user_id=v_user_id AND m.status='active' AND o.status='active' AND p.status='approved'
 
-    UNION ALL
-
-    SELECT
-      o.id, o.name, o.organization_type, o.status, m.role, m.role, NULL::text,
-      m.status, m.role IN ('owner','club_admin','agency_admin'), 'legacy'
-    FROM public.organization_memberships AS m
-    JOIN public.organizations AS o ON o.id=m.organization_id
-    WHERE m.user_id=v_user_id AND m.status='active' AND o.status IN ('approved','active')
-      AND to_regclass('public.organizations') IS NOT NULL
   ) AS x;
 
   IF to_regclass('public.pfms_legacy_teams') IS NOT NULL
