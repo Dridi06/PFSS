@@ -32,7 +32,7 @@ assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.pfss_org_create_invit
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.pfss_apply_signup_invitation\(\) FROM PUBLIC, anon, authenticated/i);
 assert.match(migration, /public\.pfms_get_my_role_context\(\)/);
 assert.match(migration, /FROM public\.pfss_memberships AS m[\s\S]*?JOIN public\.pfss_organizations AS o/);
-assert.match(migration, /'pfss'\s+FROM public\\.pfss_memberships AS m/);
+assert.match(migration, /'pfss'\s+FROM public[.]pfss_memberships AS m/);
 assert.match(migration, /m\.role_detail/);
 
 assert.match(html, /id="pfssOrgManagementPanel"/);
