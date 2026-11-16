@@ -158,6 +158,45 @@ for (const relativePath of publicFiles) {
     continue;
   }
 
+  if (relativePath === "pfms-login-hero.webp") {
+    const expectedPartLengths = [6000, 6000, 6000, 6000, 6000, 3000, 3000, 3000, 3000, 2116];
+    const encodedParts = [];
+    for (let part = 1; part <= expectedPartLengths.length; part += 1) {
+      const partPath = resolve(repositoryRoot, "pfms-login-hero-data", "part-" + String(part).padStart(2, "0") + ".txt");
+      const encoded = (await readFile(partPath, "utf8")).trim();
+      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded) || encoded.length !== expectedPartLengths[part - 1]) {
+        throw new Error("PFMS login artwork part " + part + " is missing, malformed or truncated.");
+      }
+      encodedParts.push(encoded);
+    }
+    const encodedArtwork = encodedParts.join("");
+    if (encodedArtwork.length !== 44116 || encodedArtwork.length % 4 !== 0) {
+      throw new Error("PFMS login artwork is incomplete: encoded length does not match the verified original.");
+    }
+    const imageBytes = Buffer.from(encodedArtwork, "base64");
+    const actualSha256 = createHash("sha256").update(imageBytes).digest("hex");
+    if (imageBytes.length !== 33086 || actualSha256 !== "79a42ce715051c2f6cf924b51e5e68dd465642dfc837fdcc94f87ed9882ff4df") {
+      throw new Error("PFMS login artwork integrity check failed: file size or SHA-256 differs from the supplied artwork.");
+    }
+    const isWebP = imageBytes.length >= 20 && imageBytes.toString("ascii", 0, 4) === "RIFF" &&
+      imageBytes.readUInt32LE(4) === imageBytes.length - 8 && imageBytes.toString("ascii", 8, 12) === "WEBP";
+    let offset = 12;
+    let hasImageChunk = false;
+    while (isWebP && offset < imageBytes.length) {
+      if (offset + 8 > imageBytes.length) break;
+      const chunkType = imageBytes.toString("ascii", offset, offset + 4);
+      const chunkLength = imageBytes.readUInt32LE(offset + 4);
+      const chunkEnd = offset + 8 + chunkLength;
+      if (chunkEnd > imageBytes.length) break;
+      if (["VP8 ", "VP8L", "VP8X"].includes(chunkType)) hasImageChunk = true;
+      offset = chunkEnd + (chunkLength % 2);
+    }
+    if (!isWebP || !hasImageChunk || offset !== imageBytes.length) {
+      throw new Error("PFMS login artwork failed WebP signature and chunk-integrity checks.");
+    }
+    await writeFile(targetPath, imageBytes);
+    continue;
+  }
   const sourcePath = resolve(repositoryRoot, relativePath);
   try {
     await access(sourcePath);
