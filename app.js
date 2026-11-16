@@ -2072,7 +2072,8 @@ function updateConnectionStatus() {
   const userDot = document.getElementById('userPresenceDot');
   if (userDot) {
     userDot.classList.toggle('is-offline', !online);
-    userDot.setAttribute('aria-label', online ? 'Benutzer online' : 'Benutzer offline');
+    // navigator.onLine reports this device's network state, not another scout's presence.
+    userDot.setAttribute('aria-label', online ? 'Internetverbindung verfügbar' : 'Internetverbindung nicht verfügbar');
   }
   const systemTitle = document.getElementById('systemStatusTitle');
   const connectionText = document.getElementById('connectionStatusText');
