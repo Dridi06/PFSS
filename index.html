@@ -342,6 +342,9 @@
           <button class="nav-subitem" data-view="team-workspace"><span>Spiele & Aufstellungen</span></button>
           <button class="nav-subitem" data-view="team-workspace"><span>Taktik & Analyse</span></button>
         </div>
+        <button class="nav-item" type="button" data-view="player-workspace" hidden>
+          <span class="nav-icon">♙</span><span class="nav-label">Mein Spielerprofil</span>
+        </button>
         <button class="nav-item" data-view="reports">
           <span class="nav-icon">▤</span>Scouting-Berichte
         </button>
@@ -594,6 +597,29 @@
             </button>
           </article>
         </div>
+      </section>
+
+      <section class="view" id="view-player-workspace">
+        <div class="page-heading">
+          <div><div class="eyebrow">PERSÖNLICHER SPIELERBEREICH</div><h1>Mein Spielerprofil</h1><p>Dein PFMS-Zugang und deine aktiven Organisationszuordnungen.</p></div>
+          <span class="module-status">Freigegebener Zugang</span>
+        </div>
+        <div class="module-grid">
+          <article class="module-card module-feature">
+            <div class="eyebrow">MEIN KONTO</div><h3 id="pfmsPlayerProfileName">Spieler</h3>
+            <p id="pfmsPlayerProfileUsername">Benutzerkonto</p>
+            <div class="pfms-club-organization-meta"><span class="module-status" id="pfmsPlayerProfileStatus">Freigegeben</span><span id="pfmsPlayerProfileRole">Spieler</span></div>
+          </article>
+          <article class="module-card">
+            <div class="eyebrow">ORGANISATIONSZUGANG</div><h3 id="pfmsPlayerOrganizationCount">0 Organisationen</h3>
+            <div id="pfmsPlayerOrganizationList" class="admin-user-list"><div class="empty-state">Deine Organisationszuordnungen werden geladen.</div></div>
+          </article>
+        </div>
+        <section class="panel">
+          <div class="eyebrow">NÄCHSTE SCHRITTE</div><h3>Dein Verein verwaltet deine sportlichen Daten</h3>
+          <p>Dein persönliches Spielerkonto ist aktiv. Kaderzuordnung, Trikotnummer und sportliche Spielerdaten werden von deiner freigegebenen Organisation gepflegt. Dieser Bereich zeigt keine fremden Spieler- oder Scoutingdaten.</p>
+          <p class="admin-message" id="pfmsPlayerWorkspaceMessage" role="status" aria-live="polite"></p>
+        </section>
       </section>
 
       <section class="view" id="view-players">
