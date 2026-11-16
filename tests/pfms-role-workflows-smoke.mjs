@@ -168,6 +168,51 @@ assert.equal(multi.clubOrganizationCount, 1);
 assert.equal(multi.agencyOrganizationCount, 1);
 assert.equal(workflows.getStartView(multi), "clubs");
 
+const canonicalClubManager = workflows.resolveContext({
+  profileRole: "user",
+  organizations: [{
+    organization_type: "club",
+    organization_status: "active",
+    membership_status: "active",
+    member_role: "club_admin",
+    source_member_role: "manager",
+    can_manage_organization: true
+  }]
+});
+assert.equal(canonicalClubManager.canManageClub, true);
+assert.equal(workflows.canAccessView(canonicalClubManager, "club-members"), true);
+
+const canonicalAgencyManager = workflows.resolveContext({
+  profileRole: "user",
+  organizations: [{
+    organization_type: "agency",
+    organization_status: "active",
+    membership_status: "active",
+    member_role: "agency_admin",
+    source_member_role: "admin",
+    can_manage_organization: true
+  }]
+});
+assert.equal(canonicalAgencyManager.canManageAgency, true);
+assert.equal(workflows.getStartView(canonicalAgencyManager), "agencies");
+
+const agencyScoutProfile = workflows.resolveContext({
+  profileRole: "user",
+  roles: ["agenturscout"]
+});
+assert.equal(agencyScoutProfile.isScout, true);
+assert.equal(agencyScoutProfile.isAgencyScout, true);
+assert.equal(agencyScoutProfile.roleLabel, "Agenturscout");
+assert.equal(workflows.canAccessView(agencyScoutProfile, "scout-workspace"), true);
+
+const playerMembershipRole = workflows.resolveContext({
+  profileRole: "user",
+  roles: ["spieler"]
+});
+assert.equal(playerMembershipRole.isPlayer, true);
+assert.equal(playerMembershipRole.roleLabel, "Spieler");
+assert.equal(workflows.canAccessView(playerMembershipRole, "admin"), false);
+
 const admin = workflows.resolveContext({ profileRole: "administrator" });
 assert.equal(admin.isPlatformAdmin, true);
 assert.equal(workflows.getStartView(admin), "admin");
