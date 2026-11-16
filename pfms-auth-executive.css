@@ -107,7 +107,7 @@
    CSS-only refinement; existing form IDs, registration flow and auth handlers remain intact. */
 #authScreen.auth-screen{
   min-height:100svh;padding:clamp(18px,2.2vw,34px) clamp(14px,2.2vw,34px) 12px;
-  background:#07090c url('pfms-welcome.webp') center/cover fixed no-repeat;
+  background:#07090c url('pfms-welcome.svg') center/cover fixed no-repeat;
   position:relative;isolation:isolate;
 }
 #authScreen.auth-screen:before{
@@ -228,7 +228,7 @@
   min-height:100svh;
   padding:clamp(14px,2vw,28px) clamp(14px,2.4vw,38px) 12px;
   display:flex;flex-direction:column;justify-content:center;
-  background:#07090c url('pfms-welcome.webp') center center/cover no-repeat;
+  background:#07090c url('pfms-welcome.svg') center center/cover no-repeat;
 }
 #authScreen.auth-screen:before{
   position:fixed;inset:0;
