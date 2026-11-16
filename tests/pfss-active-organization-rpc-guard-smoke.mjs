@@ -9,23 +9,25 @@ const sql = await readFile(
 );
 
 assert.match(sql, /MANUAL STAGING HARDENING ONLY/);
-assert.doesNotMatch(sql, /production\s+(?:database|project|environment)[\s\S]{0,80}apply/i);
+assert.match(sql, /Do not place this file in supabase\/migrations or apply it to production/i);
 
 for (const name of ["pfss_org_remove_member", "pfss_org_update_member"]) {
-  const match = sql.match(new RegExp(
-    "CREATE OR REPLACE FUNCTION public\\\\." + name + "[\\\\s\\\\S]*?\\\\$function\\\\$;",
-    "i"
-  ));
-  assert.ok(match, "Missing hardened definition for " + name);
-  assert.match(match[0], /SECURITY DEFINER/i);
-  assert.match(match[0], /SET search_path\s*=\s*''/i);
-  assert.match(match[0], /auth\.uid\(\)\s+IS\s+NULL/i);
-  assert.match(match[0], /JOIN public\.pfss_organizations/i);
-  assert.match(match[0], /org\.status\s*=\s*'active'/i);
-  assert.match(match[0], /actor\.status\s*=\s*'active'/i);
-  assert.match(match[0], /NOT IN\s*\('owner',\s*'admin'\)/i);
-  assert.match(match[0], /FOR UPDATE/i);
-  assert.match(match[0], /pfss_audit_log/i);
+  const start = sql.indexOf("CREATE OR REPLACE FUNCTION public." + name + "(");
+  assert.notEqual(start, -1, "Missing hardened definition for " + name);
+  const endMarker = "$function$;";
+  const end = sql.indexOf(endMarker, start);
+  assert.notEqual(end, -1, "Missing function terminator for " + name);
+  const definition = sql.slice(start, end + endMarker.length);
+
+  assert.match(definition, /SECURITY DEFINER/i);
+  assert.match(definition, /SET search_path\s*=\s*''/i);
+  assert.match(definition, /auth\.uid\(\)\s+IS\s+NULL/i);
+  assert.match(definition, /JOIN public\.pfss_organizations/i);
+  assert.match(definition, /org\.status\s*=\s*'active'/i);
+  assert.match(definition, /actor\.status\s*=\s*'active'/i);
+  assert.match(definition, /NOT IN\s*\('owner',\s*'admin'\)/i);
+  assert.match(definition, /FOR UPDATE/i);
+  assert.match(definition, /pfss_audit_log/i);
 }
 assert.match(sql, /REVOKE ALL ON FUNCTION public\.pfss_org_remove_member\(uuid\)\s+FROM PUBLIC, anon/i);
 assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.pfss_org_remove_member\(uuid\)\s+TO authenticated/i);
