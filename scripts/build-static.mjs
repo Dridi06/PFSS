@@ -18,7 +18,8 @@ const publicFiles = [
   "pfms-role-workflows.js",
   "scout-workspace.js",
   "pfms-logo.svg",
-  "pfms-welcome.webp"
+  "pfms-welcome.webp",
+  "pfms-login-hero.webp"
 ];
 
 function readSupabaseBuildConfig() {
