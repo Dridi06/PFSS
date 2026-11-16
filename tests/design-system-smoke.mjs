@@ -16,7 +16,7 @@ for (const selector of [".sidebar", ".main-area", ".topbar", ".page-heading", ".
   assert.ok(system.includes(selector), "Missing global visual contract " + selector);
 }
 assert.match(system, /pfms-welcome\.webp/);
-assert.match(auth, /pfms-login-hero\.webp\?v=20261116-original-user-image-3/);
+assert.match(auth, /pfms-login-hero\.webp\?v=20261117-original-user-image-4/);
 assert.match(auth, /aspect-ratio:512 \/ 468/);
 assert.match(auth, /grid-template-columns:minmax\(0,1\.5fr\) minmax\(380px,\.92fr\)/);
 assert.match(auth, /grid-template-columns:minmax\(0,1fr\)/);
