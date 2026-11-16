@@ -169,5 +169,7 @@ assert.match(app, /if \(view === 'admin' && window\.pfssIsRealAdmin\) void loadP
 
 assert.match(app, /const adminOnlyViews = new Set\(\[[\s\S]*?'admin-inbox'[\s\S]*?'backup'[\s\S]*?\]\)/,
   "The frontend must maintain an explicit list of platform-administrator-only routes.");
-assert.match(app, /if \(adminOnlyViews\.has\(view\) && !window\.pfssIsRealAdmin\)[\s\S]*?view = 'dashboard'/,
-  "Direct or stale navigation must not expose administrator screens to non-admin accounts.");
+assert.match(app, /if\(adminOnlyViews\.has\(view\)&&!window\.pfssIsRealAdmin\)\{view='dashboard'/,
+  "Legacy platform administrator routes must remain blocked.");
+assert.match(app, /if\(window\.pfssCurrentUserId&&workflows&&!workflows\.canAccessView\(roleContext,view\)\)/,
+  "Direct or stale navigation must be restricted by the centralized role workflow context.");
