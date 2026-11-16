@@ -92,6 +92,13 @@ BEGIN
     FROM public.pfms_legacy_team_staff AS s
     JOIN public.pfms_legacy_teams AS t ON t.id = s.team_id
     JOIN public.organizations AS o ON o.id = t.organization_id
+    JOIN public.organization_memberships AS active_membership
+
+      ON active_membership.organization_id = t.organization_id
+
+     AND active_membership.user_id = v_user_id
+
+     AND active_membership.status = 'active'
     WHERE s.user_id = v_user_id
       AND s.status = 'active'
       AND t.status = 'active'
@@ -147,6 +154,13 @@ BEGIN
       FROM public.pfms_legacy_team_staff AS s
       JOIN public.pfms_legacy_teams AS t ON t.id = s.team_id
       JOIN public.organizations AS o ON o.id = t.organization_id
+      JOIN public.organization_memberships AS active_membership
+
+        ON active_membership.organization_id = t.organization_id
+
+       AND active_membership.user_id = v_user_id
+
+       AND active_membership.status = 'active'
       WHERE s.user_id = v_user_id
         AND s.status = 'active'
         AND t.status = 'active'
