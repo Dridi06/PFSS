@@ -14,7 +14,7 @@ for (const token of ["--pfms-bg:", "--pfms-surface:", "--pfms-gold:", "--pfms-in
 for (const selector of [".sidebar", ".main-area", ".topbar", ".page-heading", ".panel", ".stat-card", ".player-card", ".scout-panel", ".btn-primary", ".modal", "table", "#authScreen .auth-visual", "#authScreen .auth-card"]) {
   assert.ok(system.includes(selector), "Missing global visual contract " + selector);
 }
-assert.match(system, /pfms-welcome\.webp/);
+assert.match(system, /pfms-welcome\\.svg/);
 assert.match(system, /@media\(max-width:760px\)/);
 assert.match(system, /prefers-reduced-motion/);
 assert.match(legacy, /BLACK & GOLD LUXURY/);
