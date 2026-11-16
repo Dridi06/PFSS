@@ -3014,7 +3014,7 @@ async function loadAdminUsers() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
     host.innerHTML = users.length ? users.map(user => {
       const self = user.id === window.pfssCurrentUserId;
-      return `<article class="admin-user-card" data-user-id="${escapeHtml(user.id)}">
+      return `<article class="admin-user-card" data-user-id="${escapeHtml(user.id)}" data-original-role="${escapeHtml(user.role || 'user')}" data-original-status="${escapeHtml(user.status || 'pending')}">
         <div class="admin-user-info"><b>${escapeHtml(user.username || 'Ohne Benutzername')}</b><small>${escapeHtml(user.id)}</small><span class="tag">${escapeHtml(user.status)}</span></div>
         <div class="admin-user-controls">
           <label>Rolle<select data-role>${['user','scout','admin'].map(role => `<option value="${role}" ${user.role === role ? 'selected' : ''}>${role === 'user' ? 'Mitglied' : role === 'scout' ? 'Scout' : 'Administrator'}</option>`).join('')}</select></label>
@@ -3044,8 +3044,34 @@ async function saveAdminUser(button) {
   const requestUserId = window.pfssCurrentUserId;
   const requestGeneration = pfmsAuthGeneration;
   const userId = card.dataset.userId;
-  const role = card.querySelector('[data-role]').value;
-  const status = card.querySelector('[data-status]').value;
+  const role = card.querySelector('[data-role]')?.value;
+  const status = card.querySelector('[data-status]')?.value;
+  const previousRole = card.dataset.originalRole || 'user';
+  const previousStatus = card.dataset.originalStatus || 'pending';
+  if (!role || !status || !['user','scout','admin'].includes(role) ||
+      !['pending','approved','suspended'].includes(status)) {
+    toast('Ungültige Rollen- oder Statusauswahl.');
+    return;
+  }
+  if (userId === requestUserId) {
+    toast('Das eigene Administratorkonto ist geschützt.');
+    return;
+  }
+  const changes = [];
+  if (role !== previousRole) changes.push('Rolle: ' + previousRole + ' → ' + role);
+  if (status !== previousStatus) changes.push('Status: ' + previousStatus + ' → ' + status);
+  if (!changes.length) {
+    toast('Keine Änderungen vorgenommen.');
+    return;
+  }
+  const elevated = previousRole !== 'admin' && role === 'admin';
+  const suspended = previousStatus !== 'suspended' && status === 'suspended';
+  const warning = elevated
+    ? '\\n\\nAchtung: Das Konto erhält Administratorrechte.'
+    : suspended
+      ? '\\n\\nAchtung: Das Konto wird gesperrt.'
+      : '';
+  if (!window.confirm('Änderung am Benutzerkonto bestätigen:\\n' + changes.join('\\n') + warning + '\\n\\nMöchtest du fortfahren?')) return;
   button.disabled = true;
   try {
     const { error } = await pfssSupabase.rpc('pfss_admin_update_profile', {
@@ -3057,6 +3083,7 @@ async function saveAdminUser(button) {
     await loadAdminUsers();
   } catch (error) {
     if (!isCurrentPfmsAdminRequest(requestUserId, requestGeneration)) return;
+    console.error('PFMS admin profile update failed:', error);
     toast('Änderung fehlgeschlagen. Berechtigung und Datenbankmigration prüfen.');
     button.disabled = false;
   }
