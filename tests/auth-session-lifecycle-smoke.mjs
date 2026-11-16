@@ -125,8 +125,10 @@ assert.match(app, /pfmsAdminSupportRequestId \+= 1[\s\S]*?pfmsAdminSupportTicket
 
 assert.match(app, /async function verifyPfmsAuthEndpoint\(\)[\s\S]*?\/auth\/v1\/settings/,
   "The login must verify the configured Supabase Auth endpoint before submitting credentials.");
-assert.match(app, /await verifyPfmsAuthEndpoint\(\)[\s\S]*?signInWithPassword/,
-  "Credential submission must be preceded by the Auth endpoint diagnostic.");
+assert.doesNotMatch(app, /await verifyPfmsAuthEndpoint\(\)/,
+  "A separate Auth settings probe must not block the actual Supabase sign-in request.");
+assert.match(app, /message\.textContent = 'Anmeldung wird geprüft …'[\s\S]*?signInWithPassword/,
+  "The login must proceed directly to Supabase password authentication without a separate network preflight.");
 assert.match(app, /function getPfmsAuthFailureMessage\(error\)[\s\S]*?email_not_confirmed[\s\S]*?invalid_credentials[\s\S]*?AbortError/,
   "Login failures must distinguish bad credentials, unconfirmed email and endpoint/network failures.");
 assert.match(app, /diagnosticId[\s\S]*?projectRef:[\s\S]*?supabaseHost:/,
