@@ -7,6 +7,7 @@ const outputDirectory = resolve(repositoryRoot, "dist");
 
 const publicFiles = [
   "index.html",
+  "connection-test.html",
   "rechtliches.html",
   "styles.css",
   "pfms-auth-executive.css",
