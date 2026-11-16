@@ -408,3 +408,8 @@ hr,.divider{border-color:#393126}
   #authScreen .auth-visual{aspect-ratio:710 / 652!important}
   #authScreen .auth-card{padding:19px 15px!important}
 }
+
+/* Authentication state is authoritative even when responsive auth styles are active. */
+#authScreen[hidden], #pendingScreen[hidden], #passwordRecoveryScreen[hidden], #passwordResetScreen[hidden], #appShell[hidden] {
+  display: none !important;
+}
