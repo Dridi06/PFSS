@@ -12,6 +12,14 @@ assert.match(sql, /MANUAL STAGING HARDENING ONLY/);
 assert.match(sql, /Do not place this file in supabase\/migrations or apply it to production/i);
 
 const contracts = {
+  pfss_is_platform_admin: [
+    /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
+    /auth\.uid\(\)\s+IS\s+NOT\s+NULL/i,
+    /p\.role\s+IN\s*\('admin',\s*'administrator'\)/i,
+    /p\.status\s*=\s*'approved'/i,
+    /JOIN public\.profiles p ON p\.id = r\.user_id/i,
+    /r\.role\s*=\s*'platform_admin'/i
+  ],
   pfms_is_org_member: [
     /SECURITY DEFINER/i, /SET search_path\s*=\s*''/i,
     /auth\.uid\(\)\s+IS\s+NOT\s+NULL/i, /JOIN public\.profiles profile/i,
@@ -57,6 +65,7 @@ for (const [name, checks] of Object.entries(contracts)) {
   }
 }
 for (const line of [
+  "REVOKE ALL ON FUNCTION public.pfss_is_platform_admin() FROM PUBLIC, anon;",
   "REVOKE ALL ON FUNCTION public.pfms_is_org_member(uuid) FROM PUBLIC, anon;",
   "REVOKE ALL ON FUNCTION public.pfss_has_org_role(uuid, text[]) FROM PUBLIC, anon;",
   "REVOKE ALL ON FUNCTION public.pfss_create_organization(text, text, text) FROM PUBLIC, anon;",
