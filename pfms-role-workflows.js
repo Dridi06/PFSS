@@ -1,35 +1,180 @@
 (function attachPFMSRoleWorkflows(root) {
-"use strict";
-const ALL_VIEWS=Object.freeze(["dashboard","players","clubs","club-members","club-admin","club-scouting","teams","staff","scouts","team-workspace","reports","media","tasks","admin","agencies","admin-members","admin-errors","notifications","support","admin-inbox","admin-payments","backup","scout-workspace"]);
-const SHARED_VIEWS=Object.freeze(["dashboard","media","tasks","notifications","support"]);
-const PLATFORM_ADMIN_VIEWS=Object.freeze(ALL_VIEWS.filter(view=>!SHARED_VIEWS.includes(view)));
-const MANAGER_ROLES=new Set(["owner","admin","manager","club_admin","agency_admin","president","praesident","vereinsleiter","vorstand"]);
-const TEAM_ROLE_HINTS=new Set(["trainer","coach","co_trainer","cotrainer","betreuer"]);
-function normalizeRole(value){return String(value||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
-function isActive(value){return ["approved","active"].includes(String(value||"").trim().toLowerCase());}
-function resolveContext(input={}){
- const profileRole=normalizeRole(input.profileRole),isPlatformAdmin=["admin","administrator"].includes(profileRole);
- const organizations=Array.isArray(input.organizations)?input.organizations:[],teams=Array.isArray(input.teams)?input.teams:[];
- const manageableOrganizations=organizations.filter(org=>{const type=String(org?.organization_type||org?.type||"").toLowerCase(),status=org?.organization_status??org?.status,memberRole=normalizeRole(org?.member_role??org?.role);return ["club","agency"].includes(type)&&isActive(status)&&MANAGER_ROLES.has(memberRole);});
- const clubOrganizations=manageableOrganizations.filter(org=>String(org.organization_type||org.type||"").toLowerCase()==="club");
- const agencyOrganizations=manageableOrganizations.filter(org=>String(org.organization_type||org.type||"").toLowerCase()==="agency");
- const canManageClub=clubOrganizations.length>0,canManageAgency=agencyOrganizations.length>0,hasTeamAccess=teams.length>0;
- const isScout=profileRole.includes("scout"),isPlayer=["player","spieler"].includes(profileRole),hasTeamRoleHint=TEAM_ROLE_HINTS.has(profileRole);
- const allowedViews=new Set(SHARED_VIEWS);
- if(isPlatformAdmin)ALL_VIEWS.forEach(view=>allowedViews.add(view));
- else{
-  if(canManageClub)["clubs","club-members","club-admin","club-scouting","teams","staff","team-workspace","scouts"].forEach(view=>allowedViews.add(view));
-  if(canManageAgency)["agencies","club-members","club-scouting","scouts"].forEach(view=>allowedViews.add(view));
-  if(isScout)["scouts","scout-workspace"].forEach(view=>allowedViews.add(view));
-  if(hasTeamAccess)allowedViews.add("team-workspace");
- }
- let startView="dashboard";
- if(isPlatformAdmin)startView="admin";else if(canManageClub)startView="clubs";else if(canManageAgency)startView="agencies";else if(isScout)startView="scouts";else if(hasTeamAccess)startView="team-workspace";
- const roleLabel=isPlatformAdmin?"Administrator":canManageClub?"Vereinsverwaltung":canManageAgency?"Agenturverwaltung":isScout?"Scout":hasTeamAccess||hasTeamRoleHint?"Trainerteam":isPlayer?"Spieler":"Mitglied";
- return Object.freeze({profileRole,isPlatformAdmin,isScout,isPlayer,hasTeamRoleHint,hasTeamAccess,canManageClub,canManageAgency,hasManagementWorkspace:isPlatformAdmin||canManageClub||canManageAgency,clubOrganizationCount:clubOrganizations.length,agencyOrganizationCount:agencyOrganizations.length,manageableOrganizations:manageableOrganizations.slice(),allowedViews,startView,roleLabel});
-}
-function canAccessView(context,view){if(!context||!ALL_VIEWS.includes(view))return false;return context.isPlatformAdmin===true||context.allowedViews.has(view);}
-function getStartView(context){return context&&canAccessView(context,context.startView)?context.startView:"dashboard";}
-function getAllViews(){return ALL_VIEWS.slice();}
-root.PFMSRoleWorkflows=Object.freeze({normalizeRole,resolveContext,canAccessView,getStartView,getAllViews,platformAdminViews:PLATFORM_ADMIN_VIEWS});
-})(typeof window!=="undefined"?window:globalThis);
+  "use strict";
+
+  const ALL_VIEWS = Object.freeze([
+    "dashboard", "players", "clubs", "club-members", "club-admin", "club-scouting",
+    "teams", "staff", "scouts", "team-workspace", "reports", "media", "tasks",
+    "admin", "agencies", "admin-members", "admin-errors", "notifications",
+    "support", "admin-inbox", "admin-payments", "backup", "scout-workspace"
+  ]);
+  const SHARED_VIEWS = Object.freeze(["dashboard", "media", "tasks", "notifications", "support"]);
+  const MANAGER_ROLES = new Set(["owner", "club_admin", "agency_admin"]);
+  const TEAM_ROLE_HINTS = new Set(["trainer", "coach", "co_trainer", "cotrainer", "betreuer"]);
+  const ACTIVE_ORG_STATUSES = new Set(["approved", "active"]);
+
+  function normalizeRole(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\s-]+/g, "_");
+  }
+
+  function isActiveMembership(organization) {
+    const membershipStatus = organization?.membership_status;
+    const organizationStatus = organization?.organization_status ?? organization?.status;
+    return (!membershipStatus || normalizeRole(membershipStatus) === "active") &&
+      (!organizationStatus || ACTIVE_ORG_STATUSES.has(normalizeRole(organizationStatus)));
+  }
+
+  function membershipRole(organization) {
+    return normalizeRole(organization?.member_role ?? organization?.role);
+  }
+
+  function roleForMembership(organization) {
+    const type = normalizeRole(organization?.organization_type ?? organization?.type);
+    const role = membershipRole(organization);
+    if (type === "club" && ["owner", "club_admin"].includes(role)) return "verein";
+    if (type === "agency" && ["owner", "agency_admin"].includes(role)) return "agentur";
+    if (role === "scout" && type === "club") return "scout";
+    if (role === "scout" && type === "agency") return "agenturscout";
+    if (["trainer", "coach"].includes(role)) return "trainer";
+    if (["co_trainer", "cotrainer"].includes(role)) return "co_trainer";
+    if (role === "betreuer") return "betreuer";
+    if (role === "member") return "spieler";
+    return null;
+  }
+
+  function resolveContext(input = {}) {
+    const profileRole = normalizeRole(input.profileRole);
+    const isPlatformAdmin = ["admin", "administrator"].includes(profileRole);
+    const organizations = Array.isArray(input.organizations) ? input.organizations : [];
+    const teams = Array.isArray(input.teams) ? input.teams : [];
+    const teamAssignments = Array.isArray(input.teamAssignments) ? input.teamAssignments : [];
+
+    const activeOrganizations = organizations.filter(isActiveMembership);
+    const manageableOrganizations = activeOrganizations.filter(organization => {
+      const type = normalizeRole(organization?.organization_type ?? organization?.type);
+      return ["club", "agency"].includes(type) && MANAGER_ROLES.has(membershipRole(organization));
+    });
+    const clubOrganizations = manageableOrganizations.filter(
+      organization => normalizeRole(organization?.organization_type ?? organization?.type) === "club"
+    );
+    const agencyOrganizations = manageableOrganizations.filter(
+      organization => normalizeRole(organization?.organization_type ?? organization?.type) === "agency"
+    );
+    const canManageClub = clubOrganizations.length > 0;
+    const canManageAgency = agencyOrganizations.length > 0;
+
+    const activeMemberRoles = activeOrganizations.map(membershipRole);
+    const hasAgencyScoutMembership = activeOrganizations.some(organization =>
+      normalizeRole(organization?.organization_type ?? organization?.type) === "agency" &&
+      membershipRole(organization) === "scout"
+    );
+    const hasClubScoutMembership = activeOrganizations.some(organization =>
+      normalizeRole(organization?.organization_type ?? organization?.type) === "club" &&
+      membershipRole(organization) === "scout"
+    );
+    const isAgencyScout = profileRole === "agenturscout" || hasAgencyScoutMembership;
+    const isScout = profileRole.includes("scout") ||
+      activeMemberRoles.includes("scout") ||
+      hasAgencyScoutMembership || hasClubScoutMembership;
+    const isPlayer = ["player", "spieler"].includes(profileRole) ||
+      activeMemberRoles.includes("member");
+
+    const activeTeamAssignments = teamAssignments.filter(assignment => {
+      const assignmentStatus = normalizeRole(assignment?.assignment_status ?? assignment?.status);
+      const teamStatus = normalizeRole(assignment?.team_status);
+      return (!assignmentStatus || assignmentStatus === "active") &&
+        (!teamStatus || teamStatus === "active");
+    });
+    const teamMembershipRoles = activeMemberRoles.filter(role => TEAM_ROLE_HINTS.has(role));
+    const assignedTeamRoles = activeTeamAssignments
+      .map(assignment => normalizeRole(assignment?.team_role ?? assignment?.role))
+      .filter(role => TEAM_ROLE_HINTS.has(role));
+    const effectiveTeamRoles = [...new Set([...teamMembershipRoles, ...assignedTeamRoles])];
+    const hasTeamRoleHint = TEAM_ROLE_HINTS.has(profileRole) || effectiveTeamRoles.length > 0;
+    const hasTeamAccess = teams.length > 0 || activeTeamAssignments.length > 0;
+
+    const allowedViews = new Set(SHARED_VIEWS);
+    if (isPlatformAdmin) {
+      ALL_VIEWS.forEach(view => allowedViews.add(view));
+    } else {
+      if (canManageClub) {
+        ["clubs", "club-members", "club-admin", "club-scouting", "teams", "staff",
+          "team-workspace", "scouts"].forEach(view => allowedViews.add(view));
+      }
+      if (canManageAgency) {
+        ["agencies", "club-members", "club-scouting", "scouts"].forEach(view => allowedViews.add(view));
+      }
+      if (isScout) ["scouts", "scout-workspace"].forEach(view => allowedViews.add(view));
+      if (hasTeamAccess) allowedViews.add("team-workspace");
+    }
+
+    let startView = "dashboard";
+    if (isPlatformAdmin) startView = "admin";
+    else if (canManageClub) startView = "clubs";
+    else if (canManageAgency) startView = "agencies";
+    else if (isScout) startView = "scouts";
+    else if (hasTeamAccess) startView = "team-workspace";
+
+    const primaryTeamRole = effectiveTeamRoles[0] || null;
+    let roleLabel = "Mitglied";
+    if (isPlatformAdmin) roleLabel = "Administrator";
+    else if (canManageClub && canManageAgency) roleLabel = "Verein & Agentur";
+    else if (canManageClub) roleLabel = "Vereinsverwaltung";
+    else if (canManageAgency) roleLabel = "Agenturverwaltung";
+    else if (isAgencyScout) roleLabel = "Agenturscout";
+    else if (isScout) roleLabel = "Scout";
+    else if (primaryTeamRole === "trainer" || profileRole === "trainer" || profileRole === "coach") roleLabel = "Trainer";
+    else if (primaryTeamRole === "co_trainer" || ["co_trainer", "cotrainer"].includes(profileRole)) roleLabel = "Co-Trainer";
+    else if (primaryTeamRole === "betreuer" || profileRole === "betreuer") roleLabel = "Betreuer";
+    else if (isPlayer) roleLabel = "Spieler";
+    else if (hasTeamAccess || hasTeamRoleHint) roleLabel = "Trainerteam";
+
+    return Object.freeze({
+      profileRole,
+      isPlatformAdmin,
+      isScout,
+      isAgencyScout,
+      isPlayer,
+      hasTeamRoleHint,
+      hasTeamAccess,
+      canManageClub,
+      canManageAgency,
+      hasManagementWorkspace: isPlatformAdmin || canManageClub || canManageAgency,
+      clubOrganizationCount: clubOrganizations.length,
+      agencyOrganizationCount: agencyOrganizations.length,
+      manageableOrganizations: manageableOrganizations.slice(),
+      activeOrganizations: activeOrganizations.slice(),
+      activeTeamAssignments: activeTeamAssignments.slice(),
+      activeMemberRoles: Object.freeze([...new Set(activeMemberRoles)]),
+      allowedViews,
+      startView,
+      roleLabel
+    });
+  }
+
+  function canAccessView(context, view) {
+    if (!context || !ALL_VIEWS.includes(view)) return false;
+    return context.isPlatformAdmin === true || context.allowedViews.has(view);
+  }
+
+  function getStartView(context) {
+    return context && canAccessView(context, context.startView) ? context.startView : "dashboard";
+  }
+
+  function getAllViews() {
+    return ALL_VIEWS.slice();
+  }
+
+  root.PFMSRoleWorkflows = Object.freeze({
+    normalizeRole,
+    roleForMembership,
+    resolveContext,
+    canAccessView,
+    getStartView,
+    getAllViews
+  });
+})(typeof window !== "undefined" ? window : globalThis);
