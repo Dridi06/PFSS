@@ -118,8 +118,8 @@ for (const relativePath of publicFiles) {
     const artwork = await readFile(sourcePath, "utf8");
     if (
       artwork.length < 4000 ||
-      !/^<svg\\s/.test(artwork) ||
-      !/<\\/svg>\\s*$/.test(artwork) ||
+      !artwork.trimStart().startsWith("<svg ") ||
+      !artwork.trimEnd().endsWith("</svg>") ||
       !artwork.includes('viewBox="0 0 1600 1100"')
     ) {
       throw new Error("PFMS welcome artwork is invalid, incomplete, or missing its expected SVG viewBox.");
