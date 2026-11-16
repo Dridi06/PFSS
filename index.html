@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="pfms-design-system.css?v=20261115-1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script src="pfms-config.js" defer></script>
+  <script src="pfms-password-recovery.js?v=20261116-1" defer></script>
   <script src="pfms-role-workflows.js?v=20261116-role-workflows-1" defer></script>
   <script src="app.js?v=pfms-role-workflows-20261116-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
@@ -255,6 +256,55 @@
     </section>
     </div>
     <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 Professional Football Management System</span></footer>
+  </main>
+
+  <main id="passwordRecoveryScreen" class="auth-screen hidden">
+    <section class="auth-card" aria-labelledby="passwordRecoveryTitle">
+      <div class="auth-brand">
+        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="Professional Football Management System">
+        <div class="auth-brand-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
+      </div>
+      <div class="eyebrow">KONTO-ZUGANG</div>
+      <h1 id="passwordRecoveryTitle">Passwort vergessen?</h1>
+      <p>Gib die E-Mail-Adresse ein, mit der dein PFMS-Konto registriert wurde. Wir senden dir gegebenenfalls einen sicheren Link zur Passwort-Wiederherstellung.</p>
+      <form id="passwordRecoveryForm" novalidate>
+        <label class="field full">E-Mail-Adresse
+          <input name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" required placeholder="name@beispiel.de">
+        </label>
+        <p id="passwordRecoveryMessage" class="auth-message" role="status" aria-live="polite"></p>
+        <div class="auth-actions">
+          <button class="btn btn-primary" type="submit" id="sendPasswordRecoveryButton">Wiederherstellungslink senden</button>
+          <button class="auth-link-button" type="button" id="backToLoginFromRecovery">Zurück zur Anmeldung</button>
+        </div>
+      </form>
+    </section>
+    <footer class="site-footer"><span>© 2026 Professional Football Management System</span></footer>
+  </main>
+
+  <main id="passwordResetScreen" class="auth-screen hidden">
+    <section class="auth-card" aria-labelledby="passwordResetTitle">
+      <div class="auth-brand">
+        <img class="pfms-logo auth-logo" src="pfms-logo.svg" alt="Professional Football Management System">
+        <div class="auth-brand-name">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
+      </div>
+      <div class="eyebrow">KONTO-SICHERHEIT</div>
+      <h1 id="passwordResetTitle">Neues Passwort festlegen</h1>
+      <p>Lege ein neues Passwort für dein PFMS-Konto fest. Verwende mindestens 8 Zeichen und bestätige es im zweiten Feld.</p>
+      <form id="passwordResetPageForm" novalidate>
+        <label class="field full">Neues Passwort
+          <input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="Mindestens 8 Zeichen">
+        </label>
+        <label class="field full">Neues Passwort wiederholen
+          <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="Passwort erneut eingeben">
+        </label>
+        <p id="passwordResetMessage" class="auth-message" role="status" aria-live="polite"></p>
+        <div class="auth-actions">
+          <button class="btn btn-primary" type="submit" id="savePasswordResetButton">Neues Passwort speichern</button>
+          <button class="auth-link-button" type="button" id="backToLoginFromReset">Zurück zur Anmeldung</button>
+        </div>
+      </form>
+    </section>
+    <footer class="site-footer"><span>© 2026 Professional Football Management System</span></footer>
   </main>
 
   <main id="pendingScreen" class="auth-screen hidden">
