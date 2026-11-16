@@ -108,7 +108,7 @@ assert.match(connectionTest, /const expected='oolvpbzbqiojioazsoun'/, "Connectio
 assert.equal("oolvpbzbqiojioazsoun".length, 20, "Approved Staging project reference must contain exactly 20 characters.");
 assert.ok(connectionTest.includes("host===expected+'.supabase.co'"), "Connection diagnostic must verify the Supabase host against the approved project reference.");
 assert.match(connectionTest, /refValue===expected/, "Connection diagnostic must verify the embedded project reference against the approved project reference.");
-assert.doesNotMatch(connectionTest, /oolvpbzbqiojioazsoun/, "The previous mistyped Staging project reference must not return.");
+assert.doesNotMatch(connectionTest, /oolvpbzbqioijoazsoun/, "The previous mistyped Staging project reference must not return.");
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 assert.doesNotMatch(html, /<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i,
