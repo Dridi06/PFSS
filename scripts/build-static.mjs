@@ -159,7 +159,7 @@ for (const relativePath of publicFiles) {
   }
 
   if (relativePath === "pfms-login-hero.webp") {
-    const expectedPartLengths = [6000, 6000, 6000, 6000, 6000, 3000, 3000, 3000, 3000, 2116];
+    const expectedPartLengths = [6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 2440];
     const encodedParts = [];
     for (let part = 1; part <= expectedPartLengths.length; part += 1) {
       const partPath = resolve(repositoryRoot, "pfms-login-hero-data", "part-" + String(part).padStart(2, "0") + ".txt");
@@ -175,7 +175,7 @@ for (const relativePath of publicFiles) {
     }
     const imageBytes = Buffer.from(encodedArtwork, "base64");
     const actualSha256 = createHash("sha256").update(imageBytes).digest("hex");
-    if (imageBytes.length !== 33086 || actualSha256 !== "79a42ce715051c2f6cf924b51e5e68dd465642dfc837fdcc94f87ed9882ff4df") {
+    if (imageBytes.length !== 42328 || actualSha256 !== "dbb4ede3e4d9566ef56cb6c04828aa79030129327a3d0518117cd7c1134c9778") {
       throw new Error("PFMS login artwork integrity check failed: file size or SHA-256 differs from the supplied artwork.");
     }
     const isWebP = imageBytes.length >= 20 && imageBytes.toString("ascii", 0, 4) === "RIFF" &&
