@@ -764,6 +764,68 @@
           <p class="admin-message" id="pfmsLegacyMembersMessage" role="status" aria-live="polite"></p>
           <div class="pfms-member-results" id="pfmsLegacyMemberResults"></div>
         </section>
+        <section class="panel pfms-members-directory" id="pfssOrgManagementPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">SICHERE PFMS-ORGANISATIONSVERWALTUNG</div>
+              <h3 id="pfssOrgManagementTitle">Mitglieder und Einladungen</h3>
+              <p>Verwalte die aktiven Mitgliedschaften deiner eigenen Organisation. Rollenänderungen und Widerrufe werden serverseitig geprüft und protokolliert.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" id="pfssOrgManagementRefresh">Aktualisieren</button>
+          </div>
+          <label class="field">
+            Organisation
+            <select id="pfssOrgManagementOrganization" required>
+              <option value="">Organisation auswählen …</option>
+            </select>
+          </label>
+          <form id="pfssOrgInvitationForm" class="pfms-invitation-form">
+            <label class="field">
+              E-Mail-Adresse
+              <input type="email" name="email" maxlength="254" required autocomplete="email" placeholder="mitglied@example.com">
+            </label>
+            <label class="field">
+              Rolle
+              <select name="role_detail" required>
+                <option value="scout">Scout</option>
+                <option value="trainer">Trainer</option>
+                <option value="co_trainer">Co-Trainer</option>
+                <option value="betreuer">Betreuer</option>
+                <option value="spieler">Spieler</option>
+              </select>
+            </label>
+            <label class="field">
+              Gültigkeit
+              <select name="expires_in_days" required>
+                <option value="1">1 Tag</option>
+                <option value="3">3 Tage</option>
+                <option value="7" selected>7 Tage</option>
+                <option value="14">14 Tage</option>
+                <option value="30">30 Tage</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit" id="pfssOrgInvitationSubmit">Einladung erstellen</button>
+          </form>
+          <p class="admin-message" id="pfssOrgManagementMessage" role="status" aria-live="polite"></p>
+          <div class="pfms-invitation-result" id="pfssOrgInvitationResult" hidden>
+            <div class="eyebrow">EINMALIGER EINLADUNGSLINK</div>
+            <p>Der Link enthält einen einmaligen Code. Er wird nur bei der Erstellung angezeigt und serverseitig ausschließlich als Hash gespeichert.</p>
+            <div class="pfms-invitation-copy-row">
+              <input id="pfssOrgInvitationUrl" type="text" readonly aria-label="PFMS Einladungslink">
+              <button class="btn btn-secondary" type="button" id="pfssOrgInvitationCopy">Link kopieren</button>
+            </div>
+          </div>
+          <div class="module-grid">
+            <section class="panel">
+              <div class="panel-heading"><div><div class="eyebrow">MITGLIEDER</div><h3>Aktive und gesperrte Mitglieder</h3></div></div>
+              <div id="pfssOrgMembersList" class="admin-user-list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><div class="eyebrow">EINLADUNGEN</div><h3>Einladungsstatus</h3></div></div>
+              <div id="pfssOrgInvitationsList" class="admin-user-list"></div>
+            </section>
+          </div>
+        </section>
         <section class="panel pfms-membership-finance-note">
           <div class="eyebrow">BEITRÄGE & ZAHLUNGEN</div>
           <h3>Beitragsabrechnung folgt als eigener geschützter Bereich</h3>
