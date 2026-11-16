@@ -6,7 +6,7 @@ const sql = await readFile(
   resolve(process.cwd(), "supabase/PFMS_TEST_PERSONAS_ACCEPTANCE_READ_ONLY.sql"),
   "utf8"
 );
-const executable = sql.replace(/--[^\n]*/g, "").trim();
+const executable = sql.replace(/--[^\n]*/g, "").replace(/'(?:''|[^'])*'/g, "''").trim();
 
 assert.match(executable, /^WITH\s+role_counts\s+AS\s*\(/i,
   "Persona audit must start with a read-only CTE.");
