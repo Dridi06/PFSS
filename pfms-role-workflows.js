@@ -47,7 +47,7 @@
     if (["trainer", "coach"].includes(role)) return "trainer";
     if (["co_trainer", "cotrainer"].includes(role)) return "co_trainer";
     if (role === "betreuer") return "betreuer";
-    if (role === "member") return "spieler";
+    if (["member", "player", "spieler"].includes(role)) return "spieler";
     return null;
   }
 
@@ -86,13 +86,16 @@
       membershipRole(organization) === "scout"
     );
     const isAgencyScout = profileRole === "agenturscout" ||
-      declaredRoles.has("agenturscout") || hasAgencyScoutMembership;
+      declaredRoles.has("agenturscout") || mappedMembershipRoles.includes("agenturscout") ||
+      hasAgencyScoutMembership;
     const isScout = profileRole.includes("scout") ||
       declaredRoles.has("scout") || declaredRoles.has("agenturscout") ||
+      mappedMembershipRoles.includes("scout") || mappedMembershipRoles.includes("agenturscout") ||
       activeMemberRoles.includes("scout") ||
       hasAgencyScoutMembership || hasClubScoutMembership;
     const isPlayer = ["player", "spieler"].includes(profileRole) ||
-      declaredRoles.has("spieler") || activeMemberRoles.includes("member");
+      declaredRoles.has("spieler") || mappedMembershipRoles.includes("spieler") ||
+      activeMemberRoles.includes("member");
 
     const activeTeamAssignments = teamAssignments.filter(assignment => {
       const assignmentStatus = normalizeRole(assignment?.assignment_status ?? assignment?.status);
