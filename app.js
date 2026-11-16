@@ -2584,7 +2584,18 @@ function showAuthScreen() {
   window.scrollTo(0, 0);
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
+  document.getElementById('passwordRecoveryScreen')?.classList.add('hidden');
+  document.getElementById('passwordResetScreen')?.classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
+}
+
+function showPfmsPasswordRecoveryScreen(screen) {
+  window.scrollTo(0, 0);
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('pendingScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('passwordRecoveryScreen')?.classList.toggle('hidden', screen !== 'request');
+  document.getElementById('passwordResetScreen')?.classList.toggle('hidden', screen !== 'reset');
 }
 
 async function updateOwnerBootstrapVisibility(user) {
@@ -9231,38 +9242,82 @@ document.getElementById('authForm')
   });
 
 document.getElementById('forgotPasswordButton')
-  .addEventListener('click', async () => {
-    const form = document.getElementById('authForm');
-    const email = form.elements.email.value.trim();
-    const message = document.getElementById('authMessage');
-    const button = document.getElementById('forgotPasswordButton');
+  .addEventListener('click', () => {
+    showPfmsPasswordRecoveryScreen('request');
+    document.querySelector('#passwordRecoveryForm input[name="email"]')?.focus();
+  });
 
-    if (!email) {
-      message.textContent = 'Bitte gib zuerst deine E-Mail-Adresse ein.';
+document.getElementById('backToLoginFromRecovery')
+  ?.addEventListener('click', showAuthScreen);
+
+document.getElementById('backToLoginFromReset')
+  ?.addEventListener('click', async () => {
+    try { await pfssSupabase.auth.signOut({ scope: 'local' }); } catch (error) {}
+    history.replaceState(null, '', window.location.pathname);
+    showAuthScreen();
+  });
+
+document.getElementById('passwordRecoveryForm')
+  ?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = String(form.elements.email.value || '').trim().toLowerCase();
+    const message = document.getElementById('passwordRecoveryMessage');
+    const button = document.getElementById('sendPasswordRecoveryButton');
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      message.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
       form.elements.email.focus();
       return;
     }
-    if (!email.includes('@')) {
-      message.textContent = 'Für das Zurücksetzen des Passworts bitte die E-Mail-Adresse eingeben.';
-      form.elements.email.focus();
-      return;
-    }
-
     button.disabled = true;
-    message.textContent = 'Wiederherstellungslink wird angefordert …';
-
+    message.textContent = 'Die Anfrage wird sicher übermittelt …';
     try {
       const { error } = await pfssSupabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + window.location.pathname
       });
-
       if (error) throw error;
-
-      message.textContent =
-        'Falls ein Konto zu dieser Adresse gehört, erhältst du eine E-Mail mit dem Link zum Zurücksetzen des Passworts.';
+      message.textContent = 'Wenn zu dieser Adresse ein PFMS-Konto gehört, wurde eine E-Mail mit einem zeitlich begrenzten Wiederherstellungslink versendet. Bitte prüfe auch deinen Spam-Ordner.';
+      form.reset();
     } catch (error) {
-      message.textContent =
-        'Der Wiederherstellungslink konnte gerade nicht angefordert werden. Bitte versuche es später erneut.';
+      console.warn('PFMS password recovery request failed:', error?.message || error);
+      message.textContent = 'Die Anfrage konnte momentan nicht verarbeitet werden. Bitte versuche es später erneut.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+document.getElementById('passwordResetPageForm')
+  ?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const password = String(form.elements.password.value || '');
+    const confirmation = String(form.elements.confirmPassword.value || '');
+    const message = document.getElementById('passwordResetMessage');
+    const button = document.getElementById('savePasswordResetButton');
+    if (password.length < 8) {
+      message.textContent = 'Das neue Passwort muss mindestens 8 Zeichen enthalten.';
+      return;
+    }
+    if (password !== confirmation) {
+      message.textContent = 'Die beiden Passwörter stimmen nicht überein.';
+      form.elements.confirmPassword.focus();
+      return;
+    }
+    button.disabled = true;
+    message.textContent = 'Das neue Passwort wird sicher gespeichert …';
+    try {
+      const { data, error } = await pfssSupabase.auth.updateUser({ password });
+      if (error || !data?.user) throw error || new Error('Password update was not confirmed');
+      form.reset();
+      try { await pfssSupabase.auth.signOut({ scope: 'local' }); } catch (signOutError) {
+        console.warn('PFMS local sign-out after password reset failed:', signOutError?.message || signOutError);
+      }
+      history.replaceState(null, '', window.location.pathname);
+      showAuthScreen();
+      document.getElementById('authMessage').textContent = 'Dein Passwort wurde erfolgreich geändert. Du kannst dich jetzt mit deinem neuen Passwort anmelden.';
+    } catch (error) {
+      console.warn('PFMS password reset failed:', error?.message || error);
+      message.textContent = 'Das Passwort konnte nicht geändert werden. Der Link ist möglicherweise abgelaufen oder bereits verwendet worden. Fordere bitte einen neuen Link an.';
     } finally {
       button.disabled = false;
     }
@@ -9684,6 +9739,12 @@ async function initializePfssAuth() {
   }
 
   if (data.session?.user) {
+    const recoveryLink = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery'
+      || new URLSearchParams(window.location.search).get('type') === 'recovery';
+    if (recoveryLink) {
+      showPfmsPasswordRecoveryScreen('reset');
+      return;
+    }
     // Vorhandene Sitzung wiederverwenden – kein erneuter Login beim Reload.
     await checkPfssAccess(data.session.user);
     return;
@@ -9712,10 +9773,7 @@ pfssSupabase.auth.onAuthStateChange((event, session) => {
   }
 
   if (event === 'PASSWORD_RECOVERY') {
-    setTimeout(() => {
-      const dialog = document.getElementById('passwordDialog');
-      if (dialog && !dialog.open) dialog.showModal();
-    }, 0);
+    setTimeout(() => showPfmsPasswordRecoveryScreen('reset'), 0);
   }
 });
 
