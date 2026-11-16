@@ -2873,7 +2873,7 @@ async function showAuthenticatedApp(user, profile) {
   const welcome = document.getElementById('welcomeSequence');
   const welcomeUser = document.getElementById('welcomeUser');
   const shouldShowWelcome = showIntro || showReturningGreeting;
-  if (welcomeUser) welcomeUser.textContent = 'Willkommen, ' + username + '!';
+  if (welcomeUser) welcomeUser.textContent = username;
   if (welcome) welcome.classList.toggle('hidden', !shouldShowWelcome);
 
   window.clearTimeout(window.pfmsWelcomeTimer);
@@ -2894,7 +2894,7 @@ async function showAuthenticatedApp(user, profile) {
   };
 
   if (shouldShowWelcome) {
-    window.pfmsWelcomeTimer = window.setTimeout(finishAuthentication, 4500);
+    window.pfmsWelcomeTimer = window.setTimeout(finishAuthentication, 3500);
   } else {
     // Ein normaler Seiten-Reload stellt die App sofort wieder her.
     finishAuthentication();
