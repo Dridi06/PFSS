@@ -18,7 +18,7 @@ const publicFiles = [
   "pfms-role-workflows.js",
   "scout-workspace.js",
   "pfms-logo.svg",
-  "pfms-welcome.webp"
+  "pfms-welcome.svg"
 ];
 
 function readSupabaseBuildConfig() {
@@ -114,13 +114,15 @@ for (const relativePath of publicFiles) {
     throw new Error(`Required public asset is missing: ${relativePath}`);
   }
 
-  if (relativePath === "pfms-welcome.webp") {
-    const imageBytes = await readFile(sourcePath);
-    const isWebP = imageBytes.length >= 12 &&
-      imageBytes.toString("ascii", 0, 4) === "RIFF" &&
-      imageBytes.toString("ascii", 8, 12) === "WEBP";
-    if (!isWebP || imageBytes.length < 10000) {
-      throw new Error("PFMS welcome artwork is invalid, truncated, or not a complete WebP file.");
+  if (relativePath === "pfms-welcome.svg") {
+    const artwork = await readFile(sourcePath, "utf8");
+    if (
+      artwork.length < 4000 ||
+      !/^<svg\\s/.test(artwork) ||
+      !/<\\/svg>\\s*$/.test(artwork) ||
+      !artwork.includes('viewBox="0 0 1600 1100"')
+    ) {
+      throw new Error("PFMS welcome artwork is invalid, incomplete, or missing its expected SVG viewBox.");
     }
   }
 
