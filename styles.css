@@ -438,7 +438,7 @@ button,input,select,textarea{max-width:100%}
 
 
 /* PFMS cinematic welcome sequence */
-.welcome-sequence{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#050505 url('pfms-welcome.svg') center/cover no-repeat;color:#f8e7b4}
+.welcome-sequence{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#050505 url('pfms-welcome.webp?v=20261116-exact-user-artwork') center/cover no-repeat;color:#f8e7b4}
 .welcome-sequence.hidden{display:none}
 .welcome-sequence::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.24),rgba(0,0,0,.72))}
 .welcome-sequence::after{content:"";position:absolute;left:-35%;top:0;width:22%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,221,125,.9),rgba(255,255,255,.95),rgba(255,205,75,.75),transparent);filter:blur(7px);transform:skewX(-18deg);animation:pfms-lightning .85s ease-out .12s both}
