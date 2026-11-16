@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir, rm, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -112,6 +112,16 @@ for (const relativePath of publicFiles) {
     await access(sourcePath);
   } catch {
     throw new Error(`Required public asset is missing: ${relativePath}`);
+  }
+
+  if (relativePath === "pfms-welcome.webp") {
+    const imageBytes = await readFile(sourcePath);
+    const isWebP = imageBytes.length >= 12 &&
+      imageBytes.toString("ascii", 0, 4) === "RIFF" &&
+      imageBytes.toString("ascii", 8, 12) === "WEBP";
+    if (!isWebP || imageBytes.length < 10000) {
+      throw new Error("PFMS welcome artwork is invalid, truncated, or not a complete WebP file.");
+    }
   }
 
   await copyFile(sourcePath, targetPath);
