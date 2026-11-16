@@ -14,6 +14,8 @@ assert.match(migration, /auth\.uid\(\)/);
 assert.match(migration, /p\.status = 'approved'/);
 assert.match(migration, /m\.user_id = v_user_id[\s\S]*?m\.status = 'active'[\s\S]*?o\.status IN \('approved', 'active'\)/);
 assert.match(migration, /s\.user_id = v_user_id[\s\S]*?s\.status = 'active'[\s\S]*?t\.status = 'active'/);
+assert.equal((migration.match(/JOIN public\.organization_memberships AS active_membership/g) || []).length, 2,
+  "Team assignments and derived team roles must require a current active organization membership.");
 assert.match(migration, /'member_role', membership\.member_role/);
 assert.match(migration, /'team_role', assignment\.team_role/);
 assert.match(migration, /'roles', v_roles/);
