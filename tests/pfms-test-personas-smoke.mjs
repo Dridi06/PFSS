@@ -6,16 +6,17 @@ const sql = await readFile(
   resolve(process.cwd(), "supabase/PFMS_TEST_PERSONAS_ACCEPTANCE_READ_ONLY.sql"),
   "utf8"
 );
-const executable = sql.replace(/--[^\n]*/g, "").replace(/'(?:''|[^'])*'/g, "''").trim();
+const uncommentedSql = sql.replace(/--[^\\n]*/g, "").trim();
+const executable = uncommentedSql.replace(/'(?:''|[^'])*'/g, "''").trim();
 
-assert.match(sql, /^WITH\s+role_counts\s+AS\s*\(/i,
-  "Persona audit must start with a read-only CTE.");
-assert.match(sql, /SELECT\s+check_name,\s*passed,\s*details\s+FROM\s+checks\s+ORDER\s+BY\s+check_name\s*;$/i,
+assert.match(uncommentedSql, /^WITH\\s+role_counts\\s+AS\\s*\\(/i,
+  "Persona audit must start with a read-only CTE after optional line comments.");
+assert.match(uncommentedSql, /SELECT\\s+check_name,\\s*passed,\\s*details\\s+FROM\\s+checks\\s+ORDER\\s+BY\\s+check_name\\s*;$/i,
   "Persona audit must return the stable check_name/passed/details contract.");
 assert.equal((executable.match(/;/g) ?? []).length, 1,
   "Persona audit must contain exactly one SQL statement.");
 assert.doesNotMatch(executable,
-  /\b(?:INSERT\s+INTO|UPDATE\s+[a-z_]|DELETE\s+FROM|MERGE\s+INTO|CREATE\s+[A-Z]|ALTER\s+[A-Z]|DROP\s+[A-Z]|TRUNCATE|GRANT|REVOKE|CALL\s+)\b/i,
+  /\\b(?:INSERT\\s+INTO|UPDATE\\s+[a-z_]|DELETE\\s+FROM|MERGE\\s+INTO|CREATE\\s+[A-Z]|ALTER\\s+[A-Z]|DROP\\s+[A-Z]|TRUNCATE|GRANT|REVOKE|CALL\\s+)\\b/i,
   "Persona acceptance audit must never mutate data, schema, privileges or invoke procedures.");
 
 for (const required of [
@@ -32,7 +33,7 @@ for (const required of [
   assert.ok(sql.includes(required),
     "Missing required persona acceptance gate: " + required);
 }
-assert.match(sql, /\('scout',\s*5\)/);
-assert.match(sql, /\('admin',\s*1\)/);
-assert.match(sql, /\)\s*=\s*41/);
+assert.match(sql, /\\('scout',\\s*5\\)/);
+assert.match(sql, /\\('admin',\\s*1\\)/);
+assert.match(sql, /\\)\\s*=\\s*41/);
 console.log("PFMS test-persona acceptance contract passed: 9 safety and role gates, read-only SQL.");
