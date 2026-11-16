@@ -29,3 +29,6 @@ assert.ok(app.includes('window.confirm('), 'Sensitive profile changes must requi
 assert.ok(app.includes('Das Konto erhält Administratorrechte.'), 'Admin privilege elevation must have a clear warning');
 assert.ok(app.includes('Das eigene Administratorkonto ist geschützt.'), 'Self-protection must be enforced in the save handler');
 assert.ok(app.includes('Keine Änderungen vorgenommen.'), 'Unchanged user profiles must not trigger an RPC');
+
+assert.ok(html.includes('id="pfmsAdminAuditNotice"'), 'Admin profile management must disclose that platform-level change history is not yet available');
+assert.ok(html.includes('ersetzt aber keine revisionsfähige Änderungsprotokollierung'), 'The audit limitation must not be presented as an implemented audit trail');
