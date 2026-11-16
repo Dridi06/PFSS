@@ -1568,3 +1568,20 @@ button,input,select,textarea{max-width:100%}
 .pfms-admin-pagination span{color:var(--muted);font-size:12px;text-align:center;flex:1 1 150px}
 .pfms-admin-pagination .btn:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:600px){.pfms-admin-pagination{display:grid;grid-template-columns:1fr 1fr}.pfms-admin-pagination span{grid-column:1/-1;grid-row:1}.pfms-admin-pagination .btn{width:100%}}
+
+
+/* PFMS PASSWORD RECOVERY — dedicated request and reset screens */
+#passwordRecoveryScreen .auth-card,
+#passwordResetScreen .auth-card{width:min(100%,480px)}
+#passwordRecoveryScreen .auth-card>p,
+#passwordResetScreen .auth-card>p{font-size:13px;line-height:1.7;color:#b9b1a4;margin:0 0 22px}
+#passwordRecoveryScreen .auth-actions,
+#passwordResetScreen .auth-actions{display:grid;gap:12px}
+#passwordRecoveryScreen .auth-actions .btn,
+#passwordResetScreen .auth-actions .btn{width:100%;min-height:48px}
+#passwordRecoveryScreen .auth-message,
+#passwordResetScreen .auth-message{min-height:22px;line-height:1.5}
+#passwordRecoveryScreen .auth-brand,
+#passwordResetScreen .auth-brand{margin-bottom:24px}
+#passwordRecoveryScreen .auth-logo,
+#passwordResetScreen .auth-logo{max-width:48px;height:auto}
