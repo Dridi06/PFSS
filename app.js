@@ -770,14 +770,43 @@ function applyPfmsRoleNavigation(context = window.pfmsRoleContext) {
   if(adminTitle)adminTitle.textContent=context.isPlatformAdmin?'ADMINISTRATOR':context.canManageClub?'VEREINSBEREICH':context.canManageAgency?'AGENTURBEREICH':'SCOUTING';
   document.getElementById('sidebar')?.classList.toggle('admin-mode',context.isPlatformAdmin===true);
 }
-function updatePfmsRoleContext(organizations,teams,options={}) {
-  const workflows=window.PFMSRoleWorkflows;
-  if(!workflows||!window.pfssCurrentUserId)return null;
-  const context=workflows.resolveContext({profileRole:window.pfssCurrentRole,organizations:Array.isArray(organizations)?organizations:[],teams:Array.isArray(teams)?teams:[]});
-  window.pfmsRoleContext=context;applyPfmsRoleNavigation(context);
-  if(options.redirectInvalid!==false){
-    const activeView=document.querySelector('.view.active')?.id?.replace(/^view-/,'');
-    if(activeView&&!workflows.canAccessView(context,activeView))showView(workflows.getStartView(context),null,true);
+async function updatePfmsRoleContext(organizations, teams, options = {}) {
+  const workflows = window.PFMSRoleWorkflows;
+  const requestUserId = window.pfssCurrentUserId;
+  const requestGeneration = pfmsAuthGeneration;
+  if (!workflows || !requestUserId) return null;
+
+  let roleData = null;
+  try {
+    const { data, error } = await pfssSupabase.rpc('pfms_get_my_role_context');
+    if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return null;
+    if (error) throw error;
+    if (data && typeof data === 'object') roleData = data;
+  } catch (error) {
+    // Older Staging baselines do not yet include the additive role-context RPC.
+    // Keep the existing manager/team lookup as a compatibility path until migrations are reconciled.
+    if (!window.pfmsRoleContextRpcWarningShown) {
+      console.warn('PFMS full role context is not available yet; using active manager/team assignments:', error?.message || error);
+      window.pfmsRoleContextRpcWarningShown = true;
+    }
+  }
+
+  if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return null;
+  const context = workflows.resolveContext({
+    profileRole: roleData?.profile_role || window.pfssCurrentRole,
+    organizations: Array.isArray(roleData?.organizations) ? roleData.organizations :
+      (Array.isArray(organizations) ? organizations : []),
+    teams: Array.isArray(teams) ? teams : [],
+    teamAssignments: Array.isArray(roleData?.team_assignments) ? roleData.team_assignments : []
+  });
+  window.pfmsRoleContext = context;
+  applyPfmsRoleNavigation(context);
+
+  if (options.redirectInvalid !== false) {
+    const activeView = document.querySelector('.view.active')?.id?.replace(/^view-/, '');
+    if (activeView && !workflows.canAccessView(context, activeView)) {
+      showView(workflows.getStartView(context), null, true);
+    }
   }
   return context;
 }
@@ -2303,7 +2332,7 @@ async function showAuthenticatedApp(user, profile) {
   const username = profile.username || user.email || 'PFMS Nutzer';
   await loadPfmsLegacyTeams({redirectInvalid:false});
   if (authGeneration !== pfmsAuthGeneration || window.pfssCurrentUserId !== requestedUserId) return;
-  const roleContext = window.PFMSRoleWorkflows.resolveContext({profileRole:profile.role,organizations:pfmsLegacyInvitationOrganizations,teams:pfmsLegacyTeams});
+  const roleContext = window.pfmsRoleContext || window.PFMSRoleWorkflows.resolveContext({profileRole:profile.role,organizations:pfmsLegacyInvitationOrganizations,teams:pfmsLegacyTeams});
   window.pfmsRoleContext = roleContext;
   const isAdmin=roleContext.isPlatformAdmin,isScout=roleContext.isScout,isTeam=roleContext.hasTeamAccess,isClub=roleContext.canManageClub,isAgency=roleContext.canManageAgency;
   window.pfssIsRealAdmin=isAdmin;
@@ -3162,7 +3191,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (error) throw error;
 
     pfmsLegacyInvitationOrganizations = data || [];
-    updatePfmsRoleContext(pfmsLegacyInvitationOrganizations, pfmsLegacyTeams);
+    await updatePfmsRoleContext(pfmsLegacyInvitationOrganizations, pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     const organizations = pfmsLegacyInvitationOrganizations;
     const inviteEligible = organizations.filter(org =>
@@ -3213,7 +3242,7 @@ async function loadPfmsLegacyInvitationOrganizations() {
     if (requestGeneration !== pfmsAuthGeneration || requestUserId !== window.pfssCurrentUserId) return;
     console.error('PFMS legacy invitation organizations:', error);
     pfmsLegacyInvitationOrganizations = [];
-    updatePfmsRoleContext([], pfmsLegacyTeams);
+    await updatePfmsRoleContext([], pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
     message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
@@ -3606,16 +3635,16 @@ async function loadPfmsLegacyTeams(options = {}) {
   const [teamsResult,orgsResult]=await Promise.all([pfssSupabase.rpc('pfms_list_my_legacy_teams'),pfssSupabase.rpc('pfms_list_my_manageable_legacy_organizations')]);
   if(requestGeneration!==pfmsAuthGeneration||requestUserId!==window.pfssCurrentUserId)return false;
   const organizations=orgsResult.error?[]:(orgsResult.data||[]);
-  if(teamsResult.error){pfmsLegacyTeams=[];pfmsLegacyInvitationOrganizations=organizations;pfmsManageableLegacyOrganizations=organizations.filter(org=>org.organization_type==='club'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase()));updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();throw teamsResult.error;}
+  if(teamsResult.error){pfmsLegacyTeams=[];pfmsLegacyInvitationOrganizations=organizations;pfmsManageableLegacyOrganizations=organizations.filter(org=>org.organization_type==='club'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase()));await updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();throw teamsResult.error;}
   pfmsLegacyTeams=teamsResult.data||[];pfmsLegacyInvitationOrganizations=organizations;
   pfmsManageableLegacyOrganizations=organizations.filter(org=>org.organization_type==='club'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase()));
-  updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();
+  await updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsClubWorkspace();
   messages.forEach(message=>message.textContent=pfmsLegacyTeams.length?pfmsLegacyTeams.length+' Mannschaft(en) geladen.':'Für dieses Konto sind noch keine Mannschaften zugeordnet.');
   renderPfmsLegacyTeamCards();return true;
  }catch(error){
   if(requestGeneration!==pfmsAuthGeneration||requestUserId!==window.pfssCurrentUserId)return false;
   console.error('PFMS team workspace load failed:',error);pfmsLegacyTeams=[];pfmsManageableLegacyOrganizations=[];
-  updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsLegacyTeamCards();
+  await updatePfmsRoleContext(pfmsLegacyInvitationOrganizations,pfmsLegacyTeams,{redirectInvalid:options.redirectInvalid!==false});renderPfmsLegacyTeamCards();
   messages.forEach(message=>message.textContent='Mannschaftsverwaltung noch nicht verfügbar. Bitte die Team-Migration in der Testdatenbank anwenden und deine Vereinszuordnung prüfen.');return false;
  }
 }
