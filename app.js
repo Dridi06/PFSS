@@ -2580,22 +2580,31 @@ window.addEventListener('online', updateConnectionStatus);
 window.addEventListener('offline', updateConnectionStatus);
 updateConnectionStatus();
 
+function setPfmsScreenVisibility(element, visible) {
+  if (!element) return;
+  element.classList.toggle('hidden', !visible);
+  element.hidden = !visible;
+  element.setAttribute('aria-hidden', String(!visible));
+  if (visible) element.style.removeProperty('display');
+  else element.style.setProperty('display', 'none', 'important');
+}
+
 function showAuthScreen() {
   window.scrollTo(0, 0);
-  document.getElementById('authScreen').classList.remove('hidden');
-  document.getElementById('pendingScreen').classList.add('hidden');
-  document.getElementById('passwordRecoveryScreen')?.classList.add('hidden');
-  document.getElementById('passwordResetScreen')?.classList.add('hidden');
-  document.getElementById('appShell').classList.add('hidden');
+  setPfmsScreenVisibility(document.getElementById('authScreen'), true);
+  setPfmsScreenVisibility(document.getElementById('pendingScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('passwordRecoveryScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('passwordResetScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('appShell'), false);
 }
 
 function showPfmsPasswordRecoveryScreen(screen) {
   window.scrollTo(0, 0);
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('pendingScreen').classList.add('hidden');
-  document.getElementById('appShell').classList.add('hidden');
-  document.getElementById('passwordRecoveryScreen')?.classList.toggle('hidden', screen !== 'request');
-  document.getElementById('passwordResetScreen')?.classList.toggle('hidden', screen !== 'reset');
+  setPfmsScreenVisibility(document.getElementById('authScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('pendingScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('appShell'), false);
+  setPfmsScreenVisibility(document.getElementById('passwordRecoveryScreen'), screen === 'request');
+  setPfmsScreenVisibility(document.getElementById('passwordResetScreen'), screen === 'reset');
 }
 
 async function updateOwnerBootstrapVisibility(user) {
@@ -2618,9 +2627,9 @@ async function updateOwnerBootstrapVisibility(user) {
 }
 
 function showPendingScreen(status, user) {
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('pendingScreen').classList.remove('hidden');
-  document.getElementById('appShell').classList.add('hidden');
+  setPfmsScreenVisibility(document.getElementById('authScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('pendingScreen'), true);
+  setPfmsScreenVisibility(document.getElementById('appShell'), false);
 
   const title = document.getElementById('pendingTitle');
   const message = document.getElementById('pendingText');
@@ -2800,9 +2809,9 @@ async function showAuthenticatedApp(user, profile) {
   if (introPanel) introPanel.hidden = !showIntro;
   if (returningPanel) returningPanel.hidden = !showReturningGreeting;
 
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('pendingScreen').classList.add('hidden');
-  document.getElementById('appShell').classList.add('hidden');
+  setPfmsScreenVisibility(document.getElementById('authScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('pendingScreen'), false);
+  setPfmsScreenVisibility(document.getElementById('appShell'), false);
   document.getElementById('accountEmail').textContent = username;
   document.querySelector('.profile-mini small').textContent = roleContext.roleLabel;
   applyPfmsRoleNavigation(roleContext);
@@ -2871,7 +2880,9 @@ async function showAuthenticatedApp(user, profile) {
   const finishAuthentication = () => {
     window.scrollTo(0, 0);
     if (welcome) welcome.classList.add('hidden');
-    document.getElementById('appShell').classList.remove('hidden');
+    setPfmsScreenVisibility(document.getElementById('authScreen'), false);
+    setPfmsScreenVisibility(document.getElementById('pendingScreen'), false);
+    setPfmsScreenVisibility(document.getElementById('appShell'), true);
     window.history.replaceState(
       { pfssView: startView, pfssLabel: startView === 'team-workspace' ? 'Mannschaftsübersicht' : startView },
       '',
