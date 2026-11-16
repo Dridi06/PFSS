@@ -104,8 +104,8 @@ assert.ok(!csp.get("script-src").includes("'unsafe-eval'"), "Executable scripts 
 assert.ok(!csp.get("script-src").includes("'unsafe-inline'"), "Executable scripts must never enable inline scripts.");
 
 const connectionTest = await readFile(new URL("../connection-test.html", import.meta.url), "utf8");
-assert.match(connectionTest, /const expected='oolvpbzbqioijoazsoun'/, "Connection diagnostic must compare against the exact approved Staging project reference.");
-assert.equal("oolvpbzbqioijoazsoun".length, 20, "Approved Staging project reference must contain exactly 20 characters.");
+assert.match(connectionTest, /const expected='oolvpbzbqiojioazsoun'/, "Connection diagnostic must compare against the exact approved Staging project reference.");
+assert.equal("oolvpbzbqiojioazsoun".length, 20, "Approved Staging project reference must contain exactly 20 characters.");
 assert.ok(connectionTest.includes("host===expected+'.supabase.co'"), "Connection diagnostic must verify the Supabase host against the approved project reference.");
 assert.match(connectionTest, /refValue===expected/, "Connection diagnostic must verify the embedded project reference against the approved project reference.");
 assert.doesNotMatch(connectionTest, /oolvpbzbqiojioazsoun/, "The previous mistyped Staging project reference must not return.");
