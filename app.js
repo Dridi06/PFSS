@@ -9335,7 +9335,6 @@ document.getElementById('authForm')
     try {
       let data;
       try {
-        await verifyPfmsAuthEndpoint();
         message.textContent = 'Anmeldung wird geprüft …';
         if (identifier.includes('@')) {
           const result = await pfssSupabase.auth.signInWithPassword({
