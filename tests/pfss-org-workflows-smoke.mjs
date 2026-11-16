@@ -13,7 +13,7 @@ assert.match(migration, /ALTER TABLE public\.pfss_memberships[\s\S]*?ADD COLUMN 
 assert.match(migration, /ALTER TABLE public\.pfss_invitations[\s\S]*?ADD COLUMN IF NOT EXISTS role_detail text/i);
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.pfss_org_create_invitation\(/i);
 assert.match(migration, /auth\.uid\(\)[\s\S]*?v_actor_role NOT IN \('owner','admin'\)/);
-assert.match(migration, /p_role_detail NOT IN \('scout','trainer','co_trainer','betreuer','spieler'\)/);
+assert.match(migration, /v_role_detail NOT IN \('scout','trainer','co_trainer','betreuer','spieler'\)/);
 assert.match(migration, /extensions\.gen_random_bytes\(16\)/);
 assert.match(migration, /extensions\.digest\(pg_catalog\.convert_to\(v_token, 'UTF8'\), 'sha256'\)/);
 assert.match(migration, /token_hash, expires_at, created_by[\s\S]*?v_token_hash/);
