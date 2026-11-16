@@ -1456,6 +1456,12 @@
           </div>
           <p class="admin-message" id="adminPlatformOverviewMessage" role="status" aria-live="polite">Plattformkennzahlen werden geladen …</p>
         </section>
+        <section class="panel admin-panel pfms-admin-activity-panel" aria-labelledby="pfmsAdminActivityHeading">
+          <div class="panel-heading"><div><div class="eyebrow">LIVE-MONITORING</div><h3 id="pfmsAdminActivityHeading">Letzte Systemereignisse</h3></div><button class="btn btn-secondary" type="button" id="pfmsAdminActivityRefresh">Aktualisieren</button></div>
+          <p class="admin-message" id="pfmsAdminActivityMessage" role="status" aria-live="polite">Systemereignisse werden geladen …</p>
+          <div id="pfmsAdminActivityList" class="pfms-admin-activity-list"></div>
+          <div class="pfss-search-actions"><button class="btn btn-secondary" type="button" data-view="admin-errors">Vollständiges Fehlerprotokoll öffnen</button></div>
+        </section>
         <div class="panel admin-panel">
           <div class="panel-heading"><div><div class="eyebrow">BENUTZERKONTEN</div><h3>Benutzerverwaltung</h3></div></div>
           <form id="adminUserSearchForm" class="pfss-search-form">
