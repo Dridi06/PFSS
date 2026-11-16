@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090a0c">
   <meta name="description" content="Professional Football Management System – die Plattform für Fußballmanagement, Scouting und fundierte Entscheidungen.">
   <title>Professional Football Management System | Sicherer Zugang</title>
-  <link rel="stylesheet" href="styles.css?v=pfms-password-recovery-20261116-1">
+  <link rel="stylesheet" href="styles.css?v=20261116-stadium-welcome-sequence-1">
   <link rel="stylesheet" href="pfms-auth-executive.css?v=20261116-stadium-reference-2">
   <link rel="stylesheet" href="scout-workspace.css?v=pfms-global-search-20261114-2">
   <link rel="stylesheet" href="PFSS_Black_Gold_Design_Update.css?v=20261115-1">
@@ -14,7 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script src="pfms-config.js?v=20261116-auth-diagnostics-1" defer></script>
     <script src="pfms-role-workflows.js?v=20261116-role-workflows-1" defer></script>
-  <script src="app.js?v=20261116-auth-screen-state-2" defer></script>
+  <script src="app.js?v=20261116-stadium-welcome-sequence-1" defer></script>
   <script src="scout-workspace.js?v=pfms-account-isolation-20261114-3" defer></script>
 </head>
 <body>
@@ -340,13 +340,18 @@
     <footer class="site-footer"><nav aria-label="Rechtliche Informationen"><a href="rechtliches.html#impressum">Impressum</a><a href="rechtliches.html#datenschutz">Datenschutz</a><a href="rechtliches.html#nutzung">AGB</a><a href="rechtliches.html#kontakt">Kontakt & Hilfe</a></nav><span>© 2026 Professional Football Management System</span></footer>
   </main>
 
-  <section id="welcomeSequence" class="welcome-sequence hidden" aria-live="polite">
+  <section id="welcomeSequence" class="welcome-sequence hidden" aria-live="polite" aria-label="PFMS Willkommenssequenz">
+    <div class="welcome-flashes" aria-hidden="true">
+      <i class="welcome-flash flash-one"></i><i class="welcome-flash flash-two"></i>
+      <i class="welcome-flash flash-three"></i><i class="welcome-flash flash-four"></i>
+      <i class="welcome-flash flash-five"></i><i class="welcome-flash flash-six"></i>
+      <i class="welcome-flash flash-seven"></i><i class="welcome-flash flash-eight"></i>
+    </div>
     <div class="welcome-sequence-content">
-      <div class="welcome-brand">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
-      <div class="welcome-line"></div>
-      <div class="welcome-title">WILLKOMMEN</div>
+      <div class="welcome-star" aria-hidden="true">★</div>
+      <div class="welcome-title">HERZLICH WILLKOMMEN</div>
       <div id="welcomeUser" class="welcome-user">Willkommen!</div>
-      <div class="welcome-subtitle">FOOTBALL INTELLIGENCE</div>
+      <div class="welcome-subtitle">PROFESSIONAL FOOTBALL MANAGEMENT SYSTEM</div>
     </div>
   </section>
 
