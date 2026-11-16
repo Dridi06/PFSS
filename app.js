@@ -2896,12 +2896,19 @@ async function loadPfmsAdminOverview() {
   const requestGeneration = pfmsAuthGeneration;
   const requestId = ++pfmsAdminOverviewRequestId;
   const message = document.getElementById('adminPlatformOverviewMessage');
+  const activityMessage = document.getElementById('pfmsAdminActivityMessage');
+  const activityList = document.getElementById('pfmsAdminActivityList');
+  const activityRefresh = document.getElementById('pfmsAdminActivityRefresh');
   const targets = {
     organizations: document.getElementById('adminTotalOrganizations'),
     memberships: document.getElementById('adminActiveMemberships'),
     events: document.getElementById('adminOpenSystemEvents')
   };
   if (!message || Object.values(targets).some(target => !target)) return;
+  if (activityRefresh && !activityRefresh.dataset.pfmsBound) {
+    activityRefresh.addEventListener('click', () => { void loadPfmsAdminOverview(); });
+    activityRefresh.dataset.pfmsBound = 'true';
+  }
   const isCurrentRequest = () =>
     isCurrentPfmsAdminRequest(requestUserId, requestGeneration) &&
     requestId === pfmsAdminOverviewRequestId;
@@ -2909,7 +2916,7 @@ async function loadPfmsAdminOverview() {
   Object.values(targets).forEach(target => { target.textContent = '–'; });
 
   try {
-    const [organizations, memberships, events] = await Promise.all([
+    const [organizations, memberships, events, recentEvents] = await Promise.all([
       pfssSupabase.rpc('pfms_admin_search_legacy_organizations_page', {
         p_type: null, p_query: '', p_id: '', p_status: null, p_limit: 1, p_offset: 0
       }),
@@ -2919,15 +2926,31 @@ async function loadPfmsAdminOverview() {
       }),
       pfssSupabase.rpc('pfms_admin_list_system_events_page', {
         p_query: '', p_severity: null, p_status: 'open', p_limit: 1, p_offset: 0
+      }),
+      pfssSupabase.rpc('pfms_admin_list_system_events_page', {
+        p_query: '', p_severity: null, p_status: null, p_limit: 5, p_offset: 0
       })
     ]);
     if (!isCurrentRequest()) return;
-    const failure = [organizations, memberships, events].find(result => result.error);
+    const failure = [organizations, memberships, events, recentEvents].find(result => result.error);
     if (failure?.error) throw failure.error;
     const count = result => Number(result.data?.[0]?.total_count || 0).toLocaleString('de-DE');
     targets.organizations.textContent = count(organizations);
     targets.memberships.textContent = count(memberships);
     targets.events.textContent = count(events);
+    if (activityMessage && activityList) {
+      const items = recentEvents.data || [];
+      activityList.innerHTML = items.length ? items.map(item => {
+        const severity = String(item.severity || 'info').toLowerCase();
+        const statusLabel = PFMS_SYSTEM_EVENT_STATUSES[item.status] || item.status || 'Unbekannt';
+        return '<article class="pfms-admin-activity-item">' +
+          '<span class="pfms-admin-activity-severity" data-severity="' + escapeHtml(severity) + '">' + escapeHtml(severity.toUpperCase()) + '</span>' +
+          '<div class="pfms-admin-activity-copy"><b>' + escapeHtml(item.message || 'Systemereignis') + '</b>' +
+          '<small>' + escapeHtml(formatPfmsSystemEventDate(item.created_at)) + ' · ' + escapeHtml(item.route || '/') + '</small></div>' +
+          '<span class="tag">' + escapeHtml(statusLabel) + '</span></article>';
+      }).join('') : '<div class="empty-state"><b>Keine Systemereignisse vorhanden</b><p>Aktuell liegen keine protokollierten Ereignisse vor.</p></div>';
+      activityMessage.textContent = items.length + ' aktuelle(s) Ereignis(se) · zuletzt aktualisiert ' + new Date().toLocaleTimeString('de-DE') + '.';
+    }
     message.textContent = 'Kennzahlen aus den geschützten Administratorabfragen. Stand: ' +
       new Date().toLocaleString('de-DE') + '.';
   } catch (error) {
@@ -2935,6 +2958,10 @@ async function loadPfmsAdminOverview() {
     console.error('PFMS administrator overview could not be loaded:', error);
     message.textContent = 'Die Plattformkennzahlen konnten nicht geladen werden. Prüfe die freigegebenen Admin-RPCs in der Staging-Datenbank.';
     Object.values(targets).forEach(target => { target.textContent = '–'; });
+    if (activityMessage && activityList) {
+      activityMessage.textContent = 'Systemereignisse konnten nicht geladen werden.';
+      activityList.innerHTML = '';
+    }
   }
 }
 
