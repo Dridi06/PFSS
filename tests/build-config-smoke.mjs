@@ -20,7 +20,7 @@ const mismatchEnv = {
 };
 const mismatch = spawnSync(process.execPath, [script], { encoding: "utf8", env: mismatchEnv });
 assert.notEqual(mismatch.status, 0, "Staging build must fail when URL and project reference differ");
-assert.match(mismatch.stderr, /does not match PFMS_STAGING_PROJECT_REF/);
+assert.match(mismatch.stderr, /does not match the approved dedicated Staging project/);
 
 const secretEnv = {
   ...baseEnv,
