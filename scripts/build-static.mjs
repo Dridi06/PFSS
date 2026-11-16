@@ -76,7 +76,11 @@ function readSupabaseBuildConfig() {
 
   let projectRef = "";
   if (target === "staging") {
+    const approvedStagingProjectRef = "oolvpbzbqiojioazsoun";
     projectRef = (process.env.PFMS_STAGING_PROJECT_REF || "").trim();
+    if (projectRef !== approvedStagingProjectRef) {
+      throw new Error("PFMS_STAGING_PROJECT_REF does not match the approved dedicated Staging project.");
+    }
     if (!/^[a-z0-9]{20}$/.test(projectRef)) {
       throw new Error("PFMS_STAGING_PROJECT_REF must be the exact 20-character Staging project reference.");
     }
