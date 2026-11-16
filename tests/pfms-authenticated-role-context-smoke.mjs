@@ -12,12 +12,14 @@ assert.match(migration, /CREATE OR REPLACE FUNCTION public\.pfms_get_my_role_con
 assert.match(migration, /RETURNS jsonb[\s\S]*?LANGUAGE plpgsql[\s\S]*?STABLE[\s\S]*?SECURITY DEFINER[\s\S]*?SET search_path = ''/i);
 assert.match(migration, /auth\.uid\(\)/);
 assert.match(migration, /p\.status = 'approved'/);
-assert.match(migration, /m\.user_id = v_user_id[\s\S]*?m\.status = 'active'[\s\S]*?o\.status IN \('approved', 'active'\)/);
-assert.match(migration, /s\.user_id = v_user_id[\s\S]*?s\.status = 'active'[\s\S]*?t\.status = 'active'/);
-assert.equal((migration.match(/JOIN public\.organization_memberships AS active_membership/g) || []).length, 2,
-  "Team assignments and derived team roles must require a current active organization membership.");
-assert.match(migration, /'member_role', membership\.member_role/);
-assert.match(migration, /'team_role', assignment\.team_role/);
+assert.match(migration, /FROM public\.pfms_memberships AS m[\s\S]*?JOIN public\.pfms_organizations AS o[\s\S]*?m\.user_id = v_user_id[\s\S]*?m\.status = 'active'[\s\S]*?o\.status = 'active'/);
+assert.match(migration, /FROM public\.pfms_scout_profiles AS s[\s\S]*?s\.status = 'active'/);
+assert.match(migration, /permissions ->> 'manage_members'/);
+assert.match(migration, /'can_manage_organization', membership\.can_manage_organization/);
+assert.match(migration, /to_regclass\('public\.organizations'\)/);
+assert.match(migration, /to_regclass\('public\.pfms_legacy_team_staff'\)/);
+assert.match(migration, /active_membership\.user_id = \$1[\s\S]*?active_membership\.status = 'active'/);
+assert.match(migration, /'team_role', s\.role/);
 assert.match(migration, /'roles', v_roles/);
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.pfms_get_my_role_context\(\) FROM PUBLIC, anon/i);
 assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.pfms_get_my_role_context\(\) TO authenticated/i);
@@ -25,10 +27,11 @@ assert.doesNotMatch(migration, /\b(?:INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FR
   "Role-context migration must not change business data or existing tables.");
 
 assert.match(app, /async function updatePfmsRoleContext\([\s\S]*?pfms_get_my_role_context[\s\S]*?workflows\.resolveContext/);
+assert.match(app, /roles: Array\.isArray\(roleData\?\.roles\) \? roleData\.roles : \[\]/);
 assert.match(app, /requestGeneration !== pfmsAuthGeneration[\s\S]*?window\.pfssCurrentUserId/);
-assert.match(workflows, /member_role/);
-assert.match(workflows, /membershipRole\(organization\)/);
-assert.match(workflows, /hasAgencyScoutMembership/);
+assert.match(workflows, /can_manage_organization/);
+assert.match(workflows, /declaredRoles\.has\("agenturscout"\)/);
+assert.match(workflows, /declaredRoles\.has\("spieler"\)/);
 assert.match(workflows, /activeTeamAssignments/);
 
-console.log("PFMS authenticated role-context tests passed: approved own profile, own active memberships/team assignments, role RPC grants, read-only migration and session-bound frontend integration.");
+console.log("PFMS authenticated role-context tests passed: canonical PFMS memberships, permissions, scout profile, optional legacy teams, active profile gate, least-privilege grants and session-bound frontend integration.");
