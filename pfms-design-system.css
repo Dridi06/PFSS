@@ -101,7 +101,7 @@ hr,.divider{border-color:#393126}
 #authScreen .auth-layout{width:min(100%,1500px);grid-template-columns:minmax(0,1.12fr) minmax(430px,.88fr);gap:clamp(20px,3vw,44px)}
 #authScreen .auth-visual{
   min-height:720px;border:1px solid rgba(214,181,109,.3);
-  background-image:linear-gradient(180deg,rgba(5,7,9,.28),rgba(5,7,9,.82) 74%,#08090b),url('pfms-welcome.webp');
+  background-image:linear-gradient(180deg,rgba(5,7,9,.28),rgba(5,7,9,.82) 74%,#08090b),url('pfms-welcome.svg?v=20261116-vector-fix');
   background-position:center;background-size:cover;
   box-shadow:0 28px 80px #0008,inset 0 1px #ffffff14;
 }
@@ -146,7 +146,7 @@ hr,.divider{border-color:#393126}
 #authScreen.auth-screen{
   min-height:100svh;padding:clamp(14px,2vw,28px) clamp(14px,2.4vw,38px) 12px;
   display:flex;flex-direction:column;justify-content:center;
-  background:#07090c url('pfms-welcome.webp') center center/cover no-repeat;
+  background:#07090c url('pfms-welcome.svg?v=20261116-vector-fix') center center/cover no-repeat;
 }
 #authScreen.auth-screen:before{
   position:fixed;inset:0;
@@ -316,7 +316,7 @@ hr,.divider{border-color:#393126}
   padding:0!important; margin:0!important;
   border:0!important; border-radius:0!important;
   overflow:hidden!important;
-  background:#090b10 url("pfms-welcome.webp?v=20261116-image-repair-1") center center/cover no-repeat!important;
+  background:#090b10 url("pfms-welcome.svg?v=20261116-vector-fix") center center/cover no-repeat!important;
   box-shadow:0 18px 55px #0009!important;
 }
 #authScreen .auth-visual > *{display:none!important}
