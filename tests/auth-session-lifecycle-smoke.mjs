@@ -134,7 +134,7 @@ assert.match(app, /diagnosticId[\s\S]*?projectRef:[\s\S]*?supabaseHost:/,
 assert.match(app, /app\.js\?v=20261116-auth-diagnostics-1/,
   "The login script URL must be cache-busted when authentication diagnostics change.");
 
-assert.match(app, /PFMS authentication failed:[\s\S]*?PFMS access validation failed after successful authentication:[\s\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
+assert.match(app, /PFMS login diagnostic:[\s\S]*?PFMS access validation failed after successful authentication:[\s\S]*?Profil- und Berechtigungsprüfung ist fehlgeschlagen/,
   "Authentication errors must be distinguished from profile/access validation failures after a successful sign-in.");
 
 console.log("PFMS auth/session lifecycle tests passed: session invalidation, admin request isolation, latest-query wins, protected admin writes, approval/role revalidation, token refresh and tab-resume checks.");
