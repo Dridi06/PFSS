@@ -797,7 +797,8 @@ async function updatePfmsRoleContext(organizations, teams, options = {}) {
     organizations: Array.isArray(roleData?.organizations) ? roleData.organizations :
       (Array.isArray(organizations) ? organizations : []),
     teams: Array.isArray(teams) ? teams : [],
-    teamAssignments: Array.isArray(roleData?.team_assignments) ? roleData.team_assignments : []
+    teamAssignments: Array.isArray(roleData?.team_assignments) ? roleData.team_assignments : [],
+    roles: Array.isArray(roleData?.roles) ? roleData.roles : []
   });
   window.pfmsRoleContext = context;
   applyPfmsRoleNavigation(context);
