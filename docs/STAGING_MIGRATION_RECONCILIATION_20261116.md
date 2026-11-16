@@ -50,3 +50,36 @@ Eine automatische Zuordnung „Migration angewendet / nicht angewendet“ wäre 
 - Produktionsumgebung: unangetastet.
 
 Diese Datei ist ein read-only Arbeitscheckpoint, keine Freigabe zur Migration.
+
+
+## Ergänzende Objektprüfung (16.11.2026, read-only)
+
+Zusätzlich wurde die aktuelle öffentliche Staging-Objektliste erneut direkt aus PostgreSQL abgefragt. Erfasst wurden Tabellen, Spalten, öffentliche Funktionen mit SECURITY DEFINER/search_path, RLS-Policies und Trigger. Das ist eine Momentaufnahme des Ist-Zustands, keine automatische Zuordnung aller Migrationen.
+
+### Verifizierte Tabellenabweichungen bei ausgewählten Feature-Migrationen
+
+| Migration | Im SQL erwartete Objekte | Staging-Befund | Bewertung |
+|---|---|---|---|
+| `20261115_pfms_global_player_catalogue.sql` | `pfms_global_players`, `pfms_main_scouting_reports`; außerdem Änderung an `pfss_scout_players` | Beide PFMS-Tabellen fehlen. Die im Migrations-SQL referenzierte Tabelle `pfss_scout_players` fehlt ebenfalls; vorhanden ist stattdessen `pfss_players`. | Nicht direkt anwendbar; Abhängigkeit/Modellabweichung muss zuerst geklärt werden. |
+| `20261115_pfms_platform_owner_bootstrap.sql` | `pfms_platform_owner`, `pfms_owner_setup_available()`, `pfms_claim_initial_owner(uuid)` | Tabelle und beide Funktionen fehlen. | Im Staging nicht vorhanden; keine Ausführungsaussage über andere Deploy-Wege. |
+| `20261116_pfms_system_event_monitoring.sql` | `pfms_system_events`, `pfms_system_events_touch_updated_at()`, Trigger | Tabelle/Funktion/Trigger fehlen. | Im Staging nicht vorhanden. |
+| `20261117_pfms_main_media_library.sql` | `pfms_main_media` und zugehörige Policies | Tabelle fehlt; vorhanden ist die ältere/andere `pfss_media`. | Modellabweichung; nicht gleichsetzen. |
+| `20261207_pfms_in_app_notifications.sql` | `pfms_notifications`, Task-Benachrichtigungstrigger/-funktion | Tabelle fehlt. | Im Staging nicht vorhanden. |
+| `20261208_pfms_support_ticket_notifications.sql` | Erweiterung `pfms_notifications`, Support-Ticket-Trigger | `pfms_notifications` fehlt; `pfms_support_tickets` ebenfalls nicht in öffentlicher Tabellenliste. | Abhängigkeit nicht erfüllt. |
+| `20261220_pfms_admin_system_event_pagination.sql` | `pfms_admin_list_system_events_page(...)` | Funktion fehlt. | Erklärt, weshalb die Admin-Aktivitätsansicht keine passende DB-RPC hat. |
+
+### Weitere konkrete Ist-Schema-Befunde
+
+- Vorhandene öffentliche Tabellen umfassen `pfms_memberships`, `pfms_organizations`, `pfms_scout_profiles`, `pfms_test_personas`, `pfss_audit_log`, `pfss_calendar_events`, `pfss_invitations`, `pfss_media`, `pfss_memberships`, `pfss_organizations`, `pfss_platform_roles`, `pfss_players`, `pfss_scouting_reports`, `pfss_tasks`, `pfss_teams` und `profiles`.
+- Die Tabellen `pfss_players`, `pfss_scouting_reports`, `pfss_tasks` und `pfss_teams` sind vorhanden. Sie sind **nicht automatisch** gleichwertig mit den späteren PFMS-Global-/Legacy-Team-Tabellen.
+- Die aktuelle öffentliche Funktionsliste enthält 28 Funktionen. Die erwartete Event-Pagination-RPC ist nicht darunter.
+- `pfss_audit_log` bleibt organisationsbezogen und ist kein Ersatz für die fehlende Plattform-Audit-Tabelle.
+- Das Schema enthält auch `pfms_test_personas`; diese Tabelle war in der früheren verkürzten 15-Tabellen-Zusammenfassung nicht aufgeführt. Die aktuelle vollständige Tabellenabfrage liefert 16 Tabellen. Der ältere Zählwert ist hiermit korrigiert.
+
+### Wichtige Einschränkung
+
+Das Fehlen eines Objekts mit exakt demselben Namen ist starke Evidenz, dass die betreffende Migration in dieser Form nicht im aktuellen Schema repräsentiert ist. Es beweist jedoch nicht, dass keinerlei manuelle oder alternative Implementierung existiert. Für eine Freigabe müssen auch semantisch gleichwertige Objekte, Datenmodellunterschiede, Funktionen, Policies, Trigger, Storage-Regeln und Abhängigkeiten geprüft werden.
+
+### Nächster Arbeitsschritt
+
+Die nächste Runde erstellt eine vollständige Soll-/Ist-Matrix für alle Migrationen, beginnend bei den 11 Kollisionsgruppen und den migrationsübergreifenden Abhängigkeiten. Besonders die historische Trennung zwischen `pfss_*` und `pfms_*` muss sauber dokumentiert werden. Shared Staging bleibt unverändert, bis ein isolierter Clone mit einer validierten Baseline verfügbar ist.
