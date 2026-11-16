@@ -800,6 +800,25 @@ async function updatePfmsRoleContext(organizations, teams, options = {}) {
     teamAssignments: Array.isArray(roleData?.team_assignments) ? roleData.team_assignments : [],
     roles: Array.isArray(roleData?.roles) ? roleData.roles : []
   });
+  // Prefer the complete legacy membership set when available. When the staging
+  // schema only has the canonical PFMS core, expose those manageable organisations
+  // read-only instead of showing empty cards or dead legacy actions.
+  const legacyRows = (Array.isArray(organizations) ? organizations : [])
+    .filter(org => org.source_model !== 'pfms');
+  const canonicalRows = (context.manageableOrganizations || [])
+    .filter(org => org.source_model === 'pfms')
+    .map(org => ({
+      ...org,
+      organization_name: org.organization_name || org.name || 'Organisation',
+      organization_status: org.organization_status || org.status || 'unknown',
+      source_model: 'pfms'
+    }));
+  pfmsLegacyInvitationOrganizations = legacyRows.length ? legacyRows : canonicalRows;
+  pfmsManageableLegacyOrganizations = pfmsLegacyInvitationOrganizations.filter(org =>
+    org.source_model !== 'pfms' &&
+    org.organization_type === 'club' &&
+    ['approved', 'active'].includes(String(org.organization_status || '').toLowerCase())
+  );
   window.pfmsRoleContext = context;
   applyPfmsRoleNavigation(context);
 
@@ -3144,12 +3163,16 @@ function renderPfmsClubWorkspace() {
   if(!rows.length){host.innerHTML='<div class="empty-state"><b>Noch keine verwaltbare '+(type==='club'?'Vereine':'Agentur')+' vorhanden</b><p>Nach Freigabe und aktiver Leitungsmitgliedschaft werden deine Organisationen hier angezeigt.</p></div>';if(statusHost)statusHost.textContent='Keine verwaltbare Organisation gefunden';return;}
   host.innerHTML=rows.map(org=>{
    const state=statusLabels[String(org.organization_status||'').toLowerCase()]||org.organization_status||'Unbekannt',role=roleLabels[String(org.member_role||'').toLowerCase()]||org.member_role||'Verwaltung';
-   const canInvite=['approved','active'].includes(String(org.organization_status||'').toLowerCase());
-   const actions=['<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-members" data-organization-id="'+escapeHtml(org.organization_id)+'">Mitglieder verwalten</button>'];
-   if(type==='club')actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="teams">Mannschaften öffnen</button>');
-   actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-scouting" data-organization-id="'+escapeHtml(org.organization_id)+'">Scouts verwalten</button>');
-   if(canInvite)actions.push('<button type="button" class="btn btn-primary" data-pfms-open-invitation="'+escapeHtml(org.organization_id)+'">Mitglied einladen</button>');
-   return '<article class="module-card pfms-club-organization-card"><div class="eyebrow">'+escapeHtml(typeLabels[type])+'</div><h3>'+escapeHtml(org.organization_name||typeLabels[type])+'</h3><div class="pfms-club-organization-meta"><span class="module-status">'+escapeHtml(state)+'</span><span>'+escapeHtml(role)+'</span></div><div class="pfms-club-organization-actions">'+actions.join('')+'</div></article>';
+   const canInvite=org.source_model!=='pfms'&&['approved','active'].includes(String(org.organization_status||'').toLowerCase());
+   const actions=[];
+   if(org.source_model!=='pfms'){
+    actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-members" data-organization-id="'+escapeHtml(org.organization_id)+'">Mitglieder verwalten</button>');
+    if(type==='club')actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="teams">Mannschaften öffnen</button>');
+    actions.push('<button type="button" class="btn btn-secondary" data-pfms-club-nav="club-scouting" data-organization-id="'+escapeHtml(org.organization_id)+'">Scouts verwalten</button>');
+    if(canInvite)actions.push('<button type="button" class="btn btn-primary" data-pfms-open-invitation="'+escapeHtml(org.organization_id)+'">Mitglied einladen</button>');
+   }
+   const integrationNote=org.source_model==='pfms'?'<p class="admin-message">Aktive PFMS-Mitgliedschaft erkannt. Die organisationsbezogenen Verwaltungs- und Einladungsvorgänge benötigen noch die sichere Schemaangleichung im Staging.</p>':'';
+   return '<article class="module-card pfms-club-organization-card"><div class="eyebrow">'+escapeHtml(typeLabels[type])+'</div><h3>'+escapeHtml(org.organization_name||typeLabels[type])+'</h3><div class="pfms-club-organization-meta"><span class="module-status">'+escapeHtml(state)+'</span><span>'+escapeHtml(role)+'</span></div>'+integrationNote+(actions.length?'<div class="pfms-club-organization-actions">'+actions.join('')+'</div>':'')+'</article>';
   }).join('');
   if(statusHost)statusHost.textContent=rows.length+(type==='club'?' verwaltbare(r) Verein(e).':' verwaltbare Agentur(en).');
  };
@@ -3246,7 +3269,13 @@ async function loadPfmsLegacyInvitationOrganizations() {
     await updatePfmsRoleContext([], pfmsLegacyTeams);
     renderPfmsClubWorkspace();
     inviteSelect.innerHTML = '<option value="">Nicht verfügbar</option>';
-    message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
+    const canonicalOrganizations = pfmsLegacyInvitationOrganizations.filter(org => org.source_model === 'pfms');
+    if (canonicalOrganizations.length) {
+      message.textContent = 'Deine PFMS-Organisation wurde erkannt. Die ältere Einladungs- und Mitgliederverwaltung ist in diesem Staging-Schema noch nicht vorhanden; die Organisationsdaten bleiben deshalb schreibgeschützt.';
+    } else {
+      message.textContent = 'Organisationen konnten nicht geladen werden. Bitte Staging-Migration und Berechtigungen prüfen.';
+    }
+    panel.hidden = true;
     membersPanel.hidden = true;
   }
 }
