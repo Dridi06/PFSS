@@ -301,19 +301,22 @@ async function loadPredictionOptions() {
   const playerId=Number($("intelligencePlayer").value);
   select.innerHTML='<option value="">Prognose auswählen …</option>';
   if(!Number.isSafeInteger(playerId)||playerId<=0)return;
-  const {data:predictions,error}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,prediction_horizon_days,created_at").eq("player_id",playerId).order("created_at",{ascending:false}).limit(100);
+  const {data:predictions,error}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,prediction_horizon_days,input_cutoff_at,created_at").eq("player_id",playerId).order("created_at",{ascending:false}).limit(100);
   if(error){message(globalMessage,"Prognosen konnten nicht geladen werden: "+error.message,true);return;}
   const ids=(predictions||[]).map(p=>p.id);
   const {data:outcomes}=ids.length?await db.from("asi_prediction_outcomes").select("prediction_id").in("prediction_id",ids):{data:[]};
   const used=new Set((outcomes||[]).map(o=>o.prediction_id));
   const available=(predictions||[]).filter(p=>!used.has(p.id));
-  select.innerHTML='<option value="">Prognose auswählen …</option>'+available.map(p=>'<option value="'+safe(p.id)+'" data-metric="'+safe(p.target_metric)+'">'+safe(p.target_metric)+' · Prognose '+safe(p.predicted_value)+' · '+p.prediction_horizon_days+' Tage</option>').join("");
+  select.innerHTML='<option value="">Prognose auswählen …</option>'+available.map(p=>'<option value="'+safe(p.id)+'" data-metric="'+safe(p.target_metric)+'" data-cutoff="'+safe(p.input_cutoff_at)+'" data-horizon="'+safe(p.prediction_horizon_days)+'">'+safe(p.target_metric)+' · Prognose '+safe(p.predicted_value)+' · '+p.prediction_horizon_days+' Tage</option>').join("");
 }
 async function addPredictionOutcome(event) {
   event.preventDefault();
   const predictionId=$("outcomePrediction").value,option=$("outcomePrediction").selectedOptions[0],metric=option?.dataset.metric;
   const value=Number($("outcomeValue").value),date=$("outcomeDate").value,source=$("outcomeSource").value.trim();
-  if(!predictionId||!metric||!Number.isFinite(value)||value<0||value>100||!date||!source){message(globalMessage,"Prognose, Ergebniswert (0–100), Datum und Quellenbezeichnung sind erforderlich.",true);return;}
+  const cutoff=option?.dataset.cutoff,horizon=Number(option?.dataset.horizon);
+  const earliest=new Date(cutoff||"");if(Number.isFinite(earliest.getTime()))earliest.setUTCDate(earliest.getUTCDate()+horizon);
+  if(!predictionId||!metric||!Number.isFinite(value)||value<0||value>100||!date||!source||!Number.isFinite(earliest.getTime())){message(globalMessage,"Prognose, Ergebniswert (0–100), Datum und Quellenbezeichnung sind erforderlich.",true);return;}
+  if(new Date(date+"T00:00:00.000Z")<new Date(earliest.toISOString().slice(0,10)+"T00:00:00.000Z")){message(globalMessage,"Das Ergebnis darf erst ab Ablauf des Prognosehorizonts erfasst werden (frühestens "+earliest.toISOString().slice(0,10)+").",true);return;}
   const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").select("player_id,owner_id").eq("id",predictionId).single();
   if(predictionError||!prediction){message(globalMessage,"Zugehörige Prognose konnte nicht geladen werden.",true);return;}
   const {error}=await db.from("asi_prediction_outcomes").insert({prediction_id:predictionId,player_id:prediction.player_id,owner_id:prediction.owner_id,observed_metric:metric,observed_value:value,observed_on:date,outcome_source:source,notes:$("outcomeNotes").value.trim()||null,recorded_by:currentUser.id});
@@ -432,12 +435,12 @@ async function trainCandidateModel() {
  const host=$("learningPreview");if(!host)return;
  message(globalMessage,"Verifizierte Trainingsdaten werden geladen …");
  const [predResult,outResult]=await Promise.all([
-  db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,created_at").order("created_at",{ascending:true}).limit(5000),
+  db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,input_cutoff_at,prediction_horizon_days,created_at").order("created_at",{ascending:true}).limit(5000),
   db.from("asi_prediction_outcomes").select("prediction_id,observed_metric,observed_value,observed_on,verification_status").eq("verification_status","verified").order("observed_on",{ascending:true}).limit(5000)
  ]);
  if(predResult.error||outResult.error){message(globalMessage,"Trainingsdaten konnten nicht geladen werden.",true);return;}
  const byId=new Map((predResult.data||[]).map(p=>[p.id,p]));
- const rows=(outResult.data||[]).flatMap(o=>{const p=byId.get(o.prediction_id);if(!p||p.target_metric!==o.observed_metric)return[];return[{verified:true,observedAt:o.observed_on,actual:Number(o.observed_value),baselinePrediction:Number(p.predicted_value),features:p.explanation?.features||{}}];});
+ const rows=(outResult.data||[]).flatMap(o=>{const p=byId.get(o.prediction_id);if(!p||p.target_metric!==o.observed_metric||!p.input_cutoff_at||!Number.isInteger(Number(p.prediction_horizon_days)))return[];return[{verified:true,observedAt:o.observed_on,featureSnapshotAt:p.input_cutoff_at,horizonDays:Number(p.prediction_horizon_days),actual:Number(o.observed_value),baselinePrediction:Number(p.predicted_value),features:p.explanation?.features||{}}];});
  const trained=trainChronologicalModel(rows),now=new Date().toISOString(),version="ridge-"+Date.now();
  const {data:run,error:runError}=await db.from("asi_training_runs").insert({model_key:"player-development-score",candidate_version:version,status:"succeeded",data_cutoff_at:now,dataset_fingerprint:trained.datasetFingerprint||null,training_config:{algorithm:"standardized-ridge-regression",minimumSamples:50,chronologicalHoldout:0.2,autoActivation:false},evaluation_summary:trained,started_at:now,finished_at:now,created_by:currentUser.id}).select("id").single();
  if(runError){message(globalMessage,"Trainingslauf nicht protokolliert: "+runError.message,true);return;}
