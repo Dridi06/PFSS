@@ -1,0 +1,181 @@
+const config = window.ASI_CONFIG;
+const clientFactory = window.supabase?.createClient;
+const authView = document.getElementById("authView");
+const appView = document.getElementById("appView");
+const authMessage = document.getElementById("authMessage");
+const globalMessage = document.getElementById("globalMessage");
+let db = null;
+let currentUser = null;
+let playerRows = [];
+let candidateRows = [];
+let activeSection = "overview";
+
+const $ = (id) => document.getElementById(id);
+const message = (node, text, isError = false) => {
+  node.textContent = text || "";
+  node.style.color = isError ? "var(--red)" : "var(--gold2)";
+};
+const safe = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+})[char]);
+const yearNow = new Date().getFullYear();
+
+function showApp(user) {
+  currentUser = user;
+  authView.hidden = true;
+  appView.hidden = false;
+  $("userEmail").textContent = user.email || "ASI-Nutzer";
+  message(globalMessage, "");
+  loadWorkspace();
+}
+function showAuth(text = "") {
+  currentUser = null;
+  appView.hidden = true;
+  authView.hidden = false;
+  message(authMessage, text);
+}
+function setSection(section) {
+  activeSection = section;
+  document.querySelectorAll(".section-view").forEach((node) => {
+    node.hidden = node.id !== "section-" + section;
+  });
+  document.querySelectorAll(".nav-item").forEach((node) => {
+    node.classList.toggle("active", node.dataset.section === section);
+  });
+  const titles = {overview:"Übersicht",players:"Spielerdatenbank",candidates:"Kandidaten",observations:"Beobachtungen"};
+  $("pageTitle").textContent = titles[section] || "ASI";
+  if (section === "players") loadPlayers();
+  if (section === "candidates") loadCandidates();
+  if (section === "observations") populateObservationPlayers();
+}
+async function loadWorkspace() {
+  await Promise.all([loadPlayers(),loadCandidates()]);
+  $("statPlayers").textContent = playerRows.length.toLocaleString("de-DE");
+  $("statCandidates").textContent = candidateRows.length.toLocaleString("de-DE");
+  $("statObservations").textContent = "—";
+}
+async function loadPlayers() {
+  if (!db || !currentUser) return;
+  const {data,error} = await db.from("players")
+    .select("player_id,name,club,year,positions")
+    .order("name",{ascending:true}).limit(500);
+  if (error) { message(globalMessage,"Spielerdaten konnten nicht geladen werden: "+error.message,true); return; }
+  playerRows = data || [];
+  renderPlayers();
+  populateObservationPlayers();
+  $("statPlayers").textContent = playerRows.length.toLocaleString("de-DE");
+}
+function renderPlayers() {
+  const term = ($("playerSearch")?.value || "").trim().toLocaleLowerCase("de");
+  const rows = playerRows.filter((row) => [row.name,row.club,row.year,(row.positions || []).join(" ")].join(" ").toLocaleLowerCase("de").includes(term));
+  $("playersBody").innerHTML = rows.length ? rows.map((row) =>
+    `<tr><td><strong>${safe(row.name)}</strong></td><td>${safe(row.club || "—")}</td><td>${safe(row.year || "—")}</td><td>${safe((row.positions || []).join(", ") || "—")}</td></tr>`
+  ).join("") : '<tr><td colspan="4" class="empty">Keine zugänglichen Spieler gefunden.</td></tr>';
+}
+async function loadCandidates() {
+  if (!db || !currentUser) return;
+  const {data,error} = await db.from("asi_player_candidates")
+    .select("id,player_name,birth_year,nationality,current_club,positions,recommendation,status,created_at")
+    .order("created_at",{ascending:false}).limit(200);
+  if (error) { message(globalMessage,"Kandidaten konnten nicht geladen werden: "+error.message,true); return; }
+  candidateRows = data || [];
+  renderCandidates();
+  $("statCandidates").textContent = candidateRows.length.toLocaleString("de-DE");
+}
+function renderCandidates() {
+  $("candidateList").innerHTML = candidateRows.length ? candidateRows.map((row) =>
+    `<article class="candidate-card"><div><h3>${safe(row.player_name)}</h3><p>${safe([row.birth_year,row.nationality,row.current_club,(row.positions || []).join(", ")].filter(Boolean).join(" · ") || "Noch keine ergänzenden Angaben")}</p></div><span class="candidate-status">${safe(row.status.toUpperCase())} · ${safe(row.recommendation.toUpperCase())}</span></article>`
+  ).join("") : '<div class="content-card empty">Noch keine Kandidaten gespeichert.</div>';
+}
+async function addCandidate(event) {
+  event.preventDefault();
+  const name = $("candidateName").value.trim();
+  const yearValue = $("candidateYear").value;
+  const birthYear = yearValue ? Number(yearValue) : null;
+  if (!name || (birthYear !== null && (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > yearNow))) {
+    message(globalMessage,"Bitte Spielername und ein gültiges Geburtsjahr prüfen.",true); return;
+  }
+  const positions = $("candidatePositions").value.split(/[,;/]+/).map((item)=>item.trim()).filter(Boolean).slice(0,6);
+  const note = $("candidateNotes").value.trim();
+  const payload = {
+    owner_id: currentUser.id, created_by: currentUser.id, player_name: name,
+    birth_year: birthYear, nationality: $("candidateNationality").value.trim() || null,
+    current_club: $("candidateClub").value.trim() || null, positions,
+    search_query: note || null, analysis: {entry_method:"manual",note,methodology:"candidate_intake_v1"},
+    sources: [], recommendation:"review", status:"saved"
+  };
+  const {error} = await db.from("asi_player_candidates").insert(payload);
+  if (error) { message(globalMessage,"Kandidat nicht gespeichert: "+error.message,true); return; }
+  $("candidateForm").reset();
+  message(globalMessage,"Kandidat wurde im geschützten Arbeitsbereich gespeichert.");
+  await loadCandidates();
+}
+function populateObservationPlayers() {
+  const select = $("observationPlayer");
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="">Spieler auswählen …</option>' + playerRows.map((row) =>
+    `<option value="${safe(row.player_id)}">${safe(row.name)} · ${safe(row.club || "ohne Verein")}</option>`
+  ).join("");
+  if (current && playerRows.some((row)=>String(row.player_id)===current)) select.value = current;
+}
+async function addObservation(event) {
+  event.preventDefault();
+  const playerId = Number($("observationPlayer").value);
+  if (!Number.isSafeInteger(playerId) || playerId <= 0) { message(globalMessage,"Bitte einen Spieler auswählen.",true); return; }
+  const ratings = {};
+  for (const [field,key] of [["ratingTechnical","technical"],["ratingTactical","tactical"],["ratingPhysical","physical"],["ratingMental","mental"]]) {
+    const raw = $(field).value;
+    if (raw !== "") {
+      const value = Number(raw);
+      if (!Number.isInteger(value) || value < 1 || value > 10) { message(globalMessage,"Bewertungen müssen zwischen 1 und 10 liegen.",true); return; }
+      ratings[key] = value;
+    }
+  }
+  const {error} = await db.from("asi_player_observations").insert({
+    player_id:playerId, owner_id:currentUser.id, created_by:currentUser.id,
+    ratings, observation:$("observationText").value.trim() || null, source_type:"internal_scout"
+  });
+  if (error) { message(globalMessage,"Beobachtung nicht gespeichert: "+error.message,true); return; }
+  $("observationForm").reset();
+  message(globalMessage,"Scout-Beobachtung wurde gespeichert.");
+}
+async function initialize() {
+  if (!config || !config.url || !config.key || !clientFactory) {
+    showAuth("ASI ist noch nicht mit einer freigegebenen Staging-Konfiguration verbunden.");
+    $("loginForm").querySelector("button").disabled = true;
+    return;
+  }
+  if (config.projectRef !== "vxtybjaabtfhxfwctnyj") {
+    showAuth("Sicherheitsstopp: Die ASI-Konfiguration verweist nicht auf das freigegebene ASI-Projekt.");
+    $("loginForm").querySelector("button").disabled = true;
+    return;
+  }
+  db = clientFactory(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const {data,error} = await db.auth.getSession();
+  if (error) { showAuth("Sitzung konnte nicht geprüft werden."); return; }
+  if (data.session?.user) showApp(data.session.user); else showAuth();
+  db.auth.onAuthStateChange((_event,session) => {
+    if (session?.user) showApp(session.user); else showAuth();
+  });
+}
+$("loginForm").addEventListener("submit",async(event)=>{
+  event.preventDefault();
+  if (!db) return;
+  const {error} = await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if (error) message(authMessage,"Anmeldung fehlgeschlagen. Zugangsdaten oder Kontofreigabe prüfen.",true);
+});
+$("forgotPassword").addEventListener("click",async()=>{
+  if (!db) return;
+  const email = $("email").value.trim();
+  if (!email) { message(authMessage,"Bitte zuerst deine E-Mail-Adresse eintragen.",true); return; }
+  const redirectTo = new URL("./",window.location.href).toString();
+  const {error} = await db.auth.resetPasswordForEmail(email,{redirectTo});
+  message(authMessage,error ? "Die Anfrage konnte nicht gesendet werden." : "Falls ein Konto existiert, wurde eine Anleitung zum Zurücksetzen angefordert.",Boolean(error));
+});
+$("logoutButton").addEventListener("click",async()=>{ if(db) await db.auth.signOut(); });
+document.querySelectorAll(".nav-item").forEach((node)=>node.addEventListener("click",()=>setSection(node.dataset.section)));
+$("candidateForm").addEventListener("submit",addCandidate);
+$("observationForm").addEventListener("submit",addObservation);
+$("playerSearch").addEventListener("input",renderPlayers);
+initialize();
