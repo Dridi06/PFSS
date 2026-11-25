@@ -67,6 +67,10 @@
           <label>Aktueller Verein<input id="candidateClub" maxlength="160" placeholder="Verein"></label>
           <label>Positionen<input id="candidatePositions" maxlength="120" placeholder="z. B. IV, RV, DM"></label>
           <label class="wide">Notiz / Suchkontext<textarea id="candidateNotes" rows="3" maxlength="3000" placeholder="Warum ist dieser Spieler interessant?"></textarea></label>
+          <div class="wide source-divider"><span>OPTIONALER QUELLENBELEG</span><small>Der Beleg bleibt ungeprüft, bis ein berechtigter Administrator ihn freigibt.</small></div>
+          <label class="wide">Quellen-URL (HTTPS)<input id="candidateSourceUrl" type="url" placeholder="https://…"></label>
+          <label class="wide">Belegtitel<input id="candidateSourceTitle" maxlength="240" placeholder="Welche Information belegt die Quelle?"></label>
+          <label class="wide">Belegtext<textarea id="candidateSourceText" rows="3" maxlength="3000" placeholder="Konkrete Information aus der angegebenen Quelle"></textarea></label>
           <button class="primary wide" type="submit">Kandidaten speichern <span>＋</span></button>
         </form></div>
         <div id="candidateList" class="candidate-list"><p class="empty">Kandidaten werden geladen …</p></div>
