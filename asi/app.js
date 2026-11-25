@@ -164,6 +164,10 @@ async function addCandidate(event) {
     if (evidenceError) evidenceWarning = " Kandidat gespeichert, Quellenbeleg aber nicht. Die ASI-Evidence-Migration muss zuerst bereitgestellt werden.";
   }
   $("candidateForm").reset();
+  $("candidateNationalTeamLevelWrap").hidden = true;
+  $("candidateNationalTeamCountryWrap").hidden = true;
+  $("candidateNationalTeamLevel").required = false;
+  $("candidateNationalTeamCountry").required = false;
   message(globalMessage,"Kandidat wurde im geschützten Arbeitsbereich gespeichert."+evidenceWarning,Boolean(evidenceWarning));
   await loadCandidates();
 }
