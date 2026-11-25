@@ -186,6 +186,7 @@ async function addObservation(event) {
   });
   if (error) { message(globalMessage,"Beobachtung nicht gespeichert: "+error.message,true); return; }
   $("observationForm").reset();
+  await loadObservationRows();
   message(globalMessage,"Scout-Beobachtung wurde gespeichert.");
 }
 
@@ -278,7 +279,7 @@ async function runPlayerAnalysis() {
   }
   const report=generateScoutingReport({id:player.player_id,name:player.name,age:signal.age,positions:player.positions||[],dimensions:signal.dimensions,suitabilityScore:ranked.suitabilityScore,risks:ranked.warnings},{development:[development],evidence:signal.observations.map(o=>({title:"Scout-Beobachtung "+o.observed_on,sourceUrl:null,status:"intern dokumentiert",claim:o.observation||"Bewertungseintrag"}))});
   const costRaw=$("transferCost").value,budgetRaw=$("transferBudget").value;
-  const transfer=costRaw?assessTransferOpportunity({suitabilityScore:ranked.suitabilityScore,estimatedCost:Number(costRaw),evidenceConfidence:ranked.evidenceConfidence.score??0,riskScore:Math.min(100,ranked.warnings.length*20)},{budget:budgetRaw?Number(budgetRaw):undefined,currency:"EUR"}):{available:false,reason:"Keine Kostenschätzung eingetragen."};
+  const transfer=costRaw?assessTransferOpportunity({suitabilityScore:ranked.suitabilityScore,estimatedCost:Number(costRaw),evidenceConfidence:ranked.evidenceConfidence.score??0},{budget:budgetRaw?Number(budgetRaw):undefined,currency:"EUR"}):{available:false,reason:"Keine Kostenschätzung eingetragen."};
   const payload={analysis_type:"intelligence_suite_v1",model_version:"myscouting-intelligence-suite-v1",analysis_json:{ranking:ranked,development,transfer,report,predictionId},input_snapshot:{player:{player_id:player.player_id,name:player.name,year:player.year,positions:player.positions},observation_ids:signal.observations.map(o=>o.id),observation_count:signal.observations.length}};
   const {error}=await db.from("asi_player_analyses").insert({...payload,player_id:player.player_id,owner_id:currentUser.id,created_by:currentUser.id});
   if(error){message(globalMessage,"Analyse berechnet, aber Snapshot nicht gespeichert: "+error.message+predictionWarning,true);}else{message(globalMessage,"KI-Analyse als Snapshot gespeichert."+(predictionId?" Prognose-ID: "+predictionId+".":"")+predictionWarning,Boolean(predictionWarning));}
