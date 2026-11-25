@@ -14,9 +14,12 @@ export function proposeLearningUpdate(records,currentWeights,options={}) {
  const rows=records.filter(r=>r&&r.outcomeObserved===true&&r.features&&validScore(r.actualOutcome)&&validScore(r.predictedOutcome));
  const features=Object.keys(currentWeights).filter(k=>finite(currentWeights[k])&&currentWeights[k]>=0);
  if(rows.length<minimum||!features.length) return {available:false,sampleSize:rows.length,minimumSample:minimum,proposedWeights:null,reason:"Insufficient verified outcome records; no learning update proposed."};
+ const usableByFeature=Object.fromEntries(features.map(key=>[key,rows.filter(r=>validScore(r.features[key]))]));
+ const eligibleFeatures=features.filter(key=>usableByFeature[key].length>=minimum);
+ if(!eligibleFeatures.length) return {available:false,sampleSize:rows.length,minimumSample:minimum,proposedWeights:null,reason:"Verified outcomes exist, but no model feature has enough paired values for a defensible update."};
  const proposals={};
  for(const key of features) {
-  const usable=rows.filter(r=>validScore(r.features[key]));
+  const usable=usableByFeature[key];
   if(usable.length<minimum){proposals[key]=currentWeights[key];continue;}
   const centered=usable.reduce((s,r)=>s+(r.features[key]-50)*(r.actualOutcome-r.predictedOutcome),0)/usable.length;
   const delta=clamp(centered/2500,-0.05,0.05);
