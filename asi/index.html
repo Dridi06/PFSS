@@ -57,7 +57,7 @@
       </section>
       <section id="section-players" class="section-view" hidden>
         <div class="section-intro"><div><p class="eyebrow">AUTHORIZED CATALOGUE</p><h2>Spielerdatenbank</h2><p class="muted">Spieler, auf die dein Konto gemäß Datenbankrechten zugreifen darf.</p></div><input id="playerSearch" class="search" type="search" placeholder="Name oder Verein suchen…" aria-label="Spieler suchen"></div>
-        <div class="table-wrap"><table><thead><tr><th>SPIELER</th><th>VEREIN</th><th>JAHRGANG</th><th>POSITION</th></tr></thead><tbody id="playersBody"><tr><td colspan="4" class="empty">Daten werden geladen …</td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>SPIELER</th><th>VEREIN</th><th>JAHRGANG</th><th>POSITION</th><th>NATIONALMANNSCHAFT</th></tr></thead><tbody id="playersBody"><tr><td colspan="5" class="empty">Daten werden geladen …</td></tr></tbody></table></div>
       </section>
       <section id="section-candidates" class="section-view" hidden>
         <div class="section-intro"><div><p class="eyebrow">RECRUITMENT PIPELINE</p><h2>Kandidaten</h2><p class="muted">Externe und interne Entdeckungen zunächst getrennt vom offiziellen Spielerkatalog verwalten.</p></div></div>
@@ -67,6 +67,23 @@
           <label>Nationalität<input id="candidateNationality" maxlength="80" placeholder="z. B. Deutschland"></label>
           <label>Aktueller Verein<input id="candidateClub" maxlength="160" placeholder="Verein"></label>
           <label>Positionen<input id="candidatePositions" maxlength="120" placeholder="z. B. IV, RV, DM"></label>
+          <label>Aktueller Nationalspieler?
+            <select id="candidateNationalPlayer">
+              <option value="no" selected>Nein / nicht bekannt</option>
+              <option value="yes">Ja, aktuell im Nationalkader</option>
+            </select>
+          </label>
+          <label id="candidateNationalTeamLevelWrap" hidden>Nationalmannschaft
+            <select id="candidateNationalTeamLevel">
+              <option value="">Stufe auswählen …</option>
+              <option value="U15">U15</option><option value="U16">U16</option><option value="U17">U17</option>
+              <option value="U18">U18</option><option value="U19">U19</option><option value="U20">U20</option>
+              <option value="U21">U21</option><option value="A">A-Nationalmannschaft</option>
+            </select>
+          </label>
+          <label id="candidateNationalTeamCountryWrap" hidden>Für welches Land?
+            <input id="candidateNationalTeamCountry" maxlength="80" placeholder="z. B. Deutschland">
+          </label>
           <label class="wide">Notiz / Suchkontext<textarea id="candidateNotes" rows="3" maxlength="3000" placeholder="Warum ist dieser Spieler interessant?"></textarea></label>
           <div class="wide source-divider"><span>OPTIONALER QUELLENBELEG</span><small>Der Beleg bleibt ungeprüft, bis ein berechtigter Administrator ihn freigibt.</small></div>
           <label class="wide">Quellen-URL (HTTPS)<input id="candidateSourceUrl" type="url" placeholder="https://…"></label>
