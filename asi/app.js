@@ -1,4 +1,4 @@
-const config = window.ASI_CONFIG;
+const config = window.MYSCOUTINGDATABASE_CONFIG;
 const clientFactory = window.supabase?.createClient;
 const authView = document.getElementById("authView");
 const appView = document.getElementById("appView");
@@ -25,7 +25,7 @@ function showApp(user) {
   currentUser = user;
   authView.hidden = true;
   appView.hidden = false;
-  $("userEmail").textContent = user.email || "ASI-Nutzer";
+  $("userEmail").textContent = user.email || "myScoutingDatabase-Nutzer";
   message(globalMessage, "");
   loadWorkspace();
 }
@@ -183,12 +183,12 @@ async function addObservation(event) {
 }
 async function initialize() {
   if (!config || !config.url || !config.key || !clientFactory) {
-    showAuth("ASI ist noch nicht mit einer freigegebenen Staging-Konfiguration verbunden.");
+    showAuth("myScoutingDatabase ist noch nicht mit einer freigegebenen Staging-Konfiguration verbunden.");
     $("loginForm").querySelector("button").disabled = true;
     return;
   }
   if (config.projectRef !== "vxtybjaabtfhxfwctnyj") {
-    showAuth("Sicherheitsstopp: Die ASI-Konfiguration verweist nicht auf das freigegebene ASI-Projekt.");
+    showAuth("Sicherheitsstopp: Die myScoutingDatabase-Konfiguration verweist nicht auf das freigegebene myScoutingDatabase-Projekt.");
     $("loginForm").querySelector("button").disabled = true;
     return;
   }
