@@ -286,7 +286,14 @@ function renderVideoEvents() {
   const analysis=analyzeVideoEvents(videoEventRows.map(e=>({minute:Number(e.minute),type:e.event_type,playerId:e.player_id,zone:e.zone,outcome:e.outcome,verified:e.verification_status==="verified"})));
   const summary=Object.entries(analysis.eventCounts).map(([key,value])=>key+": "+value).join(" · ");
   host.innerHTML='<p class="tiny-note">Auswertung: '+analysis.eventCount+' gültige Ereignisse · '+analysis.verifiedEventCoverage+'% bestätigt · '+safe(summary||"Noch keine Ereignistypen")+'</p>'+
-    (videoEventRows.length?videoEventRows.slice(0,30).map(e=>{const p=selectedPlayer(e.player_id);return '<div class="research-hit"><div><strong>'+safe(p?.name||("Spieler #"+e.player_id))+' · '+safe(e.event_type)+'</strong><small>'+safe(e.match_date||"Datum offen")+' · '+safe(e.opponent||"Gegner offen")+' · '+e.minute+'′ · '+safe(e.zone||"Zone offen")+'</small></div><span class="candidate-status">'+safe(e.verification_status)+'</span></div>';}).join(""):'<p class="empty">Noch keine Videoereignisse erfasst.</p>');
+    (videoEventRows.length?videoEventRows.slice(0,30).map(e=>{const p=selectedPlayer(e.player_id);const review=currentRole==="admin"&&e.verification_status==="pending"?'<input type="text" maxlength="500" placeholder="Prüfgrund (mind. 10 Zeichen)" data-video-reason="'+safe(e.id)+'"><button class="text-button" type="button" data-video-review="'+safe(e.id)+'">Als geprüft markieren</button>':"";return '<div class="research-hit"><div><strong>'+safe(p?.name||("Spieler #"+e.player_id))+' · '+safe(e.event_type)+'</strong><small>'+safe(e.match_date||"Datum offen")+' · '+safe(e.opponent||"Gegner offen")+' · '+e.minute+'′ · '+safe(e.zone||"Zone offen")+'</small></div><span class="candidate-status">'+safe(e.verification_status)+'</span></div>'+review;}).join(""):'<p class="empty">Noch keine Videoereignisse erfasst.</p>');
+  host.querySelectorAll("[data-video-review]").forEach(button=>button.addEventListener("click",async()=>{
+    const id=button.dataset.videoReview,reason=host.querySelector('[data-video-reason="'+id+'"]')?.value;
+    if(!reason||reason.trim().length<10){message(globalMessage,"Prüfgrund mit mindestens 10 Zeichen erforderlich.",true);return;}
+    const {error}=await db.rpc("asi_review_video_event",{p_event_id:id,p_decision:"verify",p_reason:reason});
+    if(error){message(globalMessage,"Videoereignis-Prüfung fehlgeschlagen: "+error.message,true);return;}
+    message(globalMessage,"Videoereignis wurde verifiziert.");await loadVideoEvents();
+  }));
 }
 async function addVideoEvent(event) {
   event.preventDefault();
