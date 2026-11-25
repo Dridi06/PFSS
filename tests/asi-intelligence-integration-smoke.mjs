@@ -9,6 +9,10 @@ const review=await readFile(new URL("../supabase/asi-migrations/20261125051500_a
 const lifecycle=await readFile(new URL("../supabase/asi-migrations/20261125053000_asi_prediction_outcome_lifecycle.sql",import.meta.url),"utf8");
 const hardening=await readFile(new URL("../supabase/asi-migrations/20261125050000_asi_intelligence_rls_index_hardening.sql",import.meta.url),"utf8");
 const ownership=await readFile(new URL("../supabase/asi-migrations/20261125054500_asi_intelligence_player_scope.sql",import.meta.url),"utf8");
+const modelReview=await readFile(new URL("../supabase/asi-migrations/20261125060000_asi_audited_model_candidate_approval.sql",import.meta.url),"utf8");
+const videoProvenance=await readFile(new URL("../supabase/asi-migrations/20261125061500_asi_external_video_detection_provenance.sql",import.meta.url),"utf8");
+const videoAdapter=await readFile(new URL("../asi-core/video-detection.mjs",import.meta.url),"utf8");
+const trainer=await readFile(new URL("../asi-core/model-training.mjs",import.meta.url),"utf8");
 for(const id of ["intelligenceOverview","intelligencePlayer","comparePlayerA","comparePlayerB","videoEventForm","calibrationForm","learningPreview","outcomeForm","outcomePrediction"]) assert.match(html,new RegExp('id="'+id+'"'));
 for(const symbol of ["rankRecruitmentCandidates","forecastTalent","assessTransferOpportunity","generateScoutingReport","analyzeVideoEvents","evaluateScoutCalibration","proposeLearningUpdate"]) assert.ok(app.includes(symbol), "missing UI integration: "+symbol);
 assert.match(app,/asi_player_analyses/);
