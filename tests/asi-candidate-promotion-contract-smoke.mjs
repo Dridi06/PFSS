@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const sql = await readFile(new URL("../supabase/migrations/20261125024038_asi_candidate_atomic_promotion.sql", import.meta.url), "utf8");
-const correction = await readFile(new URL("../supabase/migrations/20261125024057_asi_candidate_promotion_normalization_fix.sql", import.meta.url), "utf8");
+const sql = await readFile(new URL("../supabase/asi-migrations/20261125024038_asi_candidate_atomic_promotion.sql", import.meta.url), "utf8");
+const correction = await readFile(new URL("../supabase/asi-migrations/20261125024057_asi_candidate_promotion_normalization_fix.sql", import.meta.url), "utf8");
 
 for (const token of [
   "security invoker",
