@@ -6,4 +6,8 @@ assert.equal(result.available,true);assert.equal(result.algorithm,"standardized-
 assert.equal(trainChronologicalModel(rows.slice(0,20)).available,false);
 assert.equal(trainChronologicalModel(rows.map(r=>({...r,verified:false}))).available,false);
 assert.equal(trainChronologicalModel(rows.map(r=>({...r,features:{performance:r.features.performance}}))).available,false);
+const cutoffRows=rows.map((r,i)=>({...r,featureSnapshotAt:new Date(Date.UTC(2020,0,i+1)).toISOString(),horizonDays:30,observedAt:new Date(Date.UTC(2020,0,i+15)).toISOString()}));
+assert.equal(trainChronologicalModel(cutoffRows).sampleSize,0,"outcomes before forecast horizon must be excluded");
+const matureRows=rows.map((r,i)=>({...r,featureSnapshotAt:new Date(Date.UTC(2020,0,i+1)).toISOString(),horizonDays:30,observedAt:new Date(Date.UTC(2020,1,i+1)).toISOString()}));
+assert.equal(trainChronologicalModel(matureRows).available,true,"outcomes after forecast horizon remain eligible");
 console.log("myScoutingDatabase chronological model-training tests passed.");
