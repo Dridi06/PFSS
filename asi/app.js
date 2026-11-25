@@ -384,6 +384,13 @@ async function renderPendingOutcomeReviews() {
   return '<h4>Offene Ergebnisverifizierungen</h4>'+data.map(o=>'<div class="calibration-review"><strong>'+safe(o.observed_metric)+' · '+safe(o.outcome_source)+'</strong><small>Beobachtet: '+safe(o.observed_value)+' am '+safe(o.observed_on)+'</small><input type="url" placeholder="HTTPS-Quellenlink" data-outcome-source="'+safe(o.id)+'"><input type="text" placeholder="Prüfgrund (mind. 10 Zeichen)" data-outcome-reason="'+safe(o.id)+'"><button class="text-button" type="button" data-outcome-verify="'+safe(o.id)+'">Ergebnis verifizieren</button></div>').join("");
 }
 
+
+async function renderModelCandidateReviews() {
+ const {data,error}=await db.from("asi_model_versions").select("id,version,status,metrics,created_at").eq("model_key","player-development-score").eq("status","candidate").order("created_at",{ascending:false}).limit(20);
+ if(error||!data?.length)return '<p class="tiny-note">Keine offenen Modellkandidaten.</p>';
+ return '<h4>Modellfreigabe · menschliche Prüfung</h4>'+data.map(m=>'<div class="calibration-review"><strong>'+safe(m.version)+' · MAE '+safe(m.metrics?.mae??"—")+'</strong><small>Holdout: '+safe(m.metrics?.sampleSize??"—")+' · Baseline-Verbesserung: '+safe(m.metrics?.improvementPercent??"—")+' %</small><input type="text" maxlength="500" placeholder="Begründung (mind. 10 Zeichen)" data-model-reason="'+safe(m.id)+'"><button class="text-button" type="button" data-model-decision="approve" data-model-id="'+safe(m.id)+'">Kandidat freigeben</button><button class="text-button" type="button" data-model-decision="reject" data-model-id="'+safe(m.id)+'">Kandidat ablehnen</button></div>').join("");
+}
+
 async function showLearningPreview() {
   const host=$("learningPreview");if(!host||!db)return;
   const {data:predictions,error:pError}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,status").limit(1000);
@@ -395,8 +402,9 @@ async function showLearningPreview() {
   const proposal=proposeLearningUpdate(pairs,current);
   const evaluation=evaluateRegression(verifiedPairs);
   host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+verifiedPairs.length+'</p><p class="muted">'+safe(evaluation.evaluable?"Modellfehler · MAE "+evaluation.mae+" · RMSE "+evaluation.rmse+" · Richtung "+evaluation.direction:evaluation.reason)+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen. Eine ausreichende Stichprobe und zeitbasierte Validierung bleiben Voraussetzung.</p>'+
-    (currentRole==="admin"?await renderPendingOutcomeReviews():"");
+    (currentRole==="admin"?await renderPendingOutcomeReviews():"")+(currentRole==="admin"?await renderModelCandidateReviews():"");
   if(currentRole==="admin"){host.insertAdjacentHTML("afterbegin","<button id=\"trainCandidateModel\" class=\"text-button\" type=\"button\">ML-Kandidat chronologisch trainieren</button>");host.querySelector("#trainCandidateModel")?.addEventListener("click",trainCandidateModel);}
+  host.querySelectorAll("[data-model-decision]").forEach(button=>button.addEventListener("click",async()=>{const id=button.dataset.modelId,decision=button.dataset.modelDecision,reason=host.querySelector('[data-model-reason="'+id+'"]')?.value;if(!reason||reason.trim().length<10){message(globalMessage,"Bitte eine nachvollziehbare Begründung mit mindestens 10 Zeichen eingeben.",true);return;}const {error}=await db.rpc("asi_review_model_candidate",{p_model_version_id:id,p_decision:decision,p_reason:reason});if(error){message(globalMessage,"Modellfreigabe fehlgeschlagen: "+error.message,true);return;}message(globalMessage,decision==="approve"?"Modell wurde nach Admin-Prüfung aktiviert.":"Modellkandidat wurde abgelehnt.");await showLearningPreview();}));
   host.querySelectorAll("[data-outcome-verify]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.outcomeVerify,source=host.querySelector('[data-outcome-source="'+id+'"]')?.value,reason=host.querySelector('[data-outcome-reason="'+id+'"]')?.value;
     if(!source||!reason||reason.trim().length<10){message(globalMessage,"HTTPS-Quelle und Prüfgrund (mind. 10 Zeichen) erforderlich.",true);return;}
