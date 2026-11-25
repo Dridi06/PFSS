@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pfms-quality-${{ github.ref }}
+  group: myscouting-quality-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
