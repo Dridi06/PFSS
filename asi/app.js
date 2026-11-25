@@ -217,7 +217,7 @@ function populateIntelligencePlayers() {
 }
 function average(values) {
   const valid=values.filter(v=>Number.isFinite(v)&&v>=1&&v<=10);
-  return valid.length ? Math.round(valid.reduce((a,b)=>a+b,0)/valid.length*10*10)/10 : null;
+  return valid.length ? Math.round(((valid.reduce((a,b)=>a+b,0)/valid.length-1)/9)*1000)/10 : null;
 }
 function playerSignal(player) {
   const rows=observationRows.filter(o=>Number(o.player_id)===Number(player.player_id));
@@ -233,7 +233,6 @@ function playerSignal(player) {
     age:/^\d{4}$/.test(String(player.year||""))?yearNow-Number(player.year):undefined,
     positions:player.positions||[],preferredFoot:player.foot||null,dimensions:dims,
     scoutAssessments:rows.map(o=>({scoutId:o.created_by,rating:null,observedAt:o.observed_on,note:o.observation||null})),
-    evidenceQuality:{sampleAdequacy:Math.min(100,rows.length*15)},
     observations:rows
   };
 }
@@ -262,7 +261,7 @@ async function runPlayerAnalysis() {
   const ranked=rankRecruitmentCandidates([signal])[0];
   const scores=signal.observations.map(o=>{
     const values=["technical","tactical","physical"].map(k=>Number(o.ratings?.[k])).filter(v=>Number.isFinite(v)&&v>=1&&v<=10);
-    return values.length?{score:values.reduce((a,b)=>a+b,0)/values.length*10,observedAt:o.observed_on}:null;
+    return values.length?{score:(values.reduce((a,b)=>a+b,0)/values.length-1)/9*100,observedAt:o.observed_on}:null;
   }).filter(Boolean);
   const development=forecastTalent(scores);
   let predictionId=null,predictionWarning="";
