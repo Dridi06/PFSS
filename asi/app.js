@@ -1,5 +1,6 @@
 import { rankRecruitmentCandidates } from "../asi-core/recruitment-engine.mjs";
 import { comparePlayers, forecastTalent, assessTransferOpportunity, generateScoutingReport, analyzeVideoEvents, evaluateScoutCalibration, proposeLearningUpdate } from "../asi-core/intelligence-suite.mjs";
+import { evaluateRegression } from "../asi-core/model-evaluation.mjs";
 const config = window.MYSCOUTINGDATABASE_CONFIG;
 const clientFactory = window.supabase?.createClient;
 const authView = document.getElementById("authView");
@@ -390,8 +391,10 @@ async function showLearningPreview() {
   if(pError||oError){host.textContent="Lerndaten konnten nicht geladen werden.";return;}
   const pairs=(predictions||[]).flatMap(p=>(outcomes||[]).filter(o=>o.prediction_id===p.id&&o.observed_metric===p.target_metric&&Number.isFinite(Number(o.observed_value))&&Number.isFinite(Number(p.predicted_value))).map(o=>({predicted:Number(p.predicted_value),observed:Number(o.observed_value),outcomeObserved:o.verification_status==="verified",features:p.explanation?.features||{}})));
   const current={performance:.24,tacticalFit:.26,potential:.18,scoutAssessment:.14,economicFit:.10,physicalFit:.08};
+  const verifiedPairs=pairs.filter(x=>x.outcomeObserved);
   const proposal=proposeLearningUpdate(pairs,current);
-  host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+pairs.filter(x=>x.outcomeObserved).length+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen.</p>'+
+  const evaluation=evaluateRegression(verifiedPairs);
+  host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+verifiedPairs.length+'</p><p class="muted">'+safe(evaluation.evaluable?"Modellfehler · MAE "+evaluation.mae+" · RMSE "+evaluation.rmse+" · Richtung "+evaluation.direction:evaluation.reason)+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen. Eine ausreichende Stichprobe und zeitbasierte Validierung bleiben Voraussetzung.</p>'+
     (currentRole==="admin"?await renderPendingOutcomeReviews():"");
   host.querySelectorAll("[data-outcome-verify]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.outcomeVerify,source=host.querySelector('[data-outcome-source="'+id+'"]')?.value,reason=host.querySelector('[data-outcome-reason="'+id+'"]')?.value;
