@@ -5,16 +5,18 @@ on:
     branches:
       - main
       - feature/pfss-complete-platform-build
+      - feature/asi-intelligence-platform
   pull_request:
     branches:
       - main
+      - feature/pfss-complete-platform-build
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pfms-quality-${{ github.ref }}
+  group: myscouting-quality-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

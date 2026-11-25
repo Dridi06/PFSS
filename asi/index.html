@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080a0d">
+  <meta name="description" content="ASI – Advanced Scouting Intelligence. Recherche, Spielerbeobachtung und nachvollziehbare Rekrutierungsentscheidungen.">
+  <title>myScoutingDatabase</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <main id="authView" class="auth-shell">
+    <section class="brand-panel">
+      <div class="brand-mark">A<span>SI</span></div>
+      <p class="eyebrow">ADVANCED SCOUTING INTELLIGENCE</p>
+      <h1>See beyond<br><em>the obvious.</em></h1>
+      <p class="brand-copy">Eine evidenzbasierte Arbeitsumgebung für Spieleridentifikation, Scouting und strategische Kaderplanung.</p>
+      <div class="brand-foot"><span>RESEARCH</span><i></i><span>INTELLIGENCE</span><i></i><span>DECISION</span></div>
+    </section>
+    <section class="auth-panel">
+      <div class="panel-kicker">SECURE ACCESS</div>
+      <h2>Willkommen zurück.</h2>
+      <p class="muted">Melde dich mit deinem freigegebenen ASI-Konto an.</p>
+      <form id="loginForm" class="stack">
+        <label>E-Mail<input id="email" type="email" autocomplete="username" required maxlength="254"></label>
+        <label>Passwort<input id="password" type="password" autocomplete="current-password" required minlength="8"></label>
+        <button class="primary" type="submit">Sicher anmelden <span>↗</span></button>
+      </form>
+      <button id="forgotPassword" class="text-button" type="button">Passwort vergessen?</button>
+      <p id="authMessage" class="message" role="status" aria-live="polite"></p>
+      <p class="tiny-note">Zugriff wird serverseitig durch Supabase Auth und Row Level Security kontrolliert.</p>
+    </section>
+  </main>
+  <main id="appView" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="side-brand"><div class="brand-mark small">A<span>SI</span></div><div><strong>ASI</strong><small>INTELLIGENCE</small></div></div>
+      <nav aria-label="Hauptnavigation">
+        <button class="nav-item active" data-section="overview">◈ <span>Übersicht</span></button>
+        <button class="nav-item" data-section="players">◎ <span>Spielerdatenbank</span></button>
+        <button class="nav-item" data-section="candidates">⌕ <span>Kandidaten</span></button>
+        <button class="nav-item" data-section="observations">✎ <span>Beobachtungen</span></button>
+        <button class="nav-item" data-section="intelligence">✦ <span>KI-Labor</span></button>
+      </nav>
+      <div class="side-bottom"><span class="status-dot"></span><span>GESCHÜTZTE SITZUNG</span><button id="logoutButton" class="logout">Abmelden ↗</button></div>
+    </aside>
+    <section class="workspace">
+      <header class="topbar"><div><p class="eyebrow">SCOUTING INTELLIGENCE / WORKSPACE</p><h1 id="pageTitle">Übersicht</h1></div><div class="user-chip"><span class="avatar">S</span><span id="userEmail">Angemeldet</span></div></header>
+      <div id="globalMessage" class="message global-message" role="status" aria-live="polite"></div>
+      <section id="section-overview" class="section-view">
+        <div class="welcome-card"><div><p class="eyebrow">DECISION SUPPORT, NOT GUESSWORK</p><h2>Erkenntnisse, die<br><em>Entscheidungen stärken.</em></h2><p>Alle Informationen bleiben nachvollziehbar: Herkunft, Datenqualität und Unsicherheit werden getrennt dargestellt.</p></div><div class="orbit" aria-hidden="true"><span>ASI</span><i></i><b></b></div></div>
+        <div class="stat-grid"><article class="stat-card"><span>SPIELER IM KATALOG</span><strong id="statPlayers">—</strong><small>RLS-geschützter Bestand</small></article><article class="stat-card"><span>GESPEICHERTE KANDIDATEN</span><strong id="statCandidates">—</strong><small>Persönlicher Arbeitsbereich</small></article><article class="stat-card"><span>OFFENE BEOBACHTUNGEN</span><strong id="statObservations">—</strong><small>Dokumentierte Scout-Eindrücke</small></article></div>
+        <div class="content-card"><div class="card-heading"><div><p class="eyebrow">SYSTEMPRINZIP</p><h3>Nachvollziehbare Intelligence</h3></div><span class="pill">HUMAN REVIEW</span></div><p class="muted">Externe Treffer werden nicht automatisch einem Spieler zugeordnet. Fehlende Werte bleiben unbekannt. Eine Übernahme in den zentralen Katalog erfolgt ausschließlich nach Prüfung und über den abgesicherten Freigabeprozess.</p></div>
+      </section>
+      <section id="section-players" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">AUTHORIZED CATALOGUE</p><h2>Spielerdatenbank</h2><p class="muted">Spieler, auf die dein Konto gemäß Datenbankrechten zugreifen darf.</p></div><input id="playerSearch" class="search" type="search" placeholder="Name oder Verein suchen…" aria-label="Spieler suchen"></div>
+        <div class="table-wrap"><table><thead><tr><th>SPIELER</th><th>VEREIN</th><th>JAHRGANG</th><th>POSITION</th><th>NATIONALMANNSCHAFT</th></tr></thead><tbody id="playersBody"><tr><td colspan="5" class="empty">Daten werden geladen …</td></tr></tbody></table></div>
+      </section>
+      <section id="section-candidates" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">RECRUITMENT PIPELINE</p><h2>Kandidaten</h2><p class="muted">Externe und interne Entdeckungen zunächst getrennt vom offiziellen Spielerkatalog verwalten.</p></div></div>
+        <div class="content-card form-card"><div class="card-heading"><h3>Neuen Kandidaten speichern</h3><span class="pill">DRAFT</span></div><form id="candidateForm" class="form-grid">
+          <label class="wide">Spielername<input id="candidateName" required maxlength="160" placeholder="Vor- und Nachname"></label>
+          <label>Geburtsjahr<input id="candidateYear" type="number" min="1900" max="2200" placeholder="z. B. 2005"></label>
+          <label>Nationalität<input id="candidateNationality" maxlength="80" placeholder="z. B. Deutschland"></label>
+          <label>Aktueller Verein<input id="candidateClub" maxlength="160" placeholder="Verein"></label>
+          <label>Positionen<input id="candidatePositions" maxlength="120" placeholder="z. B. IV, RV, DM"></label>
+          <label>Aktueller Nationalspieler?
+            <select id="candidateNationalPlayer">
+              <option value="no" selected>Nein / nicht bekannt</option>
+              <option value="yes">Ja, aktuell im Nationalkader</option>
+            </select>
+          </label>
+          <label id="candidateNationalTeamLevelWrap" hidden>Nationalmannschaft
+            <select id="candidateNationalTeamLevel">
+              <option value="">Stufe auswählen …</option>
+              <option value="U15">U15</option><option value="U16">U16</option><option value="U17">U17</option>
+              <option value="U18">U18</option><option value="U19">U19</option><option value="U20">U20</option>
+              <option value="U21">U21</option><option value="A">A-Nationalmannschaft</option>
+            </select>
+          </label>
+          <label id="candidateNationalTeamCountryWrap" hidden>Für welches Land?
+            <input id="candidateNationalTeamCountry" maxlength="80" placeholder="z. B. Deutschland">
+          </label>
+          <label class="wide">Notiz / Suchkontext<textarea id="candidateNotes" rows="3" maxlength="3000" placeholder="Warum ist dieser Spieler interessant?"></textarea></label>
+          <div class="wide source-divider"><span>OPTIONALER QUELLENBELEG</span><small>Der Beleg bleibt ungeprüft, bis ein berechtigter Administrator ihn freigibt.</small></div>
+          <label class="wide">Quellen-URL (HTTPS)<input id="candidateSourceUrl" type="url" placeholder="https://…"></label>
+          <label class="wide">Belegtitel<input id="candidateSourceTitle" maxlength="240" placeholder="Welche Information belegt die Quelle?"></label>
+          <label class="wide">Belegtext<textarea id="candidateSourceText" rows="3" maxlength="3000" placeholder="Konkrete Information aus der angegebenen Quelle"></textarea></label>
+          <button class="primary wide" type="submit">Kandidaten speichern <span>＋</span></button>
+        </form></div>
+        <div id="candidateList" class="candidate-list"><p class="empty">Kandidaten werden geladen …</p></div>
+      </section>
+      <section id="section-observations" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">SCOUT FEEDBACK</p><h2>Beobachtung dokumentieren</h2><p class="muted">Persönliche Eindrücke bleiben als Scout-Beobachtung erkennbar und werden nicht als objektive Messwerte ausgegeben.</p></div></div>
+        <div class="content-card"><form id="observationForm" class="form-grid">
+          <label class="wide">Spieler<select id="observationPlayer" required><option value="">Spieler auswählen …</option></select></label>
+          <label>Technik (1–10)<input id="ratingTechnical" type="number" min="1" max="10" step="1"></label>
+          <label>Taktik (1–10)<input id="ratingTactical" type="number" min="1" max="10" step="1"></label>
+          <label>Physis (1–10)<input id="ratingPhysical" type="number" min="1" max="10" step="1"></label>
+          <label>Mentalität (1–10)<input id="ratingMental" type="number" min="1" max="10" step="1"></label>
+          <label class="wide">Beobachtung<textarea id="observationText" rows="4" maxlength="5000" placeholder="Spielkontext, Stärken, Entwicklungsfelder, beobachtete Situationen …"></textarea></label>
+          <button class="primary wide" type="submit">Beobachtung speichern <span>＋</span></button>
+        </form></div>
+      </section>
+
+      <section id="section-intelligence" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">SCOUTING INTELLIGENCE ENGINE</p><h2>KI-Labor</h2><p class="muted">Analysen auf Basis deiner dokumentierten Daten. Fehlende Werte bleiben offen; Prognosen sind keine Garantien.</p></div></div>
+        <div id="intelligenceOverview" class="content-card"><p class="empty">Intelligence-Daten werden geladen …</p></div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Spieleranalyse erstellen</h3><span class="pill">VERSIONIERTER SNAPSHOT</span></div>
+          <div class="form-grid">
+            <label class="wide">Spieler<select id="intelligencePlayer"><option value="">Spieler auswählen …</option></select></label>
+            <label>Geschätzte Ablöse (€)<input id="transferCost" type="number" min="1" step="1000" placeholder="Optional"></label>
+            <label>Budget (€)<input id="transferBudget" type="number" min="1" step="1000" placeholder="Optional"></label>
+            <button id="intelligenceRun" class="primary wide" type="button">Analyse berechnen und speichern <span>✦</span></button>
+          </div>
+          <div id="intelligenceResult" class="candidate-list" aria-live="polite"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Spielervergleich</h3><span class="pill">GEMEINSAME DATEN</span></div>
+          <div class="form-grid">
+            <label>Spieler A<select id="comparePlayerA"><option value="">Spieler auswählen …</option></select></label>
+            <label>Spieler B<select id="comparePlayerB"><option value="">Spieler auswählen …</option></select></label>
+            <button id="compareRun" class="primary wide" type="button">Spieler vergleichen</button>
+          </div>
+          <div id="comparisonResult" class="candidate-list" aria-live="polite"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Video- und Spielereignisse</h3><span class="pill">MANUELL GETAGGT</span></div>
+          <p class="muted">Hier werden Ereignisse aus einer Videoanalyse mit Zeitmarke und Quelle dokumentiert. Es findet noch keine automatische Bilderkennung aus Rohvideos statt.</p>
+          <form id="videoEventForm" class="form-grid">
+            <label class="wide">Spieler<select id="videoPlayer" required><option value="">Spieler auswählen …</option></select></label>
+            <label>Spieldatum<input id="videoDate" type="date"></label>
+            <label>Spielminute<input id="videoMinute" type="number" min="0" max="150" step="0.5" required></label>
+            <label>Wettbewerb<input id="videoCompetition" maxlength="120"></label>
+            <label>Gegner<input id="videoOpponent" maxlength="120"></label>
+            <label>Ereignis<select id="videoEventType"><option value="pass">Pass</option><option value="progressive_pass">Progressiver Pass</option><option value="key_pass">Schlüsselpass</option><option value="shot">Torschuss</option><option value="goal">Tor</option><option value="assist">Vorlage</option><option value="dribble">Dribbling</option><option value="tackle">Tackling</option><option value="interception">Abfangen</option><option value="duel">Zweikampf</option><option value="press">Pressing</option><option value="recovery">Ballgewinn</option><option value="turnover">Ballverlust</option><option value="cross">Flanke</option><option value="carry">Ballführung</option><option value="positioning">Positionierung</option><option value="other">Sonstiges</option></select></label>
+            <label>Zone / Feldbereich<input id="videoZone" maxlength="100" placeholder="z. B. rechter Halbraum"></label>
+            <label class="wide">Ergebnis / Kontext<input id="videoOutcome" maxlength="300"></label>
+            <label class="wide">HTTPS-Video- oder Quellenlink<input id="videoSourceUrl" type="url" placeholder="Optional: https://…"></label>
+            <label class="wide">Notizen<textarea id="videoNotes" rows="2" maxlength="1500"></textarea></label>
+            <button class="primary wide" type="submit">Ereignis speichern</button>
+          </form>
+          <div class="form-grid" style="margin-top:16px">
+            <label class="wide">Ergebnis einer externen Video-KI (JSON)<textarea id="videoAiPayload" rows="6" maxlength="200000" placeholder='{"provider":"…","modelVersion":"…","detections":[{"playerId":123,"timeSeconds":540,"eventType":"pass","confidence":0.94}]}'></textarea></label>
+            <button id="videoAiImport" class="text-button wide" type="button">KI-Erkennungen importieren und prüfen lassen</button>
+            <p class="tiny-note wide">Importiert strukturierte Erkennungen eines externen Computer-Vision-Anbieters. Konfidenz unter 70 % wird verworfen. Jede Erkennung bleibt ungeprüft, bis ein Administrator sie bestätigt. Dieses Feld verarbeitet keine Rohvideos selbst.</p>
+          </div>
+          <div id="videoEventList" class="candidate-list"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Scout-Kalibrierung</h3><span class="pill">ADMIN-VERIFIZIERUNG</span></div>
+          <p class="muted">Die eigene Einschätzung wird festgehalten. Ein späteres tatsächliches Ergebnis wird separat und nur mit überprüfbarer HTTPS-Quelle durch einen Administrator bestätigt.</p>
+          <form id="calibrationForm" class="form-grid">
+            <label class="wide">Spieler<select id="calibrationPlayer" required><option value="">Spieler auswählen …</option></select></label>
+            <label>Eigene Einschätzung (0–100)<input id="calibrationRating" type="number" min="0" max="100" step="0.1" required></label>
+            <label>Ergebniskennzahl<input id="calibrationMetric" maxlength="100" required placeholder="z. B. Einsatzminuten nach 12 Monaten"></label>
+            <button class="primary wide" type="submit">Einschätzung dokumentieren</button>
+          </form>
+          <div id="calibrationQueue" class="candidate-list"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Prognoseergebnis dokumentieren</h3><span class="pill">SPÄTERER REALITÄTSABGLEICH</span></div>
+          <p class="muted">Wenn ein Prognosezeitraum abgelaufen ist, kann das tatsächliche Ergebnis mit Datum erfasst werden. Es bleibt zunächst ungeprüft.</p>
+          <form id="outcomeForm" class="form-grid">
+            <label class="wide">Prognose<select id="outcomePrediction" required><option value="">Zuerst Spieler und Prognose auswählen …</option></select></label>
+            <label>Beobachteter Wert<input id="outcomeValue" type="number" step="0.1" required></label>
+            <label>Beobachtungsdatum<input id="outcomeDate" type="date" required></label>
+            <label class="wide">Quellenbezeichnung<input id="outcomeSource" maxlength="160" required placeholder="z. B. offizieller Saisonstatistikbericht"></label>
+            <label class="wide">Notizen<textarea id="outcomeNotes" rows="2" maxlength="1500"></textarea></label>
+            <button class="primary wide" type="submit">Ergebnis dokumentieren</button>
+          </form>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Lern- und Modellkontrolle</h3><span class="pill">KEINE AUTO-AKTIVIERUNG</span></div>
+          <p class="muted">Das System prüft, ob ausreichend passende Prognose-/Ergebnispaare vorliegen. Gewichtungsänderungen werden nicht automatisch aktiviert.</p>
+          <button id="learningRefresh" class="text-button" type="button">Lernstatus aktualisieren ↻</button>
+          <div id="learningPreview" class="candidate-list" aria-live="polite"><p class="tiny-note">Noch nicht abgefragt.</p></div>
+        </div>
+      </section>
+      <footer class="workspace-foot">myScoutingDatabase <span>Evidence first. Human verified.</span></footer>
+    </section>
+  </main>
+</body>
+</html>
