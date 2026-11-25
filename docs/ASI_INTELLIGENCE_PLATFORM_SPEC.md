@@ -123,7 +123,7 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Dedicated ASI repository, separate hosting service, staging environment and end-to-end browser acceptance.
 
 
-## Standalone ASI workspace foundation (2026-11-25)
+## Standalone myScoutingDatabase workspace foundation (2026-11-25)
 
 - Added a separate browser workspace under `asi/`; it does not modify or load the PFMS interface.
 - Authentication uses Supabase Auth with persistent sessions, password-reset request flow and a publishable browser key only.
@@ -142,3 +142,8 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Administrator review is performed through a SECURITY INVOKER RPC with a required reason and an immutable before-state audit record.
 - Approval marks legal review as approved but deliberately does not claim the fact is independently corroborated; verification remains separate.
 - Migration is committed to the ASI feature branch but has **not** been applied to Supabase. No database schema has been changed by this step.
+
+
+## Product boundary decision — 2026-11-25
+
+myScoutingDatabase is an independent product. It must not import, depend on, share runtime configuration with, or be deployed through PFMS/PFSS. Its dedicated Supabase project is `vxtybjaabtfhxfwctnyj`. The current development branch is still hosted in the legacy GitHub repository for continuity only; repository extraction into a new standalone GitHub repository and dedicated hosting service is a release prerequisite. Do not merge this branch into PFMS or deploy it through the PFMS Render service.
