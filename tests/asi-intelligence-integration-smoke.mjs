@@ -8,6 +8,7 @@ const verified=await readFile(new URL("../supabase/asi-migrations/20261125044500
 const review=await readFile(new URL("../supabase/asi-migrations/20261125051500_asi_video_event_review.sql",import.meta.url),"utf8");
 const lifecycle=await readFile(new URL("../supabase/asi-migrations/20261125053000_asi_prediction_outcome_lifecycle.sql",import.meta.url),"utf8");
 const hardening=await readFile(new URL("../supabase/asi-migrations/20261125050000_asi_intelligence_rls_index_hardening.sql",import.meta.url),"utf8");
+const ownership=await readFile(new URL("../supabase/asi-migrations/20261125054500_asi_intelligence_player_scope.sql",import.meta.url),"utf8");
 for(const id of ["intelligenceOverview","intelligencePlayer","comparePlayerA","comparePlayerB","videoEventForm","calibrationForm","learningPreview","outcomeForm","outcomePrediction"]) assert.match(html,new RegExp('id="'+id+'"'));
 for(const symbol of ["rankRecruitmentCandidates","forecastTalent","assessTransferOpportunity","generateScoutingReport","analyzeVideoEvents","evaluateScoutCalibration","proposeLearningUpdate"]) assert.ok(app.includes(symbol), "missing UI integration: "+symbol);
 assert.match(app,/asi_player_analyses/);
@@ -26,4 +27,8 @@ assert.match(review,/asi_review_video_event/);
 assert.match(lifecycle,/status=\x27observed\x27/);
 assert.match(hardening,/drop policy if exists asi_video_event_admin_all/);
 assert.match(hardening,/asi_candidate_evidence_admin_update/);
+assert.match(ownership,/asi_predictions_insert/);
+assert.match(ownership,/asi_outcomes_insert/);
+assert.match(ownership,/asi_video_event_owner_insert_pending/);
+assert.match(ownership,/exists\(select 1 from public\.players/);
 console.log("myScoutingDatabase intelligence integration contract tests passed.");
