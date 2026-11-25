@@ -17,7 +17,7 @@ let observationRows = [];
 let videoEventRows = [];
 let currentRole = "scout";
 let activeSection = "overview";
-let lastWikidataResearchAt = 0;\nlet discoveryResults = [];\nlet discoveryRunMeta = null;
+let lastWikidataResearchAt = 0;
 
 const $ = (id) => document.getElementById(id);
 const message = (node, text, isError = false) => {
@@ -170,88 +170,6 @@ async function addCandidate(event) {
   $("candidateNationalTeamCountry").required = false;
   message(globalMessage,"Kandidat wurde im geschützten Arbeitsbereich gespeichert."+evidenceWarning,Boolean(evidenceWarning));
   await loadCandidates();
-}
-
-async function runAiDiscovery() {
-  if (!db || !currentUser) return;
-  const button = $("aiDiscoveryRun");
-  const host = $("aiDiscoveryResults");
-  const ageMin = Number($("aiDiscoveryAgeMin").value || 18);
-  const ageMax = Number($("aiDiscoveryAgeMax").value || 23);
-  const limit = 15;
-  const positionText = $("aiDiscoveryPositions").value.trim();
-  const positions = positionText ? positionText.split(/[,;/]+/).map(x=>x.trim()).filter(Boolean) : [];
-  if (!Number.isInteger(ageMin) || !Number.isInteger(ageMax) || ageMin < 16 || ageMax > 30 || ageMin > ageMax) {
-    message(globalMessage,"Bitte einen gültigen Altersbereich zwischen 16 und 30 Jahren wählen.",true); return;
-  }
-  button.disabled = true;
-  button.textContent = "KI recherchiert weltweit …";
-  host.innerHTML = '<p class="muted">Identität, Geburtsjahr, Verein, Position und verfügbare Leistungsdaten werden aus den aktivierten Quellen abgeglichen.</p>';
-  try {
-    const {data,error} = await db.functions.invoke("asi-player-discovery",{body:{ageMin,ageMax,limit,positions}});
-    if (error) throw error;
-    if (!data?.ok) throw new Error(data?.error || "Recherche konnte nicht abgeschlossen werden.");
-    discoveryResults = Array.isArray(data.candidates) ? data.candidates : [];
-    discoveryRunMeta = data;
-    const existing = new Set([
-      ...candidateRows.map(x=>String(x.player_name||"").normalize("NFKC").toLocaleLowerCase("de")),
-      ...playerRows.map(x=>String(x.name||"").normalize("NFKC").toLocaleLowerCase("de"))
-    ]);
-    let saved = 0, duplicates = 0, failed = 0;
-    for (const player of discoveryResults) {
-      const normalized = String(player.name||"").normalize("NFKC").toLocaleLowerCase("de");
-      if (!normalized || existing.has(normalized)) { duplicates++; continue; }
-      const sources = (player.sources||[]).map(source=>({
-        provider:source.provider, url:source.url, title:source.title, license:source.license,
-        verification:source.verification||"unconfirmed", status:"pending_review"
-      }));
-      const payload = {
-        owner_id:currentUser.id, created_by:currentUser.id, player_name:player.name,
-        birth_year:Number.isInteger(player.birthYear)?player.birthYear:null,
-        nationality:player.nationality||null, current_club:player.currentClub||null,
-        positions:Array.isArray(player.positions)?player.positions.slice(0,6):[],
-        search_query:"ASI KI-Spielersuche · "+ageMin+"–"+ageMax+" Jahre · "+new Date().toISOString(),
-        analysis:{
-          entry_method:"asi_ai_discovery", methodology:"evidence_first_discovery_v1",
-          identity_confidence:player.identityConfidence??null,
-          evidence_coverage:player.evidenceCoverage??null,
-          research_priority:player.researchPriority??null,
-          research_priority_is_not_player_rating:true,
-          season_stats:player.seasonStats||null, profile:player.profile||null,
-          evaluation:player.evaluation||{suitabilityScore:null,status:"not_evaluated"},
-          provider_status:data.providers, warnings:data.warnings||[]
-        },
-        sources, identity_confidence:player.identityConfidence??null,
-        recommendation:"review", status:"saved", is_current_national_player:false
-      };
-      const {error:insertError}=await db.from("asi_player_candidates").insert(payload);
-      if (insertError) { failed++; continue; }
-      existing.add(normalized); saved++;
-    }
-    const providerLines = Object.entries(data.providers||{}).map(([key,value])=>{
-      const status=value.status||"unknown";
-      return '<span class="provider-chip"><b>'+safe(key)+'</b> · '+safe(status)+'</span>';
-    }).join("");
-    host.innerHTML =
-      '<div class="discovery-summary"><strong>'+discoveryResults.length+' Treffer gefunden</strong><span>'+saved+' neu gespeichert · '+duplicates+' bereits vorhanden · '+failed+' Speicherfehler</span></div>'+
-      '<div class="provider-status-list">'+providerLines+'</div>'+
-      '<p class="tiny-note">Die Recherchepriorität misst nur die Quellenabdeckung – sie ist ausdrücklich keine sportliche Talentnote. Eine belastbare Leistungsbewertung wird erst mit bestätigten Saisonstatistiken und/oder Scout-Beobachtungen erstellt.</p>'+
-      '<div class="discovery-result-list">'+discoveryResults.map((p,i)=>{
-        const stats=p.seasonStats;
-        const statLine=stats ? [stats.league,stats.season,stats.appearances!==null?stats.appearances+" Einsätze":null,stats.minutes!==null?stats.minutes+" Min.":null,stats.goals!==null?stats.goals+" Tore":null,stats.assists!==null?stats.assists+" Assists":null].filter(Boolean).join(" · ") : "Keine verifizierten Saison-Leistungsdaten verfügbar";
-        const sourceLinks=(p.sources||[]).map(s=>'<a href="'+safe(s.url||"https://www.wikidata.org/")+'" target="_blank" rel="noopener noreferrer">'+safe(s.provider)+' ↗</a>').join(" · ");
-        return '<article class="discovery-player"><div class="discovery-player-top"><span class="discovery-index">'+String(i+1).padStart(2,"0")+'</span><div><h4>'+safe(p.name)+'</h4><p>'+safe([p.birthYear,p.nationality,p.currentClub,(p.positions||[]).join(", ")].filter(Boolean).join(" · ")||"Basisdaten teilweise unbekannt")+'</p></div></div><p class="discovery-stats">'+safe(statLine)+'</p><div class="discovery-meta"><span>Identität: '+safe(p.identityConfidence??"—")+' %</span><span>Quellenabdeckung: '+safe(p.evidenceCoverage??"—")+' %</span><span>Talentnote: noch offen</span></div><div class="discovery-sources">'+sourceLinks+'</div><p class="tiny-note">'+safe(p.evaluation?.note||"Menschliche Prüfung erforderlich.")+'</p></article>';
-      }).join("")+'</div>';
-    await loadCandidates();
-    message(globalMessage,"KI-Recherche abgeschlossen: "+saved+" neue Kandidaten in Staging gespeichert."+(failed?" "+failed+" Datensätze konnten nicht gespeichert.":""));
-  } catch (error) {
-    const detail = error?.message || "Unbekannter Fehler";
-    host.innerHTML = '<p class="message error">KI-Recherche fehlgeschlagen: '+safe(detail)+'</p><p class="tiny-note">Bitte Sitzung prüfen. Die Recherche benötigt eine aktive Anmeldung in myScoutingDatabase Staging.</p>';
-    message(globalMessage,"KI-Recherche fehlgeschlagen. Details stehen im Suchbereich.",true);
-  } finally {
-    button.disabled = false;
-    button.innerHTML = 'KI-Suche starten und 15 Kandidaten speichern <span>✦</span>';
-  }
 }
 
 function populateObservationPlayers() {
