@@ -438,7 +438,7 @@ async function trainCandidateModel() {
  if(predResult.error||outResult.error){message(globalMessage,"Trainingsdaten konnten nicht geladen werden.",true);return;}
  const byId=new Map((predResult.data||[]).map(p=>[p.id,p]));
  const rows=(outResult.data||[]).flatMap(o=>{const p=byId.get(o.prediction_id);if(!p||p.target_metric!==o.observed_metric)return[];return[{verified:true,observedAt:o.observed_on,actual:Number(o.observed_value),baselinePrediction:Number(p.predicted_value),features:p.explanation?.features||{}}];});
- const trained=trainChronologicalModel(rows),now=new Date().toISOString(),version="ridge-"+now.replace(/[-:.TZ]/g,"").slice(0,14);
+ const trained=trainChronologicalModel(rows),now=new Date().toISOString(),version="ridge-"+Date.now();
  const {data:run,error:runError}=await db.from("asi_training_runs").insert({model_key:"player-development-score",candidate_version:version,status:"succeeded",data_cutoff_at:now,dataset_fingerprint:trained.datasetFingerprint||null,training_config:{algorithm:"standardized-ridge-regression",minimumSamples:50,chronologicalHoldout:0.2,autoActivation:false},evaluation_summary:trained,started_at:now,finished_at:now,created_by:currentUser.id}).select("id").single();
  if(runError){message(globalMessage,"Trainingslauf nicht protokolliert: "+runError.message,true);return;}
  if(!trained.available){host.insertAdjacentHTML("afterbegin",'<p class="muted">'+safe(trained.reason)+' · Datensätze: '+trained.sampleSize+'</p>');message(globalMessage,"Trainingslauf protokolliert; Datenbasis reicht noch nicht.");return;}
