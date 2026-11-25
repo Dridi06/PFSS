@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {proposeLearningUpdate,comparePlayers,forecastTalent,assessTransferOpportunity,generateScoutingReport,analyzeVideoEvents,evaluateScoutCalibration} from "../asi-core/intelligence-suite.mjs";
 const weights={performance:.5,potential:.5};
 assert.equal(proposeLearningUpdate([],weights).available,false);
+assert.equal(proposeLearningUpdate(Array.from({length:35},()=>({outcomeObserved:true,actualOutcome:70,predictedOutcome:65,features:{}})),weights).available,false);
 const learn=proposeLearningUpdate(Array.from({length:35},(_,i)=>({outcomeObserved:true,actualOutcome:70+i%5,predictedOutcome:65,features:{performance:60+i%10,potential:70}})),weights);
 assert.equal(learn.available,true); assert.equal(learn.requiresHumanApproval,true);
 const cmp=comparePlayers({id:"a",dimensions:{performance:80}},{id:"b",dimensions:{performance:70}});
