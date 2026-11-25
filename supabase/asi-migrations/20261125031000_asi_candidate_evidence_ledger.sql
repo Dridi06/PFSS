@@ -93,10 +93,13 @@ create table if not exists public.asi_candidate_evidence_reviews (
 );
 
 alter table public.asi_candidate_evidence_reviews enable row level security;
-create policy asi_candidate_evidence_reviews_admin_all
-  on public.asi_candidate_evidence_reviews for all to authenticated
-  using ((select private.is_admin()))
-  with check ((select private.is_admin()));
+create policy asi_candidate_evidence_reviews_admin_read
+  on public.asi_candidate_evidence_reviews for select to authenticated
+  using ((select private.is_admin()));
+
+create policy asi_candidate_evidence_reviews_admin_insert
+  on public.asi_candidate_evidence_reviews for insert to authenticated
+  with check ((select private.is_admin()) and reviewer_id = (select auth.uid()));
 
 grant select, insert, update on public.asi_candidate_evidence to authenticated;
 grant select, insert on public.asi_candidate_evidence_reviews to authenticated;
