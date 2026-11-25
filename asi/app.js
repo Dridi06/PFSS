@@ -97,17 +97,26 @@ async function addCandidate(event) {
   }
   const positions = $("candidatePositions").value.split(/[,;/]+/).map((item)=>item.trim()).filter(Boolean).slice(0,6);
   const note = $("candidateNotes").value.trim();
+  const sourceUrl = $("candidateSourceUrl").value.trim();
+  const sourceTitle = $("candidateSourceTitle").value.trim();
+  const sourceText = $("candidateSourceText").value.trim();
+  if ((sourceUrl || sourceTitle || sourceText) && (!/^https:\/\//i.test(sourceUrl) || !sourceTitle || !sourceText)) { message(globalMessage,"Für einen Quellenbeleg werden HTTPS-URL, Titel und Belegtext benötigt.",true); return; }
   const payload = {
     owner_id: currentUser.id, created_by: currentUser.id, player_name: name,
     birth_year: birthYear, nationality: $("candidateNationality").value.trim() || null,
     current_club: $("candidateClub").value.trim() || null, positions,
     search_query: note || null, analysis: {entry_method:"manual",note,methodology:"candidate_intake_v1"},
-    sources: [], recommendation:"review", status:"saved"
+    sources: sourceUrl ? [{url:sourceUrl,title:sourceTitle,status:"pending_review"}] : [], recommendation:"review", status:"saved"
   };
-  const {error} = await db.from("asi_player_candidates").insert(payload);
+  const {data:saved,error} = await db.from("asi_player_candidates").insert(payload).select("id").single();
   if (error) { message(globalMessage,"Kandidat nicht gespeichert: "+error.message,true); return; }
+  let evidenceWarning = "";
+  if (sourceUrl) {
+    const {error:evidenceError} = await db.from("asi_candidate_evidence").insert({candidate_id:saved.id,owner_id:currentUser.id,created_by:currentUser.id,source_name:new URL(sourceUrl).hostname,source_type:"external_reference",source_url:sourceUrl,claim_type:"identity_reference",claim_title:sourceTitle,claim_text:sourceText,evidence_excerpt:sourceText.slice(0,1200),identity_status:"pending",verification_status:"unconfirmed",data_classification:"ordinary",legal_review_status:"not_approved",review_status:"pending"});
+    if (evidenceError) evidenceWarning = " Kandidat gespeichert, Quellenbeleg aber nicht. Die ASI-Evidence-Migration muss zuerst bereitgestellt werden.";
+  }
   $("candidateForm").reset();
-  message(globalMessage,"Kandidat wurde im geschützten Arbeitsbereich gespeichert.");
+  message(globalMessage,"Kandidat wurde im geschützten Arbeitsbereich gespeichert."+evidenceWarning,Boolean(evidenceWarning));
   await loadCandidates();
 }
 function populateObservationPlayers() {
