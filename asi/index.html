@@ -61,6 +61,17 @@
       </section>
       <section id="section-candidates" class="section-view" hidden>
         <div class="section-intro"><div><p class="eyebrow">RECRUITMENT PIPELINE</p><h2>Kandidaten</h2><p class="muted">Externe und interne Entdeckungen zunächst getrennt vom offiziellen Spielerkatalog verwalten.</p></div></div>
+        <div class="content-card ai-discovery-card">
+          <div class="card-heading"><div><p class="eyebrow">MULTI-SOURCE AI DISCOVERY</p><h3>Globale KI-Spielersuche</h3></div><span class="pill">STAGING</span></div>
+          <p class="muted">Findet Nachwuchsspieler über externe Datenquellen, gleicht Identitätsmerkmale ab und speichert neue Treffer als prüfpflichtige Kandidaten. Keine automatische Talentnote ohne Leistungsbelege.</p>
+          <div class="form-grid discovery-controls">
+            <label>Mindestalter<input id="aiDiscoveryAgeMin" type="number" min="16" max="30" value="18"></label>
+            <label>Höchstalter<input id="aiDiscoveryAgeMax" type="number" min="16" max="30" value="23"></label>
+            <label class="wide">Position (optional)<input id="aiDiscoveryPositions" maxlength="160" placeholder="z. B. Innenverteidiger, Flügel, 6er – leer = alle"></label>
+            <button id="aiDiscoveryRun" class="primary wide" type="button">KI-Suche starten und 15 Kandidaten speichern <span>✦</span></button>
+          </div>
+          <div id="aiDiscoveryResults" class="discovery-results" aria-live="polite"><p class="tiny-note">Bereit für die Recherche. Neue Treffer werden nur in den Kandidatenbereich übernommen.</p></div>
+        </div>
         <div class="content-card form-card"><div class="card-heading"><h3>Neuen Kandidaten speichern</h3><span class="pill">DRAFT</span></div><form id="candidateForm" class="form-grid">
           <label class="wide">Spielername<input id="candidateName" required maxlength="160" placeholder="Vor- und Nachname"></label>
           <label>Geburtsjahr<input id="candidateYear" type="number" min="1900" max="2200" placeholder="z. B. 2005"></label>
