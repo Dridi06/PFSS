@@ -84,8 +84,32 @@ async function loadCandidates() {
 }
 function renderCandidates() {
   $("candidateList").innerHTML = candidateRows.length ? candidateRows.map((row) =>
-    `<article class="candidate-card"><div><h3>${safe(row.player_name)}</h3><p>${safe([row.birth_year,row.nationality,row.current_club,(row.positions || []).join(", ")].filter(Boolean).join(" · ") || "Noch keine ergänzenden Angaben")}</p></div><span class="candidate-status">${safe(row.status.toUpperCase())} · ${safe(row.recommendation.toUpperCase())}</span></article>`
+    `<article class="candidate-card"><div class="candidate-main"><h3>${safe(row.player_name)}</h3><p>${safe([row.birth_year,row.nationality,row.current_club,(row.positions || []).join(", ")].filter(Boolean).join(" · ") || "Noch keine ergänzenden Angaben")}</p><button class="text-button" type="button" data-research-id="${safe(row.id)}">Wikidata-Identität prüfen ↗</button><div id="research-${safe(row.id)}" class="research-result" aria-live="polite"></div></div><span class="candidate-status">${safe(row.status.toUpperCase())} · ${safe(row.recommendation.toUpperCase())}</span></article>`
   ).join("") : '<div class="content-card empty">Noch keine Kandidaten gespeichert.</div>';
+  document.querySelectorAll("[data-research-id]").forEach((button)=>button.addEventListener("click",()=>researchCandidate(button.dataset.researchId)));
+}
+async function researchCandidate(candidateId) {
+  const candidate = candidateRows.find((row)=>row.id===candidateId);
+  const host = $("research-"+candidateId);
+  if (!candidate || !host) return;
+  host.textContent = "Wikidata-Identitätshinweise werden geladen …";
+  const literal = candidate.player_name.replaceAll("\\","\\\\").replaceAll('"','\\"').replace(/[\\r\\n]/g," ");
+  const query = 'SELECT ?item ?itemLabel ?birthDate ?nationalityLabel WHERE { ?item wdt:P106 wd:Q937857; rdfs:label ?label. FILTER(LANG(?label) = "en") FILTER(LCASE(STR(?label)) = LCASE("'+literal+'")) OPTIONAL { ?item wdt:P569 ?birthDate. } OPTIONAL { ?item wdt:P27 ?nationality. } SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de". } } LIMIT 8';
+  const url = new URL("https://query.wikidata.org/sparql");
+  url.searchParams.set("query",query); url.searchParams.set("format","json");
+  try {
+    const response = await fetch(url.toString(),{headers:{Accept:"application/sparql-results+json"},signal:AbortSignal.timeout(12000)});
+    if (!response.ok) throw new Error("provider_unavailable");
+    const rows = (await response.json())?.results?.bindings || [];
+    if (!rows.length) { host.textContent = "Keine exakte Wikidata-Übereinstimmung. Das beweist nicht, dass der Spieler nicht existiert."; return; }
+    const norm = (v)=>String(v||"").normalize("NFKC").toLocaleLowerCase("en").replace(/[^\\p{L}\\p{N}]+/gu," ").trim();
+    host.innerHTML = '<p class="research-disclaimer">Unbestätigte Hinweise · CC0 · keine automatische Zuordnung oder Speicherung</p>'+rows.map((row)=>{
+      const label=row.itemLabel?.value||candidate.player_name; const exact=norm(label)===norm(candidate.player_name);
+      const birth=row.birthDate?.value?new Date(row.birthDate.value).toLocaleDateString("de-DE"):"Geburtsdatum unbekannt";
+      const nation=row.nationalityLabel?.value||"Nationalität unbekannt"; const entity=row.item?.value||"https://www.wikidata.org/";
+      return '<div class="research-hit"><div><strong>'+safe(label)+'</strong><small>'+safe(birth)+' · '+safe(nation)+'</small><small>'+(exact?"Namensgleichheit – Identität nicht bestätigt":"Mehrdeutiger Treffer")+'</small></div><a href="'+safe(entity)+'" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div>';
+    }).join("");
+  } catch { host.textContent = "Wikidata-Recherche aktuell nicht verfügbar. Bitte später erneut versuchen."; }
 }
 async function addCandidate(event) {
   event.preventDefault();
