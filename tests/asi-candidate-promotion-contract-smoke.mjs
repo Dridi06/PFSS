@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const sql = await readFile(new URL("../supabase/migrations/20261125024038_asi_candidate_atomic_promotion.sql", import.meta.url), "utf8");
 const correction = await readFile(new URL("../supabase/migrations/20261125024057_asi_candidate_promotion_normalization_fix.sql", import.meta.url), "utf8");
+
 for (const token of [
   "security invoker",
   "private.is_admin() or private.is_approved_scout()",
@@ -20,5 +21,5 @@ for (const token of [
 assert.ok(!/security\s+definer/i.test(sql), "Promotion RPC must remain SECURITY INVOKER.");
 assert.ok(!/service_role/i.test(sql), "No service-role access may be introduced.");
 assert.ok(correction.includes("[[:space:]]+"), "Duplicate normalization must collapse all whitespace safely.");
-assert.ok(/security\\s+invoker/i.test(correction), "Corrective migration must remain SECURITY INVOKER.");
+assert.ok(/security\s+invoker/i.test(correction), "Corrective migration must remain SECURITY INVOKER.");
 console.log("ASI candidate promotion contract smoke test passed.");
