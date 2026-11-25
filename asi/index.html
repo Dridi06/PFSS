@@ -127,6 +127,11 @@
             <label class="wide">Notizen<textarea id="videoNotes" rows="2" maxlength="1500"></textarea></label>
             <button class="primary wide" type="submit">Ereignis speichern</button>
           </form>
+          <div class="form-grid" style="margin-top:16px">
+            <label class="wide">Ergebnis einer externen Video-KI (JSON)<textarea id="videoAiPayload" rows="6" maxlength="200000" placeholder='{"provider":"…","modelVersion":"…","detections":[{"playerId":123,"timeSeconds":540,"eventType":"pass","confidence":0.94}]}'></textarea></label>
+            <button id="videoAiImport" class="text-button wide" type="button">KI-Erkennungen importieren und prüfen lassen</button>
+            <p class="tiny-note wide">Importiert strukturierte Erkennungen eines externen Computer-Vision-Anbieters. Konfidenz unter 70 % wird verworfen. Jede Erkennung bleibt ungeprüft, bis ein Administrator sie bestätigt. Dieses Feld verarbeitet keine Rohvideos selbst.</p>
+          </div>
           <div id="videoEventList" class="candidate-list"></div>
         </div>
         <div class="content-card">
