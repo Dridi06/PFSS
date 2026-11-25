@@ -19,6 +19,6 @@ assert.match(app,/owner_id:\s*currentUser\.id/);
 assert.match(app,/projectRef !== "vxtybjaabtfhxfwctnyj"/);
 assert.match(build,/vxtybjaabtfhxfwctnyj/);
 assert.match(build,/sb_secret_/);
-assert.match(build,/dist-asi/);
+assert.match(build,/dist-myscoutingdatabase/);
 assert.doesNotMatch(app,/service_role|sb_secret_/i);
 console.log("ASI workspace contract smoke tests passed.");
