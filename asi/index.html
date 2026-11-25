@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080a0d">
+  <meta name="description" content="ASI – Advanced Scouting Intelligence. Recherche, Spielerbeobachtung und nachvollziehbare Rekrutierungsentscheidungen.">
+  <title>ASI · Advanced Scouting Intelligence</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <main id="authView" class="auth-shell">
+    <section class="brand-panel">
+      <div class="brand-mark">A<span>SI</span></div>
+      <p class="eyebrow">ADVANCED SCOUTING INTELLIGENCE</p>
+      <h1>See beyond<br><em>the obvious.</em></h1>
+      <p class="brand-copy">Eine evidenzbasierte Arbeitsumgebung für Spieleridentifikation, Scouting und strategische Kaderplanung.</p>
+      <div class="brand-foot"><span>RESEARCH</span><i></i><span>INTELLIGENCE</span><i></i><span>DECISION</span></div>
+    </section>
+    <section class="auth-panel">
+      <div class="panel-kicker">SECURE ACCESS</div>
+      <h2>Willkommen zurück.</h2>
+      <p class="muted">Melde dich mit deinem freigegebenen ASI-Konto an.</p>
+      <form id="loginForm" class="stack">
+        <label>E-Mail<input id="email" type="email" autocomplete="username" required maxlength="254"></label>
+        <label>Passwort<input id="password" type="password" autocomplete="current-password" required minlength="8"></label>
+        <button class="primary" type="submit">Sicher anmelden <span>↗</span></button>
+      </form>
+      <button id="forgotPassword" class="text-button" type="button">Passwort vergessen?</button>
+      <p id="authMessage" class="message" role="status" aria-live="polite"></p>
+      <p class="tiny-note">Zugriff wird serverseitig durch Supabase Auth und Row Level Security kontrolliert.</p>
+    </section>
+  </main>
+  <main id="appView" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="side-brand"><div class="brand-mark small">A<span>SI</span></div><div><strong>ASI</strong><small>INTELLIGENCE</small></div></div>
+      <nav aria-label="Hauptnavigation">
+        <button class="nav-item active" data-section="overview">◈ <span>Übersicht</span></button>
+        <button class="nav-item" data-section="players">◎ <span>Spielerdatenbank</span></button>
+        <button class="nav-item" data-section="candidates">⌕ <span>Kandidaten</span></button>
+        <button class="nav-item" data-section="observations">✎ <span>Beobachtungen</span></button>
+      </nav>
+      <div class="side-bottom"><span class="status-dot"></span><span>GESCHÜTZTE SITZUNG</span><button id="logoutButton" class="logout">Abmelden ↗</button></div>
+    </aside>
+    <section class="workspace">
+      <header class="topbar"><div><p class="eyebrow">SCOUTING INTELLIGENCE / WORKSPACE</p><h1 id="pageTitle">Übersicht</h1></div><div class="user-chip"><span class="avatar">S</span><span id="userEmail">Angemeldet</span></div></header>
+      <div id="globalMessage" class="message global-message" role="status" aria-live="polite"></div>
+      <section id="section-overview" class="section-view">
+        <div class="welcome-card"><div><p class="eyebrow">DECISION SUPPORT, NOT GUESSWORK</p><h2>Erkenntnisse, die<br><em>Entscheidungen stärken.</em></h2><p>Alle Informationen bleiben nachvollziehbar: Herkunft, Datenqualität und Unsicherheit werden getrennt dargestellt.</p></div><div class="orbit" aria-hidden="true"><span>ASI</span><i></i><b></b></div></div>
+        <div class="stat-grid"><article class="stat-card"><span>SPIELER IM KATALOG</span><strong id="statPlayers">—</strong><small>RLS-geschützter Bestand</small></article><article class="stat-card"><span>GESPEICHERTE KANDIDATEN</span><strong id="statCandidates">—</strong><small>Persönlicher Arbeitsbereich</small></article><article class="stat-card"><span>OFFENE BEOBACHTUNGEN</span><strong id="statObservations">—</strong><small>Dokumentierte Scout-Eindrücke</small></article></div>
+        <div class="content-card"><div class="card-heading"><div><p class="eyebrow">SYSTEMPRINZIP</p><h3>Nachvollziehbare Intelligence</h3></div><span class="pill">HUMAN REVIEW</span></div><p class="muted">Externe Treffer werden nicht automatisch einem Spieler zugeordnet. Fehlende Werte bleiben unbekannt. Eine Übernahme in den zentralen Katalog erfolgt ausschließlich nach Prüfung und über den abgesicherten Freigabeprozess.</p></div>
+      </section>
+      <section id="section-players" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">AUTHORIZED CATALOGUE</p><h2>Spielerdatenbank</h2><p class="muted">Spieler, auf die dein Konto gemäß Datenbankrechten zugreifen darf.</p></div><input id="playerSearch" class="search" type="search" placeholder="Name oder Verein suchen…" aria-label="Spieler suchen"></div>
+        <div class="table-wrap"><table><thead><tr><th>SPIELER</th><th>VEREIN</th><th>JAHRGANG</th><th>POSITION</th></tr></thead><tbody id="playersBody"><tr><td colspan="4" class="empty">Daten werden geladen …</td></tr></tbody></table></div>
+      </section>
+      <section id="section-candidates" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">RECRUITMENT PIPELINE</p><h2>Kandidaten</h2><p class="muted">Externe und interne Entdeckungen zunächst getrennt vom offiziellen Spielerkatalog verwalten.</p></div></div>
+        <div class="content-card form-card"><div class="card-heading"><h3>Neuen Kandidaten speichern</h3><span class="pill">DRAFT</span></div><form id="candidateForm" class="form-grid">
+          <label class="wide">Spielername<input id="candidateName" required maxlength="160" placeholder="Vor- und Nachname"></label>
+          <label>Geburtsjahr<input id="candidateYear" type="number" min="1900" max="2200" placeholder="z. B. 2005"></label>
+          <label>Nationalität<input id="candidateNationality" maxlength="80" placeholder="z. B. Deutschland"></label>
+          <label>Aktueller Verein<input id="candidateClub" maxlength="160" placeholder="Verein"></label>
+          <label>Positionen<input id="candidatePositions" maxlength="120" placeholder="z. B. IV, RV, DM"></label>
+          <label class="wide">Notiz / Suchkontext<textarea id="candidateNotes" rows="3" maxlength="3000" placeholder="Warum ist dieser Spieler interessant?"></textarea></label>
+          <button class="primary wide" type="submit">Kandidaten speichern <span>＋</span></button>
+        </form></div>
+        <div id="candidateList" class="candidate-list"><p class="empty">Kandidaten werden geladen …</p></div>
+      </section>
+      <section id="section-observations" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">SCOUT FEEDBACK</p><h2>Beobachtung dokumentieren</h2><p class="muted">Persönliche Eindrücke bleiben als Scout-Beobachtung erkennbar und werden nicht als objektive Messwerte ausgegeben.</p></div></div>
+        <div class="content-card"><form id="observationForm" class="form-grid">
+          <label class="wide">Spieler<select id="observationPlayer" required><option value="">Spieler auswählen …</option></select></label>
+          <label>Technik (1–10)<input id="ratingTechnical" type="number" min="1" max="10" step="1"></label>
+          <label>Taktik (1–10)<input id="ratingTactical" type="number" min="1" max="10" step="1"></label>
+          <label>Physis (1–10)<input id="ratingPhysical" type="number" min="1" max="10" step="1"></label>
+          <label>Mentalität (1–10)<input id="ratingMental" type="number" min="1" max="10" step="1"></label>
+          <label class="wide">Beobachtung<textarea id="observationText" rows="4" maxlength="5000" placeholder="Spielkontext, Stärken, Entwicklungsfelder, beobachtete Situationen …"></textarea></label>
+          <button class="primary wide" type="submit">Beobachtung speichern <span>＋</span></button>
+        </form></div>
+      </section>
+      <footer class="workspace-foot">ASI · ADVANCED SCOUTING INTELLIGENCE <span>Evidence first. Human verified.</span></footer>
+    </section>
+  </main>
+</body>
+</html>
