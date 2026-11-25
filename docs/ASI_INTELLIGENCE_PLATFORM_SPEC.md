@@ -86,3 +86,39 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Next implementation gates: validate actual ASI table contracts; connect authorized internal search; build scout observation workflow; add source adapters only after rights review; then build calibrated, backtested potential models.
 - Repository separation remains a release prerequisite: current work is isolated on an ASI feature branch in the legacy PFSS repository. It is not yet a separate GitHub repository or separately deployed product. Do not deploy the legacy PFMS service.
 
+## Implemented intelligence modules (2026-11-25)
+
+### Explainable recruitment ranking
+- `asi-core/recruitment-engine.mjs` combines internal and external candidates under a role/search brief.
+- Applies hard constraints, configurable dimension weights, missing-data handling, evidence coverage, confidence, source references and explanation output.
+- Scout observations remain attributed and are not overwritten by algorithmic scores.
+
+### Provider and licensing layer
+- `asi-core/providers.mjs` contains adapters for OpenLigaDB and Wikidata.
+- OpenLigaDB is restricted to fixtures/results/competition metadata; Wikidata is restricted to identity and biographical facts.
+- Provider registry stores license, attribution, share-alike and commercial-use metadata.
+- Both adapters are disabled by default; automated persistence is disabled; all identity/evidence remains unconfirmed pending review.
+- No scraping, paywall bypass, or unlicensed performance-data extraction is implemented.
+
+### Evidence-first research workflow
+- `asi-core/research-workflow.mjs` creates identity suggestions and detects conflicting claims.
+- Exact normalized name equality is only a pending match (0.70 confidence), never an automatic identity merge.
+- External research bundles explicitly report `persistence: not_performed`.
+
+### Development and model evaluation
+- `asi-core/development-signal.mjs` calculates a transparent longitudinal trend only when at least four valid dated observations cover at least six months. It is not a trained future-performance model.
+- `asi-core/model-evaluation.mjs` calculates MAE, RMSE, bias and median absolute error only when the minimum paired sample threshold is met.
+
+### Validation
+- Contract smoke tests cover ranking, provider licensing metadata, adapter normalization, missing data, identity matching, conflict detection, development trends and regression evaluation.
+- Tests are wired into `npm run check:syntax` and `npm run test:dist`.
+- GitHub Actions is the authoritative execution environment for this branch; current run status must be checked before declaring the new commits validated.
+
+### Still not implemented
+- Authenticated ASI user interface and backend API integration.
+- Persistence pipeline into the existing ASI tables with ownership-safe RLS and admin review workflow.
+- Additional permitted sources and robust data refresh scheduling.
+- Video ingestion/analysis and match event analytics.
+- Proper training datasets, time-based backtests, calibration, bias testing and approved production prediction models.
+- Dedicated ASI repository, separate hosting service, staging environment and end-to-end browser acceptance.
+
