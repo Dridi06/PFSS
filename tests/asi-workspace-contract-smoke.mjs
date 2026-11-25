@@ -10,6 +10,10 @@ for (const id of ["authView","appView","loginForm","candidateForm","observationF
 }
 assert.match(app,/signInWithPassword/);
 assert.match(app,/asi_player_candidates/);
+assert.match(app,/asi_candidate_evidence/);
+assert.match(app,/Wikidata-Identität prüfen/);
+assert.match(app,/query\.wikidata\.org/);
+assert.match(app,/persistence|keine automatische Zuordnung oder Speicherung/);
 assert.match(app,/asi_player_observations/);
 assert.match(app,/owner_id:\s*currentUser\.id/);
 assert.match(app,/projectRef !== "vxtybjaabtfhxfwctnyj"/);
