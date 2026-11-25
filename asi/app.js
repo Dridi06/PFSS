@@ -239,6 +239,7 @@ async function loadIntelligenceWorkspace() {
   await Promise.all([loadObservationRows(),loadVideoEvents()]);
   populateIntelligencePlayers();
   renderIntelligenceOverview();
+  await loadPredictionOptions();
   await loadCalibrationQueue();
 }
 function renderIntelligenceOverview() {
@@ -260,19 +261,59 @@ async function runPlayerAnalysis() {
     return values.length?{score:values.reduce((a,b)=>a+b,0)/values.length*10,observedAt:o.observed_on}:null;
   }).filter(Boolean);
   const development=forecastTalent(scores);
+  let predictionId=null,predictionWarning="";
+  if(development.available){
+    const horizonDays=Math.max(1,Math.round(development.horizonMonths*30.4375));
+    const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").insert({
+      player_id:player.player_id,owner_id:currentUser.id,created_by:currentUser.id,
+      target_metric:"development_score_0_100",prediction_horizon_days:horizonDays,
+      predicted_value:development.projectedScore,
+      prediction_interval_low:Math.max(0,development.projectedScore-development.errorBand),
+      prediction_interval_high:Math.min(100,development.projectedScore+development.errorBand),
+      model_version:"myscouting-trend-v1",input_cutoff_at:new Date().toISOString(),status:"pending",
+      explanation:{method:development.method,features:signal.dimensions,sampleSize:development.sampleSize,periodMonths:development.periodMonths,confidence:development.confidence,horizonMonths:development.horizonMonths}
+    }).select("id").single();
+    if(predictionError) predictionWarning=" Prognose wurde berechnet, konnte aber nicht gespeichert werden: "+predictionError.message;
+    else predictionId=prediction.id;
+  }
   const report=generateScoutingReport({id:player.player_id,name:player.name,age:signal.age,positions:player.positions||[],dimensions:signal.dimensions,suitabilityScore:ranked.suitabilityScore,risks:ranked.warnings},{development:[development],evidence:signal.observations.map(o=>({title:"Scout-Beobachtung "+o.observed_on,sourceUrl:null,status:"intern dokumentiert",claim:o.observation||"Bewertungseintrag"}))});
-  const costRaw=$("transferCost").value, budgetRaw=$("transferBudget").value;
+  const costRaw=$("transferCost").value,budgetRaw=$("transferBudget").value;
   const transfer=costRaw?assessTransferOpportunity({suitabilityScore:ranked.suitabilityScore,estimatedCost:Number(costRaw),evidenceConfidence:ranked.evidenceConfidence.score??0,riskScore:Math.min(100,ranked.warnings.length*20)},{budget:budgetRaw?Number(budgetRaw):undefined,currency:"EUR"}):{available:false,reason:"Keine Kostenschätzung eingetragen."};
-  const payload={analysis_type:"intelligence_suite_v1",model_version:"myscouting-intelligence-suite-v1",analysis_json:{ranking:ranked,development,transfer,report},input_snapshot:{player:{player_id:player.player_id,name:player.name,year:player.year,positions:player.positions},observation_ids:signal.observations.map(o=>o.id),observation_count:signal.observations.length}};
+  const payload={analysis_type:"intelligence_suite_v1",model_version:"myscouting-intelligence-suite-v1",analysis_json:{ranking:ranked,development,transfer,report,predictionId},input_snapshot:{player:{player_id:player.player_id,name:player.name,year:player.year,positions:player.positions},observation_ids:signal.observations.map(o=>o.id),observation_count:signal.observations.length}};
   const {error}=await db.from("asi_player_analyses").insert({...payload,player_id:player.player_id,owner_id:currentUser.id,created_by:currentUser.id});
-  if(error){message(globalMessage,"Analyse berechnet, aber nicht dauerhaft gespeichert: "+error.message,true);}else{message(globalMessage,"KI-Analyse berechnet und als versionierter Snapshot gespeichert.");}
+  if(error){message(globalMessage,"Analyse berechnet, aber Snapshot nicht gespeichert: "+error.message+predictionWarning,true);}else{message(globalMessage,"KI-Analyse als Snapshot gespeichert."+(predictionId?" Prognose-ID: "+predictionId+".":"")+predictionWarning,Boolean(predictionWarning));}
   $("intelligenceResult").innerHTML='<div class="content-card"><div class="card-heading"><h3>'+safe(player.name)+'</h3><span class="pill">ENTSCHEIDUNGSUNTERSTÜTZUNG</span></div><div class="intel-metrics"><div><strong>'+(ranked.suitabilityScore===null?"—":ranked.suitabilityScore.toFixed(1))+'</strong><small>Eignung / 100</small></div><div><strong>'+ranked.dataCoverage+'%</strong><small>Datenabdeckung</small></div><div><strong>'+(development.available?development.projectedScore.toFixed(1):"—")+'</strong><small>Trendprojektion'+(development.available?" · "+development.horizonMonths+" Monate":"")+'</small></div></div><p class="muted">'+safe(report.executiveSummary)+'</p><p class="muted">'+safe(development.available?development.method+"; Konfidenz: "+development.confidence:development.reason)+'</p><p class="muted">'+safe(transfer.available?transfer.recommendation+" · "+transfer.opportunityScore+"/100":transfer.reason)+'</p><h4>Beobachtete Dimensionen</h4><ul>'+Object.entries(signal.dimensions).map(([k,v])=>'<li>'+safe(k)+': '+v+'/100</li>').join("")+'</ul><h4>Hinweise</h4><ul>'+ranked.warnings.map(w=>'<li>'+safe(w)+'</li>').join("")+'</ul><p class="tiny-note">Projektion ist keine Karrieregarantie. Nur vorhandene Scout-Daten wurden ausgewertet.</p></div>';
+  await loadPredictionOptions();
 }
 function runPlayerComparison() {
   const a=selectedPlayer($("comparePlayerA").value),b=selectedPlayer($("comparePlayerB").value);
   if(!a||!b){message(globalMessage,"Bitte zwei Spieler auswählen.",true);return;}
   const result=comparePlayers(playerSignal(a),playerSignal(b),["performance","tacticalFit","physicalFit"]);
   $("comparisonResult").innerHTML='<div class="content-card"><h3>'+safe(a.name)+' vs. '+safe(b.name)+'</h3><p class="muted">Datenabdeckung: '+result.coverage+'% · Ergebnis: '+safe(result.winnerByAvailableDimensions)+'</p><div class="table-wrap"><table><thead><tr><th>DIMENSION</th><th>'+safe(a.name)+'</th><th>'+safe(b.name)+'</th><th>DIFFERENZ</th></tr></thead><tbody>'+result.comparisons.map(x=>'<tr><td>'+safe(x.dimension)+'</td><td>'+(x.left??"—")+'</td><td>'+(x.right??"—")+'</td><td>'+(x.difference===null?"—":x.difference)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny-note">Nur gemeinsame, vorhandene Beobachtungsdimensionen werden verglichen. Ein Ergebnis ist keine absolute Spielerqualität.</p></div>';
+}
+async function loadPredictionOptions() {
+  const select=$("outcomePrediction");if(!select||!db)return;
+  const playerId=Number($("intelligencePlayer").value);
+  select.innerHTML='<option value="">Prognose auswählen …</option>';
+  if(!Number.isSafeInteger(playerId)||playerId<=0)return;
+  const {data:predictions,error}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,prediction_horizon_days,created_at").eq("player_id",playerId).order("created_at",{ascending:false}).limit(100);
+  if(error){message(globalMessage,"Prognosen konnten nicht geladen werden: "+error.message,true);return;}
+  const ids=(predictions||[]).map(p=>p.id);
+  const {data:outcomes}=ids.length?await db.from("asi_prediction_outcomes").select("prediction_id").in("prediction_id",ids):{data:[]};
+  const used=new Set((outcomes||[]).map(o=>o.prediction_id));
+  const available=(predictions||[]).filter(p=>!used.has(p.id));
+  select.innerHTML='<option value="">Prognose auswählen …</option>'+available.map(p=>'<option value="'+safe(p.id)+'" data-metric="'+safe(p.target_metric)+'">'+safe(p.target_metric)+' · Prognose '+safe(p.predicted_value)+' · '+p.prediction_horizon_days+' Tage</option>').join("");
+}
+async function addPredictionOutcome(event) {
+  event.preventDefault();
+  const predictionId=$("outcomePrediction").value,option=$("outcomePrediction").selectedOptions[0],metric=option?.dataset.metric;
+  const value=Number($("outcomeValue").value),date=$("outcomeDate").value,source=$("outcomeSource").value.trim();
+  if(!predictionId||!metric||!Number.isFinite(value)||value<0||value>100||!date||!source){message(globalMessage,"Prognose, Ergebniswert (0–100), Datum und Quellenbezeichnung sind erforderlich.",true);return;}
+  const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").select("player_id").eq("id",predictionId).single();
+  if(predictionError||!prediction){message(globalMessage,"Zugehörige Prognose konnte nicht geladen werden.",true);return;}
+  const {error}=await db.from("asi_prediction_outcomes").insert({prediction_id:predictionId,player_id:prediction.player_id,owner_id:currentUser.id,observed_metric:metric,observed_value:value,observed_on:date,outcome_source:source,notes:$("outcomeNotes").value.trim()||null,recorded_by:currentUser.id});
+  if(error){message(globalMessage,"Ergebnis konnte nicht gespeichert werden: "+error.message,true);return;}
+  $("outcomeForm").reset();await loadPredictionOptions();message(globalMessage,"Ergebnis gespeichert und wartet auf administrative Quellenprüfung.");
 }
 async function loadVideoEvents() {
   if(!db||!currentUser) return;
@@ -397,5 +438,7 @@ $("compareRun")?.addEventListener("click",runPlayerComparison);
 $("videoEventForm")?.addEventListener("submit",addVideoEvent);
 $("calibrationForm")?.addEventListener("submit",addCalibrationRecord);
 $("learningRefresh")?.addEventListener("click",showLearningPreview);
+$("intelligencePlayer")?.addEventListener("change",loadPredictionOptions);
+$("outcomeForm")?.addEventListener("submit",addPredictionOutcome);
 $("playerSearch").addEventListener("input",renderPlayers);
 initialize();
