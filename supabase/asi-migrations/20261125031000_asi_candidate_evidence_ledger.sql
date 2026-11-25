@@ -118,7 +118,7 @@ begin
   if v_actor is null or not private.is_admin() then
     raise exception 'admin_required' using errcode = '42501';
   end if;
-  if p_decision not in ('approve','reject') then
+  if p_decision is null or p_decision not in ('approve','reject') then
     raise exception 'invalid_review_decision' using errcode = '22023';
   end if;
   if length(trim(coalesce(p_reason,''))) < 10 then
