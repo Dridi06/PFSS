@@ -18,6 +18,8 @@ assert.match(app,/asi_review_scout_calibration/);
 assert.match(app,/asi_review_prediction_outcome/);
 assert.match(app,/verification_status==="verified"/);
 assert.match(build,/intelligence-suite\.mjs/);
+assert.match(build,/model-evaluation\.mjs/);
+assert.match(app,/evaluateRegression/);
 assert.match(build,/replaceAll\("\.\.\/asi-core\//);
 assert.match(video,/enable row level security/);
 assert.match(video,/asi_review_scout_calibration/);
