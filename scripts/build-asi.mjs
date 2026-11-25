@@ -40,7 +40,7 @@ const appText = await readFile(appSource,"utf8");
 await writeFile(resolve(output,"app.js"),appText.replaceAll("../asi-core/","./asi-core/"),"utf8");
 const coreOutput = resolve(output,"asi-core");
 await mkdir(coreOutput,{recursive:true});
-for (const file of ["intelligence-suite.mjs","recruitment-engine.mjs"]) {
+for (const file of ["intelligence-suite.mjs","recruitment-engine.mjs","model-evaluation.mjs"]) {
   const source = resolve(root,"asi-core",file);
   await access(source);
   await copyFile(source,resolve(coreOutput,file));
