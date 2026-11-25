@@ -133,3 +133,12 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Added workspace contract smoke tests and wired the ASI build into CI.
 - This is an initial functional workspace shell, not a production-ready product: role-specific admin review, durable evidence capture, automated research jobs, video analytics, model training and browser E2E remain outstanding.
 - No Supabase schema migration, database write, Edge Function deployment, Render deployment or production change was performed for this workspace milestone.
+
+## Candidate evidence governance layer (2026-11-25)
+
+- Added additive migration `supabase/asi-migrations/20261125031000_asi_candidate_evidence_ledger.sql`.
+- The new candidate-scoped evidence ledger avoids the current evidence table's required canonical `player_id`, so evidence can be collected before a candidate becomes a canonical player.
+- Evidence is owner-bound to the candidate through a composite foreign key and owner-scoped RLS. Scouts can insert pending ordinary evidence and read their own records; they cannot edit review/legal/verification decisions.
+- Administrator review is performed through a SECURITY INVOKER RPC with a required reason and an immutable before-state audit record.
+- Approval marks legal review as approved but deliberately does not claim the fact is independently corroborated; verification remains separate.
+- Migration is committed to the ASI feature branch but has **not** been applied to Supabase. No database schema has been changed by this step.
