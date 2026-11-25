@@ -62,3 +62,12 @@
 3. Outcome-Workflow und ML-Training mit realen Testdaten end-to-end prüfen.
 4. Kohortenvalidierung und unabhängigen Saison-Holdout ergänzen.
 5. Eigenständiges Repository und separaten Render-Staging-Dienst bereitstellen, ohne PFMS/Produktion anzufassen.
+
+## Addendum — Current national team status (25.11.2026)
+- Candidate creation now asks whether the player is currently in a national squad.
+- If yes, the form requires team level (U15, U16, U17, U18, U19, U20, U21 or A-Nationalmannschaft) and country.
+- The candidate record stores the status and the audited promotion RPC transfers it to the central `players` catalogue.
+- Player catalogue displays the national-team level and country; search includes the team fields.
+- Database constraints enforce valid levels and consistent values (no team level/country when the flag is false; both required when true).
+- Migration `20261125080000_asi_current_national_team_status` applied successfully to dedicated staging.
+- CI syntax, workspace contract and isolated build checks passed for commits `ba158b5`, `1fb7c13`, and `9753a7c`. Latest contract-test update is also committed; confirm its own workflow run before release.
