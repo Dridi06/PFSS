@@ -43,6 +43,7 @@
         <button class="nav-item" data-section="players">◎ <span>Spielerdatenbank</span></button>
         <button class="nav-item" data-section="candidates">⌕ <span>Kandidaten</span></button>
         <button class="nav-item" data-section="observations">✎ <span>Beobachtungen</span></button>
+        <button class="nav-item" data-section="intelligence">✦ <span>KI-Labor</span></button>
       </nav>
       <div class="side-bottom"><span class="status-dot"></span><span>GESCHÜTZTE SITZUNG</span><button id="logoutButton" class="logout">Abmelden ↗</button></div>
     </aside>
@@ -86,6 +87,65 @@
           <label class="wide">Beobachtung<textarea id="observationText" rows="4" maxlength="5000" placeholder="Spielkontext, Stärken, Entwicklungsfelder, beobachtete Situationen …"></textarea></label>
           <button class="primary wide" type="submit">Beobachtung speichern <span>＋</span></button>
         </form></div>
+      </section>
+
+      <section id="section-intelligence" class="section-view" hidden>
+        <div class="section-intro"><div><p class="eyebrow">SCOUTING INTELLIGENCE ENGINE</p><h2>KI-Labor</h2><p class="muted">Analysen auf Basis deiner dokumentierten Daten. Fehlende Werte bleiben offen; Prognosen sind keine Garantien.</p></div></div>
+        <div id="intelligenceOverview" class="content-card"><p class="empty">Intelligence-Daten werden geladen …</p></div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Spieleranalyse erstellen</h3><span class="pill">VERSIONIERTER SNAPSHOT</span></div>
+          <div class="form-grid">
+            <label class="wide">Spieler<select id="intelligencePlayer"><option value="">Spieler auswählen …</option></select></label>
+            <label>Geschätzte Ablöse (€)<input id="transferCost" type="number" min="1" step="1000" placeholder="Optional"></label>
+            <label>Budget (€)<input id="transferBudget" type="number" min="1" step="1000" placeholder="Optional"></label>
+            <button id="intelligenceRun" class="primary wide" type="button">Analyse berechnen und speichern <span>✦</span></button>
+          </div>
+          <div id="intelligenceResult" class="candidate-list" aria-live="polite"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Spielervergleich</h3><span class="pill">GEMEINSAME DATEN</span></div>
+          <div class="form-grid">
+            <label>Spieler A<select id="comparePlayerA"><option value="">Spieler auswählen …</option></select></label>
+            <label>Spieler B<select id="comparePlayerB"><option value="">Spieler auswählen …</option></select></label>
+            <button id="compareRun" class="primary wide" type="button">Spieler vergleichen</button>
+          </div>
+          <div id="comparisonResult" class="candidate-list" aria-live="polite"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Video- und Spielereignisse</h3><span class="pill">MANUELL GETAGGT</span></div>
+          <p class="muted">Hier werden Ereignisse aus einer Videoanalyse mit Zeitmarke und Quelle dokumentiert. Es findet noch keine automatische Bilderkennung aus Rohvideos statt.</p>
+          <form id="videoEventForm" class="form-grid">
+            <label class="wide">Spieler<select id="videoPlayer" required><option value="">Spieler auswählen …</option></select></label>
+            <label>Spieldatum<input id="videoDate" type="date"></label>
+            <label>Spielminute<input id="videoMinute" type="number" min="0" max="150" step="0.5" required></label>
+            <label>Wettbewerb<input id="videoCompetition" maxlength="120"></label>
+            <label>Gegner<input id="videoOpponent" maxlength="120"></label>
+            <label>Ereignis<select id="videoEventType"><option value="pass">Pass</option><option value="progressive_pass">Progressiver Pass</option><option value="key_pass">Schlüsselpass</option><option value="shot">Torschuss</option><option value="goal">Tor</option><option value="assist">Vorlage</option><option value="dribble">Dribbling</option><option value="tackle">Tackling</option><option value="interception">Abfangen</option><option value="duel">Zweikampf</option><option value="press">Pressing</option><option value="recovery">Ballgewinn</option><option value="turnover">Ballverlust</option><option value="cross">Flanke</option><option value="carry">Ballführung</option><option value="positioning">Positionierung</option><option value="other">Sonstiges</option></select></label>
+            <label>Zone / Feldbereich<input id="videoZone" maxlength="100" placeholder="z. B. rechter Halbraum"></label>
+            <label class="wide">Ergebnis / Kontext<input id="videoOutcome" maxlength="300"></label>
+            <label class="wide">HTTPS-Video- oder Quellenlink<input id="videoSourceUrl" type="url" placeholder="Optional: https://…"></label>
+            <label class="wide">Notizen<textarea id="videoNotes" rows="2" maxlength="1500"></textarea></label>
+            <button class="primary wide" type="submit">Ereignis speichern</button>
+          </form>
+          <div id="videoEventList" class="candidate-list"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Scout-Kalibrierung</h3><span class="pill">ADMIN-VERIFIZIERUNG</span></div>
+          <p class="muted">Die eigene Einschätzung wird festgehalten. Ein späteres tatsächliches Ergebnis wird separat und nur mit überprüfbarer HTTPS-Quelle durch einen Administrator bestätigt.</p>
+          <form id="calibrationForm" class="form-grid">
+            <label class="wide">Spieler<select id="calibrationPlayer" required><option value="">Spieler auswählen …</option></select></label>
+            <label>Eigene Einschätzung (0–100)<input id="calibrationRating" type="number" min="0" max="100" step="0.1" required></label>
+            <label>Ergebniskennzahl<input id="calibrationMetric" maxlength="100" required placeholder="z. B. Einsatzminuten nach 12 Monaten"></label>
+            <button class="primary wide" type="submit">Einschätzung dokumentieren</button>
+          </form>
+          <div id="calibrationQueue" class="candidate-list"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-heading"><h3>Lern- und Modellkontrolle</h3><span class="pill">KEINE AUTO-AKTIVIERUNG</span></div>
+          <p class="muted">Das System prüft, ob ausreichend passende Prognose-/Ergebnispaare vorliegen. Gewichtungsänderungen werden nicht automatisch aktiviert.</p>
+          <button id="learningRefresh" class="text-button" type="button">Lernstatus aktualisieren ↻</button>
+          <div id="learningPreview" class="candidate-list" aria-live="polite"><p class="tiny-note">Noch nicht abgefragt.</p></div>
+        </div>
       </section>
       <footer class="workspace-foot">myScoutingDatabase <span>Evidence first. Human verified.</span></footer>
     </section>
