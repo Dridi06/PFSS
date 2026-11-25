@@ -122,3 +122,14 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Proper training datasets, time-based backtests, calibration, bias testing and approved production prediction models.
 - Dedicated ASI repository, separate hosting service, staging environment and end-to-end browser acceptance.
 
+
+## Standalone ASI workspace foundation (2026-11-25)
+
+- Added a separate browser workspace under `asi/`; it does not modify or load the PFMS interface.
+- Authentication uses Supabase Auth with persistent sessions, password-reset request flow and a publishable browser key only.
+- The workspace reads the authorized player catalogue, stores owner-scoped candidate records, and writes attributed scout observations through existing RLS policies.
+- Candidate records remain separate from canonical players. The UI does not bypass identity review or invoke promotion automatically.
+- Added an isolated build script `scripts/build-asi.mjs` that writes to `dist-asi/`, validates the exact ASI project reference, and rejects secret/service-role keys. The default CI build uses placeholders and cannot connect to a real database.
+- Added workspace contract smoke tests and wired the ASI build into CI.
+- This is an initial functional workspace shell, not a production-ready product: role-specific admin review, durable evidence capture, automated research jobs, video analytics, model training and browser E2E remain outstanding.
+- No Supabase schema migration, database write, Edge Function deployment, Render deployment or production change was performed for this workspace milestone.
