@@ -304,11 +304,13 @@ async function addCalibrationRecord(event) {
 }
 async function loadCalibrationQueue() {
   const host=$("calibrationQueue");if(!host||!db||!currentUser)return;
-  const {data,error}=await db.from("asi_scout_calibration_records").select("id,player_id,scout_id,scout_rating,outcome_metric,verification_status,created_at").order("created_at",{ascending:false}).limit(100);
+  const {data,error}=await db.from("asi_scout_calibration_records").select("id,player_id,scout_id,scout_rating,verified_outcome,outcome_metric,verification_status,created_at").order("created_at",{ascending:false}).limit(100);
   if(error){host.textContent="Kalibrierungsdaten nicht verfügbar.";return;}
   const rows=data||[];
-  if(currentRole!=="admin"){host.innerHTML='<p class="tiny-note">Deine Einträge werden erst nach einer Admin-Verifizierung für die Kalibrierung berücksichtigt.</p>';return;}
-  host.innerHTML=rows.filter(r=>r.verification_status==="pending").map(r=>'<div class="calibration-review"><strong>'+safe(selectedPlayer(r.player_id)?.name||("Spieler #"+r.player_id))+'</strong><small>Scout-Bewertung '+r.scout_rating+'/100 · '+safe(r.outcome_metric)+'</small><input type="number" min="0" max="100" step="0.1" placeholder="Verifiziertes Ergebnis" data-outcome="'+safe(r.id)+'"><input type="date" data-date="'+safe(r.id)+'"><input type="url" placeholder="HTTPS-Quellenlink" data-source="'+safe(r.id)+'"><input type="text" placeholder="Prüfgrund (mind. 10 Zeichen)" data-reason="'+safe(r.id)+'"><button class="text-button" type="button" data-verify="'+safe(r.id)+'">Ergebnis verifizieren</button></div>').join("")||'<p class="empty">Keine offenen Kalibrierungsprüfungen.</p>';
+  const calibration=evaluateScoutCalibration(rows.map(r=>({scoutId:r.scout_id,rating:Number(r.scout_rating),verifiedOutcome:r.verified_outcome===null?null:Number(r.verified_outcome),outcomeVerified:r.verification_status==="verified"})));
+  const scoreMarkup=calibration.filter(x=>x.evaluable).map(x=>'<p class="tiny-note">Scout '+safe(x.scoutId)+': Kalibrierung '+x.calibrationScore+'/100 · '+safe(x.tendency)+' · '+x.sampleSize+' verifizierte Fälle</p>').join("");
+  if(currentRole!=="admin"){host.innerHTML=scoreMarkup+'<p class="tiny-note">Deine Einträge werden erst nach einer Admin-Verifizierung für die Kalibrierung berücksichtigt.</p>';return;}
+  host.innerHTML=scoreMarkup+rows.filter(r=>r.verification_status==="pending").map(r=>'<div class="calibration-review"><strong>'+safe(selectedPlayer(r.player_id)?.name||("Spieler #"+r.player_id))+'</strong><small>Scout-Bewertung '+r.scout_rating+'/100 · '+safe(r.outcome_metric)+'</small><input type="number" min="0" max="100" step="0.1" placeholder="Verifiziertes Ergebnis" data-outcome="'+safe(r.id)+'"><input type="date" data-date="'+safe(r.id)+'"><input type="url" placeholder="HTTPS-Quellenlink" data-source="'+safe(r.id)+'"><input type="text" placeholder="Prüfgrund (mind. 10 Zeichen)" data-reason="'+safe(r.id)+'"><button class="text-button" type="button" data-verify="'+safe(r.id)+'">Ergebnis verifizieren</button></div>').join("")||'<p class="empty">Keine offenen Kalibrierungsprüfungen.</p>';
   host.querySelectorAll("[data-verify]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.verify,read=(selector)=>host.querySelector(selector)?.value;
     const outcome=Number(read('[data-outcome="'+id+'"]')),date=read('[data-date="'+id+'"]'),source=read('[data-source="'+id+'"]'),reason=read('[data-reason="'+id+'"]');
@@ -318,15 +320,31 @@ async function loadCalibrationQueue() {
     message(globalMessage,"Kalibrierungsergebnis wurde verifiziert.");await loadCalibrationQueue();
   }));
 }
+
+async function renderPendingOutcomeReviews() {
+  const {data,error}=await db.from("asi_prediction_outcomes").select("id,prediction_id,observed_metric,observed_value,observed_on,outcome_source").eq("verification_status","pending").limit(50);
+  if(error||!data?.length)return '<p class="tiny-note">Keine offenen Ergebnisprüfungen.</p>';
+  return '<h4>Offene Ergebnisverifizierungen</h4>'+data.map(o=>'<div class="calibration-review"><strong>'+safe(o.observed_metric)+' · '+safe(o.outcome_source)+'</strong><small>Beobachtet: '+safe(o.observed_value)+' am '+safe(o.observed_on)+'</small><input type="url" placeholder="HTTPS-Quellenlink" data-outcome-source="'+safe(o.id)+'"><input type="text" placeholder="Prüfgrund (mind. 10 Zeichen)" data-outcome-reason="'+safe(o.id)+'"><button class="text-button" type="button" data-outcome-verify="'+safe(o.id)+'">Ergebnis verifizieren</button></div>').join("");
+}
+
 async function showLearningPreview() {
   const host=$("learningPreview");if(!host)return;
   const {data:predictions,error:pError}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,status").limit(1000);
-  const {data:outcomes,error:oError}=await db.from("asi_prediction_outcomes").select("prediction_id,observed_metric,observed_value,outcome_source").limit(1000);
+  const {data:outcomes,error:oError}=await db.from("asi_prediction_outcomes").select("id,prediction_id,observed_metric,observed_value,outcome_source,verification_status").limit(1000);
   if(pError||oError){host.textContent="Lerndaten konnten nicht geladen werden.";return;}
-  const pairs=(predictions||[]).flatMap(p=>(outcomes||[]).filter(o=>o.prediction_id===p.id&&o.observed_metric===p.target_metric&&Number.isFinite(Number(o.observed_value))&&Number.isFinite(Number(p.predicted_value))).map(o=>({predicted:Number(p.predicted_value),observed:Number(o.observed_value),outcomeObserved:o.outcome_source==="official"||o.outcome_source==="licensed",features:p.explanation?.features||{}})));
+
+  host.querySelectorAll("[data-outcome-verify]").forEach(button=>button.addEventListener("click",async()=>{
+    const id=button.dataset.outcomeVerify,source=host.querySelector('[data-outcome-source="'+id+'"]')?.value,reason=host.querySelector('[data-outcome-reason="'+id+'"]')?.value;
+    if(!source||!reason||reason.trim().length<10){message(globalMessage,"HTTPS-Quelle und Prüfgrund (mind. 10 Zeichen) erforderlich.",true);return;}
+    const {error}=await db.rpc("asi_review_prediction_outcome",{p_outcome_id:id,p_decision:"verify",p_reason:reason,p_source_url:source});
+    if(error){message(globalMessage,"Ergebnisverifizierung fehlgeschlagen: "+error.message,true);return;}
+    message(globalMessage,"Prognoseergebnis wurde verifiziert.");await showLearningPreview();
+  }));
+  const pairs=(predictions||[]).flatMap(p=>(outcomes||[]).filter(o=>o.prediction_id===p.id&&o.observed_metric===p.target_metric&&Number.isFinite(Number(o.observed_value))&&Number.isFinite(Number(p.predicted_value))).map(o=>({predicted:Number(p.predicted_value),observed:Number(o.observed_value),outcomeObserved:o.verification_status==="verified",features:p.explanation?.features||{}})));
   const current={performance:.24,tacticalFit:.26,potential:.18,scoutAssessment:.14,economicFit:.10,physicalFit:.08};
   const proposal=proposeLearningUpdate(pairs,current);
-  host.innerHTML='<p class="muted">Verifizierbare Prognose-/Ergebnispaare: '+pairs.filter(x=>x.outcomeObserved).length+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Offizielle/lizenzierte Quelle allein ersetzt keine fachliche Verifikation; derzeit bleibt dies eine konservative Vorprüfung.</p>';
+  host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+pairs.filter(x=>x.outcomeObserved).length+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen.</p>'+
+  (currentRole==="admin"?await renderPendingOutcomeReviews():"");
 }
 
 async function initialize() {
