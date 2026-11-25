@@ -5,9 +5,11 @@ on:
     branches:
       - main
       - feature/pfss-complete-platform-build
+      - feature/asi-intelligence-platform
   pull_request:
     branches:
       - main
+      - feature/pfss-complete-platform-build
   workflow_dispatch:
 
 permissions:
