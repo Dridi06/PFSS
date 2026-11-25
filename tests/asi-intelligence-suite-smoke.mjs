@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import {proposeLearningUpdate,comparePlayers,forecastTalent,assessTransferOpportunity,generateScoutingReport,analyzeVideoEvents,evaluateScoutCalibration} from "../asi-core/intelligence-suite.mjs";
+const weights={performance:.5,potential:.5};
+assert.equal(proposeLearningUpdate([],weights).available,false);
+const learn=proposeLearningUpdate(Array.from({length:35},(_,i)=>({outcomeObserved:true,actualOutcome:70+i%5,predictedOutcome:65,features:{performance:60+i%10,potential:70}})),weights);
+assert.equal(learn.available,true); assert.equal(learn.requiresHumanApproval,true);
+const cmp=comparePlayers({id:"a",dimensions:{performance:80}},{id:"b",dimensions:{performance:70}});
+assert.equal(cmp.winnerByAvailableDimensions,"a"); assert.equal(cmp.coverage,20);
+const dates=Array.from({length:8},(_,i)=>({score:50+i*2,observedAt:new Date(Date.UTC(2024,i*2,1)).toISOString()}));
+assert.equal(forecastTalent(dates).available,true); assert.equal(forecastTalent([]).available,false);
+assert.equal(assessTransferOpportunity({suitabilityScore:80,estimatedCost:1000000,evidenceConfidence:80,riskScore:20},{budget:2000000}).available,true);
+const report=generateScoutingReport({name:"Testspieler",dimensions:{performance:85}},{evidence:[{title:"Quelle",status:"unverified"}]});
+assert.equal(report.strengths.length,1); assert.match(report.limitations[0],/missing data/i);
+const video=analyzeVideoEvents([{minute:12,type:"pass",verified:true},{minute:53,type:"shot"}]);
+assert.equal(video.eventCount,2); assert.match(video.capability,/Structured event/);
+const scout=evaluateScoutCalibration(Array.from({length:8},()=>({scoutId:"s1",rating:80,verifiedOutcome:70,outcomeVerified:true})));
+assert.equal(scout[0].evaluable,true); assert.equal(scout[0].tendency,"optimistic");
+console.log("myScoutingDatabase seven-capability intelligence suite tests passed.");
