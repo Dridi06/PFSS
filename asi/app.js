@@ -2,6 +2,7 @@ import { rankRecruitmentCandidates } from "../asi-core/recruitment-engine.mjs";
 import { comparePlayers, forecastTalent, assessTransferOpportunity, generateScoutingReport, analyzeVideoEvents, evaluateScoutCalibration, proposeLearningUpdate } from "../asi-core/intelligence-suite.mjs";
 import { evaluateRegression } from "../asi-core/model-evaluation.mjs";
 import { trainChronologicalModel } from "../asi-core/model-training.mjs";
+import { normalizeVideoDetections } from "../asi-core/video-detection.mjs";
 const config = window.MYSCOUTINGDATABASE_CONFIG;
 const clientFactory = window.supabase?.createClient;
 const authView = document.getElementById("authView");
@@ -340,6 +341,18 @@ function renderVideoEvents() {
     message(globalMessage,"Videoereignis wurde verifiziert.");await loadVideoEvents();
   }));
 }
+
+async function importVideoAiDetections() {
+ const raw=$("videoAiPayload")?.value?.trim();if(!raw){message(globalMessage,"Bitte Provider-JSON einfügen.",true);return;}
+ let payload;try{payload=JSON.parse(raw);}catch{message(globalMessage,"Das Video-KI-Ergebnis ist kein gültiges JSON.",true);return;}
+ let normalized;try{normalized=normalizeVideoDetections(payload);}catch(error){message(globalMessage,error.message,true);return;}
+ const rows=normalized.accepted.flatMap(d=>{const player=selectedPlayer(d.playerId);if(!player)return[];return[{player_id:d.playerId,owner_id:player.owner_id,created_by:currentUser.id,match_date:payload.matchDate||null,competition:payload.competition||null,opponent:payload.opponent||null,minute:d.minute,event_type:d.eventType,zone:d.zone,outcome:null,source_url:d.sourceUrl,notes:"Externe Video-KI-Erkennung; bis zur Admin-Prüfung unbestätigt.",verification_status:"pending",detection_provider:d.provider,detection_model_version:d.modelVersion,detection_confidence:d.confidence,detection_metadata:d.metadata}];});
+ const missing=normalized.accepted.length-rows.length;
+ if(rows.length){const {error}=await db.from("asi_video_event_tags").insert(rows);if(error){message(globalMessage,"Erkannte Ereignisse konnten nicht gespeichert werden: "+error.message,true);return;}}
+ $("videoAiPayload").value="";await loadVideoEvents();
+ message(globalMessage,rows.length+" KI-Ereignisse importiert und zur menschlichen Prüfung vorgemerkt. "+normalized.rejected.length+" verworfen; "+missing+" wegen unbekannter Spieler-ID übersprungen. Rohvideo wurde nicht von myScoutingDatabase verarbeitet.");
+}
+
 async function addVideoEvent(event) {
   event.preventDefault();
   const playerId=Number($("videoPlayer").value),minute=Number($("videoMinute").value),source=$("videoSourceUrl").value.trim();
@@ -477,6 +490,7 @@ $("observationForm").addEventListener("submit",addObservation);
 $("intelligenceRun")?.addEventListener("click",runPlayerAnalysis);
 $("compareRun")?.addEventListener("click",runPlayerComparison);
 $("videoEventForm")?.addEventListener("submit",addVideoEvent);
+$("videoAiImport")?.addEventListener("click",importVideoAiDetections);
 $("calibrationForm")?.addEventListener("submit",addCalibrationRecord);
 $("learningRefresh")?.addEventListener("click",showLearningPreview);
 $("intelligencePlayer")?.addEventListener("change",loadPredictionOptions);
