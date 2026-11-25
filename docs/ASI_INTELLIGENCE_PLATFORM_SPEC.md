@@ -1,11 +1,11 @@
-# ASI — Advanced Scouting Intelligence
+# myScoutingDatabase — Product & Engineering Specification
 ## Implementation baseline and target architecture
 
 **Status:** Engineering workstream opened; database foundation exists in the dedicated `myScoutingDatabase` Supabase project. This document distinguishes deployed database capabilities from code that is not yet implemented.
 
 ## Product contract
 
-ASI is a research, verification, analysis, valuation and controlled-import station. It is not a stand-alone market-value calculator.
+myScoutingDatabase is an independent football scouting and intelligence product for research, verification, analysis, valuation and controlled import. It is not a stand-alone market-value calculator.
 
 1. Discover a player from a name, club, birth year, position or supplied profile URL.
 2. Collect only data from sources whose terms and permitted purposes allow the intended use.
@@ -114,25 +114,25 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 - Tests are wired into `npm run check:syntax` and `npm run test:dist`.
 - GitHub Actions is the authoritative execution environment for this branch; current run status must be checked before declaring the new commits validated.
 
-### Still not implemented
-- Authenticated ASI user interface and backend API integration.
-- Persistence pipeline into the existing ASI tables with ownership-safe RLS and admin review workflow.
+### Remaining implementation gates
+- Full role-specific administration, review queues, and complete browser end-to-end acceptance (the initial authenticated workspace shell exists).
+- Apply and verify the candidate evidence migration in the dedicated project; complete persistence and administrator review integration.
 - Additional permitted sources and robust data refresh scheduling.
 - Video ingestion/analysis and match event analytics.
 - Proper training datasets, time-based backtests, calibration, bias testing and approved production prediction models.
-- Dedicated ASI repository, separate hosting service, staging environment and end-to-end browser acceptance.
+- Create a new standalone GitHub repository and dedicated staging hosting service; the current development work is still located in a legacy repository and must be extracted before any release.
 
 
 ## Standalone myScoutingDatabase workspace foundation (2026-11-25)
 
-- Added a separate browser workspace under `asi/`; it does not modify or load the PFMS interface.
+- Added a separate browser workspace under `asi/`; it has no PFMS runtime integration or shared database.
 - Authentication uses Supabase Auth with persistent sessions, password-reset request flow and a publishable browser key only.
 - The workspace reads the authorized player catalogue, stores owner-scoped candidate records, and writes attributed scout observations through existing RLS policies.
 - Candidate records remain separate from canonical players. The UI does not bypass identity review or invoke promotion automatically.
-- Added an isolated build script `scripts/build-asi.mjs` that writes to `dist-asi/`, validates the exact ASI project reference, and rejects secret/service-role keys. The default CI build uses placeholders and cannot connect to a real database.
+- Added an isolated build script `scripts/build-asi.mjs` that writes to `dist-myscoutingdatabase/`, validates the exact ASI project reference, and rejects secret/service-role keys. The default CI build uses placeholders and cannot connect to a real database.
 - Added workspace contract smoke tests and wired the ASI build into CI.
 - This is an initial functional workspace shell, not a production-ready product: role-specific admin review, durable evidence capture, automated research jobs, video analytics, model training and browser E2E remain outstanding.
-- No Supabase schema migration, database write, Edge Function deployment, Render deployment or production change was performed for this workspace milestone.
+- No Supabase migration was applied, no database data was changed, and no hosting deployment or production change was performed for this workspace milestone.
 
 ## Candidate evidence governance layer (2026-11-25)
 
@@ -146,4 +146,4 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 
 ## Product boundary decision — 2026-11-25
 
-myScoutingDatabase is an independent product. It must not import, depend on, share runtime configuration with, or be deployed through PFMS/PFSS. Its dedicated Supabase project is `vxtybjaabtfhxfwctnyj`. The current development branch is still hosted in the legacy GitHub repository for continuity only; repository extraction into a new standalone GitHub repository and dedicated hosting service is a release prerequisite. Do not merge this branch into PFMS or deploy it through the PFMS Render service.
+myScoutingDatabase is an independent product. It must not import, depend on, share runtime configuration with, or be deployed through any other football-management product. Its dedicated Supabase project is `vxtybjaabtfhxfwctnyj`. The current development branch is temporarily hosted in a legacy GitHub repository only because a new repository has not yet been provisioned. Extraction into a dedicated standalone GitHub repository and dedicated staging hosting service is a mandatory release prerequisite. Do not merge this branch into another product or deploy it through a legacy hosting service.
