@@ -6,3 +6,26 @@
 .candidate-main{min-width:0}.candidate-main .text-button{padding:12px 0 0}.research-result{margin-top:10px}.research-disclaimer{font-size:9px;color:var(--gold2);letter-spacing:.3px}.research-hit{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:10px 0}.research-hit strong,.research-hit small{display:block}.research-hit strong{font-size:12px}.research-hit small{font-size:10px;color:var(--muted);margin-top:4px}.research-hit a{font-size:10px;color:var(--gold2);white-space:nowrap}
 
 .intel-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.intel-metrics>div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px}.intel-metrics strong{display:block;color:var(--gold2);font:700 25px Manrope}.intel-metrics small{display:block;color:var(--muted);font-size:10px;margin-top:6px;line-height:1.4}.calibration-review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;border-top:1px solid var(--line);padding:14px 0}.calibration-review strong,.calibration-review small{grid-column:1/-1}.calibration-review small{color:var(--muted);font-size:10px}.calibration-review button{grid-column:1/-1;justify-self:start}.section-view[hidden]{display:none}@media(max-width:560px){.intel-metrics{grid-template-columns:1fr}.calibration-review{grid-template-columns:1fr}}
+
+/* Multi-source AI discovery */
+.ai-discovery-card{border-color:#76613a;background:linear-gradient(145deg,#171b20,#101419)}
+.discovery-controls{margin-top:18px}
+.discovery-results{margin-top:20px}
+.discovery-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid #5c4b2d;border-radius:10px;background:#d8b56c10;color:var(--gold2);font-size:13px}
+.discovery-summary span{color:#c1c7ce}
+.provider-status-list{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.provider-chip{font-size:10px;color:#b8c0c8;border:1px solid #343d46;border-radius:20px;padding:6px 9px}
+.provider-chip b{color:var(--gold2)}
+.discovery-result-list{display:grid;gap:10px;margin-top:14px}
+.discovery-player{border:1px solid #2c343d;border-radius:11px;background:#0d1217;padding:15px}
+.discovery-player-top{display:flex;gap:12px;align-items:flex-start}
+.discovery-index{font:700 12px Manrope;color:var(--gold);padding-top:4px}
+.discovery-player h4{font:700 15px Manrope;margin:0 0 4px}
+.discovery-player p{margin:0;color:#9da7b0;font-size:11px;line-height:1.6}
+.discovery-stats{padding:10px 0 8px!important;color:#e1e4e7!important}
+.discovery-meta{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:10px;color:var(--gold2);padding:8px 0}
+.discovery-sources{display:flex;gap:8px;flex-wrap:wrap;font-size:10px}
+.discovery-sources a{color:var(--gold);text-decoration:none}
+.discovery-sources a:hover{text-decoration:underline}
+.discovery-player .tiny-note{margin:8px 0 0}
+@media(max-width:700px){.discovery-summary{display:grid}.discovery-meta{display:grid;gap:4px}}
