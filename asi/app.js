@@ -67,7 +67,7 @@ async function loadWorkspace() {
 async function loadPlayers() {
   if (!db || !currentUser) return;
   const {data,error} = await db.from("players")
-    .select("player_id,owner_id,name,club,year,positions,foot,ratings")
+    .select("player_id,owner_id,name,club,year,positions,foot,ratings,is_current_national_player,national_team_level,national_team_country")
     .order("name",{ascending:true}).limit(500);
   if (error) { message(globalMessage,"Spielerdaten konnten nicht geladen werden: "+error.message,true); return; }
   playerRows = data || [];
@@ -78,15 +78,15 @@ async function loadPlayers() {
 }
 function renderPlayers() {
   const term = ($("playerSearch")?.value || "").trim().toLocaleLowerCase("de");
-  const rows = playerRows.filter((row) => [row.name,row.club,row.year,(row.positions || []).join(" ")].join(" ").toLocaleLowerCase("de").includes(term));
+  const rows = playerRows.filter((row) => [row.name,row.club,row.year,row.national_team_level,row.national_team_country,(row.positions || []).join(" ")].join(" ").toLocaleLowerCase("de").includes(term));
   $("playersBody").innerHTML = rows.length ? rows.map((row) =>
-    `<tr><td><strong>${safe(row.name)}</strong></td><td>${safe(row.club || "—")}</td><td>${safe(row.year || "—")}</td><td>${safe((row.positions || []).join(", ") || "—")}</td></tr>`
-  ).join("") : '<tr><td colspan="4" class="empty">Keine zugänglichen Spieler gefunden.</td></tr>';
+    `<tr><td><strong>${safe(row.name)}</strong></td><td>${safe(row.club || "—")}</td><td>${safe(row.year || "—")}</td><td>${safe((row.positions || []).join(", ") || "—")}</td><td>${row.is_current_national_player ? '<span class="pill">Nationalspieler · '+safe(row.national_team_level||"")+'</span><small>'+safe(row.national_team_country||"")+'</small>' : '—'}</td></tr>`
+  ).join("") : '<tr><td colspan="5" class="empty">Keine zugänglichen Spieler gefunden.</td></tr>';
 }
 async function loadCandidates() {
   if (!db || !currentUser) return;
   const {data,error} = await db.from("asi_player_candidates")
-    .select("id,player_name,birth_year,nationality,current_club,positions,recommendation,status,created_at")
+    .select("id,player_name,birth_year,nationality,current_club,positions,is_current_national_player,national_team_level,national_team_country,recommendation,status,created_at")
     .order("created_at",{ascending:false}).limit(200);
   if (error) { message(globalMessage,"Kandidaten konnten nicht geladen werden: "+error.message,true); return; }
   candidateRows = data || [];
@@ -95,7 +95,7 @@ async function loadCandidates() {
 }
 function renderCandidates() {
   $("candidateList").innerHTML = candidateRows.length ? candidateRows.map((row) =>
-    `<article class="candidate-card"><div class="candidate-main"><h3>${safe(row.player_name)}</h3><p>${safe([row.birth_year,row.nationality,row.current_club,(row.positions || []).join(", ")].filter(Boolean).join(" · ") || "Noch keine ergänzenden Angaben")}</p><button class="text-button" type="button" data-research-id="${safe(row.id)}">Wikidata-Identität prüfen ↗</button><div id="research-${safe(row.id)}" class="research-result" aria-live="polite"></div></div><span class="candidate-status">${safe(row.status.toUpperCase())} · ${safe(row.recommendation.toUpperCase())}</span></article>`
+    `<article class="candidate-card"><div class="candidate-main"><h3>${safe(row.player_name)}</h3><p>${safe([row.birth_year,row.nationality,row.current_club,(row.is_current_national_player ? "Nationalspieler "+(row.national_team_level||"")+" "+(row.national_team_country||"") : ""), (row.positions || []).join(", ")].filter(Boolean).join(" · ") || "Noch keine ergänzenden Angaben")}</p><button class="text-button" type="button" data-research-id="${safe(row.id)}">Wikidata-Identität prüfen ↗</button><div id="research-${safe(row.id)}" class="research-result" aria-live="polite"></div></div><span class="candidate-status">${safe(row.status.toUpperCase())} · ${safe(row.recommendation.toUpperCase())}</span></article>`
   ).join("") : '<div class="content-card empty">Noch keine Kandidaten gespeichert.</div>';
   document.querySelectorAll("[data-research-id]").forEach((button)=>button.addEventListener("click",()=>researchCandidate(button.dataset.researchId)));
 }
@@ -133,6 +133,9 @@ async function addCandidate(event) {
   if (!name || (birthYear !== null && (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > yearNow))) {
     message(globalMessage,"Bitte Spielername und ein gültiges Geburtsjahr prüfen.",true); return;
   }
+  if ($("candidateNationalPlayer").value === "yes" && (!$("candidateNationalTeamLevel").value || !$("candidateNationalTeamCountry").value.trim())) {
+    message(globalMessage,"Bitte Nationalmannschaftsstufe und Land auswählen.",true); return;
+  }
   const positions = $("candidatePositions").value.split(/[,;/]+/).map((item)=>item.trim()).filter(Boolean).slice(0,6);
   const note = $("candidateNotes").value.trim();
   const sourceUrl = $("candidateSourceUrl").value.trim();
@@ -147,6 +150,9 @@ async function addCandidate(event) {
     owner_id: currentUser.id, created_by: currentUser.id, player_name: name,
     birth_year: birthYear, nationality: $("candidateNationality").value.trim() || null,
     current_club: $("candidateClub").value.trim() || null, positions,
+    is_current_national_player: $("candidateNationalPlayer").value === "yes",
+    national_team_level: $("candidateNationalPlayer").value === "yes" ? $("candidateNationalTeamLevel").value : null,
+    national_team_country: $("candidateNationalPlayer").value === "yes" ? $("candidateNationalTeamCountry").value.trim() : null,
     search_query: note || null, analysis: {entry_method:"manual",note,methodology:"candidate_intake_v1"},
     sources: sourceUrl ? [{url:sourceUrl,title:sourceTitle,status:"pending_review"}] : [], recommendation:"review", status:"saved"
   };
@@ -489,6 +495,13 @@ $("forgotPassword").addEventListener("click",async()=>{
 $("logoutButton").addEventListener("click",async()=>{ if(db) await db.auth.signOut(); });
 document.querySelectorAll(".nav-item").forEach((node)=>node.addEventListener("click",()=>setSection(node.dataset.section)));
 $("candidateForm").addEventListener("submit",addCandidate);
+$("candidateNationalPlayer")?.addEventListener("change", () => {
+  const enabled = $("candidateNationalPlayer").value === "yes";
+  $("candidateNationalTeamLevelWrap").hidden = !enabled;
+  $("candidateNationalTeamCountryWrap").hidden = !enabled;
+  $("candidateNationalTeamLevel").required = enabled;
+  $("candidateNationalTeamCountry").required = enabled;
+});
 $("observationForm").addEventListener("submit",addObservation);
 $("intelligenceRun")?.addEventListener("click",runPlayerAnalysis);
 $("compareRun")?.addEventListener("click",runPlayerComparison);
