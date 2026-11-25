@@ -64,7 +64,7 @@ async function loadWorkspace() {
 async function loadPlayers() {
   if (!db || !currentUser) return;
   const {data,error} = await db.from("players")
-    .select("player_id,name,club,year,positions,foot,ratings")
+    .select("player_id,owner_id,name,club,year,positions,foot,ratings")
     .order("name",{ascending:true}).limit(500);
   if (error) { message(globalMessage,"Spielerdaten konnten nicht geladen werden: "+error.message,true); return; }
   playerRows = data || [];
@@ -171,6 +171,8 @@ async function addObservation(event) {
   event.preventDefault();
   const playerId = Number($("observationPlayer").value);
   if (!Number.isSafeInteger(playerId) || playerId <= 0) { message(globalMessage,"Bitte einen Spieler auswählen.",true); return; }
+  const selected=selectedPlayer(playerId);
+  if(!selected){message(globalMessage,"Spieler ist im zugänglichen Bestand nicht verfügbar.",true);return;}
   const ratings = {};
   for (const [field,key] of [["ratingTechnical","technical"],["ratingTactical","tactical"],["ratingPhysical","physical"],["ratingMental","mental"]]) {
     const raw = $(field).value;
@@ -181,7 +183,7 @@ async function addObservation(event) {
     }
   }
   const {error} = await db.from("asi_player_observations").insert({
-    player_id:playerId, owner_id:currentUser.id, created_by:currentUser.id,
+    player_id:playerId, owner_id:selected.owner_id, created_by:currentUser.id,
     ratings, observation:$("observationText").value.trim() || null, source_type:"internal_scout"
   });
   if (error) { message(globalMessage,"Beobachtung nicht gespeichert: "+error.message,true); return; }
@@ -266,7 +268,7 @@ async function runPlayerAnalysis() {
   if(development.available){
     const horizonDays=Math.max(1,Math.round(development.horizonMonths*30.4375));
     const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").insert({
-      player_id:player.player_id,owner_id:currentUser.id,created_by:currentUser.id,
+      player_id:player.player_id,owner_id:player.owner_id,created_by:currentUser.id,
       target_metric:"development_score_0_100",prediction_horizon_days:horizonDays,
       predicted_value:development.projectedScore,
       prediction_interval_low:Math.max(0,development.projectedScore-development.errorBand),
@@ -281,7 +283,7 @@ async function runPlayerAnalysis() {
   const costRaw=$("transferCost").value,budgetRaw=$("transferBudget").value;
   const transfer=costRaw?assessTransferOpportunity({suitabilityScore:ranked.suitabilityScore,estimatedCost:Number(costRaw),evidenceConfidence:ranked.evidenceConfidence.score??0},{budget:budgetRaw?Number(budgetRaw):undefined,currency:"EUR"}):{available:false,reason:"Keine Kostenschätzung eingetragen."};
   const payload={analysis_type:"intelligence_suite_v1",model_version:"myscouting-intelligence-suite-v1",analysis_json:{ranking:ranked,development,transfer,report,predictionId},input_snapshot:{player:{player_id:player.player_id,name:player.name,year:player.year,positions:player.positions},observation_ids:signal.observations.map(o=>o.id),observation_count:signal.observations.length}};
-  const {error}=await db.from("asi_player_analyses").insert({...payload,player_id:player.player_id,owner_id:currentUser.id,created_by:currentUser.id});
+  const {error}=await db.from("asi_player_analyses").insert({...payload,player_id:player.player_id,owner_id:player.owner_id,created_by:currentUser.id});
   if(error){message(globalMessage,"Analyse berechnet, aber Snapshot nicht gespeichert: "+error.message+predictionWarning,true);}else{message(globalMessage,"KI-Analyse als Snapshot gespeichert."+(predictionId?" Prognose-ID: "+predictionId+".":"")+predictionWarning,Boolean(predictionWarning));}
   $("intelligenceResult").innerHTML='<div class="content-card"><div class="card-heading"><h3>'+safe(player.name)+'</h3><span class="pill">ENTSCHEIDUNGSUNTERSTÜTZUNG</span></div><div class="intel-metrics"><div><strong>'+(ranked.suitabilityScore===null?"—":ranked.suitabilityScore.toFixed(1))+'</strong><small>Eignung / 100</small></div><div><strong>'+ranked.dataCoverage+'%</strong><small>Datenabdeckung</small></div><div><strong>'+(development.available?development.projectedScore.toFixed(1):"—")+'</strong><small>Trendprojektion'+(development.available?" · "+development.horizonMonths+" Monate":"")+'</small></div></div><p class="muted">'+safe(report.executiveSummary)+'</p><p class="muted">'+safe(development.available?development.method+"; Konfidenz: "+development.confidence:development.reason)+'</p><p class="muted">'+safe(transfer.available?transfer.recommendation+" · "+transfer.opportunityScore+"/100":transfer.reason)+'</p><h4>Beobachtete Dimensionen</h4><ul>'+Object.entries(signal.dimensions).map(([k,v])=>'<li>'+safe(k)+': '+v+'/100</li>').join("")+'</ul><h4>Hinweise</h4><ul>'+ranked.warnings.map(w=>'<li>'+safe(w)+'</li>').join("")+'</ul><p class="tiny-note">Projektion ist keine Karrieregarantie. Nur vorhandene Scout-Daten wurden ausgewertet.</p></div>';
   await loadPredictionOptions();
@@ -310,9 +312,9 @@ async function addPredictionOutcome(event) {
   const predictionId=$("outcomePrediction").value,option=$("outcomePrediction").selectedOptions[0],metric=option?.dataset.metric;
   const value=Number($("outcomeValue").value),date=$("outcomeDate").value,source=$("outcomeSource").value.trim();
   if(!predictionId||!metric||!Number.isFinite(value)||value<0||value>100||!date||!source){message(globalMessage,"Prognose, Ergebniswert (0–100), Datum und Quellenbezeichnung sind erforderlich.",true);return;}
-  const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").select("player_id").eq("id",predictionId).single();
+  const {data:prediction,error:predictionError}=await db.from("asi_prediction_records").select("player_id,owner_id").eq("id",predictionId).single();
   if(predictionError||!prediction){message(globalMessage,"Zugehörige Prognose konnte nicht geladen werden.",true);return;}
-  const {error}=await db.from("asi_prediction_outcomes").insert({prediction_id:predictionId,player_id:prediction.player_id,owner_id:currentUser.id,observed_metric:metric,observed_value:value,observed_on:date,outcome_source:source,notes:$("outcomeNotes").value.trim()||null,recorded_by:currentUser.id});
+  const {error}=await db.from("asi_prediction_outcomes").insert({prediction_id:predictionId,player_id:prediction.player_id,owner_id:prediction.owner_id,observed_metric:metric,observed_value:value,observed_on:date,outcome_source:source,notes:$("outcomeNotes").value.trim()||null,recorded_by:currentUser.id});
   if(error){message(globalMessage,"Ergebnis konnte nicht gespeichert werden: "+error.message,true);return;}
   $("outcomeForm").reset();await loadPredictionOptions();message(globalMessage,"Ergebnis gespeichert und wartet auf administrative Quellenprüfung.");
 }
@@ -340,17 +342,19 @@ function renderVideoEvents() {
 async function addVideoEvent(event) {
   event.preventDefault();
   const playerId=Number($("videoPlayer").value),minute=Number($("videoMinute").value),source=$("videoSourceUrl").value.trim();
-  if(!Number.isSafeInteger(playerId)||playerId<=0||!Number.isFinite(minute)||minute<0||minute>150){message(globalMessage,"Spieler und Spielminute prüfen.",true);return;}
+  const player=selectedPlayer(playerId);
+  if(!Number.isSafeInteger(playerId)||playerId<=0||!player||!Number.isFinite(minute)||minute<0||minute>150){message(globalMessage,"Spieler und Spielminute prüfen.",true);return;}
   if(source){try{if(new URL(source).protocol!=="https:")throw new Error();}catch{message(globalMessage,"Quellenlink muss HTTPS verwenden.",true);return;}}
-  const {error}=await db.from("asi_video_event_tags").insert({player_id:playerId,owner_id:currentUser.id,created_by:currentUser.id,match_date:$("videoDate").value||null,competition:$("videoCompetition").value.trim()||null,opponent:$("videoOpponent").value.trim()||null,minute,event_type:$("videoEventType").value,zone:$("videoZone").value.trim()||null,outcome:$("videoOutcome").value.trim()||null,source_url:source||null,notes:$("videoNotes").value.trim()||null,verification_status:"pending"});
+  const {error}=await db.from("asi_video_event_tags").insert({player_id:playerId,owner_id:player.owner_id,created_by:currentUser.id,match_date:$("videoDate").value||null,competition:$("videoCompetition").value.trim()||null,opponent:$("videoOpponent").value.trim()||null,minute,event_type:$("videoEventType").value,zone:$("videoZone").value.trim()||null,outcome:$("videoOutcome").value.trim()||null,source_url:source||null,notes:$("videoNotes").value.trim()||null,verification_status:"pending"});
   if(error){message(globalMessage,"Videoereignis konnte nicht gespeichert werden: "+error.message,true);return;}
   $("videoEventForm").reset();await loadVideoEvents();message(globalMessage,"Spielereignis gespeichert. Es bleibt bis zur Prüfung unbestätigt.");
 }
 async function addCalibrationRecord(event) {
   event.preventDefault();
   const playerId=Number($("calibrationPlayer").value),rating=Number($("calibrationRating").value),metric=$("calibrationMetric").value.trim();
-  if(!Number.isSafeInteger(playerId)||playerId<=0||!Number.isFinite(rating)||rating<0||rating>100||!metric){message(globalMessage,"Spieler, Scout-Bewertung (0–100) und Ergebniskennzahl angeben.",true);return;}
-  const {error}=await db.from("asi_scout_calibration_records").insert({player_id:playerId,owner_id:currentUser.id,scout_id:currentUser.id,created_by:currentUser.id,scout_rating:rating,outcome_metric:metric,verification_status:"pending"});
+  const player=selectedPlayer(playerId);
+  if(!Number.isSafeInteger(playerId)||playerId<=0||!player||!Number.isFinite(rating)||rating<0||rating>100||!metric){message(globalMessage,"Spieler, Scout-Bewertung (0–100) und Ergebniskennzahl angeben.",true);return;}
+  const {error}=await db.from("asi_scout_calibration_records").insert({player_id:playerId,owner_id:player.owner_id,scout_id:currentUser.id,created_by:currentUser.id,scout_rating:rating,outcome_metric:metric,verification_status:"pending"});
   if(error){message(globalMessage,"Kalibrierungsdatensatz nicht gespeichert: "+error.message,true);return;}
   $("calibrationForm").reset();message(globalMessage,"Scout-Einschätzung gespeichert. Ein Administrator muss das spätere Ergebnis mit Quelle verifizieren.");await loadCalibrationQueue();
 }
