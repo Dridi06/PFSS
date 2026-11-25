@@ -9,6 +9,7 @@ let currentUser = null;
 let playerRows = [];
 let candidateRows = [];
 let activeSection = "overview";
+let lastWikidataResearchAt = 0;
 
 const $ = (id) => document.getElementById(id);
 const message = (node, text, isError = false) => {
@@ -92,9 +93,12 @@ async function researchCandidate(candidateId) {
   const candidate = candidateRows.find((row)=>row.id===candidateId);
   const host = $("research-"+candidateId);
   if (!candidate || !host) return;
+  const cooldown = 12000 - (Date.now() - lastWikidataResearchAt);
+  if (cooldown > 0) { host.textContent = "Bitte warte " + Math.ceil(cooldown/1000) + " Sekunden bis zur nächsten Recherche."; return; }
+  lastWikidataResearchAt = Date.now();
   host.textContent = "Wikidata-Identitätshinweise werden geladen …";
   const literal = candidate.player_name.replaceAll("\\","\\\\").replaceAll('"','\\"').replace(/[\\r\\n]/g," ");
-  const query = 'SELECT ?item ?itemLabel ?birthDate ?nationalityLabel WHERE { ?item wdt:P106 wd:Q937857; rdfs:label ?label. FILTER(LANG(?label) = "en") FILTER(LCASE(STR(?label)) = LCASE("'+literal+'")) OPTIONAL { ?item wdt:P569 ?birthDate. } OPTIONAL { ?item wdt:P27 ?nationality. } SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de". } } LIMIT 8';
+  const query = 'SELECT ?item ?itemLabel ?birthDate ?nationalityLabel WHERE { ?item wdt:P106 wd:Q937857; rdfs:label ?label. FILTER(LANG(?label) IN ("en","de")) FILTER(LCASE(STR(?label)) = LCASE("'+literal+'")) OPTIONAL { ?item wdt:P569 ?birthDate. } OPTIONAL { ?item wdt:P27 ?nationality. } SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de". } } LIMIT 8';
   const url = new URL("https://query.wikidata.org/sparql");
   url.searchParams.set("query",query); url.searchParams.set("format","json");
   try {
@@ -124,7 +128,11 @@ async function addCandidate(event) {
   const sourceUrl = $("candidateSourceUrl").value.trim();
   const sourceTitle = $("candidateSourceTitle").value.trim();
   const sourceText = $("candidateSourceText").value.trim();
-  if ((sourceUrl || sourceTitle || sourceText) && (!/^https:\/\//i.test(sourceUrl) || !sourceTitle || !sourceText)) { message(globalMessage,"Für einen Quellenbeleg werden HTTPS-URL, Titel und Belegtext benötigt.",true); return; }
+  if (sourceUrl || sourceTitle || sourceText) {
+    let validHttps = false;
+    try { validHttps = new URL(sourceUrl).protocol === "https:"; } catch { validHttps = false; }
+    if (!validHttps || !sourceTitle || !sourceText) { message(globalMessage,"Für einen Quellenbeleg werden eine gültige HTTPS-URL, ein Titel und Belegtext benötigt.",true); return; }
+  }
   const payload = {
     owner_id: currentUser.id, created_by: currentUser.id, player_name: name,
     birth_year: birthYear, nationality: $("candidateNationality").value.trim() || null,
