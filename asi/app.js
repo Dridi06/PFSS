@@ -283,7 +283,10 @@ async function loadVideoEvents() {
 }
 function renderVideoEvents() {
   const host=$("videoEventList");if(!host)return;
-  host.innerHTML=videoEventRows.length?videoEventRows.slice(0,30).map(e=>{const p=selectedPlayer(e.player_id);return '<div class="research-hit"><div><strong>'+safe(p?.name||("Spieler #"+e.player_id))+' · '+safe(e.event_type)+'</strong><small>'+safe(e.match_date||"Datum offen")+' · '+safe(e.opponent||"Gegner offen")+' · '+e.minute+'′ · '+safe(e.zone||"Zone offen")+'</small></div><span class="candidate-status">'+safe(e.verification_status)+'</span></div>';}).join(""):'<p class="empty">Noch keine Videoereignisse erfasst.</p>';
+  const analysis=analyzeVideoEvents(videoEventRows.map(e=>({minute:Number(e.minute),type:e.event_type,playerId:e.player_id,zone:e.zone,outcome:e.outcome,verified:e.verification_status==="verified"})));
+  const summary=Object.entries(analysis.eventCounts).map(([key,value])=>key+": "+value).join(" · ");
+  host.innerHTML='<p class="tiny-note">Auswertung: '+analysis.eventCount+' gültige Ereignisse · '+analysis.verifiedEventCoverage+'% bestätigt · '+safe(summary||"Noch keine Ereignistypen")+'</p>'+
+    (videoEventRows.length?videoEventRows.slice(0,30).map(e=>{const p=selectedPlayer(e.player_id);return '<div class="research-hit"><div><strong>'+safe(p?.name||("Spieler #"+e.player_id))+' · '+safe(e.event_type)+'</strong><small>'+safe(e.match_date||"Datum offen")+' · '+safe(e.opponent||"Gegner offen")+' · '+e.minute+'′ · '+safe(e.zone||"Zone offen")+'</small></div><span class="candidate-status">'+safe(e.verification_status)+'</span></div>';}).join(""):'<p class="empty">Noch keine Videoereignisse erfasst.</p>');
 }
 async function addVideoEvent(event) {
   event.preventDefault();
@@ -328,11 +331,15 @@ async function renderPendingOutcomeReviews() {
 }
 
 async function showLearningPreview() {
-  const host=$("learningPreview");if(!host)return;
+  const host=$("learningPreview");if(!host||!db)return;
   const {data:predictions,error:pError}=await db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,status").limit(1000);
   const {data:outcomes,error:oError}=await db.from("asi_prediction_outcomes").select("id,prediction_id,observed_metric,observed_value,outcome_source,verification_status").limit(1000);
   if(pError||oError){host.textContent="Lerndaten konnten nicht geladen werden.";return;}
-
+  const pairs=(predictions||[]).flatMap(p=>(outcomes||[]).filter(o=>o.prediction_id===p.id&&o.observed_metric===p.target_metric&&Number.isFinite(Number(o.observed_value))&&Number.isFinite(Number(p.predicted_value))).map(o=>({predicted:Number(p.predicted_value),observed:Number(o.observed_value),outcomeObserved:o.verification_status==="verified",features:p.explanation?.features||{}})));
+  const current={performance:.24,tacticalFit:.26,potential:.18,scoutAssessment:.14,economicFit:.10,physicalFit:.08};
+  const proposal=proposeLearningUpdate(pairs,current);
+  host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+pairs.filter(x=>x.outcomeObserved).length+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen.</p>'+
+    (currentRole==="admin"?await renderPendingOutcomeReviews():"");
   host.querySelectorAll("[data-outcome-verify]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.outcomeVerify,source=host.querySelector('[data-outcome-source="'+id+'"]')?.value,reason=host.querySelector('[data-outcome-reason="'+id+'"]')?.value;
     if(!source||!reason||reason.trim().length<10){message(globalMessage,"HTTPS-Quelle und Prüfgrund (mind. 10 Zeichen) erforderlich.",true);return;}
@@ -340,13 +347,7 @@ async function showLearningPreview() {
     if(error){message(globalMessage,"Ergebnisverifizierung fehlgeschlagen: "+error.message,true);return;}
     message(globalMessage,"Prognoseergebnis wurde verifiziert.");await showLearningPreview();
   }));
-  const pairs=(predictions||[]).flatMap(p=>(outcomes||[]).filter(o=>o.prediction_id===p.id&&o.observed_metric===p.target_metric&&Number.isFinite(Number(o.observed_value))&&Number.isFinite(Number(p.predicted_value))).map(o=>({predicted:Number(p.predicted_value),observed:Number(o.observed_value),outcomeObserved:o.verification_status==="verified",features:p.explanation?.features||{}})));
-  const current={performance:.24,tacticalFit:.26,potential:.18,scoutAssessment:.14,economicFit:.10,physicalFit:.08};
-  const proposal=proposeLearningUpdate(pairs,current);
-  host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+pairs.filter(x=>x.outcomeObserved).length+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen.</p>'+
-  (currentRole==="admin"?await renderPendingOutcomeReviews():"");
 }
-
 async function initialize() {
   if (!config || !config.url || !config.key || !clientFactory) {
     showAuth("myScoutingDatabase ist noch nicht mit einer freigegebenen Staging-Konfiguration verbunden.");
