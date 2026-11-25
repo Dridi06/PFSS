@@ -75,3 +75,14 @@ RLS is enabled on ASI tables. The current security advisor still reports pre-exi
 6. Candidate promotion creates exactly one player and an immutable snapshot; a second attempt is rejected without a duplicate.
 7. RLS tests prove cross-user candidate, evidence, analysis and player isolation.
 8. Staging deployment is verified against the dedicated ASI project; production configuration and data are unchanged.
+
+## Recruitment intelligence implementation update
+
+- Product scope is now explicitly a unified recruitment intelligence platform: internal authorized database candidates and lawful external candidates are ranked in one brief-specific workflow.
+- Human scout observations and ratings remain separately attributed, immutable in history, and visible beside AI-derived dimensions.
+- Added a deterministic, explainable ranking baseline at `asi-core/recruitment-engine.mjs`. It applies hard constraints, configurable weights, missing-data handling, evidence coverage, evidence confidence, reason/warning output and source-scope labels.
+- Added `tests/asi-recruitment-engine-smoke.mjs` and wired it into syntax and distribution test scripts.
+- This is a rules-based engineering baseline, not a trained or validated predictive model. It does not yet perform external research, fetch internal database records, calculate real football metrics, or forecast future player performance.
+- Next implementation gates: validate actual ASI table contracts; connect authorized internal search; build scout observation workflow; add source adapters only after rights review; then build calibrated, backtested potential models.
+- Repository separation remains a release prerequisite: current work is isolated on an ASI feature branch in the legacy PFSS repository. It is not yet a separate GitHub repository or separately deployed product. Do not deploy the legacy PFMS service.
+
