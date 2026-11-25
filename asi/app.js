@@ -1,6 +1,7 @@
 import { rankRecruitmentCandidates } from "../asi-core/recruitment-engine.mjs";
 import { comparePlayers, forecastTalent, assessTransferOpportunity, generateScoutingReport, analyzeVideoEvents, evaluateScoutCalibration, proposeLearningUpdate } from "../asi-core/intelligence-suite.mjs";
 import { evaluateRegression } from "../asi-core/model-evaluation.mjs";
+import { trainChronologicalModel } from "../asi-core/model-training.mjs";
 const config = window.MYSCOUTINGDATABASE_CONFIG;
 const clientFactory = window.supabase?.createClient;
 const authView = document.getElementById("authView");
@@ -395,6 +396,7 @@ async function showLearningPreview() {
   const evaluation=evaluateRegression(verifiedPairs);
   host.innerHTML='<p class="muted">Verifizierte Prognose-/Ergebnispaare: '+verifiedPairs.length+'</p><p class="muted">'+safe(evaluation.evaluable?"Modellfehler · MAE "+evaluation.mae+" · RMSE "+evaluation.rmse+" · Richtung "+evaluation.direction:evaluation.reason)+'</p><p class="muted">'+safe(proposal.available?"Lernvorschlag verfügbar – Freigabe erforderlich.":proposal.reason)+'</p><p class="tiny-note">Es wird kein Modell automatisch geändert. Nur administrativ verifizierte Ergebnisse dürfen in den Lernvorschlag eingehen. Eine ausreichende Stichprobe und zeitbasierte Validierung bleiben Voraussetzung.</p>'+
     (currentRole==="admin"?await renderPendingOutcomeReviews():"");
+  if(currentRole==="admin"){host.insertAdjacentHTML("afterbegin","<button id=\"trainCandidateModel\" class=\"text-button\" type=\"button\">ML-Kandidat chronologisch trainieren</button>");host.querySelector("#trainCandidateModel")?.addEventListener("click",trainCandidateModel);}
   host.querySelectorAll("[data-outcome-verify]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.outcomeVerify,source=host.querySelector('[data-outcome-source="'+id+'"]')?.value,reason=host.querySelector('[data-outcome-reason="'+id+'"]')?.value;
     if(!source||!reason||reason.trim().length<10){message(globalMessage,"HTTPS-Quelle und Prüfgrund (mind. 10 Zeichen) erforderlich.",true);return;}
@@ -403,6 +405,30 @@ async function showLearningPreview() {
     message(globalMessage,"Prognoseergebnis wurde verifiziert.");await showLearningPreview();
   }));
 }
+
+async function trainCandidateModel() {
+ if(currentRole!=="admin"){message(globalMessage,"Nur Administratoren dürfen Trainingsläufe starten.",true);return;}
+ const host=$("learningPreview");if(!host)return;
+ message(globalMessage,"Verifizierte Trainingsdaten werden geladen …");
+ const [predResult,outResult]=await Promise.all([
+  db.from("asi_prediction_records").select("id,target_metric,predicted_value,explanation,created_at").order("created_at",{ascending:true}).limit(5000),
+  db.from("asi_prediction_outcomes").select("prediction_id,observed_metric,observed_value,observed_on,verification_status").eq("verification_status","verified").order("observed_on",{ascending:true}).limit(5000)
+ ]);
+ if(predResult.error||outResult.error){message(globalMessage,"Trainingsdaten konnten nicht geladen werden.",true);return;}
+ const byId=new Map((predResult.data||[]).map(p=>[p.id,p]));
+ const rows=(outResult.data||[]).flatMap(o=>{const p=byId.get(o.prediction_id);if(!p||p.target_metric!==o.observed_metric)return[];return[{verified:true,observedAt:o.observed_on,actual:Number(o.observed_value),baselinePrediction:Number(p.predicted_value),features:p.explanation?.features||{}}];});
+ const trained=trainChronologicalModel(rows),now=new Date().toISOString(),version="ridge-"+now.replace(/[-:.TZ]/g,"").slice(0,14);
+ const {data:run,error:runError}=await db.from("asi_training_runs").insert({model_key:"player-development-score",candidate_version:version,status:"succeeded",data_cutoff_at:now,dataset_fingerprint:trained.datasetFingerprint||null,training_config:{algorithm:"standardized-ridge-regression",minimumSamples:50,chronologicalHoldout:0.2,autoActivation:false},evaluation_summary:trained,started_at:now,finished_at:now,created_by:currentUser.id}).select("id").single();
+ if(runError){message(globalMessage,"Trainingslauf nicht protokolliert: "+runError.message,true);return;}
+ if(!trained.available){host.insertAdjacentHTML("afterbegin",'<p class="muted">'+safe(trained.reason)+' · Datensätze: '+trained.sampleSize+'</p>');message(globalMessage,"Trainingslauf protokolliert; Datenbasis reicht noch nicht.");return;}
+ const {data:model,error:modelError}=await db.from("asi_model_versions").insert({model_key:"player-development-score",version,model_family:"ridge-regression",status:trained.passed?"candidate":"rejected",training_data_cutoff:now,metrics:{...trained.metrics,baselineMetrics:trained.baselineMetrics,improvementPercent:trained.improvementPercent,passed:trained.passed},configuration:{algorithm:trained.algorithm,features:trained.features,means:trained.means,scales:trained.scales,coefficients:trained.coefficients,intercept:trained.intercept,regularization:trained.regularization,trainingRunId:run.id,datasetFingerprint:trained.datasetFingerprint,requiresAdminApproval:true}}).select("id").single();
+ if(modelError){message(globalMessage,"Modellartefakt nicht gespeichert: "+modelError.message,true);return;}
+ const {error:evaluationError}=await db.from("asi_model_evaluations").insert({model_version_id:model.id,evaluation_name:"Chronological holdout vs. baseline",dataset_start:trained.holdoutStart.slice(0,10),dataset_end:trained.holdoutEnd.slice(0,10),metrics:{candidate:trained.metrics,baseline:trained.baselineMetrics,improvementPercent:trained.improvementPercent,trainSamples:trained.trainSamples,holdoutSamples:trained.holdoutSamples,datasetFingerprint:trained.datasetFingerprint},passed:trained.passed,evaluated_by:currentUser.id,notes:trained.passed?"Initial holdout passed; manual approval and cohort validation still required.":"Candidate failed the required 2% baseline improvement and was rejected."});
+ if(evaluationError){message(globalMessage,"Evaluation konnte nicht protokolliert werden: "+evaluationError.message,true);return;}
+ await showLearningPreview();
+ message(globalMessage,trained.passed?"Trainingskandidat gespeichert. Er bleibt inaktiv und benötigt Admin-Freigabe.":"Training beendet: Kandidat hat den Baseline-Test nicht bestanden und wurde verworfen.");
+}
+
 async function initialize() {
   if (!config || !config.url || !config.key || !clientFactory) {
     showAuth("myScoutingDatabase ist noch nicht mit einer freigegebenen Staging-Konfiguration verbunden.");
