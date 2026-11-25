@@ -1,0 +1,42 @@
+name: myScoutingDatabase isolated checks
+on:
+  push:
+    branches:
+      - feature/asi-intelligence-platform
+  pull_request:
+    branches:
+      - main
+jobs:
+  my-scouting-database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax checks
+        run: |
+          node --check asi/app.js
+          node --check asi-core/intelligence-suite.mjs
+          node --check asi-core/model-evaluation.mjs
+          node --check asi-core/model-training.mjs
+          node --check asi-core/video-detection.mjs
+          node --check scripts/build-asi.mjs
+      - name: Intelligence unit and contract tests
+        run: |
+          node tests/asi-intelligence-suite-smoke.mjs
+          node tests/asi-model-training-smoke.mjs
+          node tests/asi-video-detection-smoke.mjs
+          node tests/asi-model-lifecycle-smoke.mjs
+          node tests/asi-intelligence-integration-smoke.mjs
+          node tests/asi-workspace-contract-smoke.mjs
+          node tests/asi-candidate-evidence-migration-smoke.mjs
+      - name: Build isolated myScoutingDatabase staging artifact
+        env:
+          MYSCOUTINGDATABASE_BUILD_TARGET: ci
+        run: |
+          node scripts/build-asi.mjs
+          test -f dist-myscoutingdatabase/index.html
+          test -f dist-myscoutingdatabase/app.js
+          test -f dist-myscoutingdatabase/asi-core/model-training.mjs
+          test -f dist-myscoutingdatabase/asi-core/video-detection.mjs
